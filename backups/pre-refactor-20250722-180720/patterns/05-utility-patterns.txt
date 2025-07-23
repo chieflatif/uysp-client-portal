@@ -1,0 +1,37 @@
+patterns/05-utility-patterns.txt
+Utility Patterns for metrics, errors, and extras.
+
+Pattern: Daily Metrics with Cost Monitoring
+Purpose: Aggregate daily performance metrics and enforce cost limits
+Required Nodes: Schedule Trigger, Airtable (get data), Code (calculate), Airtable (save), Slack (report), Switch (alerts)
+Configuration:
+// Node 1: Daily Trigger
+Type: Schedule Trigger
+// Node 2: Get Today's Activity
+Type: Airtable
+// Node 3: Calculate Metrics
+Type: Code
+// Node 4: Save Daily Metrics
+Type: Airtable
+// Node 6: Send Report/Alert
+Type: Slack
+Error Handling: Alert on critical metrics.
+
+Pattern: Calendly Webhook Handler
+Purpose: Process Calendly booking events with signature validation placeholder
+Required Nodes: Webhook, Code (validate), Switch (filter), Airtable (find/update), Slack (notify)
+Configuration:
+// Node 1: Calendly Webhook
+Type: Webhook
+// Node 2: Validate Signature
+Type: Code (TODO: enable signature)
+Error Handling: Log webhook status.
+
+Pattern: Centralized Error Handler
+Purpose: Standardized error handling across all workflows
+Required Nodes: Code (error handler)
+Configuration:
+// Node 1: Centralized Error Handler
+Type: Code
+async function handleError(err, context) { ... } // Log, alert critical, route non-critical to review
+Error Handling: Self-contained.

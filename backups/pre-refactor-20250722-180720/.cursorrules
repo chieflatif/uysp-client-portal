@@ -1,0 +1,15 @@
+# UYSP Context Check Protocol
+
+BEFORE EVERY RESPONSE:
+1. Check @memory_bank/active_context.md for current state
+2. Check @memory_bank/progress.md for what's completed  
+3. State what you're about to build and why
+
+AFTER COMPLETING EACH COMPONENT:
+Update @memory_bank/active_context.md immediately
+
+MANDATORY: Start every response with:
+"Checking current state... 
+Last completed: [from active_context.md]
+About to build: [component name]
+Reason: [why this is next]" 

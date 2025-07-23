@@ -1,0 +1,11 @@
+.cursor/rules/standards.mdc
+# Development Standards
+
+- Code Nodes: Always try { } catch { console.error(); throw; } return {success: true, data}.
+- Workflows: Create inactive, name as per blueprint, log ID; export JSON via claude-code-mcp.
+- Retries: MAX_RETRIES=3, exponential backoff.
+- Tests: Show outputs, e.g., "Test input: {}, Output: {}"; generate scripts via claude-code-mcp if testsprite fails (announce switch).
+- Airtable: Retry on fail, batch 50; generate CSV schemas via claude-code-mcp as fallback.
+- SMS: Max 135 chars content, addOptOutLanguage=true.
+- Costs: Check before API, log after.
+- Always announce MCP fallbacks before switching to claude-code-mcp.

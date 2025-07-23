@@ -1,0 +1,271 @@
+{
+  "createdAt": "2025-07-20T20:58:32.852Z",
+  "updatedAt": "2025-07-21T17:36:55.739Z",
+  "id": "9VcXCYLoLpHPMmeh",
+  "name": "uysp-lead-processing-v3-dedup-upsert",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "=kajabi-leads",
+        "authentication": "headerAuth",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Kajabi Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [80, 100],
+      "webhookId": "3f7662e3-54c7-4b0e-9a12-273cd5280628",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "VNS3JAPKgDxyNQa3",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\nif (headers[\"x-api-key\"] !== \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOWQwYWM3Ni0xYjBlLTRmMGItYTlkZC1iNzEwZDI0NzZlZmEiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzUyMDYzNTE4LCJleHAiOjE3NTk3ODgwMDB9.IRZEs36NXR6WHcZb1PiC109S70tGKsmzP86zWpun3qg\") {\n  throw new Error(\"Unauthorized\");\n}\nreturn $json;"
+      },
+      "id": "2",
+      "name": "Validate API Key (Dynamic)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Smart Field Mapper with request_id support\nconst fieldMappings = {\n  email: ['email', 'Email', 'EMAIL', 'email_address', 'emailAddress', 'e-mail', 'contact_email'],\n  phone: ['phone', 'Phone', 'PHONE', 'phone_number', 'phoneNumber', 'mobile', 'cell'],\n  first_name: ['first_name', 'firstName', 'fname', 'given_name'],\n  last_name: ['last_name', 'lastName', 'lname', 'surname'],\n  full_name: ['name', 'Name', 'full_name', 'fullName'],\n  company: ['company', 'Company', 'company_name', 'organization'],\n  title: ['title', 'Title', 'job_title', 'role', 'position'],\n  linkedin: ['linkedin', 'LinkedIn', 'linkedin_url', 'linkedinProfile']\n};\n\nconst otherFields = {\n  source_form: ['source_form', 'source', 'form_name', 'utm_source'],\n  interested_in_coaching: ['interested_in_coaching', 'coaching_interest'],\n  request_id: ['request_id', 'requestId', 'request_ID']\n};\n\nconst normalized = {};\nconst unmappedFields = [];\nconst mappingLog = [];\n\nconst webhookData = $input.item.json;\nconst input = webhookData.body || webhookData;\n\n// Map standard fields\nObject.keys(fieldMappings).forEach(targetField => {\n  const variations = fieldMappings[targetField];\n  let found = false;\n  \n  for (const variation of variations) {\n    const inputKey = Object.keys(input).find(key => \n      key.toLowerCase() === variation.toLowerCase()\n    );\n    \n    if (inputKey && input[inputKey] !== undefined && input[inputKey] !== '') {\n      normalized[targetField] = input[inputKey];\n      mappingLog.push(`Mapped ${inputKey} → ${targetField}`);\n      found = true;\n      break;\n    }\n  }\n  \n  if (!found) {\n    normalized[targetField] = null;\n    mappingLog.push(`No mapping found for ${targetField}, set to null`);\n  }\n});\n\n// Map other fields\nObject.keys(otherFields).forEach(targetField => {\n  const variations = otherFields[targetField];\n  \n  for (const variation of variations) {\n    const inputKey = Object.keys(input).find(key => \n      key.toLowerCase() === variation.toLowerCase()\n    );\n    \n    if (inputKey && input[inputKey] !== undefined && input[inputKey] !== '') {\n      normalized[targetField] = input[inputKey];\n      mappingLog.push(`Mapped ${inputKey} → ${targetField}`);\n      break;\n    }\n  }\n});\n\n// Handle name splitting\nif (normalized.full_name && !normalized.first_name) {\n  const parts = normalized.full_name.split(' ');\n  normalized.first_name = parts[0] || null;\n  normalized.last_name = parts.slice(1).join(' ') || null;\n  mappingLog.push(`Split full_name into first/last`);\n}\n\n// Find unmapped fields\nObject.keys(input).forEach(key => {\n  const wasMapped = mappingLog.some(log => log.includes(key));\n  if (!wasMapped) {\n    unmappedFields.push(key);\n  }\n});\n\n// Add metadata\nnormalized._mapping_metadata = {\n  original_field_count: Object.keys(input).length,\n  mapped_field_count: Object.keys(normalized).length - 1,\n  unmapped_fields: unmappedFields,\n  mapping_timestamp: new Date().toISOString(),\n  success_rate: ((Object.keys(normalized).length - 1) / Object.keys(input).length * 100).toFixed(2) + '%'\n};\n\nif (unmappedFields.length > 0) {\n  console.log('Unknown fields detected:', unmappedFields);\n}\n\nif (!normalized.email) {\n  throw new Error('CRITICAL: No email field found in payload. Cannot process lead.');\n}\n\nreturn { \n  ...webhookData,\n  normalized,\n  unmappedFields,\n  mappingLog\n};"
+      },
+      "id": "2.5",
+      "name": "Smart Field Mapper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 100]
+    },
+    {
+      "parameters": {
+        "authentication": "airtableTokenApi",
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appuBf0fTe8tp8ZaF",
+          "mode": ""
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSk2Ikg21932uE0",
+          "mode": ""
+        },
+        "filterByFormula": "OR({email} = '{{ $json.normalized.email }}', {phone_primary} = '{{ $json.normalized.phone }}')",
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "3",
+      "name": "Airtable Search (Dynamic)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [700, 100],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "G40CUwPD7dTJJofz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the search results from Airtable\nconst searchResults = $input.first().json;\nconst hasRecords = searchResults.records && searchResults.records.length > 0;\n\n// Get the normalized data from Smart Field Mapper\nconst normalizedData = $node[\"Smart Field Mapper\"].json;\n\nif (hasRecords) {\n  // Duplicate found\n  const existingRecord = searchResults.records[0];\n  return {\n    duplicate: true,\n    duplicateCount: (existingRecord.fields.duplicate_count || 0) + 1,\n    recordId: existingRecord.id,\n    ...normalizedData  // Pass through all data from Smart Field Mapper\n  };\n} else {\n  // No duplicate\n  return {\n    duplicate: false,\n    duplicateCount: 0,\n    ...normalizedData  // Pass through all data from Smart Field Mapper\n  };\n}"
+      },
+      "id": "4",
+      "name": "Duplicate Handler (Dynamic)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.duplicate}}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5",
+      "name": "Route by Duplicate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1100, 100]
+    },
+    {
+      "parameters": {
+        "authentication": "airtableTokenApi",
+        "resource": "record",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appuBf0fTe8tp8ZaF",
+          "mode": ""
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSk2Ikg21932uE0",
+          "mode": ""
+        },
+        "recordId": "={{ $json.recordId }}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "duplicate_count": "={{$json.duplicateCount}}",
+            "last_updated": "={{$now.toISO()}}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "6",
+      "name": "Airtable Upsert (Dynamic)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [1300, 50],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "G40CUwPD7dTJJofz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableTokenApi",
+        "resource": "record",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appuBf0fTe8tp8ZaF",
+          "mode": ""
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSk2Ikg21932uE0",
+          "mode": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json.normalized.email}}",
+            "first_name": "={{$json.normalized.first_name}}",
+            "last_name": "={{$json.normalized.last_name}}",
+            "phone_primary": "={{$json.normalized.phone}}",
+            "company_input": "={{$json.normalized.company}}",
+            "title_current": "={{$json.normalized.title}}",
+            "linkedin_url": "={{$json.normalized.linkedin}}",
+            "interested_in_coaching": "={{$json.normalized.interested_in_coaching}}",
+            "request_id": "={{$json.normalized.request_id || $json.request_id}}",
+            "lead_source": "={{$json.normalized.source_form}}",
+            "lead_status": "New",
+            "created_date": "={{$now.toISO()}}",
+            "last_updated": "={{$now.toISO()}}",
+            "enrichment_status": "pending",
+            "qualification_score": 0,
+            "icp_score": 0,
+            "reengagement_count": 0,
+            "duplicate_count": 0,
+            "phase_1_status": "pending",
+            "phase_2_status": "pending",
+            "phase_3_status": "pending",
+            "phase_4_status": "pending",
+            "phase_5_status": "pending",
+            "phase_6_status": "pending",
+            "sms_opt_out": false,
+            "email_opt_out": false,
+            "is_test_mode": false
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "7",
+      "name": "Airtable Create (Dynamic)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [1300, 150],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "G40CUwPD7dTJJofz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return { \n  message: 'Workflow complete', \n  success: true,\n  timestamp: new Date().toISOString(),\n  data: $json \n};"
+      },
+      "id": "8",
+      "name": "End Node (Dynamic)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 100]
+    }
+  ],
+  "connections": {
+    "Kajabi Webhook": {
+      "main": [[{"node": "Validate API Key (Dynamic)", "type": "main", "index": 0}]]
+    },
+    "Validate API Key (Dynamic)": {
+      "main": [[{"node": "Smart Field Mapper", "type": "main", "index": 0}]]
+    },
+    "Smart Field Mapper": {
+      "main": [[{"node": "Airtable Search (Dynamic)", "type": "main", "index": 0}]]
+    },
+    "Airtable Search (Dynamic)": {
+      "main": [[{"node": "Duplicate Handler (Dynamic)", "type": "main", "index": 0}]]
+    },
+    "Duplicate Handler (Dynamic)": {
+      "main": [[{"node": "Route by Duplicate", "type": "main", "index": 0}]]
+    },
+    "Route by Duplicate": {
+      "main": [
+        [{"node": "Airtable Upsert (Dynamic)", "type": "main", "index": 0}],
+        [{"node": "Airtable Create (Dynamic)", "type": "main", "index": 0}]
+      ]
+    },
+    "Airtable Upsert (Dynamic)": {
+      "main": [[{"node": "End Node (Dynamic)", "type": "main", "index": 0}]]
+    },
+    "Airtable Create (Dynamic)": {
+      "main": [[{"node": "End Node (Dynamic)", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "versionId": "d405ea07-508f-4215-b00b-380cd71eb419",
+  "triggerCount": 1
+}

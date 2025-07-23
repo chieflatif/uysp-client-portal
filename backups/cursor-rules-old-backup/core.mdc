@@ -1,0 +1,11 @@
+.cursor/rules/core.mdc
+Follow these rules for all UYSP development in Cursor:
+
+1. Load only specified blueprint sections and current pattern file.
+2. Verify current workflows/tables before building.
+3. Build exactly as per pattern: Quote node configs.
+4. Test after each component with actual output.
+5. Use MCP: n8n-mcp for workflows, airtable-mcp for schemas; if fails, announce "Switching to claude-code-mcp fallback due to [tool] failure" and use it.
+6. Report progress: ✓ Component - details.
+7. No additions beyond spec.
+8. As Cursor agent, reference Claude Desktop manager outputs in prompts.

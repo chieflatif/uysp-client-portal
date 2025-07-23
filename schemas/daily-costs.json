@@ -1,0 +1,57 @@
+{
+    "name": "Daily_Costs",
+    "fields": [
+        {
+            "name": "date",
+            "type": "date"
+        },
+        {
+            "name": "id",
+            "type": "autoNumber"
+        },
+        {
+            "name": "apollo_org_costs",
+            "type": "currency"
+        },
+        {
+            "name": "apollo_people_costs",
+            "type": "currency"
+        },
+        {
+            "name": "twilio_costs",
+            "type": "currency"
+        },
+        {
+            "name": "sms_costs",
+            "type": "currency"
+        },
+        {
+            "name": "total_costs",
+            "type": "currency"
+        },
+        {
+            "name": "budget_remaining",
+            "type": "number"
+        },
+        {
+            "name": "cost_overrun",
+            "type": "checkbox"
+        },
+        {
+            "name": "circuit_breaker_triggered",
+            "type": "checkbox"
+        },
+        {
+            "name": "created_at",
+            "type": "date"
+        },
+        {
+            "name": "initial_total",
+            "type": "number"
+        },
+        {
+            "name": "last_updated",
+            "type": "date"
+        }
+    ]
+}

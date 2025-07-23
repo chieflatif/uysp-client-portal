@@ -1,0 +1,124 @@
+{
+  "name": "UYSP Simple Lead Capture",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kajabi-leads",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "3f7662e3-54c7-4b0e-9a12-273cd5280628"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "application": "appXziNwwvNzuaGKp",
+        "table": "People",
+        "addAllFields": false,
+        "fields": [
+          "email",
+          "first_name",
+          "last_name",
+          "phone_primary",
+          "company_input",
+          "lead_source",
+          "request_id",
+          "test_mode_record"
+        ],
+        "options": {}
+      },
+      "id": "airtable",
+      "name": "Create in Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "airtableApi": {
+          "id": "G40CUwPD7dTJJofz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "email",
+              "value": "={{$json.body.email}}"
+            },
+            {
+              "name": "first_name",
+              "value": "={{$json.body.name.split(' ')[0]}}"
+            },
+            {
+              "name": "last_name",
+              "value": "={{$json.body.name.split(' ').slice(1).join(' ')}}"
+            },
+            {
+              "name": "phone_primary",
+              "value": "={{$json.body.phone}}"
+            },
+            {
+              "name": "company_input",
+              "value": "={{$json.body.company}}"
+            },
+            {
+              "name": "lead_source",
+              "value": "={{$json.body.source_form}}"
+            },
+            {
+              "name": "request_id",
+              "value": "={{$json.body.request_id}}"
+            }
+          ],
+          "boolean": [
+            {
+              "name": "test_mode_record",
+              "value": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set",
+      "name": "Prepare Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [450, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data": {
+      "main": [
+        [
+          {
+            "node": "Create in Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "simple-lead-capture"
+}

@@ -1,0 +1,47 @@
+{
+    "name": "Enrichment_Cache",
+    "fields": [
+        {
+            "name": "email",
+            "type": "email"
+        },
+        {
+            "name": "source",
+            "type": "singleSelect",
+            "options": {
+                "choices": [
+                    {
+                        "name": "apollo_org"
+                    },
+                    {
+                        "name": "apollo_people"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "response_data",
+            "type": "richText"
+        },
+        {
+            "name": "cached_date",
+            "type": "date"
+        },
+        {
+            "name": "cache_expiry",
+            "type": "date"
+        },
+        {
+            "name": "cost",
+            "type": "currency"
+        },
+        {
+            "name": "success",
+            "type": "checkbox"
+        },
+        {
+            "name": "error_message",
+            "type": "richText"
+        }
+    ]
+}

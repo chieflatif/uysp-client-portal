@@ -1,0 +1,49 @@
+{
+    "name": "DND_List",
+    "fields": [
+        {
+            "name": "phone",
+            "type": "phoneNumber"
+        },
+        {
+            "name": "email",
+            "type": "email"
+        },
+        {
+            "name": "opt_out_date",
+            "type": "date"
+        },
+        {
+            "name": "opt_out_source",
+            "type": "singleSelect",
+            "options": {
+                "choices": [
+                    {
+                        "name": "sms"
+                    },
+                    {
+                        "name": "email"
+                    },
+                    {
+                        "name": "manual"
+                    },
+                    {
+                        "name": "import"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "reason",
+            "type": "richText"
+        },
+        {
+            "name": "permanent",
+            "type": "checkbox"
+        },
+        {
+            "name": "resubscribe_date",
+            "type": "date"
+        }
+    ]
+}

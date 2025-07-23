@@ -1,0 +1,55 @@
+patterns/04-sms-patterns.txt
+From 04-sms-patterns.txt:
+
+SMS Patterns for sending, templates, and tracking.
+
+Pattern: SMS Sending with Complete Compliance
+Purpose: Send personalized SMS with all compliance checks, test mode, and cost tracking
+Required Nodes: Code (checks), Airtable (DND/duplicate), Code (generate message), HTTP (send), Airtable (log)
+Configuration:
+// Node 1: Verify 10DLC
+Type: Code
+// Node 1.5: Get Monthly SMS Count
+Type: Execute Workflow
+// Node 5: Generate Message
+Type: Code (templates, length check)
+// Node 8: Send SMS via SimpleTexting
+Type: HTTP Request
+// Node 9: Log Communication
+Type: Airtable
+Error Handling: Handle invalid phone, opted out.
+
+Pattern: Monthly SMS Count Query
+Purpose: Get accurate monthly SMS count for limit enforcement
+Required Nodes: Code (date range), Airtable (count), Code (process)
+Configuration:
+// Node 1: Calculate Month Range
+Type: Code
+// Node 2: Get Monthly SMS Count
+Type: Airtable
+// Node 3: Process Monthly Count
+Type: Code
+Error Handling: Throw if limit reached.
+
+Pattern: Error Recovery for Failed Sends
+Purpose: Retry failed SMS/email sends with duplicate protection
+Required Nodes: Code (check attempts), Wait (backoff), Execute original send
+Configuration:
+// Node 1: Check Previous Attempts
+Type: Code
+// Node 2: Wait Before Retry
+Type: Wait
+// Node 3: Execute Send Pattern
+Type: Execute Workflow
+Error Handling: Route final failure to human review.
+
+// Pattern: SMS Delivery Webhook Handler (from end of original document)
+Purpose: Receive and process SMS delivery status updates from SimpleTexting
+// Node 1: Webhook
+Type: Webhook
+// Node 2: Parse Delivery Status
+Type: Code
+// Node 3: Find Communication Record
+Type: Airtable
+// Node 4: Update Delivery Status
+Type: Airtable
