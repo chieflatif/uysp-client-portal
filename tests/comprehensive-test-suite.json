@@ -1,0 +1,363 @@
+{
+  "name": "UYSP Comprehensive Test Suite",
+  "version": "1.0",
+  "description": "Complete test suite covering all webhook field variations and edge cases",
+  "webhook_url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads",
+  
+  "test_categories": {
+    "field_variations": {
+      "description": "Test all known field name variations from webhooks",
+      "tests": [
+        {
+          "id": "FV001",
+          "name": "Standard Kajabi Format",
+          "payload": {
+            "email": "test-standard@example.com",
+            "name": "John Standard",
+            "phone": "555-0001",
+            "company": "Standard Corp",
+            "source_form": "webinar-signup",
+            "interested_in_coaching": "yes",
+            "request_id": "test-FV001"
+          },
+          "expected": {
+            "normalized_fields": ["email", "first_name", "last_name", "phone", "company", "source_form", "interested_in_coaching"],
+            "airtable_record": true,
+            "field_mapping_rate": 100
+          }
+        },
+        {
+          "id": "FV002",
+          "name": "ALL CAPS Fields",
+          "payload": {
+            "EMAIL": "test-caps@example.com",
+            "NAME": "Jane Caps",
+            "PHONE": "555-0002",
+            "COMPANY": "CAPS CORP",
+            "INTERESTED_IN_COACHING": "YES",
+            "request_id": "test-FV002"
+          },
+          "expected": {
+            "normalized_fields": ["email", "first_name", "last_name", "phone", "company", "interested_in_coaching"],
+            "airtable_record": true,
+            "boolean_conversion": true
+          }
+        },
+        {
+          "id": "FV003",
+          "name": "Mixed Case Chaos",
+          "payload": {
+            "Email": "test-mixed@example.com",
+            "Name": "Bob Mixed",
+            "Phone": "555-0003",
+            "Company": "Mixed Co",
+            "request_id": "test-FV003"
+          },
+          "expected": {
+            "normalized_fields": ["email", "first_name", "last_name", "phone", "company"],
+            "airtable_record": true
+          }
+        },
+        {
+          "id": "FV004",
+          "name": "Alternative Field Names",
+          "payload": {
+            "email_address": "test-alt@example.com",
+            "full_name": "Alice Alternative",
+            "phone_number": "555-0004",
+            "company_name": "Alt Corp",
+            "form_name": "download-guide",
+            "request_id": "test-FV004"
+          },
+          "expected": {
+            "normalized_fields": ["email", "first_name", "last_name", "phone", "company", "source_form"],
+            "airtable_record": true
+          }
+        },
+        {
+          "id": "FV005",
+          "name": "Underscore Variations",
+          "payload": {
+            "email_address": "test-underscore@example.com",
+            "first_name": "Charlie",
+            "last_name": "Underscore",
+            "phone_number": "555-0005",
+            "company_name": "Under_Score Inc",
+            "job_title": "Sales Manager",
+            "request_id": "test-FV005"
+          },
+          "expected": {
+            "normalized_fields": ["email", "first_name", "last_name", "phone", "company", "title"],
+            "airtable_record": true
+          }
+        },
+        {
+          "id": "FV006",
+          "name": "CamelCase Fields",
+          "payload": {
+            "emailAddress": "test-camel@example.com",
+            "firstName": "David",
+            "lastName": "CamelCase",
+            "phoneNumber": "555-0006",
+            "companyName": "CamelCorp",
+            "jobTitle": "Account Executive",
+            "request_id": "test-FV006"
+          },
+          "expected": {
+            "normalized_fields": ["email", "first_name", "last_name", "phone", "company", "title"],
+            "airtable_record": true
+          }
+        },
+        {
+          "id": "FV007",
+          "name": "LinkedIn Variations",
+          "payload": {
+            "email": "test-linkedin@example.com",
+            "name": "Eve LinkedIn",
+            "linkedin_url": "https://linkedin.com/in/eve",
+            "linkedinUrl": "should be ignored",
+            "request_id": "test-FV007"
+          },
+          "expected": {
+            "normalized_fields": ["email", "first_name", "last_name", "linkedin_url"],
+            "single_linkedin_value": true
+          }
+        }
+      ]
+    },
+    
+    "boolean_conversions": {
+      "description": "Test all boolean value conversions",
+      "tests": [
+        {
+          "id": "BC001",
+          "name": "String Yes Variations",
+          "payload": {
+            "email": "test-bool-yes@example.com",
+            "name": "Bool Yes",
+            "interested_in_coaching": "yes",
+            "qualified_lead": "YES",
+            "contacted": "Yes",
+            "request_id": "test-BC001"
+          },
+          "expected": {
+            "all_booleans_true": true,
+            "airtable_checkboxes": true
+          }
+        },
+        {
+          "id": "BC002",
+          "name": "Boolean True Values",
+          "payload": {
+            "email": "test-bool-true@example.com",
+            "name": "Bool True",
+            "interested_in_coaching": true,
+            "qualified_lead": "true",
+            "contacted": "TRUE",
+            "request_id": "test-BC002"
+          },
+          "expected": {
+            "all_booleans_true": true
+          }
+        },
+        {
+          "id": "BC003",
+          "name": "Numeric 1 Values",
+          "payload": {
+            "email": "test-bool-one@example.com",
+            "name": "Bool One",
+            "interested_in_coaching": 1,
+            "qualified_lead": "1",
+            "contacted": "on",
+            "request_id": "test-BC003"
+          },
+          "expected": {
+            "all_booleans_true": true
+          }
+        },
+        {
+          "id": "BC004",
+          "name": "False Variations",
+          "payload": {
+            "email": "test-bool-false@example.com",
+            "name": "Bool False",
+            "interested_in_coaching": "no",
+            "qualified_lead": false,
+            "contacted": "0",
+            "request_id": "test-BC004"
+          },
+          "expected": {
+            "all_booleans_false": true
+          }
+        }
+      ]
+    },
+    
+    "edge_cases": {
+      "description": "Test error handling and edge cases",
+      "tests": [
+        {
+          "id": "EC001",
+          "name": "Missing Critical Fields",
+          "payload": {
+            "email": "test-minimal@example.com",
+            "request_id": "test-EC001"
+          },
+          "expected": {
+            "workflow_continues": true,
+            "airtable_record": true,
+            "no_errors": true
+          }
+        },
+        {
+          "id": "EC002",
+          "name": "Empty Values",
+          "payload": {
+            "email": "test-empty@example.com",
+            "name": "",
+            "phone": "",
+            "company": null,
+            "request_id": "test-EC002"
+          },
+          "expected": {
+            "handles_empty_gracefully": true,
+            "airtable_record": true
+          }
+        },
+        {
+          "id": "EC003",
+          "name": "International Phone",
+          "payload": {
+            "email": "test-intl@example.com",
+            "name": "International User",
+            "phone": "+44 7700 900123",
+            "request_id": "test-EC003"
+          },
+          "expected": {
+            "routing": "human_review",
+            "international_flag": true
+          }
+        },
+        {
+          "id": "EC004",
+          "name": "Special Characters",
+          "payload": {
+            "email": "test+special@example.com",
+            "name": "O'Brien-Smith",
+            "company": "AT&T / Verizon",
+            "request_id": "test-EC004"
+          },
+          "expected": {
+            "handles_special_chars": true,
+            "airtable_record": true
+          }
+        }
+      ]
+    },
+    
+    "duplicate_handling": {
+      "description": "Test duplicate prevention logic",
+      "tests": [
+        {
+          "id": "DH001",
+          "name": "Exact Duplicate",
+          "first_payload": {
+            "email": "test-duplicate@example.com",
+            "name": "Original Name",
+            "phone": "555-1001",
+            "request_id": "test-DH001-A"
+          },
+          "second_payload": {
+            "email": "test-duplicate@example.com",
+            "name": "Updated Name",
+            "phone": "555-1002",
+            "request_id": "test-DH001-B"
+          },
+          "expected": {
+            "single_record": true,
+            "updated_not_created": true,
+            "latest_values": true
+          }
+        },
+        {
+          "id": "DH002",
+          "name": "Case Insensitive Email",
+          "first_payload": {
+            "email": "test-case@example.com",
+            "name": "Lower Case",
+            "request_id": "test-DH002-A"
+          },
+          "second_payload": {
+            "EMAIL": "TEST-CASE@EXAMPLE.COM",
+            "NAME": "Upper Case",
+            "request_id": "test-DH002-B"
+          },
+          "expected": {
+            "single_record": true,
+            "case_ignored": true
+          }
+        }
+      ]
+    },
+    
+    "compliance_tests": {
+      "description": "Test compliance gates",
+      "tests": [
+        {
+          "id": "CT001",
+          "name": "DND Listed Number",
+          "setup": "Add +14155551111 to DND_List first",
+          "payload": {
+            "email": "test-dnd@example.com",
+            "name": "DND User",
+            "phone": "415-555-1111",
+            "request_id": "test-CT001"
+          },
+          "expected": {
+            "sms_blocked": true,
+            "compliance_logged": true,
+            "airtable_record": true
+          }
+        }
+      ]
+    }
+  },
+  
+  "test_execution": {
+    "setup": {
+      "1": "Ensure TEST_MODE=true",
+      "2": "Clear test records from Airtable",
+      "3": "Add DND test number",
+      "4": "Prepare webhook URL"
+    },
+    
+    "for_each_test": {
+      "1": "Click 'Execute Workflow' in n8n",
+      "2": "Send test payload via curl",
+      "3": "Wait 5 seconds for processing",
+      "4": "Verify Airtable record",
+      "5": "Check field normalization",
+      "6": "Document results"
+    },
+    
+    "verification_queries": {
+      "find_record": "filterByFormula: {email} = '[test-email]'",
+      "check_fields": "Verify all expected fields populated",
+      "check_routing": "Verify routing field set correctly",
+      "check_compliance": "Verify compliance checks logged"
+    }
+  },
+  
+  "curl_commands": {
+    "template": "curl -X POST [webhook_url] -H 'Content-Type: application/json' -d '[payload]'",
+    "example": "curl -X POST https://rebelhq.app.n8n.cloud/webhook/kajabi-leads -H 'Content-Type: application/json' -d '{\"email\":\"test@example.com\",\"name\":\"Test User\"}'"
+  },
+  
+  "success_criteria": {
+    "field_normalization": "95%+ fields captured",
+    "duplicate_prevention": "Zero duplicate records",
+    "compliance_gates": "All checks enforced",
+    "error_handling": "Graceful degradation",
+    "processing_time": "Under 5 seconds per lead"
+  }
+} 
