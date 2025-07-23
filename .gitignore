@@ -1,0 +1,113 @@
+# UYSP Lead Qualification - Comprehensive .gitignore
+
+# Environment and credentials
+.env
+.env.local
+.env.production
+.env.staging
+credentials.json
+**/credentials/
+*.key
+*.pem
+api-keys.json
+
+# n8n specific
+*.n8n
+.n8n/
+n8n-data/
+workflows/temp/
+executions/
+
+# Airtable and API secrets
+airtable-credentials.json
+apollo-api-key.txt
+twilio-credentials.json
+openai-api-key.txt
+
+# Backups and temp files
+*.backup
+*.tmp
+*.log
+temp/
+scratch/
+local-only/
+draft/
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (if any scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+
+# Sensitive data directories
+**/api-keys/
+**/secrets/
+**/private/
+personal-notes/
+client-data/
+
+# Test data with real info
+tests/real-data/
+tests/production-payloads/
+
+# Local configurations
+config/local.json
+config/development.json
+
+# Webhook test responses
+webhook-responses/
+test-results/real-*
+
+# But include templates and examples
+!*.template
+!*.example
+!environment.template
+!credentials.template
+!config/*.template.json
+
+# Documentation exports
+docs/exports/
+memory_bank/private/
+
+# Backup exclusions
+backups/encrypted/
+backups/production/
+
+# macOS specific
+.AppleDouble
+.LSOverride
+
+# Windows specific
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux specific
+*~
+.fuse_hidden*
+.directory
+.Trash-* 

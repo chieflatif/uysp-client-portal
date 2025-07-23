@@ -1,0 +1,174 @@
+patterns/01-core-patterns.txt
+Core Patterns for foundational setup, webhooks, and data handling.
+
+# CRITICAL n8n PLATFORM LIMITATIONS (Must Read First)
+
+# PREREQUISITE: Pattern 00 (Field Normalization) MUST be implemented first
+# This pattern assumes Smart Field Mapper is the first node after any webhook
+
+## UI-Only Settings That Break Workflows
+1. **"Always Output Data" Toggle**
+   - Location: Node Settings tab (NOT Parameters tab)
+   - Must be ON for IF/Switch nodes to continue on empty
+   - Cannot be set via API/JSON
+   - Symptom: "No output data returned" errors
+
+2. **Credential Corruption on Updates**
+   - ANY programmatic update can null credential IDs
+   - Symptom: "No authentication data defined on node!"
+   - Solution: Manual UI re-selection only
+   - NEVER use MCP for workflow updates
+
+## Expression Syntax Requirements
+- MUST have spaces: `{{ $json.field }}`  ✓
+- Will fail silently: `{{$json.field}}`  ✗
+- Applies to all formula fields
+- No error message - just empty results
+
+## Webhook Test Mode Behavior
+- Requires manual "Execute Workflow" click per test
+- Webhook only listens for one request
+- Not a bug - by design for development
+- Production mode: Always listening
+- **Testing Solution**: Use `/scripts/automated-webhook-test.sh`
+- **Production URL** (no manual steps): `https://rebelhq.app.n8n.cloud/webhook/kajabi-leads`
+
+## Credential JSON Display
+- Credentials showing as `null` in JSON exports is NORMAL
+- This is n8n's security feature, not corruption
+- Trust the UI credential display, not JSON
+- Only re-select if you get actual auth errors
+
+## Table References
+- Use Table IDs: `tblXXXXXXXXXXXXXX` ✓
+- Never table names: `People` ✗
+- Names work intermittently = silent failures
+
+## Common Error Solutions
+"Cannot read property 'length' of undefined"
+→ Enable "Always Output Data" in Settings tab
+
+"Expression error: filterByFormula: Nested expressions are not supported"  
+→ Add spaces: {{ $json.field }} not {{$json.field}}
+
+"No authentication data defined on node!"
+→ Credential corrupted, needs UI re-selection
+
+Pattern: Bootstrap and Initial Setup
+Purpose: Fully automate the initial setup of environment variables, tables, and sample data using commands.
+Required Nodes: Code (set variables and check tables), Airtable (create sample records if needed)
+Configuration:
+// Node 1: Set Variables and Check Tables
+Type: Code
+const vars = { TEST_MODE: 'true', TEN_DLC_REGISTERED: 'false', ... }; // Full vars list from original
+// Check tables and initialize
+return { bootstrap_complete: true };
+// Node 1.5: Initialize Daily Costs if Empty
+Type: Code
+const today = new Date().toISOString().split('T')[0];
+const dailyCostsCheck = await $node["Airtable"].execute({
+  operation: 'search',
+  table: 'Daily_Costs',
+  filterByFormula: `{date} = '${today}'`
+});
+if (dailyCostsCheck.length === 0) {
+  await $node["Airtable"].execute({
+    operation: 'create',
+    table: 'Daily_Costs',
+    fields: {
+      date: today,
+      initial_total: 0,
+      apollo_org_costs: 0,
+      apollo_people_costs: 0,
+      twilio_costs: 0,
+      sms_costs: 0,
+      total_costs: 0
+    }
+  });
+}
+return { daily_costs_initialized: true };
+// Node 2: Create Sample Records
+Type: Airtable
+Operation: Create
+Table: People
+Fields: { email: 'sample@example.com', ... }
+Error Handling: console.error('Bootstrap failed for table');
+
+Pattern: Test Mode Enforcement
+Purpose: Prevent accidental SMS sends and API calls during development/testing
+Required Nodes: Code (check test mode), Switch (route based on mode)
+Configuration:
+// Node 1: Check Test Mode
+Type: Code
+const TEST_MODE = $vars.TEST_MODE === 'true';
+if (TEST_MODE) { return { test_mode: true, ... }; }
+// Node 2: Route by Mode
+Type: Switch
+Rules: test_mode = true → Log Only
+Error Handling: In SMS nodes - if test_mode, log and simulate success.
+
+Pattern: Webhook Authentication with Duplicate Prevention
+Purpose: Secure webhook reception with header-based authentication and duplicate request prevention
+Required Nodes: Webhook (trigger), Code (validation + duplicate check), Airtable (check request_id), Switch (route duplicates)
+CRITICAL Platform Notes:
+- See Gotcha #5 in platform-gotchas: Webhook test mode requires manual "Execute Workflow" click per test
+- See Gotcha #17: Credential JSON shows null in exports (NORMAL - security feature)
+- Testing: Use automated script at /scripts/automated-webhook-test.sh or see /docs/webhook-testing-guide.md
+Configuration:
+// Node 1: Webhook
+Type: Webhook
+Settings: HTTP Method: POST, Path: /webhook/[endpoint-name], Authentication: Header Auth (X-API-Key)
+// Node 2: Validate and Generate Request ID
+Type: Code
+const request_id = ...; // Generate or extract
+// Node 3: Check Request Already Processed
+Type: Airtable
+Filter by Formula: OR({request_id} = '{{$json.request_id}}', ...)
+// Node 4: Skip if Duplicate
+Type: Switch
+Error Handling: Return 200 for duplicates, 400 for validation errors.
+
+Pattern: Airtable Upsert with Multiple Match Logging
+Purpose: Create or update records based on unique identifier with logging for data integrity
+Required Nodes: Airtable (search), Code (log multiples), Switch (route), Airtable (create/update), Merge
+Configuration:
+// Node 1: Search Existing
+Type: Airtable
+Filter by Formula: OR({email} = '{{$json.email}}', ...)
+// Node 2: Check and Log Multiple Matches
+Type: Code
+if (matches.length > 1) { console.warn('Multiple records found'); }
+// Node 3: Route Decision
+Type: Switch
+// Nodes 4A/B: Create/Update
+Error Handling: Retry On Fail: true, Max Tries: {{$vars.MAX_RETRIES}}
+
+Pattern: Batch Processing with Memory Safety
+Purpose: Process large datasets without overwhelming memory or APIs
+Required Nodes: Airtable (get batch), Code (chunk data), Loop (process chunks), Wait, Airtable (update)
+Configuration:
+// Node 1: Get Batch
+Type: Airtable
+Max Records: {{$vars.BATCH_SIZE}}
+// Node 2: Chunk and Validate Size
+Type: Code
+const chunks = []; // Create chunks
+// Node 3: Process Loop
+Type: Loop Over Items
+Error Handling: Console log memory warnings.
+
+Pattern: Complete Lead Processing Flow
+Purpose: Connect all patterns into a complete working workflow
+Required Nodes: All patterns connected in sequence
+Configuration: MAIN WORKFLOW: uysp-lead-processing-v1
+Webhook Receiver → Test Mode Check → ... → SMS Campaign
+Error Handling: Each step continues on error for non-critical failures.
+
+Pattern: Workflow ID Helper
+Purpose: Centralized workflow ID management and lookup
+Required Nodes: Code (ID lookup helper)
+Configuration:
+// Node 1: Workflow ID Helper
+Type: Code
+async function getWorkflowId(workflowName) { ... } // From env or Airtable
+Error Handling: Throw if not found.

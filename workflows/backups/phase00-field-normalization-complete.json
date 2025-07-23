@@ -1,0 +1,78 @@
+{
+  "workflow_backup_metadata": {
+    "backup_date": "2025-07-23T11:30:00.000Z",
+    "phase": "Phase 00 - Field Normalization",
+    "status": "COMPLETE",
+    "version_id": "87e5e6cd-0626-4f94-b58b-423aadfe4f00",
+    "smart_field_mapper_node": "a3493afa-1eaf-41bb-99ca-68fe76209a29",
+    "webhook_node": "a01c64a7-880f-4003-86e1-61f129f329a9",
+    "backup_reason": "Phase 00 completion backup with all micro-chunks implemented"
+  },
+  "createdAt": "2025-07-22T20:32:33.525Z",
+  "updatedAt": "2025-07-23T11:04:14.000Z",
+  "id": "CefJB1Op3OySG8nb",
+  "name": "uysp-lead-processing-WORKING",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kajabi-leads",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "a01c64a7-880f-4003-86e1-61f129f329a9",
+      "name": "Kajabi Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-1360, -20],
+      "webhookId": "8c6cab96-480f-42b2-88d4-5c85093f8903"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validation removed - webhook auth now handled at webhook level\nreturn $json;"
+      },
+      "id": "495a3a5b-7d5d-4056-9ea5-c37d1b92800e",
+      "name": "Validate API Key (Dynamic)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1180, -20]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Smart Field Mapper with request_id support\nconst fieldMappings = {\n  email: ['email', 'Email', 'EMAIL', 'email_address', 'emailAddress', 'e-mail', 'contact_email'],\n  phone: ['phone', 'Phone', 'PHONE', 'phone_number', 'phoneNumber', 'mobile', 'cell'],\n  first_name: ['first_name', 'firstName', 'fname', 'given_name'],\n  last_name: ['last_name', 'lastName', 'lname', 'surname'],\n  full_name: ['name', 'Name', 'full_name', 'fullName'],\n  company: ['company', 'Company', 'company_name', 'organization'],\n  title: ['title', 'Title', 'job_title', 'role', 'position'],\n  linkedin: ['linkedin', 'LinkedIn', 'linkedin_url', 'linkedinProfile']\n};\n\nconst otherFields = {\n  source_form: ['source_form', 'source', 'form_name', 'utm_source'],\n  interested_in_coaching: ['interested_in_coaching', 'coaching_interest'],\n  qualified_lead: ['qualified_lead', 'qualifiedLead', 'qualified', 'is_qualified'],\n  contacted: ['contacted', 'wasContacted', 'has_been_contacted', 'contact_made'],\n  request_id: ['request_id', 'requestId', 'request_ID']\n};\n\nconst normalized = {};\nconst unmappedFields = [];\nconst mappingLog = [];\n\nconst webhookData = $input.item.json;\nconst input = webhookData.body || webhookData;\n\n// Map standard fields\nObject.keys(fieldMappings).forEach(targetField => {\n  const variations = fieldMappings[targetField];\n  let found = false;\n  \n  for (const variation of variations) {\n    const inputKey = Object.keys(input).find(key => \n      key.toLowerCase() === variation.toLowerCase()\n    );\n    \n    if (inputKey && input[inputKey] !== undefined && input[inputKey] !== '') {\n      normalized[targetField] = input[inputKey];\n      mappingLog.push(`Mapped ${inputKey} → ${targetField}`);\n      found = true;\n      break;\n    }\n  }\n  \n  if (!found) {\n    normalized[targetField] = null;\n    mappingLog.push(`No mapping found for ${targetField}, set to null`);\n  }\n});\n\n// Map other fields\nObject.keys(otherFields).forEach(targetField => {\n  const variations = otherFields[targetField];\n  \n  for (const variation of variations) {\n    const inputKey = Object.keys(input).find(key => \n      key.toLowerCase() === variation.toLowerCase()\n    );\n    \n    if (inputKey && input[inputKey] !== undefined && input[inputKey] !== '') {\n      normalized[targetField] = input[inputKey];\n      mappingLog.push(`Mapped ${inputKey} → ${targetField}`);\n      break;\n    }\n  }\n});\n\n// Handle name splitting\nif (normalized.full_name && !normalized.first_name) {\n  const parts = normalized.full_name.split(' ');\n  normalized.first_name = parts[0] || null;\n  normalized.last_name = parts.slice(1).join(' ') || null;\n  mappingLog.push(`Split full_name into first/last`);\n}\n\n// Boolean conversions for Airtable checkboxes\n['interested_in_coaching', 'qualified_lead', 'contacted'].forEach(field => {\n  if (normalized[field] !== undefined) {\n    const val = String(normalized[field]).toLowerCase();\n    normalized[field] = ['true', 'yes', '1', 'on', 'y', 'checked'].includes(val);\n  }\n});\n\n// International phone detection and country code extraction\nif (normalized.phone) {\n  const isInternational = !normalized.phone.match(/^(\\+1|1)?[2-9]/);\n  normalized.international_phone = isInternational;\n  normalized.phone_country_code = isInternational ? \n    normalized.phone.match(/^\\+\\d{1,3}/)?.[0] || 'unknown' : '+1';\n}\n\n// Find unmapped fields\nObject.keys(input).forEach(key => {\n  const wasMapped = mappingLog.some(log => log.includes(key));\n  if (!wasMapped) {\n    unmappedFields.push(key);\n  }\n});\n\n// Session 0 metrics for field mapping analysis\nnormalized.field_mapping_success_rate = \n  (Object.keys(normalized).length / Object.keys(input).length * 100).toFixed(1);\nnormalized.webhook_field_count = Object.keys(input).length;\nnormalized.mapped_field_count = Object.keys(normalized).length;\nnormalized.normalization_version = 'v3.0-2025-07-23';\nnormalized.raw_webhook_data = JSON.stringify(input);\nnormalized.unknown_field_list = JSON.stringify(unmappedFields);\n\n// Add metadata\nnormalized._mapping_metadata = {\n  original_field_count: Object.keys(input).length,\n  mapped_field_count: Object.keys(normalized).length - 1,\n  unmapped_fields: unmappedFields,\n  mapping_timestamp: new Date().toISOString(),\n  success_rate: ((Object.keys(normalized).length - 1) / Object.keys(input).length * 100).toFixed(2) + '%'\n};\n\nif (unmappedFields.length > 0) {\n  console.log('Unknown fields detected:', unmappedFields);\n}\n\nif (!normalized.email) {\n  throw new Error('CRITICAL: No email field found in payload. Cannot process lead.');\n}\n\nreturn { \n  ...webhookData,\n  normalized,\n  unmappedFields,\n  mappingLog\n};"
+      },
+      "id": "a3493afa-1eaf-41bb-99ca-68fe76209a29",
+      "name": "Smart Field Mapper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1000, -20]
+    }
+  ],
+  "connections": {
+    "Kajabi Webhook": {
+      "main": [[{"node": "Validate API Key (Dynamic)", "type": "main", "index": 0}]]
+    },
+    "Validate API Key (Dynamic)": {
+      "main": [[{"node": "Smart Field Mapper", "type": "main", "index": 0}]]
+    },
+    "Smart Field Mapper": {
+      "main": [[{"node": "Check Unknown Fields", "type": "main", "index": 0}]]
+    },
+    "Check Unknown Fields": {
+      "main": [
+        [{"node": "Log Unknown Fields", "type": "main", "index": 0}],
+        [{"node": "Airtable Search (Dynamic)", "type": "main", "index": 0}]
+      ]
+    },
+    "Log Unknown Fields": {
+      "main": [[{"node": "Airtable Search (Dynamic)", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "87e5e6cd-0626-4f94-b58b-423aadfe4f00",
+  "triggerCount": 1
+} 

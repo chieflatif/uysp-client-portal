@@ -1,0 +1,53 @@
+# Reality-Based Testing Protocol
+
+## The Testing Theater Problem
+We spent hours running tests that checked:
+- ✗ HTTP 200 responses
+- ✗ Webhook acknowledgments  
+- ✗ Execution started status
+- ✗ Console logs
+
+But NEVER checked:
+- ✓ Did a record actually get created in Airtable?
+- ✓ Were all fields mapped correctly?
+- ✓ Did the workflow complete end-to-end?
+
+## Webhook Test Mode Reality
+**CRITICAL**: In n8n test mode, webhooks work differently:
+1. Must click "Execute Workflow" button BEFORE each test
+2. Webhook listens for ONE request only
+3. Must use external trigger (curl/TestSprite/code_execution)
+4. Cannot test from within n8n interface
+5. Each test needs fresh activation
+
+## Required Testing Approach
+
+### 1. Test Payload Variations (Minimum 10)
+```javascript
+const testPayloads = [
+  // Standard Kajabi format
+  { email: 'test1@example.com', name: 'John Doe', phone: '555-0001' },
+  
+  // Case variations
+  { Email: 'test2@example.com', Name: 'Jane Doe', Phone: '555-0002' },
+  
+  // Field name variations
+  { email_address: 'test3@example.com', full_name: 'Bob Smith', phone_number: '555-0003' },
+  
+  // Boolean variations
+  { email: 'test4@example.com', interested_in_coaching: 'yes' },
+  { email: 'test5@example.com', interested_in_coaching: true },
+  { email: 'test6@example.com', interested_in_coaching: '1' },
+  
+  // Missing fields
+  { email: 'test7@example.com' }, // No name/phone
+  
+  // Duplicate testing
+  { email: 'test1@example.com', name: 'John Duplicate' },
+  
+  // International format
+  { email: 'test8@example.com', phone: '+44 7700 900123' },
+  
+  // Company variations
+  { email: 'test9@example.com', company: 'Acme Corp', Company: 'Should be ignored' }
+];
