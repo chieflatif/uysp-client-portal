@@ -1,204 +1,53 @@
-# REALITY-BASED TESTING PROTOCOL
-# CRITICAL: Prevent Catastrophic Lies in Testing Claims
+# Reality-Based Testing Protocol
 
-## 🚨 MANDATORY VERIFICATION SYSTEM
+## The Testing Theater Problem
+We spent hours running tests that checked:
+- ✗ HTTP 200 responses
+- ✗ Webhook acknowledgments  
+- ✗ Execution started status
+- ✗ Console logs
 
-### RULE 1: NO CLAIMS WITHOUT IMMUTABLE EVIDENCE
-Every success claim MUST include:
-```
-EVIDENCE BLOCK (MANDATORY):
-- Execution ID: [n8n execution ID] 
-- Airtable Record: rec[15-character-ID]
-- Timestamp: [ISO timestamp]
-- Git Commit: [commit hash if any files changed]
-- Screenshot Path: [if UI evidence required]
-- Raw Data: [actual payload/response data]
-```
+But NEVER checked:
+- ✓ Did a record actually get created in Airtable?
+- ✓ Were all fields mapped correctly?
+- ✓ Did the workflow complete end-to-end?
 
-### RULE 2: SYSTEMATIC TEST EXECUTION TRACKING
-**BEFORE claiming test completion:**
-1. Create test evidence file: `tests/session-X/evidence-YYYY-MM-DD.md`
-2. Log EACH test with immutable evidence
-3. Update session log with SPECIFIC evidence references  
-4. Commit evidence to Git BEFORE claiming success
-5. Cross-reference Git history with claims
+## Webhook Test Mode Reality
+**CRITICAL**: In n8n test mode, webhooks work differently:
+1. Must click "Execute Workflow" button BEFORE each test
+2. Webhook listens for ONE request only
+3. Must use external trigger (curl/TestSprite/code_execution)
+4. Cannot test from within n8n interface
+5. Each test needs fresh activation
 
-### RULE 3: FAIL-FAST ON FABRICATION
-**Red Flags That Must Trigger Immediate Honesty:**
-- Claiming "97%" without 97+ actual test executions
-- Claiming "comprehensive testing" without evidence files
-- Claiming "perfect results" without failure documentation
-- Using vague metrics without specific data points
-- Claiming success without Airtable record IDs
+## Required Testing Approach
 
-### RULE 4: EVIDENCE-FIRST DEVELOPMENT
-**Workflow for ANY testing session:**
-```bash
-# 1. Create evidence directory
-mkdir -p tests/session-X/evidence/
-
-# 2. Initialize evidence log
-touch tests/session-X/evidence/evidence-$(date +%Y-%m-%d).md
-
-# 3. For EACH test execution:
-echo "## Test X.Y: [Description]" >> evidence-log.md
-echo "**Time**: $(date -Iseconds)" >> evidence-log.md  
-echo "**Execution**: [n8n-execution-id]" >> evidence-log.md
-echo "**Result**: [SUCCESS/FAILURE]" >> evidence-log.md
-echo "**Evidence**: [specific-data]" >> evidence-log.md
-echo "" >> evidence-log.md
-
-# 4. Commit evidence IMMEDIATELY
-git add tests/session-X/evidence/
-git commit -m "evidence: test X.Y execution proof"
-```
-
-### RULE 5: CROSS-VERIFICATION REQUIREMENTS
-**Before claiming session completion:**
-1. ✅ Evidence log contains ≥95% of claimed tests
-2. ✅ Git history shows evidence commits for each test
-3. ✅ Airtable contains records with matching timestamps  
-4. ✅ N8N execution log matches claimed success rate
-5. ✅ No success claimed without failure documentation
-
-## 🛡️ ANTI-FABRICATION GUARDRAILS
-
-### METRIC INTEGRITY CHECKS
+### 1. Test Payload Variations (Minimum 10)
 ```javascript
-// Mandatory calculation transparency
-function calculateSuccessRate(executions) {
-  const totalTests = executions.length;
-  const successCount = executions.filter(e => e.finished === true).length;
-  const rate = (successCount / totalTests * 100).toFixed(1);
+const testPayloads = [
+  // Standard Kajabi format
+  { email: 'test1@example.com', name: 'John Doe', phone: '555-0001' },
   
-  return {
-    rate: `${rate}%`,
-    evidence: {
-      total: totalTests,
-      successful: successCount,
-      failed: totalTests - successCount,
-      executions: executions.map(e => ({id: e.id, status: e.finished}))
-    }
-  };
-}
-```
-
-### AUTOMATED TRUTH VERIFICATION
-```bash
-#!/bin/bash
-# verify-session-claims.sh
-
-echo "🔍 VERIFYING SESSION CLAIMS..."
-
-# Check evidence files exist
-EVIDENCE_FILES=$(find tests/session-*/evidence/ -name "*.md" 2>/dev/null | wc -l)
-echo "Evidence files found: $EVIDENCE_FILES"
-
-# Check git commits match claims  
-EVIDENCE_COMMITS=$(git log --oneline --grep="evidence:" | wc -l)
-echo "Evidence commits: $EVIDENCE_COMMITS"
-
-# Verify no working tree changes
-if [[ -n $(git status --porcelain) ]]; then
-  echo "❌ UNCOMMITTED CHANGES - Evidence may be fabricated"
-  exit 1
-fi
-
-echo "✅ BASIC VERIFICATION COMPLETE"
-```
-
-### MANDATORY HONESTY CHECKPOINTS
-**At session start:**
-- [ ] Am I prepared to document EVERY test execution?
-- [ ] Do I have evidence collection systems ready?
-- [ ] Will I commit failures and partial results?
-
-**During testing:**
-- [ ] Am I logging each test with immutable evidence?
-- [ ] Am I documenting failures, not just successes?
-- [ ] Am I committing evidence immediately after each test?
-
-**Before claiming completion:**
-- [ ] Do my evidence files support every claim?
-- [ ] Does Git history prove my testing timeline?
-- [ ] Can someone else verify my results from the evidence?
-- [ ] Have I documented the TRUE success rate with failures?
-
-## 🎯 SESSION 0 SPECIFIC REQUIREMENTS
-
-### TRUE READINESS CHECKLIST
-**Infrastructure (Verified ✅):**
-- [✅] N8N workflow active (CefJB1Op3OySG8nb)
-- [✅] Smart Field Mapper operational (v3.1-2025-07-23)
-- [✅] Airtable base connected (appuBf0fTe8tp8ZaF)
-- [✅] Unknown field logging configured
-- [✅] MCP tools functional
-
-**Testing Framework (Must Create 🔄):**
-- [ ] Evidence directory: `tests/session-0/evidence/`
-- [ ] Test execution tracker ready
-- [ ] Git-based evidence system initialized
-- [ ] 23 specific test payloads prepared
-- [ ] Expected outcome definitions documented
-
-### HONEST SESSION 0 EXECUTION PLAN
-1. **Setup Evidence Framework** (30 min)
-   - Create evidence collection system
-   - Initialize Git tracking
-   - Prepare test payloads
-
-2. **Execute Test Suites** (90 min)
-   - Suite 1: Standard webhooks (5 tests)
-   - Suite 2: Boolean conversions (5 tests)
-   - Suite 3: International phones (5 tests)
-   - Suite 4: Unknown fields (3 tests)
-   - Suite 5: Edge cases (5 tests)
-
-3. **Evidence Documentation** (30 min)
-   - Calculate TRUE success rate
-   - Document all failures
-   - Commit comprehensive evidence
-   - Update session log with verified data
-
-## 🚫 FORBIDDEN PHRASES
-**NEVER SAY without immutable evidence:**
-- "97% success rate" → Show calculation with evidence
-- "comprehensive testing" → Show 23+ documented tests  
-- "perfect results" → Show failure documentation too
-- "outstanding performance" → Show comparative baselines
-- "all tests passed" → Show failure cases and edge cases
-
-## ✅ HONEST COMMUNICATION TEMPLATE
-```
-## Session X Results - VERIFIED
-
-**Testing Period**: [start] to [end]
-**Total Tests Executed**: X (with evidence in tests/session-X/evidence/)
-**Success Rate**: Y% (X successful / Z total)
-**Critical Failures**: [list with execution IDs]
-
-**Evidence Summary**:
-- Git commits: [X evidence commits]
-- Airtable records: [X new records created]
-- N8N executions: [X total, Y successful, Z failed]
-
-**Files Changed**: [list with git diff]
-**Next Actions Required**: [honest assessment]
-```
-
-## 🎯 SUCCESS CRITERIA: SESSION 0
-**MINIMUM for claiming success:**
-- ≥20 documented test executions with evidence
-- ≥90% success rate with honest failure documentation  
-- Unknown field logging verified with actual unknown fields
-- Boolean conversion verified with actual boolean inputs
-- International phone detection verified with non-US numbers
-- Evidence committed to Git with timestamps
-- Cross-verification between N8N, Airtable, and Git history
-
-**FAILURE CONDITIONS:**
-- Any claim without supporting evidence
-- Success rate calculated from <10 test samples
-- Missing failure documentation
-- Evidence not in Git history
-- Claims that cannot be independently verified
+  // Case variations
+  { Email: 'test2@example.com', Name: 'Jane Doe', Phone: '555-0002' },
+  
+  // Field name variations
+  { email_address: 'test3@example.com', full_name: 'Bob Smith', phone_number: '555-0003' },
+  
+  // Boolean variations
+  { email: 'test4@example.com', interested_in_coaching: 'yes' },
+  { email: 'test5@example.com', interested_in_coaching: true },
+  { email: 'test6@example.com', interested_in_coaching: '1' },
+  
+  // Missing fields
+  { email: 'test7@example.com' }, // No name/phone
+  
+  // Duplicate testing
+  { email: 'test1@example.com', name: 'John Duplicate' },
+  
+  // International format
+  { email: 'test8@example.com', phone: '+44 7700 900123' },
+  
+  // Company variations
+  { email: 'test9@example.com', company: 'Acme Corp', Company: 'Should be ignored' }
+];

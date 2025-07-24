@@ -1,3 +1,4 @@
+04-sms-patterns.txt
 patterns/04-sms-patterns.txt
 From 04-sms-patterns.txt:
 
@@ -20,6 +21,7 @@ Type: Code (templates, length check)
 Type: HTTP Request
 // Node 9: Log Communication
 Type: Airtable
+// GOTCHA: Opted-out boolean: Map false to null in logging.
 Error Handling: Handle invalid phone, opted out.
 
 Pattern: Monthly SMS Count Query

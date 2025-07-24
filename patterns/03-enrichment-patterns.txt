@@ -1,3 +1,4 @@
+03-enrichment-patterns.txt
 patterns/03-enrichment-patterns.txt
 From 03-enrichment-patterns.txt:
 
@@ -48,6 +49,7 @@ Type: Code
 // Node 3: Route Cache Decision
 Type: Switch
 Error Handling: Track cache performance.
+// Post-test: Clean cache via Airtable delete for test emails.
 
 Pattern: ICP Scoring with AI
 Purpose: Calculate ICP score (0-100) using Claude AI with domain fallback
@@ -61,6 +63,7 @@ Type: HTTP Request
 Type: Code
 // Node 5: Domain Fallback Scoring
 Type: Code
+// GOTCHA: Boolean inputs to scoring: Map false to null before API.
 Error Handling: Log fallbacks.
 
 Pattern: Phone Enrichment for High-Value Leads

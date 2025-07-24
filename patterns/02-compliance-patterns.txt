@@ -1,3 +1,4 @@
+02-compliance-patterns.txt
 patterns/02-compliance-patterns.txt
 Compliance Patterns for 10DLC, DND, TCPA, and pre-flight checks.
 
@@ -29,6 +30,7 @@ Type: Airtable
 // Node 3: Check DND Result
 Type: Code
 if (dndResults.length > 0) throw new Error('Phone on DND list');
+// GOTCHA: If DND is boolean, map false to null for Airtable search.
 
 From SMS Sending Pattern (Extracted TCPA Time Check):
 // Node 4: Check Send Time
@@ -44,6 +46,7 @@ Configuration:
 Type: Code
 // 1. Check 10DLC, 2. Monthly count, 3. DND, 4. Time window, 5. Duplicate, 6. Test mode
 return { sms_preflight_passed: true, ... };
+// Automate checks via n8n API in testing batches.
 Error Handling: Throws specific errors for each failure.
 
 Pattern: Universal Retry Pattern
