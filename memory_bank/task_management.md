@@ -108,6 +108,7 @@ This ensures transparency and prevents hallucination in task completion claims.
 | Expression Safety | Use ternaries to preserve false values | docs/critical-platform-gotchas.md | ✅ Integrated |
 | Cleanup Protocol | Batch delete with preservation filters | patterns/01-core-patterns.txt | ✅ Integrated |
 | Evidence Blocks | Mandatory for all success claims | Updated task management protocols | ✅ Integrated |
+| Schema v3.1 | Airtable schema aligned with all learnings | Provided schema reference | ✅ Verified Compatible |
 
 ### Non-Technical Learnings Table
 | Type | Description | Implementation | Status |

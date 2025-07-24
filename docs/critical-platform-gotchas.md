@@ -214,6 +214,7 @@ EVIDENCE:
 - **API Automation**: Use n8n REST API for batch testing
 - **Cleanup Protocol**: Use batch delete with preservation filters
 - **Evidence Tables**: Include metrics and verification data in all test results
+- **Schema Compatibility**: Use Airtable Schema v3.1 - fully aligned with all context engineering learnings
 
 ---
 

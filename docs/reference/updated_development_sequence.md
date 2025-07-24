@@ -2,12 +2,20 @@
 
 This document outlines the phased, session-based development process for the UYSP system. **UPDATED** to include mandatory field normalization as Session 0 and other critical discoveries from failure analysis.
 
-## Pre-Build Checklist (30-60 minutes)
+## Pre-Build Checklist (30-60 minutes) - UPDATED FOR SCHEMA v3.1
 - Verify MCP Tools: Test n8n-mcp, airtable-mcp, context7, testsprite
-- Create Airtable Base: Use airtable-mcp with updated schemas v2
+- Create Airtable Base: Use airtable-mcp with updated schemas v3.1 (LATEST)
 - Set Up n8n: Add credentials; set TEST_MODE=true
 - Load Critical Patterns: 00-field-normalization-mandatory.txt, 06-reality-based-testing-protocol.txt
-- **NEW**: Create Field_Mapping_Log table in Airtable (MANDATORY)
+- **SCHEMA v3.1**: All tables now include context engineering learnings integration
+- **VERIFICATION**: Field_Mapping_Log table schema matches project expectations
+
+**Schema v3.1 Key Enhancements:**
+- Enhanced People table with processing pipeline tracking
+- Cost tracking fields aligned with API automation patterns  
+- Test record identification for cleanup automation
+- International phone detection support
+- Boolean field handling optimized for Airtable API gotchas
 
 Fallback: If MCP fails, generate JSON/manuals via AI.
 
