@@ -1,0 +1,565 @@
+{
+  "summary": {
+    "total_tests": 8,
+    "successful_webhooks": 8,
+    "test_categories": {
+      "company_updates": 3,
+      "name_changes": 4,
+      "multi_field_conflicts": 1
+    }
+  },
+  "test_results": [
+    {
+      "test_type": "company_update",
+      "step": 1,
+      "payload": {
+        "name": "Business Owner",
+        "email": "field-conflicts-1753362503@example.com",
+        "company": "Startup Inc",
+        "title": "Founder",
+        "phone": "555-COMPANY",
+        "request_id": "company-001"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:08:26.478Z",
+          "data": {
+            "id": "rec4JwQ4I0UNykRIe",
+            "createdTime": "2025-07-24T13:08:25.000Z",
+            "fields": {
+              "email": "field-conflicts-1753362503@example.com",
+              "first_name": "Business",
+              "last_name": "Owner",
+              "phone_primary": "555-COMPANY",
+              "company_input": "Startup Inc",
+              "title_current": "Founder",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "company-001",
+              "duplicate_count": 1,
+              "field_mapping_success_rate": 83,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"176\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a56093b10e5f-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362503\",\"x-forwarded-for\":\"178.22.255.251, 162.158.129.123\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-xx8dm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Business Owner\",\"email\":\"field-conflicts-1753362503@example.com\",\"company\":\"Startup Inc\",\"title\":\"Founder\",\"phone\":\"555-COMPANY\",\"request_id\":\"company-001\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 6,
+              "mapped_field_count": 5,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-COMPANY"
+            }
+          }
+        },
+        "response_time": 2.853907
+      },
+      "analysis": {
+        "input_fields": 6,
+        "mapped_fields": 4,
+        "field_mapping_rate": 83,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": true
+      }
+    },
+    {
+      "test_type": "company_update",
+      "step": 2,
+      "payload": {
+        "name": "Business Owner",
+        "email": "field-conflicts-1753362503@example.com",
+        "company": "Growth Corp",
+        "title": "CEO",
+        "phone": "555-COMPANY",
+        "request_id": "company-002"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:08:31.498Z",
+          "data": {
+            "id": "rec4JwQ4I0UNykRIe",
+            "createdTime": "2025-07-24T13:08:25.000Z",
+            "fields": {
+              "email": "field-conflicts-1753362503@example.com",
+              "first_name": "Business",
+              "last_name": "Owner",
+              "phone_primary": "555-COMPANY",
+              "company_input": "Startup Inc",
+              "title_current": "Founder",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "company-001",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 83,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"172\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a57f7427eda0-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362508\",\"x-forwarded-for\":\"178.22.255.251, 172.70.216.104\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Business Owner\",\"email\":\"field-conflicts-1753362503@example.com\",\"company\":\"Growth Corp\",\"title\":\"CEO\",\"phone\":\"555-COMPANY\",\"request_id\":\"company-002\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 6,
+              "mapped_field_count": 5,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-COMPANY"
+            }
+          }
+        },
+        "response_time": 3.017019
+      },
+      "analysis": {
+        "input_fields": 6,
+        "mapped_fields": 4,
+        "field_mapping_rate": 83,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": true
+      }
+    },
+    {
+      "test_type": "company_update",
+      "step": 3,
+      "payload": {
+        "name": "Business Owner",
+        "email": "field-conflicts-1753362503@example.com",
+        "company": "Enterprise LLC",
+        "title": "Chief Executive",
+        "phone": "555-COMPANY",
+        "request_id": "company-003"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:08:36.478Z",
+          "data": {
+            "id": "rec4JwQ4I0UNykRIe",
+            "createdTime": "2025-07-24T13:08:25.000Z",
+            "fields": {
+              "email": "field-conflicts-1753362503@example.com",
+              "first_name": "Business",
+              "last_name": "Owner",
+              "phone_primary": "555-COMPANY",
+              "company_input": "Startup Inc",
+              "title_current": "Founder",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "company-001",
+              "duplicate_count": 5,
+              "field_mapping_success_rate": 83,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"187\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a59e86a7eea1-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362513\",\"x-forwarded-for\":\"178.22.255.251, 172.69.68.120\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Business Owner\",\"email\":\"field-conflicts-1753362503@example.com\",\"company\":\"Enterprise LLC\",\"title\":\"Chief Executive\",\"phone\":\"555-COMPANY\",\"request_id\":\"company-003\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 6,
+              "mapped_field_count": 5,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-COMPANY"
+            }
+          }
+        },
+        "response_time": 2.978084
+      },
+      "analysis": {
+        "input_fields": 6,
+        "mapped_fields": 4,
+        "field_mapping_rate": 83,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": true
+      }
+    },
+    {
+      "test_type": "name_change",
+      "step": 1,
+      "payload": {
+        "email": "name-changes-1753362518@example.com",
+        "phone": "555-NAMES",
+        "company": "Name Testing Corp",
+        "request_id": "name-test-001",
+        "name": "John Smith"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:08:41.409Z",
+          "data": {
+            "id": "recYJG5VQlWU3WXIp",
+            "createdTime": "2025-07-24T13:08:40.000Z",
+            "fields": {
+              "email": "name-changes-1753362518@example.com",
+              "first_name": "John",
+              "last_name": "Smith",
+              "phone_primary": "555-NAMES",
+              "company_input": "Name Testing Corp",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "name-test-001",
+              "duplicate_count": 1,
+              "field_mapping_success_rate": 80,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"155\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a5bdb721bacd-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362518\",\"x-forwarded-for\":\"178.22.255.251, 172.71.114.177\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"email\":\"name-changes-1753362518@example.com\",\"phone\":\"555-NAMES\",\"company\":\"Name Testing Corp\",\"request_id\":\"name-test-001\",\"name\":\"John Smith\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 5,
+              "mapped_field_count": 4,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-NAMES"
+            }
+          }
+        },
+        "response_time": 2.934938
+      },
+      "analysis": {
+        "input_fields": 5,
+        "mapped_fields": 4,
+        "field_mapping_rate": 80,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": true
+      }
+    },
+    {
+      "test_type": "name_change",
+      "step": 2,
+      "payload": {
+        "email": "name-changes-1753362518@example.com",
+        "phone": "555-NAMES",
+        "company": "Name Testing Corp",
+        "request_id": "name-test-002",
+        "name": "Jonathan Smith-Johnson"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:08:46.568Z",
+          "data": {
+            "id": "recYJG5VQlWU3WXIp",
+            "createdTime": "2025-07-24T13:08:40.000Z",
+            "fields": {
+              "email": "name-changes-1753362518@example.com",
+              "first_name": "John",
+              "last_name": "Smith-Johnson",
+              "phone_primary": "555-NAMES",
+              "company_input": "Name Testing Corp",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "name-test-001",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 80,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"167\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a5dcf70bed8e-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362523\",\"x-forwarded-for\":\"178.22.255.251, 172.70.216.106\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"email\":\"name-changes-1753362518@example.com\",\"phone\":\"555-NAMES\",\"company\":\"Name Testing Corp\",\"request_id\":\"name-test-002\",\"name\":\"Jonathan Smith-Johnson\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 5,
+              "mapped_field_count": 4,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-NAMES"
+            }
+          }
+        },
+        "response_time": 3.157117
+      },
+      "analysis": {
+        "input_fields": 5,
+        "mapped_fields": 4,
+        "field_mapping_rate": 80,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": true
+      }
+    },
+    {
+      "test_type": "name_change",
+      "step": 3,
+      "payload": {
+        "email": "name-changes-1753362518@example.com",
+        "phone": "555-NAMES",
+        "company": "Name Testing Corp",
+        "request_id": "name-test-003",
+        "name": "Jon S. Johnson III"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:08:51.459Z",
+          "data": {
+            "id": "recYJG5VQlWU3WXIp",
+            "createdTime": "2025-07-24T13:08:40.000Z",
+            "fields": {
+              "email": "name-changes-1753362518@example.com",
+              "first_name": "John",
+              "last_name": "S. Johnson III",
+              "phone_primary": "555-NAMES",
+              "company_input": "Name Testing Corp",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "name-test-001",
+              "duplicate_count": 5,
+              "field_mapping_success_rate": 80,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"163\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a5fd0260ed9b-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362528\",\"x-forwarded-for\":\"178.22.255.251, 172.70.216.104\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"email\":\"name-changes-1753362518@example.com\",\"phone\":\"555-NAMES\",\"company\":\"Name Testing Corp\",\"request_id\":\"name-test-003\",\"name\":\"Jon S. Johnson III\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 5,
+              "mapped_field_count": 4,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-NAMES"
+            }
+          }
+        },
+        "response_time": 2.86032
+      },
+      "analysis": {
+        "input_fields": 5,
+        "mapped_fields": 4,
+        "field_mapping_rate": 80,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": true
+      }
+    },
+    {
+      "test_type": "name_change",
+      "step": 4,
+      "payload": {
+        "email": "name-changes-1753362518@example.com",
+        "phone": "555-NAMES",
+        "company": "Name Testing Corp",
+        "request_id": "name-test-004",
+        "first_name": "Johnny",
+        "last_name": "Smith"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:08:56.398Z",
+          "data": {
+            "id": "recYJG5VQlWU3WXIp",
+            "createdTime": "2025-07-24T13:08:40.000Z",
+            "fields": {
+              "email": "name-changes-1753362518@example.com",
+              "first_name": "John",
+              "last_name": "Smith",
+              "phone_primary": "555-NAMES",
+              "company_input": "Name Testing Corp",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "name-test-001",
+              "duplicate_count": 7,
+              "field_mapping_success_rate": 83,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"179\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a61c106eee65-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362533\",\"x-forwarded-for\":\"178.22.255.251, 172.69.68.153\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"email\":\"name-changes-1753362518@example.com\",\"phone\":\"555-NAMES\",\"company\":\"Name Testing Corp\",\"request_id\":\"name-test-004\",\"first_name\":\"Johnny\",\"last_name\":\"Smith\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 6,
+              "mapped_field_count": 5,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-NAMES"
+            }
+          }
+        },
+        "response_time": 2.985538
+      },
+      "analysis": {
+        "input_fields": 6,
+        "mapped_fields": 3,
+        "field_mapping_rate": 83,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": false
+      }
+    },
+    {
+      "test_type": "multi_field_conflict",
+      "original_payload": {
+        "name": "Sarah Wilson",
+        "email": "multi-conflict-1753362538@example.com",
+        "phone": "555-111-0000",
+        "company": "Original Corp",
+        "title": "Manager",
+        "source_form": "webinar-1",
+        "interested_in_coaching": "yes",
+        "request_id": "multi-001"
+      },
+      "conflict_payload": {
+        "name": "Sarah W. Johnson",
+        "email": "multi-conflict-1753362538@example.com",
+        "phone": "555-222-9999",
+        "company": "New Enterprise Inc",
+        "title": "Senior Director",
+        "source_form": "download-form",
+        "interested_in_coaching": "no",
+        "request_id": "multi-002"
+      },
+      "original_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:09:01.377Z",
+          "data": {
+            "id": "receiJ88ure6pmsRX",
+            "createdTime": "2025-07-24T13:09:00.000Z",
+            "fields": {
+              "email": "multi-conflict-1753362538@example.com",
+              "first_name": "Sarah",
+              "last_name": "Wilson",
+              "phone_primary": "555-111-0000",
+              "company_input": "Original Corp",
+              "title_current": "Manager",
+              "icp_score": 0,
+              "lead_source": "webinar-1",
+              "lead_status": "New",
+              "interested_in_coaching": true,
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "multi-001",
+              "duplicate_count": 1,
+              "field_mapping_success_rate": 88,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"235\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a63ab462baca-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362538\",\"x-forwarded-for\":\"178.22.255.251, 172.71.114.25\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-86vpc\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Sarah Wilson\",\"email\":\"multi-conflict-1753362538@example.com\",\"phone\":\"555-111-0000\",\"company\":\"Original Corp\",\"title\":\"Manager\",\"source_form\":\"webinar-1\",\"interested_in_coaching\":\"yes\",\"request_id\":\"multi-001\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 8,
+              "mapped_field_count": 7,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-111-0000"
+            }
+          }
+        },
+        "response_time": 2.928644
+      },
+      "conflict_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:09:06.608Z",
+          "data": {
+            "id": "receiJ88ure6pmsRX",
+            "createdTime": "2025-07-24T13:09:00.000Z",
+            "fields": {
+              "email": "multi-conflict-1753362538@example.com",
+              "first_name": "Sarah",
+              "last_name": "W. Johnson",
+              "phone_primary": "555-222-9999",
+              "company_input": "Original Corp",
+              "title_current": "Manager",
+              "icp_score": 0,
+              "lead_source": "webinar-1",
+              "lead_status": "New",
+              "interested_in_coaching": true,
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "multi-001",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 88,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"255\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a659c1a4baeb-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362543\",\"x-forwarded-for\":\"178.22.255.251, 172.71.114.20\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-xx8dm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Sarah W. Johnson\",\"email\":\"multi-conflict-1753362538@example.com\",\"phone\":\"555-222-9999\",\"company\":\"New Enterprise Inc\",\"title\":\"Senior Director\",\"source_form\":\"download-form\",\"interested_in_coaching\":\"no\",\"request_id\":\"multi-002\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 8,
+              "mapped_field_count": 7,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-111-0000"
+            }
+          }
+        },
+        "response_time": 3.213005
+      }
+    }
+  ],
+  "timestamp": "2025-07-24-15-09-06",
+  "test_type": "comprehensive_field_conflict_testing"
+}

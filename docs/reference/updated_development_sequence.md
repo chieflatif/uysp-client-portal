@@ -215,8 +215,63 @@ Enhanced: Add international routing to human review if non-US phone detected (e.
 - [ ] Team trained on human review queue
 - [ ] Verify nested expressions work but use simple ones per 2025 Airtable updates.
 
-## Session 8: Phase 2 Prep
-Goal: Add two-way SMS and re-engagement stubs; Build: Placeholder nodes for Claude AI conversations and batch mining; Test: Simulate opt-outs and replies.
+## Phase 2: Lead Enrichment & Qualification (UPDATED WITH PHONE STRATEGY)
+
+### 2.1 Phone Number Validation & Enrichment ⚠️ **CRITICAL UPDATE**
+
+**NEW 3-FIELD PHONE STRATEGY IMPLEMENTATION:**
+
+#### **Phone Field Architecture (IMPLEMENTED)**
+- `phone_original`: First phone ever received (NEVER changes)
+- `phone_recent`: Most recent phone received (ALWAYS updates)  
+- `phone_validated`: Final validated phone for campaigns (ENRICHMENT ONLY)
+
+#### **Validation Priority Logic (TO IMPLEMENT)**
+```
+1. Validate phone_recent (user's latest preference)
+   ✅ Valid → phone_validated = phone_recent
+   ❌ Invalid → Continue to step 2
+
+2. Validate phone_original (fallback to first number)
+   ✅ Valid → phone_validated = phone_original
+   ❌ Invalid → Continue to step 3
+
+3. Enrichment APIs (last resort)
+   ✅ Found → phone_validated = enriched_phone
+   ❌ Not found → human review queue
+```
+
+#### **Implementation Requirements:**
+- **Phone Validation API**: Select service (ZeroBounce, etc.)
+- **Enrichment Workflow**: Priority-based validation logic
+- **Campaign Integration**: Only use `phone_validated` for SMS
+- **Human Review**: Route failed validations to manual queue
+
+### 2.2 Apollo.io Org API Integration ✅ READY
+- Organization scoring based on company name/domain
+- Required: Domain or company name from lead
+- Cost: $0.01 per lookup (tracked in daily_costs)
+- Output: ICP score, company details, qualification status
+
+### 2.3 Apollo.io People API Integration ✅ READY  
+- Person enrichment for qualified organizations
+- Required: Successful org qualification (score ≥70)
+- Cost: $0.025 per lookup (tracked in daily_costs)
+- Output: Updated contact info, social profiles, validation status
+- **INTEGRATION NOTE**: Use `phone_validated` field for enriched phone numbers
+
+### 2.4 Airtable Updates & Cost Tracking ✅ READY
+- Update People record with enrichment data
+- **CRITICAL**: Phone enrichment updates `phone_validated` field ONLY
+- Log all API costs to Daily_Costs table  
+- Track qualification success rates
+- Update human_review_required field appropriately
+
+**Dependencies:**
+- Airtable Schema v3.1 ✅ (includes 3-field phone architecture)
+- Cost tracking tables ✅ 
+- Environment variables ✅
+- **NEW**: Phone validation service configuration
 
 ## Critical Success Factors (From Failure Analysis)
 

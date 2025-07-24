@@ -1,0 +1,778 @@
+{
+  "test_session": {
+    "name": "UYSP Comprehensive Test Suite",
+    "version": "1.0",
+    "start_time": "2025-07-23T15:02:53.709Z",
+    "end_time": "2025-07-23T15:07:17.883Z",
+    "total_tests": 18,
+    "passed_tests": 8,
+    "failed_tests": 10,
+    "success_rate": "44.4",
+    "automation_level": "fully_automated_with_verification"
+  },
+  "test_results": [
+    {
+      "test_id": "FV001",
+      "test_name": "Standard Kajabi Format",
+      "category": "field_variations",
+      "start_time": "2025-07-23T15:02:53.716Z",
+      "payload": {
+        "email": "test-standard@example.com",
+        "name": "John Standard",
+        "phone": "555-0001",
+        "company": "Standard Corp",
+        "source_form": "webinar-signup",
+        "interested_in_coaching": "yes",
+        "request_id": "test-FV001"
+      },
+      "expected": {
+        "normalized_fields": [
+          "email",
+          "first_name",
+          "last_name",
+          "phone",
+          "company",
+          "source_form",
+          "interested_in_coaching"
+        ],
+        "airtable_record": true,
+        "field_mapping_rate": 100
+      },
+      "success": true,
+      "airtable_record_id": "recaHiessXjmnfL0G",
+      "created_time": "2025-07-23T14:55:59.000Z",
+      "verification": {
+        "email_match": true,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": true,
+        "passed_checks": 9,
+        "total_checks": 9,
+        "verification_rate": "100.0"
+      },
+      "performance": {
+        "webhook_field_count": 7,
+        "mapped_field_count": 15,
+        "field_mapping_success_rate": 185.7,
+        "duplicate_count": 2
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 12936,
+      "end_time": "2025-07-23T15:03:06.652Z"
+    },
+    {
+      "test_id": "FV002",
+      "test_name": "ALL CAPS Fields",
+      "category": "field_variations",
+      "start_time": "2025-07-23T15:03:11.655Z",
+      "payload": {
+        "EMAIL": "test-caps@example.com",
+        "NAME": "Jane Caps",
+        "PHONE": "555-0002",
+        "COMPANY": "CAPS CORP",
+        "INTERESTED_IN_COACHING": "YES",
+        "request_id": "test-FV002"
+      },
+      "expected": {
+        "normalized_fields": [
+          "email",
+          "first_name",
+          "last_name",
+          "phone",
+          "company",
+          "interested_in_coaching"
+        ],
+        "airtable_record": true,
+        "boolean_conversion": true
+      },
+      "success": false,
+      "airtable_record_id": "recgk5XquNNMUxkqi",
+      "created_time": "2025-07-23T15:03:13.000Z",
+      "verification": {
+        "email_match": false,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": false,
+        "passed_checks": 8,
+        "total_checks": 9,
+        "verification_rate": "88.9"
+      },
+      "performance": {
+        "webhook_field_count": 6,
+        "mapped_field_count": 14,
+        "field_mapping_success_rate": 200,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 10228,
+      "end_time": "2025-07-23T15:03:21.883Z"
+    },
+    {
+      "test_id": "FV003",
+      "test_name": "Mixed Case Chaos",
+      "category": "field_variations",
+      "start_time": "2025-07-23T15:03:26.885Z",
+      "payload": {
+        "Email": "test-mixed@example.com",
+        "Name": "Bob Mixed",
+        "Phone": "555-0003",
+        "Company": "Mixed Co",
+        "request_id": "test-FV003"
+      },
+      "expected": {
+        "normalized_fields": [
+          "email",
+          "first_name",
+          "last_name",
+          "phone",
+          "company"
+        ],
+        "airtable_record": true
+      },
+      "success": false,
+      "airtable_record_id": "recqcz3v84u78vSQP",
+      "created_time": "2025-07-23T15:03:29.000Z",
+      "verification": {
+        "email_match": false,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": false,
+        "passed_checks": 8,
+        "total_checks": 9,
+        "verification_rate": "88.9"
+      },
+      "performance": {
+        "webhook_field_count": 5,
+        "mapped_field_count": 13,
+        "field_mapping_success_rate": 220,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 10014,
+      "end_time": "2025-07-23T15:03:36.899Z"
+    },
+    {
+      "test_id": "FV004",
+      "test_name": "Alternative Field Names",
+      "category": "field_variations",
+      "start_time": "2025-07-23T15:03:41.901Z",
+      "payload": {
+        "email_address": "test-alt@example.com",
+        "full_name": "Alice Alternative",
+        "phone_number": "555-0004",
+        "company_name": "Alt Corp",
+        "form_name": "download-guide",
+        "request_id": "test-FV004"
+      },
+      "expected": {
+        "normalized_fields": [
+          "email",
+          "first_name",
+          "last_name",
+          "phone",
+          "company",
+          "source_form"
+        ],
+        "airtable_record": true
+      },
+      "success": false,
+      "airtable_record_id": "recvXjH6RQrO5uA3D",
+      "created_time": "2025-07-23T15:03:43.000Z",
+      "verification": {
+        "email_match": false,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": false,
+        "passed_checks": 8,
+        "total_checks": 9,
+        "verification_rate": "88.9"
+      },
+      "performance": {
+        "webhook_field_count": 6,
+        "mapped_field_count": 14,
+        "field_mapping_success_rate": 200,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 9681,
+      "end_time": "2025-07-23T15:03:51.582Z"
+    },
+    {
+      "test_id": "FV005",
+      "test_name": "Underscore Variations",
+      "category": "field_variations",
+      "start_time": "2025-07-23T15:03:56.583Z",
+      "payload": {
+        "email_address": "test-underscore@example.com",
+        "first_name": "Charlie",
+        "last_name": "Underscore",
+        "phone_number": "555-0005",
+        "company_name": "Under_Score Inc",
+        "job_title": "Sales Manager",
+        "request_id": "test-FV005"
+      },
+      "expected": {
+        "normalized_fields": [
+          "email",
+          "first_name",
+          "last_name",
+          "phone",
+          "company",
+          "title"
+        ],
+        "airtable_record": true
+      },
+      "success": false,
+      "airtable_record_id": "rechy6kQQHY226vVU",
+      "created_time": "2025-07-23T15:03:58.000Z",
+      "verification": {
+        "email_match": false,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": false,
+        "passed_checks": 8,
+        "total_checks": 9,
+        "verification_rate": "88.9"
+      },
+      "performance": {
+        "webhook_field_count": 7,
+        "mapped_field_count": 13,
+        "field_mapping_success_rate": 157.1,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 9765,
+      "end_time": "2025-07-23T15:04:06.348Z"
+    },
+    {
+      "test_id": "FV006",
+      "test_name": "CamelCase Fields",
+      "category": "field_variations",
+      "start_time": "2025-07-23T15:04:11.350Z",
+      "payload": {
+        "emailAddress": "test-camel@example.com",
+        "firstName": "David",
+        "lastName": "CamelCase",
+        "phoneNumber": "555-0006",
+        "companyName": "CamelCorp",
+        "jobTitle": "Account Executive",
+        "request_id": "test-FV006"
+      },
+      "expected": {
+        "normalized_fields": [
+          "email",
+          "first_name",
+          "last_name",
+          "phone",
+          "company",
+          "title"
+        ],
+        "airtable_record": true
+      },
+      "success": false,
+      "error": "Webhook execution failed",
+      "verification": {
+        "overall_success": false
+      },
+      "execution_time_ms": 13764,
+      "end_time": "2025-07-23T15:04:25.114Z"
+    },
+    {
+      "test_id": "FV007",
+      "test_name": "LinkedIn Variations",
+      "category": "field_variations",
+      "start_time": "2025-07-23T15:04:30.116Z",
+      "payload": {
+        "email": "test-linkedin@example.com",
+        "name": "Eve LinkedIn",
+        "linkedin_url": "https://linkedin.com/in/eve",
+        "linkedinUrl": "should be ignored",
+        "request_id": "test-FV007"
+      },
+      "expected": {
+        "normalized_fields": [
+          "email",
+          "first_name",
+          "last_name",
+          "linkedin_url"
+        ],
+        "single_linkedin_value": true
+      },
+      "success": false,
+      "error": "Webhook execution failed",
+      "verification": {
+        "overall_success": false
+      },
+      "execution_time_ms": 9308,
+      "end_time": "2025-07-23T15:04:39.424Z"
+    },
+    {
+      "test_id": "BC001",
+      "test_name": "String Yes Variations",
+      "category": "boolean_conversions",
+      "start_time": "2025-07-23T15:04:44.426Z",
+      "payload": {
+        "email": "test-bool-yes@example.com",
+        "name": "Bool Yes",
+        "interested_in_coaching": "yes",
+        "qualified_lead": "YES",
+        "contacted": "Yes",
+        "request_id": "test-BC001"
+      },
+      "expected": {
+        "all_booleans_true": true,
+        "airtable_checkboxes": true
+      },
+      "success": true,
+      "airtable_record_id": "recUxUA8PmHMpUkFm",
+      "created_time": "2025-07-23T15:04:47.000Z",
+      "verification": {
+        "email_match": true,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": true,
+        "passed_checks": 9,
+        "total_checks": 9,
+        "verification_rate": "100.0"
+      },
+      "performance": {
+        "webhook_field_count": 6,
+        "mapped_field_count": 14,
+        "field_mapping_success_rate": 200,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 10669,
+      "end_time": "2025-07-23T15:04:55.095Z"
+    },
+    {
+      "test_id": "BC002",
+      "test_name": "Boolean True Values",
+      "category": "boolean_conversions",
+      "start_time": "2025-07-23T15:05:00.096Z",
+      "payload": {
+        "email": "test-bool-true@example.com",
+        "name": "Bool True",
+        "interested_in_coaching": true,
+        "qualified_lead": "true",
+        "contacted": "TRUE",
+        "request_id": "test-BC002"
+      },
+      "expected": {
+        "all_booleans_true": true
+      },
+      "success": true,
+      "airtable_record_id": "recwKbMUIU3hAMINo",
+      "created_time": "2025-07-23T15:05:02.000Z",
+      "verification": {
+        "email_match": true,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": true,
+        "passed_checks": 9,
+        "total_checks": 9,
+        "verification_rate": "100.0"
+      },
+      "performance": {
+        "webhook_field_count": 6,
+        "mapped_field_count": 14,
+        "field_mapping_success_rate": 200,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 10531,
+      "end_time": "2025-07-23T15:05:10.627Z"
+    },
+    {
+      "test_id": "BC003",
+      "test_name": "Numeric 1 Values",
+      "category": "boolean_conversions",
+      "start_time": "2025-07-23T15:05:15.629Z",
+      "payload": {
+        "email": "test-bool-one@example.com",
+        "name": "Bool One",
+        "interested_in_coaching": 1,
+        "qualified_lead": "1",
+        "contacted": "on",
+        "request_id": "test-BC003"
+      },
+      "expected": {
+        "all_booleans_true": true
+      },
+      "success": true,
+      "airtable_record_id": "recGU3p7okV28U2q5",
+      "created_time": "2025-07-23T15:05:18.000Z",
+      "verification": {
+        "email_match": true,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": true,
+        "passed_checks": 9,
+        "total_checks": 9,
+        "verification_rate": "100.0"
+      },
+      "performance": {
+        "webhook_field_count": 6,
+        "mapped_field_count": 14,
+        "field_mapping_success_rate": 200,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 10696,
+      "end_time": "2025-07-23T15:05:26.325Z"
+    },
+    {
+      "test_id": "BC004",
+      "test_name": "False Variations",
+      "category": "boolean_conversions",
+      "start_time": "2025-07-23T15:05:31.328Z",
+      "payload": {
+        "email": "test-bool-false@example.com",
+        "name": "Bool False",
+        "interested_in_coaching": "no",
+        "qualified_lead": false,
+        "contacted": "0",
+        "request_id": "test-BC004"
+      },
+      "expected": {
+        "all_booleans_false": true
+      },
+      "success": false,
+      "airtable_record_id": "rec6GKjnNnxyEDGK3",
+      "created_time": "2025-07-23T15:05:34.000Z",
+      "verification": {
+        "email_match": true,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": false,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": false,
+        "passed_checks": 8,
+        "total_checks": 9,
+        "verification_rate": "88.9"
+      },
+      "performance": {
+        "webhook_field_count": 6,
+        "mapped_field_count": 14,
+        "field_mapping_success_rate": 200,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 11042,
+      "end_time": "2025-07-23T15:05:42.370Z"
+    },
+    {
+      "test_id": "EC001",
+      "test_name": "Missing Critical Fields",
+      "category": "edge_cases",
+      "start_time": "2025-07-23T15:05:47.372Z",
+      "payload": {
+        "email": "test-minimal@example.com",
+        "request_id": "test-EC001"
+      },
+      "expected": {
+        "workflow_continues": true,
+        "airtable_record": true,
+        "no_errors": true
+      },
+      "success": true,
+      "airtable_record_id": "recYhLC7VRsdLZQxG",
+      "created_time": "2025-07-23T15:05:49.000Z",
+      "verification": {
+        "email_match": true,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": true,
+        "passed_checks": 9,
+        "total_checks": 9,
+        "verification_rate": "100.0"
+      },
+      "performance": {
+        "webhook_field_count": 2,
+        "mapped_field_count": 11,
+        "field_mapping_success_rate": 450,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 9775,
+      "end_time": "2025-07-23T15:05:57.147Z"
+    },
+    {
+      "test_id": "EC002",
+      "test_name": "Empty Values",
+      "category": "edge_cases",
+      "start_time": "2025-07-23T15:06:02.149Z",
+      "payload": {
+        "email": "test-empty@example.com",
+        "name": "",
+        "phone": "",
+        "company": null,
+        "request_id": "test-EC002"
+      },
+      "expected": {
+        "handles_empty_gracefully": true,
+        "airtable_record": true
+      },
+      "success": true,
+      "airtable_record_id": "recfSgeMDiC2QyNRz",
+      "created_time": "2025-07-23T15:06:04.000Z",
+      "verification": {
+        "email_match": true,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": true,
+        "passed_checks": 9,
+        "total_checks": 9,
+        "verification_rate": "100.0"
+      },
+      "performance": {
+        "webhook_field_count": 5,
+        "mapped_field_count": 11,
+        "field_mapping_success_rate": 180,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 9772,
+      "end_time": "2025-07-23T15:06:11.921Z"
+    },
+    {
+      "test_id": "EC003",
+      "test_name": "International Phone",
+      "category": "edge_cases",
+      "start_time": "2025-07-23T15:06:16.923Z",
+      "payload": {
+        "email": "test-intl@example.com",
+        "name": "International User",
+        "phone": "+44 7700 900123",
+        "request_id": "test-EC003"
+      },
+      "expected": {
+        "routing": "human_review",
+        "international_flag": true
+      },
+      "success": true,
+      "airtable_record_id": "rec9Z8MAZeBW1LkoU",
+      "created_time": "2025-07-23T15:06:38.000Z",
+      "verification": {
+        "email_match": true,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": true,
+        "passed_checks": 9,
+        "total_checks": 9,
+        "verification_rate": "100.0"
+      },
+      "performance": {
+        "webhook_field_count": 4,
+        "mapped_field_count": 13,
+        "field_mapping_success_rate": 275,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 29082,
+      "end_time": "2025-07-23T15:06:46.005Z"
+    },
+    {
+      "test_id": "EC004",
+      "test_name": "Special Characters",
+      "category": "edge_cases",
+      "start_time": "2025-07-23T15:06:51.010Z",
+      "payload": {
+        "email": "test+special@example.com",
+        "name": "O'Brien-Smith",
+        "company": "AT&T / Verizon",
+        "request_id": "test-EC004"
+      },
+      "expected": {
+        "handles_special_chars": true,
+        "airtable_record": true
+      },
+      "error": "Command failed: curl -X POST \"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"test+special@example.com\",\"name\":\"O'Brien-Smith\",\"company\":\"AT&T / Verizon\",\"request_id\":\"test-EC004\"}' -s\n/bin/sh: -c: line 0: unexpected EOF while looking for matching `\"'\n/bin/sh: -c: line 1: syntax error: unexpected end of file\n",
+      "success": false,
+      "end_time": "2025-07-23T15:06:51.023Z",
+      "execution_time_ms": 13
+    },
+    {
+      "test_id": "DH001",
+      "test_name": "Exact Duplicate",
+      "category": "duplicate_handling",
+      "start_time": "2025-07-23T15:06:56.024Z",
+      "expected": {
+        "single_record": true,
+        "updated_not_created": true,
+        "latest_values": true
+      },
+      "error": "Cannot read properties of undefined (reading 'email')",
+      "success": false,
+      "end_time": "2025-07-23T15:06:56.025Z",
+      "execution_time_ms": 1
+    },
+    {
+      "test_id": "DH002",
+      "test_name": "Case Insensitive Email",
+      "category": "duplicate_handling",
+      "start_time": "2025-07-23T15:07:01.028Z",
+      "expected": {
+        "single_record": true,
+        "case_ignored": true
+      },
+      "error": "Cannot read properties of undefined (reading 'email')",
+      "success": false,
+      "end_time": "2025-07-23T15:07:01.029Z",
+      "execution_time_ms": 1
+    },
+    {
+      "test_id": "CT001",
+      "test_name": "DND Listed Number",
+      "category": "compliance_tests",
+      "start_time": "2025-07-23T15:07:06.032Z",
+      "payload": {
+        "email": "test-dnd@example.com",
+        "name": "DND User",
+        "phone": "415-555-1111",
+        "request_id": "test-CT001"
+      },
+      "expected": {
+        "sms_blocked": true,
+        "compliance_logged": true,
+        "airtable_record": true
+      },
+      "success": true,
+      "airtable_record_id": "rechfabMSJRMayTQV",
+      "created_time": "2025-07-23T15:07:10.000Z",
+      "verification": {
+        "email_match": true,
+        "name_split_correct": true,
+        "phone_normalized": true,
+        "boolean_converted": true,
+        "company_mapped": true,
+        "source_mapped": true,
+        "field_mapping_rate_excellent": true,
+        "unknown_fields_logged": true,
+        "normalization_version_current": true,
+        "overall_success": true,
+        "passed_checks": 9,
+        "total_checks": 9,
+        "verification_rate": "100.0"
+      },
+      "performance": {
+        "webhook_field_count": 4,
+        "mapped_field_count": 13,
+        "field_mapping_success_rate": 275,
+        "duplicate_count": 0
+      },
+      "costs": {
+        "total_processing_cost": 0
+      },
+      "normalization_version": "v3.2-2025-07-23-BUGFIX",
+      "execution_time_ms": 11844,
+      "end_time": "2025-07-23T15:07:17.876Z"
+    }
+  ]
+}

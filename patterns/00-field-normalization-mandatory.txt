@@ -82,6 +82,36 @@ if (normalized.name && !normalized.first_name) {
   }
 });
 
+// TECHNICAL LEARNING: 3-Field Phone Number Strategy Implementation
+// CRITICAL: Implements phone_original (never changes) + phone_recent (always updates) + phone_validated (enrichment only)
+
+// Enhanced phone processing for 3-field strategy
+if (normalized.phone) {
+  // Phone field is present in payload
+  
+  // Set phone_recent to always capture latest phone number
+  normalized.phone_recent = normalized.phone;
+  
+  // Set phone_original only if this will be a NEW record
+  // Note: Duplicate detection logic will handle preserving original on updates
+  normalized.phone_original = normalized.phone;
+  
+  // phone_validated is NEVER set by webhook processing
+  // This field is reserved for enrichment/validation workflows only
+  
+  // International phone detection (preserves existing logic)
+  const isInternational = !normalized.phone.match(/^(\+1|1)?[2-9]/);
+  normalized.international_phone = isInternational;
+  normalized.phone_country_code = isInternational ? 
+    normalized.phone.match(/^\+\d{1,3}/)?.[0] || 'unknown' : '+1';
+}
+
+// CRITICAL IMPLEMENTATION NOTE:
+// - phone_original: Set on creation, preserved forever on duplicates
+// - phone_recent: Always updated to incoming phone value  
+// - phone_validated: Only set by enrichment phase (Phase 2)
+// - Campaign workflows MUST use phone_validated for SMS delivery
+
 // Track unknown fields for weekly review
 const unknownFields = Object.keys(input).filter(k => !mappedFields.has(k));
 

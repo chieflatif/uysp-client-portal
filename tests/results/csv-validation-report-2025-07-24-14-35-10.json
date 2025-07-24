@@ -1,0 +1,835 @@
+{
+  "summary": {
+    "total_tests": 10,
+    "successful_tests": 10,
+    "success_rate": 100.0,
+    "average_field_mapping_rate": 75.9
+  },
+  "field_mapping": {
+    "unknown_fields_discovered": [
+      "request_id",
+      "landing_page_id"
+    ],
+    "boolean_conversions": {
+      "Yes": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "No": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "mapping_rates": [
+      80,
+      71,
+      83,
+      75,
+      75,
+      75,
+      75,
+      75,
+      75,
+      75
+    ]
+  },
+  "detailed_results": [
+    {
+      "test_id": 1,
+      "csv_row": {
+        "Created At": "3/12/25 13:09",
+        "Full Name": "Brooke TESTJunny",
+        "Email Address": "brooke+test@brookeestin.com",
+        "Company Name": NaN,
+        "Phone Number": "333333",
+        "Are you interested in learning more about coaching with Ian?": "Yes",
+        "Landing Page ID": NaN,
+        "Landing Page Title": NaN
+      },
+      "webhook_payload": {
+        "name": "Brooke TESTJunny",
+        "email": "brooke+test@brookeestin.com",
+        "phone": "333333",
+        "interested_in_coaching": "Yes",
+        "request_id": "csv-test-1753360458-757"
+      },
+      "webhook_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T12:34:23.210Z",
+          "data": {
+            "id": "recirhtj6qOyFtKPM",
+            "createdTime": "2025-07-24T12:32:27.000Z",
+            "fields": {
+              "email": "brooke+test@brookeestin.com",
+              "first_name": "Brooke",
+              "last_name": "TESTJunny",
+              "phone_primary": "333333",
+              "icp_score": 0,
+              "lead_status": "New",
+              "interested_in_coaching": true,
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "csv-test-1753360342-505",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 80,
+              "normalization_version": "v4.4-webhook-fix",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"161\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"96437371932aa972-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753360458\",\"x-forwarded-for\":\"178.22.255.251, 172.69.9.108\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Brooke TESTJunny\",\"email\":\"brooke+test@brookeestin.com\",\"phone\":\"333333\",\"interested_in_coaching\":\"Yes\",\"request_id\":\"csv-test-1753360458-757\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 5,
+              "mapped_field_count": 4,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1"
+            }
+          }
+        },
+        "response_time": 5.03228
+      },
+      "field_analysis": {
+        "input_fields": 5,
+        "mapped_fields": 4,
+        "field_mapping_rate": 80,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {
+          "Yes": true
+        },
+        "name_splitting": true
+      },
+      "timestamp": "2025-07-24T14:34:23.231366"
+    },
+    {
+      "test_id": 2,
+      "csv_row": {
+        "Created At": "3/17/25 14:11",
+        "Full Name": "Alec",
+        "Email Address": "alec@salesbrand.co",
+        "Company Name": NaN,
+        "Phone Number": "8586925689",
+        "Are you interested in learning more about coaching with Ian?": "Yes",
+        "Landing Page ID": 2151050485.0,
+        "Landing Page Title": "Opt-In: Killer Proposal Template"
+      },
+      "webhook_payload": {
+        "name": "Alec",
+        "email": "alec@salesbrand.co",
+        "phone": "8586925689",
+        "interested_in_coaching": "Yes",
+        "source_form": "Opt-In: Killer Proposal Template",
+        "landing_page_id": "2151050485.0",
+        "request_id": "csv-test-1753360465-140"
+      },
+      "webhook_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T12:34:28.218Z",
+          "data": {
+            "id": "recBZW7eRBKxo9aLm",
+            "createdTime": "2025-07-24T12:32:39.000Z",
+            "fields": {
+              "email": "alec@salesbrand.co",
+              "first_name": "Alec",
+              "phone_primary": "8586925689",
+              "icp_score": 0,
+              "lead_source": "Opt-In: Killer Proposal Template",
+              "lead_status": "New",
+              "interested_in_coaching": true,
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "csv-test-1753360356-626",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 71,
+              "normalization_version": "v4.4-webhook-fix",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"230\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643739ca79feea5-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753360465\",\"x-forwarded-for\":\"178.22.255.251, 172.69.68.28\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-xx8dm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Alec\",\"email\":\"alec@salesbrand.co\",\"phone\":\"8586925689\",\"interested_in_coaching\":\"Yes\",\"source_form\":\"Opt-In: Killer Proposal Template\",\"landing_page_id\":\"2151050485.0\",\"request_id\":\"csv-test-1753360465-140\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 7,
+              "mapped_field_count": 5,
+              "unknown_field_list": "landing_page_id, request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1"
+            }
+          }
+        },
+        "response_time": 2.999426
+      },
+      "field_analysis": {
+        "input_fields": 7,
+        "mapped_fields": 4,
+        "field_mapping_rate": 71,
+        "unmapped_fields": [
+          "source_form"
+        ],
+        "unknown_fields": [
+          "landing_page_id",
+          "request_id"
+        ],
+        "boolean_conversions": {
+          "Yes": true
+        },
+        "name_splitting": false
+      },
+      "timestamp": "2025-07-24T14:34:28.243349"
+    },
+    {
+      "test_id": 3,
+      "csv_row": {
+        "Created At": "5/21/25 11:22",
+        "Full Name": "Junny test",
+        "Email Address": "hello+test@virtuallyjunny.com",
+        "Company Name": "test",
+        "Phone Number": "12345",
+        "Are you interested in learning more about coaching with Ian?": "Yes",
+        "Landing Page ID": NaN,
+        "Landing Page Title": NaN
+      },
+      "webhook_payload": {
+        "name": "Junny test",
+        "email": "hello+test@virtuallyjunny.com",
+        "company": "test",
+        "phone": "12345",
+        "interested_in_coaching": "Yes",
+        "request_id": "csv-test-1753360470-634"
+      },
+      "webhook_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T12:34:33.244Z",
+          "data": {
+            "id": "rech8twxQuC5B5P63",
+            "createdTime": "2025-07-24T12:32:44.000Z",
+            "fields": {
+              "email": "hello+test@virtuallyjunny.com",
+              "first_name": "Junny",
+              "last_name": "test",
+              "phone_primary": "12345",
+              "company_input": "test",
+              "icp_score": 0,
+              "lead_status": "New",
+              "interested_in_coaching": true,
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "csv-test-1753360362-231",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 83,
+              "normalization_version": "v4.4-webhook-fix",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"175\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"964373bc0565f671-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753360470\",\"x-forwarded-for\":\"178.22.255.251, 172.69.9.116\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-xx8dm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Junny test\",\"email\":\"hello+test@virtuallyjunny.com\",\"company\":\"test\",\"phone\":\"12345\",\"interested_in_coaching\":\"Yes\",\"request_id\":\"csv-test-1753360470-634\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 6,
+              "mapped_field_count": 5,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1"
+            }
+          }
+        },
+        "response_time": 3.023851
+      },
+      "field_analysis": {
+        "input_fields": 6,
+        "mapped_fields": 5,
+        "field_mapping_rate": 83,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {
+          "Yes": true
+        },
+        "name_splitting": true
+      },
+      "timestamp": "2025-07-24T14:34:33.279427"
+    },
+    {
+      "test_id": 4,
+      "csv_row": {
+        "Created At": "5/29/25 17:56",
+        "Full Name": "Ian",
+        "Email Address": "ian@iankoniak.com",
+        "Company Name": "UYSP",
+        "Phone Number": "310-433-6429",
+        "Are you interested in learning more about coaching with Ian?": "No",
+        "Landing Page ID": 2151050485.0,
+        "Landing Page Title": "Opt-In: Killer Proposal Template"
+      },
+      "webhook_payload": {
+        "name": "Ian",
+        "email": "ian@iankoniak.com",
+        "company": "UYSP",
+        "phone": "310-433-6429",
+        "interested_in_coaching": "No",
+        "source_form": "Opt-In: Killer Proposal Template",
+        "landing_page_id": "2151050485.0",
+        "request_id": "csv-test-1753360475-826"
+      },
+      "webhook_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T12:34:38.243Z",
+          "data": {
+            "id": "rec4RJK7uA6xTsUJ7",
+            "createdTime": "2025-07-24T12:32:49.000Z",
+            "fields": {
+              "email": "ian@iankoniak.com",
+              "first_name": "Ian",
+              "phone_primary": "310-433-6429",
+              "company_input": "UYSP",
+              "icp_score": 0,
+              "lead_source": "Opt-In: Killer Proposal Template",
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "csv-test-1753360367-974",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 75,
+              "normalization_version": "v4.4-webhook-fix",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"248\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"964373db56c3ee9d-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753360475\",\"x-forwarded-for\":\"178.22.255.251, 172.69.68.153\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Ian\",\"email\":\"ian@iankoniak.com\",\"company\":\"UYSP\",\"phone\":\"310-433-6429\",\"interested_in_coaching\":\"No\",\"source_form\":\"Opt-In: Killer Proposal Template\",\"landing_page_id\":\"2151050485.0\",\"request_id\":\"csv-test-1753360475-826\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 8,
+              "mapped_field_count": 6,
+              "unknown_field_list": "landing_page_id, request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1"
+            }
+          }
+        },
+        "response_time": 2.987229
+      },
+      "field_analysis": {
+        "input_fields": 8,
+        "mapped_fields": 4,
+        "field_mapping_rate": 75,
+        "unmapped_fields": [
+          "interested_in_coaching",
+          "source_form"
+        ],
+        "unknown_fields": [
+          "landing_page_id",
+          "request_id"
+        ],
+        "boolean_conversions": {
+          "No": null
+        },
+        "name_splitting": false
+      },
+      "timestamp": "2025-07-24T14:34:38.278386"
+    },
+    {
+      "test_id": 5,
+      "csv_row": {
+        "Created At": "6/3/25 10:32",
+        "Full Name": "Grace Murray",
+        "Email Address": "grace@fohrcard.com",
+        "Company Name": "Fohr Inc",
+        "Phone Number": "3478938991",
+        "Are you interested in learning more about coaching with Ian?": "No",
+        "Landing Page ID": 2151050485.0,
+        "Landing Page Title": "Opt-In: Killer Proposal Template"
+      },
+      "webhook_payload": {
+        "name": "Grace Murray",
+        "email": "grace@fohrcard.com",
+        "company": "Fohr Inc",
+        "phone": "3478938991",
+        "interested_in_coaching": "No",
+        "source_form": "Opt-In: Killer Proposal Template",
+        "landing_page_id": "2151050485.0",
+        "request_id": "csv-test-1753360480-183"
+      },
+      "webhook_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T12:34:43.270Z",
+          "data": {
+            "id": "rec679SDPJVFEhnBC",
+            "createdTime": "2025-07-24T12:32:55.000Z",
+            "fields": {
+              "email": "grace@fohrcard.com",
+              "first_name": "Grace",
+              "last_name": "Murray",
+              "phone_primary": "3478938991",
+              "company_input": "Fohr Inc",
+              "icp_score": 0,
+              "lead_source": "Opt-In: Killer Proposal Template",
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "csv-test-1753360372-929",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 75,
+              "normalization_version": "v4.4-webhook-fix",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"260\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"964373fab788bb13-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753360480\",\"x-forwarded-for\":\"178.22.255.251, 172.71.114.163\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Grace Murray\",\"email\":\"grace@fohrcard.com\",\"company\":\"Fohr Inc\",\"phone\":\"3478938991\",\"interested_in_coaching\":\"No\",\"source_form\":\"Opt-In: Killer Proposal Template\",\"landing_page_id\":\"2151050485.0\",\"request_id\":\"csv-test-1753360480-183\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 8,
+              "mapped_field_count": 6,
+              "unknown_field_list": "landing_page_id, request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1"
+            }
+          }
+        },
+        "response_time": 3.021488
+      },
+      "field_analysis": {
+        "input_fields": 8,
+        "mapped_fields": 4,
+        "field_mapping_rate": 75,
+        "unmapped_fields": [
+          "interested_in_coaching",
+          "source_form"
+        ],
+        "unknown_fields": [
+          "landing_page_id",
+          "request_id"
+        ],
+        "boolean_conversions": {
+          "No": null
+        },
+        "name_splitting": true
+      },
+      "timestamp": "2025-07-24T14:34:43.304893"
+    },
+    {
+      "test_id": 6,
+      "csv_row": {
+        "Created At": "6/3/25 10:33",
+        "Full Name": "Charles T Hall",
+        "Email Address": "thall@carolinahandling.com",
+        "Company Name": "Carolina Handling",
+        "Phone Number": "803-240-5591",
+        "Are you interested in learning more about coaching with Ian?": "No",
+        "Landing Page ID": 2151050485.0,
+        "Landing Page Title": "Opt-In: Killer Proposal Template"
+      },
+      "webhook_payload": {
+        "name": "Charles T Hall",
+        "email": "thall@carolinahandling.com",
+        "company": "Carolina Handling",
+        "phone": "803-240-5591",
+        "interested_in_coaching": "No",
+        "source_form": "Opt-In: Killer Proposal Template",
+        "landing_page_id": "2151050485.0",
+        "request_id": "csv-test-1753360485-482"
+      },
+      "webhook_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T12:34:48.394Z",
+          "data": {
+            "id": "reca5LbKGu8WiVh4k",
+            "createdTime": "2025-07-24T12:33:00.000Z",
+            "fields": {
+              "email": "thall@carolinahandling.com",
+              "first_name": "Charles",
+              "last_name": "T Hall",
+              "phone_primary": "803-240-5591",
+              "company_input": "Carolina Handling",
+              "icp_score": 0,
+              "lead_source": "Opt-In: Killer Proposal Template",
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "csv-test-1753360377-480",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 75,
+              "normalization_version": "v4.4-webhook-fix",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"281\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643741a15a7eddb-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753360485\",\"x-forwarded-for\":\"178.22.255.251, 172.70.216.104\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-86vpc\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Charles T Hall\",\"email\":\"thall@carolinahandling.com\",\"company\":\"Carolina Handling\",\"phone\":\"803-240-5591\",\"interested_in_coaching\":\"No\",\"source_form\":\"Opt-In: Killer Proposal Template\",\"landing_page_id\":\"2151050485.0\",\"request_id\":\"csv-test-1753360485-482\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 8,
+              "mapped_field_count": 6,
+              "unknown_field_list": "landing_page_id, request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1"
+            }
+          }
+        },
+        "response_time": 3.113429
+      },
+      "field_analysis": {
+        "input_fields": 8,
+        "mapped_fields": 4,
+        "field_mapping_rate": 75,
+        "unmapped_fields": [
+          "interested_in_coaching",
+          "source_form"
+        ],
+        "unknown_fields": [
+          "landing_page_id",
+          "request_id"
+        ],
+        "boolean_conversions": {
+          "No": null
+        },
+        "name_splitting": true
+      },
+      "timestamp": "2025-07-24T14:34:48.428071"
+    },
+    {
+      "test_id": 7,
+      "csv_row": {
+        "Created At": "6/3/25 10:34",
+        "Full Name": "Erika Braithwaite",
+        "Email Address": "erikabraithwaite@gmail.com",
+        "Company Name": "Precision Analytics",
+        "Phone Number": "15162666305",
+        "Are you interested in learning more about coaching with Ian?": "No",
+        "Landing Page ID": 2151050485.0,
+        "Landing Page Title": "Opt-In: Killer Proposal Template"
+      },
+      "webhook_payload": {
+        "name": "Erika Braithwaite",
+        "email": "erikabraithwaite@gmail.com",
+        "company": "Precision Analytics",
+        "phone": "15162666305",
+        "interested_in_coaching": "No",
+        "source_form": "Opt-In: Killer Proposal Template",
+        "landing_page_id": "2151050485.0",
+        "request_id": "csv-test-1753360490-267"
+      },
+      "webhook_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T12:34:53.487Z",
+          "data": {
+            "id": "recwG1Aeun833n3Gb",
+            "createdTime": "2025-07-24T12:33:05.000Z",
+            "fields": {
+              "email": "erikabraithwaite@gmail.com",
+              "first_name": "Erika",
+              "last_name": "Braithwaite",
+              "phone_primary": "15162666305",
+              "company_input": "Precision Analytics",
+              "icp_score": 0,
+              "lead_source": "Opt-In: Killer Proposal Template",
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "csv-test-1753360382-609",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 75,
+              "normalization_version": "v4.4-webhook-fix",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"285\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643743a4532d815-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753360490\",\"x-forwarded-for\":\"178.22.255.251, 172.69.68.75\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-xx8dm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Erika Braithwaite\",\"email\":\"erikabraithwaite@gmail.com\",\"company\":\"Precision Analytics\",\"phone\":\"15162666305\",\"interested_in_coaching\":\"No\",\"source_form\":\"Opt-In: Killer Proposal Template\",\"landing_page_id\":\"2151050485.0\",\"request_id\":\"csv-test-1753360490-267\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 8,
+              "mapped_field_count": 6,
+              "unknown_field_list": "landing_page_id, request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1"
+            }
+          }
+        },
+        "response_time": 3.066542
+      },
+      "field_analysis": {
+        "input_fields": 8,
+        "mapped_fields": 4,
+        "field_mapping_rate": 75,
+        "unmapped_fields": [
+          "interested_in_coaching",
+          "source_form"
+        ],
+        "unknown_fields": [
+          "landing_page_id",
+          "request_id"
+        ],
+        "boolean_conversions": {
+          "No": null
+        },
+        "name_splitting": true
+      },
+      "timestamp": "2025-07-24T14:34:53.504291"
+    },
+    {
+      "test_id": 8,
+      "csv_row": {
+        "Created At": "6/3/25 10:35",
+        "Full Name": "Lynn Powers",
+        "Email Address": "lynn.powers@ymail.com",
+        "Company Name": "Clari",
+        "Phone Number": "4154268343",
+        "Are you interested in learning more about coaching with Ian?": "Yes",
+        "Landing Page ID": 2151050485.0,
+        "Landing Page Title": "Opt-In: Killer Proposal Template"
+      },
+      "webhook_payload": {
+        "name": "Lynn Powers",
+        "email": "lynn.powers@ymail.com",
+        "company": "Clari",
+        "phone": "4154268343",
+        "interested_in_coaching": "Yes",
+        "source_form": "Opt-In: Killer Proposal Template",
+        "landing_page_id": "2151050485.0",
+        "request_id": "csv-test-1753360495-812"
+      },
+      "webhook_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T12:34:58.531Z",
+          "data": {
+            "id": "rec7Mq8TJElU5Wrrx",
+            "createdTime": "2025-07-24T12:33:10.000Z",
+            "fields": {
+              "email": "lynn.powers@ymail.com",
+              "first_name": "Lynn",
+              "last_name": "Powers",
+              "phone_primary": "4154268343",
+              "company_input": "Clari",
+              "icp_score": 0,
+              "lead_source": "Opt-In: Killer Proposal Template",
+              "lead_status": "New",
+              "interested_in_coaching": true,
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "csv-test-1753360387-791",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 75,
+              "normalization_version": "v4.4-webhook-fix",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"260\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"96437459c45ff7fb-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753360495\",\"x-forwarded-for\":\"178.22.255.251, 172.70.216.104\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-86vpc\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Lynn Powers\",\"email\":\"lynn.powers@ymail.com\",\"company\":\"Clari\",\"phone\":\"4154268343\",\"interested_in_coaching\":\"Yes\",\"source_form\":\"Opt-In: Killer Proposal Template\",\"landing_page_id\":\"2151050485.0\",\"request_id\":\"csv-test-1753360495-812\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 8,
+              "mapped_field_count": 6,
+              "unknown_field_list": "landing_page_id, request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1"
+            }
+          }
+        },
+        "response_time": 3.040806
+      },
+      "field_analysis": {
+        "input_fields": 8,
+        "mapped_fields": 5,
+        "field_mapping_rate": 75,
+        "unmapped_fields": [
+          "source_form"
+        ],
+        "unknown_fields": [
+          "landing_page_id",
+          "request_id"
+        ],
+        "boolean_conversions": {
+          "Yes": true
+        },
+        "name_splitting": true
+      },
+      "timestamp": "2025-07-24T14:34:58.552780"
+    },
+    {
+      "test_id": 9,
+      "csv_row": {
+        "Created At": "6/3/25 10:37",
+        "Full Name": "Marisa",
+        "Email Address": "maaragon1@gmail.com",
+        "Company Name": "Salesforce",
+        "Phone Number": "4802984142",
+        "Are you interested in learning more about coaching with Ian?": "No",
+        "Landing Page ID": 2151050485.0,
+        "Landing Page Title": "Opt-In: Killer Proposal Template"
+      },
+      "webhook_payload": {
+        "name": "Marisa",
+        "email": "maaragon1@gmail.com",
+        "company": "Salesforce",
+        "phone": "4802984142",
+        "interested_in_coaching": "No",
+        "source_form": "Opt-In: Killer Proposal Template",
+        "landing_page_id": "2151050485.0",
+        "request_id": "csv-test-1753360500-545"
+      },
+      "webhook_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T12:35:03.785Z",
+          "data": {
+            "id": "recW9qN6kGG8zeM5d",
+            "createdTime": "2025-07-24T12:33:15.000Z",
+            "fields": {
+              "email": "maaragon1@gmail.com",
+              "first_name": "Marisa",
+              "phone_primary": "4802984142",
+              "company_input": "Salesforce",
+              "icp_score": 0,
+              "lead_source": "Opt-In: Killer Proposal Template",
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "csv-test-1753360392-930",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 75,
+              "normalization_version": "v4.4-webhook-fix",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"257\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"96437479c53b4c57-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753360500\",\"x-forwarded-for\":\"178.22.255.251, 172.71.114.183\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Marisa\",\"email\":\"maaragon1@gmail.com\",\"company\":\"Salesforce\",\"phone\":\"4802984142\",\"interested_in_coaching\":\"No\",\"source_form\":\"Opt-In: Killer Proposal Template\",\"landing_page_id\":\"2151050485.0\",\"request_id\":\"csv-test-1753360500-545\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 8,
+              "mapped_field_count": 6,
+              "unknown_field_list": "landing_page_id, request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1"
+            }
+          }
+        },
+        "response_time": 3.261913
+      },
+      "field_analysis": {
+        "input_fields": 8,
+        "mapped_fields": 4,
+        "field_mapping_rate": 75,
+        "unmapped_fields": [
+          "interested_in_coaching",
+          "source_form"
+        ],
+        "unknown_fields": [
+          "landing_page_id",
+          "request_id"
+        ],
+        "boolean_conversions": {
+          "No": null
+        },
+        "name_splitting": false
+      },
+      "timestamp": "2025-07-24T14:35:03.824814"
+    },
+    {
+      "test_id": 10,
+      "csv_row": {
+        "Created At": "6/3/25 10:39",
+        "Full Name": "Ian",
+        "Email Address": "k08ip01@gmail.com",
+        "Company Name": "The standard",
+        "Phone Number": "6262011838",
+        "Are you interested in learning more about coaching with Ian?": "No",
+        "Landing Page ID": 2151050485.0,
+        "Landing Page Title": "Opt-In: Killer Proposal Template"
+      },
+      "webhook_payload": {
+        "name": "Ian",
+        "email": "k08ip01@gmail.com",
+        "company": "The standard",
+        "phone": "6262011838",
+        "interested_in_coaching": "No",
+        "source_form": "Opt-In: Killer Proposal Template",
+        "landing_page_id": "2151050485.0",
+        "request_id": "csv-test-1753360505-235"
+      },
+      "webhook_response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T12:35:08.863Z",
+          "data": {
+            "id": "recWR5Kztok0cgI5J",
+            "createdTime": "2025-07-24T12:33:20.000Z",
+            "fields": {
+              "email": "k08ip01@gmail.com",
+              "first_name": "Ian",
+              "phone_primary": "6262011838",
+              "company_input": "The standard",
+              "icp_score": 0,
+              "lead_source": "Opt-In: Killer Proposal Template",
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "csv-test-1753360398-344",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 75,
+              "normalization_version": "v4.4-webhook-fix",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"254\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643749a6054ed90-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753360505\",\"x-forwarded-for\":\"178.22.255.251, 172.70.216.104\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-86vpc\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Ian\",\"email\":\"k08ip01@gmail.com\",\"company\":\"The standard\",\"phone\":\"6262011838\",\"interested_in_coaching\":\"No\",\"source_form\":\"Opt-In: Killer Proposal Template\",\"landing_page_id\":\"2151050485.0\",\"request_id\":\"csv-test-1753360505-235\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 8,
+              "mapped_field_count": 6,
+              "unknown_field_list": "landing_page_id, request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1"
+            }
+          }
+        },
+        "response_time": 3.081548
+      },
+      "field_analysis": {
+        "input_fields": 8,
+        "mapped_fields": 4,
+        "field_mapping_rate": 75,
+        "unmapped_fields": [
+          "interested_in_coaching",
+          "source_form"
+        ],
+        "unknown_fields": [
+          "landing_page_id",
+          "request_id"
+        ],
+        "boolean_conversions": {
+          "No": null
+        },
+        "name_splitting": false
+      },
+      "timestamp": "2025-07-24T14:35:08.916122"
+    }
+  ],
+  "timestamp": "2025-07-24T14:35:10.921312"
+}
