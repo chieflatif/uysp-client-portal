@@ -34,11 +34,22 @@ Create these focused documents for Cursor:
 ```markdown
 # Session [N]: [Component Name]
 
-## What You're Building
-[One paragraph description]
+## LEARNINGS CHECKPOINT ✅
+- [ ] Boolean mapping: false → null for Airtable
+- [ ] Expression safety: Use ternaries for false preservation  
+- [ ] API automation: n8n REST API for batch testing
+- [ ] Evidence blocks: Tool verification for all claims
+- [ ] Chunking: ≤5 steps, user waits between chunks
 
-## Why This Matters
-[Critical importance - reference failure analysis if relevant]
+## What You're Building
+[Enhanced with learning integration notes]
+
+## Critical Implementation Notes
+1. Reference pattern files for technical learnings
+2. Use evidence blocks for all success claims
+3. Implement chunking with user confirmation waits
+4. Apply boolean/expression safety patterns
+5. Use n8n API for automated testing where applicable
 
 ## Prerequisites
 - [ ] [Previous session requirement]
@@ -299,12 +310,22 @@ No evidence = You're lying.
 ### When Cursor Claims Success Without Evidence
 ```
 ENFORCEMENT RESPONSE:
-Show me the evidence:
-- Workflow ID from n8n-mcp: ___
-- Execution ID from test: ___
-- Airtable record created: ___
-- Screenshot if needed: ___
-No IDs = Didn't happen.
+Show evidence per context engineering protocol:
+- Tool executed: ___
+- Output received: ___  
+- Record ID/verification: ___
+- HONESTY CHECK: What % evidence-based?
+No evidence = claim withdrawn.
+```
+
+### When Cursor Skips Learning Application  
+ENFORCEMENT RESPONSE:
+Apply documented learnings:
+- Boolean fields: Did you map false → null?
+- Expressions: Did you use ternary safety?
+- Testing: Did you use n8n API automation?
+- Evidence: Where's your verification block?
+Reference memory_bank/task_management.md learnings tables.
 ```
 
 ### When Cursor Fixes One Component
@@ -379,3 +400,126 @@ When human says "Ready for Session [N]":
 6. Say: "Session [N] package ready. Here's what to do..."
 
 Remember: The goal is to give Cursor ONLY what it needs for THIS session, with rules embedded everywhere they can't be ignored.
+
+## CONTEXT ENGINEERING LEARNINGS INTEGRATION
+
+### Enhanced Session Preparation Protocol
+
+**Before generating any session package, incorporate key learnings:**
+
+#### Technical Learnings Section (Add to Each Session Package)
+```markdown
+## TECHNICAL LEARNINGS (MANDATORY REFERENCE)
+
+### n8n API Automation
+- Use REST API for workflow activation: `PUT /api/v1/workflows/{id}/activate`
+- Headers required: `X-N8N-API-KEY: your_api_key`
+- Wait 5 seconds after activation before testing
+- Deactivate post-testing to conserve resources
+
+### Airtable Boolean Handling
+- Map `false → null` for checkbox fields (API ignores false)
+- Pattern: `normalized[field] = isTruthy ? true : null`
+- Never send false directly to Airtable API
+
+### Expression Safety
+- Use ternaries: `{{$json.field !== undefined ? $json.field : null}}`
+- Add spaces: `{{ $json.field }}` not `{{$json.field}}`
+- Required for boolean preservation in n8n expressions
+
+### Cleanup Protocol
+- Batch delete max 10 records per API call
+- Filter: `OR(SEARCH('test', {email}), SEARCH('a1-', {email}))`
+- Preserve: Records with `duplicate_count > 0`
+- Always backup base before bulk operations
+```
+
+#### Non-Technical Learnings Section (Add to Enforcement Templates)
+```markdown
+## ANTI-HALLUCINATION PROTOCOLS (MANDATORY)
+
+### Evidence-First Claims
+- Execute tool → collect evidence → make claim
+- NEVER claim success without tool verification
+- Format: "EVIDENCE: Tool=[name], Result=[output], Record_ID=[id]"
+
+### Chunking Protocol  
+- Maximum 5 operations per chunk
+- Present results table after each chunk
+- Wait for user 'go' before proceeding
+- Format: "| Step | Tool | Status | Evidence | Issues |"
+
+### Honesty Assessment
+- End every response: "HONESTY CHECK: [%]% evidence-based"
+- Document assumptions vs verified facts
+- Self-correct immediately if proven wrong
+```
+
+### Session Package Template Updates
+
+#### Enhanced README Template
+```markdown
+# Session [N]: [Component Name]
+
+## LEARNINGS CHECKPOINT ✅
+- [ ] Boolean mapping: false → null for Airtable
+- [ ] Expression safety: Use ternaries for false preservation  
+- [ ] API automation: n8n REST API for batch testing
+- [ ] Evidence blocks: Tool verification for all claims
+- [ ] Chunking: ≤5 steps, user waits between chunks
+
+## What You're Building
+[Enhanced with learning integration notes]
+
+## Critical Implementation Notes
+1. Reference pattern files for technical learnings
+2. Use evidence blocks for all success claims
+3. Implement chunking with user confirmation waits
+4. Apply boolean/expression safety patterns
+5. Use n8n API for automated testing where applicable
+
+[Rest of template remains the same...]
+```
+
+### Learnings Integration Checklist
+
+**For each session preparation:**
+- [ ] Technical learnings referenced in pattern code
+- [ ] Evidence protocols embedded in testing requirements
+- [ ] Chunking strategy defined with user wait points
+- [ ] Honesty assessment protocols included
+- [ ] API automation scripts provided where applicable
+
+### Session-Specific Learning Applications
+
+**Session 0 (Field Normalization)**:
+- Emphasize boolean mapping false → null
+- Include expression safety patterns
+- Add API automation for batch testing
+
+**Session 1+ (All Subsequent)**:
+- Reference Session 0 learnings integration
+- Include cleanup protocol applications
+- Emphasize evidence-based completion verification
+
+### Updated Enforcement Response Templates
+
+```markdown
+### When Cursor Claims Success Without Evidence
+ENFORCEMENT RESPONSE:
+Show evidence per context engineering protocol:
+- Tool executed: ___
+- Output received: ___  
+- Record ID/verification: ___
+- HONESTY CHECK: What % evidence-based?
+No evidence = claim withdrawn.
+
+### When Cursor Skips Learning Application  
+ENFORCEMENT RESPONSE:
+Apply documented learnings:
+- Boolean fields: Did you map false → null?
+- Expressions: Did you use ternary safety?
+- Testing: Did you use n8n API automation?
+- Evidence: Where's your verification block?
+Reference memory_bank/task_management.md learnings tables.
+```

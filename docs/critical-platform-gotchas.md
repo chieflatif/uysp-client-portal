@@ -173,6 +173,48 @@ for i in range(0, len(records), 10):
 - **Script Location**: See cleanup gotcha script above
 - **Reference**: Airtable API batch operations
 
+## 🚨 CONTEXT ENGINEERING UPGRADE GOTCHAS
+
+### Anti-Hallucination Protocol Gotcha
+**Tool calls must precede claims - evidence blocks mandatory**
+- **Pattern**: Execute tool → collect evidence → make claim
+- **Never**: Claim success without tool verification
+- **Evidence Block Format**:
+```
+EVIDENCE:
+- Tool: [tool_name]
+- Result: [specific_output]
+- Verification: [how_confirmed]
+- Record ID: [airtable/workflow_id]
+```
+- **Self-Correction**: If claim proven false, immediately acknowledge and correct
+
+### Chunking Implementation Gotcha  
+**Maximum 5 operations per chunk with user confirmation waits**
+- **Pattern**: Plan chunk → execute ≤5 steps → present results table → wait for 'go'
+- **Progress Table Format**:
+```
+| Step | Tool Used | Status | Evidence | Issues |
+|------|-----------|--------|----------|--------|
+| 1    | [tool]    | ✅/❌   | [ID/ref] | [any]  |
+```
+- **User Wait**: Never proceed to next chunk without explicit user 'go' or 'proceed'
+
+### Honesty Declaration Gotcha
+**End every response with honesty assessment - no exceptions**
+- **Format**: "HONESTY CHECK: [percentage]% evidence-based. Assumptions: [list]"
+- **100% Standard**: Only claim 100% if every statement has tool verification
+- **Assumption Documentation**: List any unverified statements or inferences
+- **Correction Protocol**: If later proven wrong, acknowledge and update approach
+
+### Technical Learning Integration Gotcha
+**Reference learnings in implementation - don't rediscover**
+- **Boolean Mapping**: Always use `false → null` for Airtable
+- **Expression Safety**: Always use ternary operators for boolean preservation  
+- **API Automation**: Use n8n REST API for batch testing
+- **Cleanup Protocol**: Use batch delete with preservation filters
+- **Evidence Tables**: Include metrics and verification data in all test results
+
 ---
 
 ## Quick Reference Decision Tree

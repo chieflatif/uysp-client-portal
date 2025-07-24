@@ -97,3 +97,35 @@ Before any "complete" or "fixed" claims:
 HONESTY CHECK: [100% evidence-based / Assumptions: list]. No manipulations. If <100%, explain and correct.
 
 This ensures transparency and prevents hallucination in task completion claims.
+
+## KEY LEARNINGS INTEGRATION
+
+### Technical Learnings Table
+| Type | Description | File Reference | Status |
+|------|-------------|----------------|--------|
+| n8n API | REST API for workflow activation/execution | patterns/01-core-patterns.txt | ✅ Integrated |
+| Airtable Boolean | Map false → null for checkbox fields | patterns/00-field-normalization-mandatory.txt | ✅ Integrated |
+| Expression Safety | Use ternaries to preserve false values | docs/critical-platform-gotchas.md | ✅ Integrated |
+| Cleanup Protocol | Batch delete with preservation filters | patterns/01-core-patterns.txt | ✅ Integrated |
+| Evidence Blocks | Mandatory for all success claims | Updated task management protocols | ✅ Integrated |
+
+### Non-Technical Learnings Table
+| Type | Description | Implementation | Status |
+|------|-------------|----------------|--------|
+| Anti-Hallucination | Tool calls first, evidence blocks mandatory | All task protocols | ✅ Integrated |
+| Chunking Protocol | ≤5 steps per chunk, user waits | Enhanced chunking strategy | ✅ Integrated |
+| Honesty Assessment | End responses with honesty check | Honesty declaration protocol | ✅ Integrated |
+| Task Management | Reference reality-based JSON, context updates | Testing task management | ✅ Integrated |
+
+### Learnings Enforcement Protocol
+1. **Before Implementation**: Reference technical learnings table for applicable patterns
+2. **During Execution**: Use evidence blocks for all tool calls
+3. **After Completion**: Update learnings table if new discoveries made
+4. **Chunking**: Never exceed 5 operations without user confirmation
+5. **Honesty**: End every response with evidence assessment
+
+### Context Engineering Integration
+- **Reference Pattern**: Always check learnings tables before starting tasks
+- **Evidence Requirement**: Every success claim requires tool verification
+- **Update Protocol**: Add new learnings to appropriate table with file references
+- **Commit Pattern**: Git commit per chunk with learning integration notes
