@@ -112,3 +112,93 @@ Phase 00 Field Normalization has been successfully completed with a comprehensiv
 **Phase 00 is COMPLETE and ready for Session 0 comprehensive testing.** The field normalization foundation is rock-solid and provides the reliability needed for the full UYSP lead qualification system.
 
 **Confidence Level**: HIGH - All success criteria exceeded with evidence-based proof of functionality. 
+
+---
+
+## CONTEXT ENGINEERING PATTERNS ADDENDUM
+
+### Pattern: Evidence-First Testing
+**Always follow this sequence for testing:**
+1. Activate workflow via n8n API if possible
+2. Run single curl test with known payload
+3. Verify with `mcp_airtable_get_record` using returned record ID
+4. Reference this pattern in all testing chunks
+5. Log evidence to Git after verification
+
+**Implementation:**
+```bash
+# 1. Activate workflow
+curl -X PUT https://n8n.domain/api/v1/workflows/CefJB1Op3OySG8nb/activate \
+  -H "X-N8N-API-KEY: your_key"
+
+# 2. Test webhook
+curl -X POST https://rebelhq.app.n8n.cloud/webhook/kajabi-leads \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "name": "Test User"}'
+
+# 3. Verify in Airtable (using returned record ID)
+# 4. Deactivate if needed
+```
+
+### Pattern: Anti-Hallucination Implementation
+**Before any "fixed" or "complete" claims:**
+1. Use tool to fetch real data (e.g., `mcp_n8n_n8n_get_execution`)
+2. If evidence is missing: "Claim withheld due to lack of evidence. Running tool now."
+3. Document in table format:
+
+| Assumption | Evidence Status | Alternative |
+|------------|----------------|-------------|
+| Field mapper working | ✅ Verified via test record | N/A |
+| Boolean conversion working | ✅ 8 test records show true/false | N/A |
+
+### Pattern: Chunking for Complex Tasks
+**For any multi-issue task:**
+1. Identify issues in table format (max 3 issues)
+2. Fix one chunk at a time
+3. Wait for user 'proceed' before next chunk
+4. Use format: CHUNK X: [Issue] – Rules: [list], Tools: [list], Steps: [numbered]
+
+### Pattern: Testing Automation Integration
+**When building test strategy:**
+1. Reference `tests/reality-based-tests-v3.json` for payload variations
+2. Use n8n API for programmatic workflow activation/execution
+3. Implement 5-second delays between webhook calls
+4. Automate evidence collection with record ID verification
+5. Include cleanup automation with preservation filters
+
+**Test Automation Script Structure:**
+```python
+# Auto-activate workflow
+# Execute test payloads with delays  
+# Collect evidence (record IDs, field capture rates)
+# Verify in Airtable via API
+# Log results to Git
+# Run cleanup with preservation
+```
+
+### Pattern: Cleanup and Validation Protocol
+**Post-testing sequence:**
+1. Run `airtable-cleanup.js` to remove test records
+2. Preserve duplicates and lookup records (filter: `duplicate_count > 0`)
+3. User validates manually in Airtable UI for clean state
+4. Log deleted/preserved record counts for transparency
+
+**Cleanup Implementation:**
+- Filter pattern: Email contains 'a*', 'b*', 'c*', 'd*@example.com'
+- Batch size: 10 records maximum per API call
+- Rate limiting: 5 requests/second maximum
+- Backup base before operations
+
+### Pattern: Context Engineering Documentation Updates
+**Before full testing execution:**
+1. Update this file or create `context_engineering.md` in docs/
+2. Append all new gotchas, patterns, and learnings
+3. Commit with descriptive message: "Context Engineering: [Summary]"
+4. Confirm with user via table before proceeding
+
+| Update Type | File | Changes | Commit | Ready for Testing? |
+|-------------|------|---------|--------|--------------------|
+| Patterns | phase00-completion-report.md | Added evidence-first testing pattern | e2fa712 | Pending confirmation |
+| Gotchas | critical-platform-gotchas.md | Added automation gotchas | e2fa712 | Pending confirmation |
+
+**Reference this document for all Phase 0/00 normalization patterns and testing protocols.** 

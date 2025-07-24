@@ -90,6 +90,91 @@ Add parallel test path:
 
 ---
 
+## 🧹 AIRTABLE CLEANUP GOTCHA
+
+### The Issue:
+After comprehensive testing, Airtable accumulates test records that must be cleaned up systematically.
+
+### The Solution:
+**Use Airtable API batch delete with proper filtering**
+
+```python
+import requests
+API_KEY = 'your_airtable_token'  
+BASE_ID = 'appuBf0fTe8tp8ZaF'
+TABLE_ID = 'tblSk2Ikg21932uE0'  # People table
+HEADERS = {'Authorization': f'Bearer {API_KEY}', 'Content-Type': 'application/json'}
+
+# Step 1: Query test records (filter by email pattern)
+def get_test_records():
+    formula = "OR(SEARCH('test', {email}), SEARCH('a1-', {email}), SEARCH('b2-', {email}), SEARCH('c3-', {email}), SEARCH('d1-', {email}))"
+    response = requests.get(f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_ID}?filterByFormula={formula}", headers=HEADERS)
+    # Preserve duplicate lookup records
+    return [rec['id'] for rec in response.json().get('records', []) if 'duplicate' not in rec['fields'].get('request_id', '').lower()]
+
+# Step 2: Batch delete (10 at a time - API limit)
+def delete_batch(record_ids):
+    if record_ids:
+        payload = {'records': record_ids}
+        requests.delete(f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_ID}", headers=HEADERS, json=payload)
+
+# Execute cleanup
+records = get_test_records()
+for i in range(0, len(records), 10):
+    delete_batch(records[i:i+10])
+    print(f"Deleted batch {i//10 + 1}: {len(records[i:i+10])} records")
+```
+
+### Critical Gotchas:
+- **API Limit**: Maximum 10 record IDs per DELETE request
+- **Filter Carefully**: Use specific patterns to avoid deleting production data  
+- **Preserve Duplicates**: Exclude records used for duplicate detection testing
+- **Rate Limiting**: Airtable API has rate limits (5 requests/second)
+- **Backup First**: Always backup base before bulk operations
+
+### Airtable Boolean Gotcha:
+**Airtable checkboxes ignore `false` values - use `null` instead**
+- `true` → checkbox checked ✅
+- `false` → checkbox IGNORED (stays unchecked) ❌  
+- `null` → checkbox unchecked ✅
+
+---
+
+## 🚨 NEW CONTEXT ENGINEERING GOTCHAS
+
+### Gotcha 1: n8n Workflow Automation
+**Use REST API for programmatic activation/execution**
+- **Activate**: `PUT /api/v1/workflows/{id}/activate`
+- **Execute**: `POST /api/v1/workflows/{id}/execute`
+- **Auth**: API key in header `X-N8N-API-KEY`
+- **Benefits**: Enables automated testing batches; deactivate post-run
+- **Reference**: n8n docs API section
+
+### Gotcha 2: Airtable Boolean/Checkbox Handling
+**API ignores 'false' for checkboxes (treats as null/unchecked)**
+- **Normalization Pattern**: `normalized[field] = isTruthy ? true : null`
+- **Never**: Send `false` directly to Airtable API
+- **Why**: Airtable API design - false values are ignored completely
+- **Reference**: Airtable API documentation
+
+### Gotcha 3: n8n Expression Preservation
+**Expressions omit 'false'; use ternaries for safety**
+- **Pattern**: `{{$json.normalized.contacted !== undefined ? $json.normalized.contacted : null}}`
+- **Avoid**: Direct boolean expressions that may evaluate to false
+- **Why**: n8n expression engine can drop false values
+- **Reference**: n8n community forums
+
+### Gotcha 4: Airtable Cleanup Protocol
+**Post-tests, delete test records via API batch with preservation**
+- **Filter Pattern**: Delete emails like 'a*/b*/c*/d*@example.com'
+- **Preserve**: Records with `duplicate_count > 0` (lookup integrity)
+- **Batch Size**: Maximum 10 IDs per request
+- **Backup**: Always backup base before cleanup operations
+- **Script Location**: See cleanup gotcha script above
+- **Reference**: Airtable API batch operations
+
+---
+
 ## Quick Reference Decision Tree
 
 **See null credentials in JSON?**
@@ -109,3 +194,12 @@ Add parallel test path:
 
 **Updated via MCP and auth fails?**
 → Real corruption, re-select in UI
+
+**Need automated testing?**
+→ Use n8n REST API for activation/execution
+
+**Boolean conversion failing?**
+→ Map false to null, never send false directly
+
+**Test cleanup needed?**
+→ Use Airtable API batch delete with preservation filters
