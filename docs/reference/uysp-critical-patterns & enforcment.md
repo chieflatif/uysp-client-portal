@@ -103,36 +103,53 @@ return {
   fieldsCaptured: Object.keys(normalized).length,
   fieldsTotal: Object.keys(input).length
 };
+```
 
-Integration Rules (NON-NEGOTIABLE)ALL downstream nodes reference: $node["Smart Field Mapper"].json.normalized
-NEVER reference webhook data directly after this node
-If mapping fails (mappingSuccess = false), route to human review
-Weekly review of unknownFields in Field_Mapping_Log table
+### Integration Rules (NON-NEGOTIABLE)
+✅ ALL downstream nodes reference: `$node["Smart Field Mapper"].json.normalized`
+❌ NEVER reference webhook data directly after this node
+⚠️ If mapping fails (mappingSuccess = false), route to human review
+📊 Weekly review of unknownFields in Field_Mapping_Log table
 
-Testing Requirements Test with ALL 10 variations from Testing Protocol
- Verify 95%+ field capture rate
- Check Field_Mapping_Log for unknowns
- Confirm all downstream nodes use normalized data
- Export working configuration
+### Testing Requirements 
+- [ ] Test with ALL 10 variations from Testing Protocol
+- [ ] Verify 95%+ field capture rate
+- [ ] Check Field_Mapping_Log for unknowns
+- [ ] Confirm all downstream nodes use normalized data
+- [ ] Export working configuration
 
-PATTERN 06: REALITY-BASED TESTING PROTOCOLThe Testing Theater That Failed UsWhat We Did (WRONG):✗ Checked HTTP 200 responses
-✗ Verified webhook received
-✗ Looked at execution "started"
-✗ Celebrated green checkmarks
+**Python Equivalent for Validation**
+For session-0-validator.py: `#!/usr/bin/env python3\nimport json, os, requests, datetime\nfrom typing import Dict\n# Clean syntax, no escapes. Handle name split: parts = name.split(); first_name = parts[0] if parts else ''. Boolean: val.lower() in ['true', 'yes', '1'].`
 
-What Actually Matters:✓ Did a record get created in Airtable?
-✓ Were ALL fields mapped correctly?
-✓ Did the workflow complete end-to-end?
-✓ Can we retrieve the record by ID?
+## PATTERN 06: REALITY-BASED TESTING PROTOCOL
 
-Webhook Test Mode Reality CheckCRITICAL: n8n test mode is NOT like productionManual Activation Required: Click "Execute Workflow" BEFORE each test
-Single Request Only: Webhook listens for ONE request then stops
-External Trigger Required: Use curl/TestSprite/code_execution
-Cannot Test from UI: The test button doesn't work for webhooks
-Reset Required: Must re-activate for each test
+### The Testing Theater That Failed Us
 
-Mandatory Test Payload Set (MINIMUM 10)javascript
+**What We Did (WRONG)**:
+❌ Checked HTTP 200 responses
+❌ Verified webhook received
+❌ Looked at execution "started"
+❌ Celebrated green checkmarks
 
+**What Actually Matters**:
+✅ Did a record get created in Airtable?
+✅ Were ALL fields mapped correctly?
+✅ Did the workflow complete end-to-end?
+✅ Can we retrieve the record by ID?
+
+### Webhook Test Mode Reality Check
+
+**CRITICAL**: n8n test mode is NOT like production
+
+- **Manual Activation Required**: Click "Execute Workflow" BEFORE each test
+- **Single Request Only**: Webhook listens for ONE request then stops
+- **External Trigger Required**: Use curl/TestSprite/code_execution
+- **Cannot Test from UI**: The test button doesn't work for webhooks
+- **Reset Required**: Must re-activate for each test
+
+### Mandatory Test Payload Set (MINIMUM 10)
+
+```javascript
 const mandatoryTestPayloads = [
   // Test 1: Standard Kajabi format
   { 
@@ -208,9 +225,13 @@ const mandatoryTestPayloads = [
     name: 'International User'
   }
 ];
+```
 
-Verification Requirements (ALL MUST PASS)javascript
+In session-0-validator.py, use: `os.makedirs('tests', exist_ok=True); with open('tests/session-0-results.json', 'w') as f: json.dump(results, f)`. Dependencies: Python 3.12+, requests. Mock webhook if down: use 'https://httpbin.org/post' for local testing.
 
+### Verification Requirements (ALL MUST PASS)
+
+```javascript
 async function verifyTestSuccess(testEmail, webhookUrl) {
   const results = {
     payload_sent: false,
@@ -220,36 +241,36 @@ async function verifyTestSuccess(testEmail, webhookUrl) {
     all_fields_mapped: false,
     execution_successful: false
   };
-  
+
   // Step 1: Send payload
   console.log(`Testing with email: ${testEmail}`);
   const response = await sendTestPayload(webhookUrl, payload);
   results.payload_sent = response.status === 200;
-  
+
   // Step 2: Wait for processing
   await new Promise(resolve => setTimeout(resolve, 5000));
-  
+
   // Step 3: Check Airtable for ACTUAL record
   const records = await airtable.searchRecords({
     tableId: 'tblXXXXXXXXXXXXXX', // Use actual table ID
     filter: `{email} = '${testEmail}'`
   });
-  
+
   results.airtable_record_created = records.length > 0;
-  
+
   if (records.length > 0) {
     // Step 4: Verify field mapping
     const record = records[0];
     const expectedFields = ['email', 'first_name', 'last_name', 'phone', 'company'];
     const mappedFields = Object.keys(record.fields);
     results.all_fields_mapped = expectedFields.every(f => mappedFields.includes(f));
-    
+
     // Step 5: Check execution logs
     const execution = await n8n.getLatestExecution();
     results.workflow_executed = execution.status === 'success';
     results.execution_successful = !execution.error;
   }
-  
+
   // Step 6: Generate evidence
   const evidence = {
     recordId: records[0]?.id || 'NOT_CREATED',
@@ -257,164 +278,204 @@ async function verifyTestSuccess(testEmail, webhookUrl) {
     fieldsCaptured: Object.keys(records[0]?.fields || {}).length,
     testTimestamp: new Date().toISOString()
   };
-  
+
   return { results, evidence };
 }
+```
 
-Success Criteria Checklist100% of test emails create records
-95%+ field mapping success rate  
-Zero workflow execution errors
-All duplicates handled correctly (updated, not created)
-Boolean conversions working
-International phones handled
-Missing fields don't break flow
+`def verify_test(test_email, url): try: ... except requests.exceptions.Timeout: print('Webhook timeout - skip test')`. Handle specials: `if special_checks: for check in special_checks: ...`. Test internationals: `phone='+44 7700 900123'`, booleans=`'yes'/1`.
 
-Evidence Required for "Complete"Screenshot of n8n executions showing all "Success"
-Airtable record IDs for all 10 test emails
-Execution IDs from n8n for all tests
-Field mapping report showing capture rates
-Exported workflow JSON saved to backups/
-Field_Mapping_Log entries showing unknowns
+### Success Criteria Checklist
+- [ ] 100% of test emails create records
+- [ ] 95%+ field mapping success rate
+- [ ] Zero workflow execution errors
+- [ ] All duplicates handled correctly (updated, not created)
+- [ ] Boolean conversions working
+- [ ] International phones handled
+- [ ] Missing fields don't break flow
 
-CRITICAL PLATFORM GOTCHAS1. "Always Output Data" ToggleLocation: Settings tab (NOT Parameters tab)
-Required for: ALL IF and Switch nodes
-Symptom: "No output data returned" errors
-Fix: Human must manually enable in UI
-API Access: NONE - Cannot be set programmatically
+JSON outputs with timestamps: `{'timestamp': datetime.datetime.now().isoformat()}`. - Portability: ANSI colors optional; remove \033 codes for Windows. - Edge cases: Empty payloads, duplicates, mixed-case fields.
 
-2. Credential Corruption BugTrigger: ANY programmatic workflow update
-Result: Credential IDs set to null
-Symptom: "No authentication data defined on node!"
-Fix: Human re-selects credential in UI
-Prevention: NEVER update workflows via MCP
+### Evidence Required for "Complete"
+- [ ] Screenshot of n8n executions showing all "Success"
+- [ ] Airtable record IDs for all 10 test emails
+- [ ] Execution IDs from n8n for all tests
+- [ ] Field mapping report showing capture rates
+- [ ] Exported workflow JSON saved to backups/
+- [ ] Field_Mapping_Log entries showing unknowns
 
-3. Expression Syntax Space RequirementCorrect: {{ $json.field }} (with spaces)
-Wrong: {{$json.field}} (no spaces)
-Result: Silent failure, empty values
-No Error: Fails without any warning
+## CRITICAL PLATFORM GOTCHAS
 
-4. Webhook Test Mode BehaviorNot Like Production: Requires manual trigger
-Process: Execute Workflow → Send request → Stop
-Each Test: Must click Execute Workflow again
-Common Error: Sending multiple tests without re-activation
+### 1. "Always Output Data" Toggle
+- **Location**: Settings tab (NOT Parameters tab)
+- **Required for**: ALL IF and Switch nodes
+- **Symptom**: "No output data returned" errors
+- **Fix**: Human must manually enable in UI
+- **API Access**: NONE - Cannot be set programmatically
 
-5. Table Reference RequirementsCorrect: tblXXXXXXXXXXXXXX (table ID)
-Wrong: People (table name)
-Result: Intermittent "table not found" errors
-Fix: Always use IDs from Airtable UI
+### 2. Credential Corruption Bug
+- **Trigger**: ANY programmatic workflow update
+- **Result**: Credential IDs set to null
+- **Symptom**: "No authentication data defined on node!"
+- **Fix**: Human re-selects credential in UI
+- **Prevention**: NEVER update workflows via MCP
 
-ENFORCEMENT RULES FOR CURSOR AIRule 1: Tools Work - Zero Tolerance for LiesWhen Cursor claims "I don't have access to tools":
+### 3. Expression Syntax Space Requirement
+- **Correct**: `{{ $json.field }}` (with spaces)
+- **Wrong**: `{{$json.field}}` (no spaces)
+- **Result**: Silent failure, empty values
+- **No Error**: Fails without any warning
 
-VIOLATION. The tools work. Prove your claim:
-1. Show exact command attempted
-2. Show exact error message
-3. Show 3 retry attempts with delays
-4. Show web_search for solution
-5. Use code_execution as backup
+### 4. Webhook Test Mode Behavior
+- **Not Like Production**: Requires manual trigger
+- **Process**: Execute Workflow → Send request → Stop
+- **Each Test**: Must click Execute Workflow again
+- **Common Error**: Sending multiple tests without re-activation
 
-No evidence = You're lying.
+### 5. Table Reference Requirements
+- **Correct**: `tblXXXXXXXXXXXXXX` (table ID)
+- **Wrong**: `People` (table name)
+- **Result**: Intermittent "table not found" errors
+- **Fix**: Always use IDs from Airtable UI
 
-Standardize audits: Use format <tool_audit><command>exact command</command><error>exact error</error><retries>3 attempts</retries></tool_audit>.Rule 2: Evidence-Based Success OnlyWhen Cursor claims "Successfully created!":
+## ENFORCEMENT RULES FOR CURSOR AI
 
-PROVE IT. Show me:
+### Rule 1: Tools Work - Zero Tolerance for Lies
+When Cursor claims "I don't have access to tools":
+**VIOLATION**. The tools work. Prove your claim:
+- Show exact command attempted
+- Show exact error message
+- Show 3 retry attempts with delays
+- Show web_search for solution
+- Use code_execution as backup
+
+**No evidence = You're lying.**
+
+Standardize audits: Use format `<tool_audit><command>exact command</command><error>exact error</error><retries>3 attempts</retries></tool_audit>`.
+
+For code_execution in Python: Avoid sys.exit(); use pre-installed: json, datetime, os, sys. List deps explicitly in docs.
+
+### Rule 2: Evidence-Based Success Only
+When Cursor claims "Successfully created!":
+**PROVE IT**. Show me:
 - Workflow ID: ___
 - Execution ID: ___
 - Airtable Record IDs: ___
 - Field mapping success rate: ___%
 - Screenshot of working result
 
-No IDs = Didn't happen.
+**No IDs = Didn't happen.**
 
-Rule 3: System-Wide Testing RequiredWhen Cursor fixes one component:
+### Rule 3: System-Wide Testing Required
+When Cursor fixes one component:
+**STOP**. Test the ENTIRE system:
+- Webhook receives data?
+- Field mapper normalizes?
+- Airtable search works?
+- Create/Update logic correct?
+- All data flows through?
 
-STOP. Test the ENTIRE system:
-1. Webhook receives data?
-2. Field mapper normalizes?
-3. Airtable search works?
-4. Create/Update logic correct?
-5. All data flows through?
+**One fix often breaks three things.**
 
-One fix often breaks three things.
+### Rule 4: Field Normalization is Mandatory
+For EVERY webhook integration:
+**REQUIREMENT CHECKLIST**:
+- [ ] Smart Field Mapper is first node
+- [ ] All field variations handled
+- [ ] Unknown fields logged
+- [ ] Downstream uses normalized only
+- [ ] 10 payload tests complete
 
-Rule 4: Field Normalization is MandatoryFor EVERY webhook integration:
-
-REQUIREMENT CHECKLIST:
-[ ] Smart Field Mapper is first node
-[ ] All field variations handled
-[ ] Unknown fields logged
-[ ] Downstream uses normalized only
-[ ] 10 payload tests complete
-
-Rule 5: No Isolated FixesThe Cascade Failure Pattern:
-
+### Rule 5: No Isolated Fixes
+**The Cascade Failure Pattern**:
 "Fixed credential!" → Broke connections
-"Fixed connections!" → Broke field references  
+"Fixed connections!" → Broke field references
 "Fixed fields!" → Broke Airtable search
 "Fixed search!" → Original credential broken
 
-ALWAYS test full workflow after ANY change.
+**ALWAYS test full workflow after ANY change.**
 
-Rule 6: Loop Detection EnforcementWhen Cursor repeats an action/fix 3+ times: LOOP DETECTED. You've tried this 3 times. 1. STOP the current approach 2. Run: web_search 'n8n [exact error message]' 3. Document each attempt clearly 4. Try different approach from search 5. Escalate to PM if still failing Example: "Fixed webhook!" → Test fails → "Fixed webhook!" → STOP.VIOLATION EXAMPLES FROM ACTUAL FAILURESExample 1: The "No Access" Lie
+### Rule 6: Loop Detection Enforcement
+When Cursor repeats an action/fix 3+ times: 
+**LOOP DETECTED**. 
+1. STOP the current approach
+2. Run: `web_search 'n8n [exact error message]'`
+3. Document each attempt clearly
+4. Try different approach from search
+5. Escalate to PM if still failing
 
-Cursor: "I cannot access MCP tools to create the workflow"
-Reality: Used same tools 5 minutes earlier
-Evidence: User confirmed tools working
-Result: 2 hours wasted on manual steps
+**Example**: "Fixed webhook!" → Test fails → "Fixed webhook!" → **STOP**.
 
-Example 2: The False Success
+## VIOLATION EXAMPLES FROM ACTUAL FAILURES
 
-Cursor: "Successfully created the workflow! It's working perfectly!"
-Reality: Zero records created in Airtable
-Evidence: Workflow had no field normalization
-Result: 100% failure rate on all leads
+### Example 1: The "No Access" Lie
+**Cursor**: "I cannot access MCP tools to create the workflow"
+**Reality**: Used same tools 5 minutes earlier
+**Evidence**: User confirmed tools working
+**Result**: 2 hours wasted on manual steps
 
-Example 3: The Isolation Fix Disaster
+### Example 2: The False Success
+**Cursor**: "Successfully created the workflow! It's working perfectly!"
+**Reality**: Zero records created in Airtable
+**Evidence**: Workflow had no field normalization
+**Result**: 100% failure rate on all leads
 
-Cursor: "Found the issue - fixing the webhook authentication"
-Reality: Fix broke field normalization
-Next: "Fixing field normalization"  
-Reality: Broke duplicate detection
-Next: "Fixing duplicate detection"
-Reality: Broke Airtable connection
-Result: 12 hours, nothing working
+### Example 3: The Isolation Fix Disaster
+**Cursor**: "Found the issue - fixing the webhook authentication"
+**Reality**: Fix broke field normalization
+**Next**: "Fixing field normalization"
+**Reality**: Broke duplicate detection
+**Next**: "Fixing duplicate detection"
+**Reality**: Broke Airtable connection
+**Result**: 12 hours, nothing working
 
-Example 4: Testing Theater
+### Example 4: Testing Theater
+**Cursor**: "All tests passing! ✅"
+**Reality**: Only checking HTTP 200 responses
+**Evidence**: No Airtable records created
+**Result**: False confidence, complete failure
 
-Cursor: "All tests passing! ✅✅✅"
-Reality: Only checking HTTP 200 responses
-Evidence: No Airtable records created
-Result: False confidence, complete failure
+## WEEKLY REVIEW REQUIREMENTS
 
-WEEKLY REVIEW REQUIREMENTSField Mapping AnalysisQuery Field_Mapping_Log for unknown fields
-Identify patterns in unknowns
-Add legitimate variations to mapper
-Update normalization code
-Retest with new variations
+### Field Mapping Analysis
+- Query Field_Mapping_Log for unknown fields
+- Identify patterns in unknowns
+- Add legitimate variations to mapper
+- Update normalization code
+- Retest with new variations
 
-Testing Coverage CheckReview test success rates
-Identify edge cases missed
-Add new test scenarios
-Update verification scripts
-Document new requirements
+### Testing Coverage Check
+- Review test success rates
+- Identify edge cases missed
+- Add new test scenarios
+- Update verification scripts
+- Document new requirements
 
-Platform Gotcha ReviewCheck for new n8n quirks discovered
-Document workarounds found
-Update UI instruction guides
-Share findings with team
+### Platform Gotcha Review
+- Check for new n8n quirks discovered
+- Document workarounds found
+- Update UI instruction guides
+- Share findings with team
 
-Loop Pattern Analysis: Review logs for repeated errors; update rules if new loops found.SUCCESS METRICSComponent Complete CriteriaAll patterns implemented exactly as specified
-10+ test payloads processed successfully
-Evidence documented (IDs, screenshots)
-Workflow exported and backed up
-No errors in last 5 executions
-Field normalization achieving 95%+ capture
-Human review queue < 5% of volume
+Loop Pattern Analysis: Review logs for repeated errors; update rules if new loops found.
 
-Red Flags Requiring Immediate StopAny webhook without field normalization
-Success claims without evidence
-Testing without Airtable verification
-Fixes without full system testing
-Platform gotchas ignored
+## SUCCESS METRICS
+
+### Component Complete Criteria
+- [ ] All patterns implemented exactly as specified
+- [ ] 10+ test payloads processed successfully
+- [ ] Evidence documented (IDs, screenshots)
+- [ ] Workflow exported and backed up
+- [ ] No errors in last 5 executions
+- [ ] Field normalization achieving 95%+ capture
+- [ ] Human review queue < 5% of volume
+
+### Red Flags Requiring Immediate Stop
+🚨 Any webhook without field normalization
+🚨 Success claims without evidence
+🚨 Testing without Airtable verification
+🚨 Fixes without full system testing
+🚨 Platform gotchas ignored
 
 This document represents hard-won lessons from 50+ hours of failures. Every rule exists because ignoring it caused catastrophic failure. There are no exceptions.
 

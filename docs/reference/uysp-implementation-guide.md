@@ -1,339 +1,512 @@
-✓ Updated uysp-implementation-guide.md - Added to Session 3: Qualification & Enrichment, Step 2: "If non-US prefix (e.g., not +1), route to human review queue"; Added to Session 5: Utilities & Complete System: "Stub for Phase 2: Add placeholder IF for two-way SMS (e.g., check for replies)."; Added to Session 0: Field Normalization, Step 3: "Merge with reality_based_tests_v2.json for unique 15+ payloads."; Added to Post-Implementation Checklist: "[ ] Claude API rate limits handled (backoff for 100 req/min).".
-```uysp-implementation-guide.md
-# UYSP Implementation Guide
-*Step-by-Step Instructions with Critical Updates from Failure Analysis*
+# UYSP Master Reference & Architecture
+*Complete System Specification and Success Framework*
 
-## Pre-Build Requirements
+## Executive Summary
 
-### Accounts & Access (1 hour setup)
-- [ ] n8n cloud instance running ($150/month)
-- [ ] Airtable Team plan active ($240/month)  
-- [ ] Apollo Pro account ($99/month)
-- [ ] SimpleTexting account with phone number
-- [ ] Twilio account with Lookup API enabled
-- [ ] Claude API key (claude-4-opus access)
-- [ ] Zapier Starter plan ($29/month)
+### What We're Building
+An automated lead qualification and outreach system that transforms UYSP's manual process (100 leads/day) into an AI-powered system processing 700+ leads/week initially, scaling to 7,000/week. The system qualifies leads, enriches data, scores them 0-100, and sends personalized SMS to book meetings.
 
-### Critical Documentation Check
-- [ ] Pattern 00 (Field Normalization) loaded - **MANDATORY**
-- [ ] Pattern 06 (Reality Testing) loaded - **MANDATORY**
-- [ ] Platform Gotchas document reviewed
-- [ ] Test payloads (10 variations) prepared
+### Key Business Metrics
+- **Current State**: 40 manual calls/day → 6-8 conversations → 1-2 meetings
+- **Target State**: 700+ automated touches/week → 70+ conversations → 50+ meetings
+- **ROI**: 3-5x increase in meetings booked at <$5 per meeting
+- **Timeline**: MVP in 4 weeks, full system in 12 weeks
 
-### Development Environment
-- [ ] Claude Desktop with project docs loaded (PM role)
-- [ ] Cursor with UYSP project created (Developer role)
-- [ ] MCP tools verified working in both
+### Critical Decisions Made
+1. **SMS-First Strategy**: No email improvements (accepting 14% open rate)
+2. **Apollo-Only Enrichment**: Single provider for simplicity
+3. **Two-Phase Qualification**: Verify B2B tech first, then sales role
+4. **Human Review Queue**: Route unclear cases for manual review
+5. **No Complex CRM**: Airtable as simple identity layer
 
 ---
 
-## Session 0: Field Normalization (MANDATORY FIRST STEP)
+## System Architecture
 
-### Why This is Session 0
-**Discovery**: Without field normalization, 100% of workflows fail
-**Reality**: Webhooks send 15+ variations of every field
-**Solution**: Smart Field Mapper MUST be first node after webhook
+### High-Level Flow
 
-### Step 1: Create Field Mapping Infrastructure
+```
+Kajabi Forms → Zapier Webhook → n8n Orchestration
+    ↓
+Field Normalization (MANDATORY FIRST STEP)
+    ↓
+Identity Resolution (Airtable)
+    ↓
+Two-Phase Qualification:
+├─ Phase 1: Company (Apollo Org API) → B2B Tech?
+│   ├─ Yes → Phase 2
+│   └─ No → Archive
+└─ Phase 2: Person (Apollo People API) → Sales Role?
+    ├─ Yes → ICP Scoring (0-100)
+    └─ No → Human Review
+    ↓
+Routing Decision:
+├─ Score 70+ with Phone → SMS Campaign
+├─ Score 70+ no Phone → Skip (Phase 1)
+├─ Score <70 → Archive
+└─ Unclear → Human Review
+```
 
-In Airtable:Create Field_Mapping_Log table with fields:timestamp (datetime)
-unknown_field (text)
-webhook_source (text) 
-occurrence_count (number)
-first_seen (datetime)
-last_seen (datetime)
-Update People table - ADD:field_mapping_success_rate (number)
-raw_webhook_data (long text)
-normalization_version (text)
-### Step 2: Implement Smart Field Mapper
-In n8n, create workflow: `uysp-field-normalizer-v1`
+For validation testing, session-0-validator.py creates output files like tests/session-0-results.json. Add in script: import os; os.makedirs('tests', exist_ok=True). Docs: Generalize paths (e.g., avoid absolute like /Users/...); verify webhook URL accessibility before tests to handle reliability issues.
 
-1. **Webhook Node**:
-   - Type: Webhook
-   - Method: POST
-   - Path: test-normalizer
-   - Authentication: None (for testing)
+### Technology Stack & Costs
 
-2. **Smart Field Mapper Node** (Code):
-   - Copy EXACT code from Pattern 00
-   - NO MODIFICATIONS
-   - This handles 15+ variations per field
+| Platform | Purpose | Monthly Cost | Why This Choice |
+|----------|---------|--------------|-----------------|
+| n8n Cloud | Orchestration hub | $150 | Visual workflows, MCP compatible |
+| Airtable Team | Identity/CRM | $240 | Simple, non-technical friendly |
+| Zapier Starter | Kajabi bridge | $29 | Kajabi has no webhooks |
+| SimpleTexting | SMS delivery | $300 | Built-in compliance |
+| Apollo Pro | Enrichment | $99 | Two-phase qualification |
+| API Costs | Various | ~$130 | Pay-per-use enrichment |
+| **Total** | **Platform costs** | **~$948** | Under $1k target |
 
-3. **Test Payload Logger** (Code):
-   ```javascript
-   // Log results for verification
-   const input = $input.first().json;
-   console.log('Normalized fields:', Object.keys(input.normalized));
-   console.log('Unknown fields:', input.unknownFields);
-   console.log('Capture rate:', 
-     (input.fieldsCaptured / input.fieldsTotal * 100).toFixed(2) + '%'
-   );
-   return input;
+---
 
-Step 3: Test with ALL 10 VariationsCritical: Use Pattern 06 test payloadsFor each test:Click "Execute Workflow" in n8n
-Send test payload via curl/TestSprite
-Verify output shows 95%+ field capture
-Check unknown fields array
-Document any new variations found
-Merge with reality_based_tests_v2.json for unique 15+ payloads.
+## Data Architecture
 
-Success CriteriaAll 10 test payloads processed
-95%+ field capture rate achieved
-Unknown fields logged to table
-Downstream can use normalized data
-Exported to backups/session-0-field-normalizer.json
+### Core Tables (Airtable)
 
-Session 1: Foundation (2 hours)Prerequisites CheckSession 0 complete and tested
-Pattern 01 loaded in Cursor
-TEST_MODE=true in n8n env vars
-Airtable base created with all tables
+#### 1. People - Golden Records
+Primary key: email
+Secondary identifier: linkedin_url
+**Critical Fields**:
+- Identity: email, phone_primary, first_name, last_name
+- Enrichment: company, title, linkedin_url, phone_enriched
+- Scoring: icp_score (0-100), icp_tier, routing
+- Tracking: processing_status, test_mode_record
+- **NEW**: field_mapping_success_rate, enrichment_failed
 
-Step 1: Bootstrap Environment VariablesIn n8n, set these variables:
+#### 2. Communications - Outreach Log
+Links to: People (many-to-one)
+**Tracks**: All SMS attempts, delivery, clicks
+**Critical Fields**:
+- message_content, sent_time, template_used
+- tracking_link, clicked, delivery_status
+- **NEW**: dnd_checked, time_window_checked
 
-AIRTABLE_BASE_ID=appXXXXXXXXXXXXXX  # From Airtable URL
-TEST_MODE=true                       # Critical for safety
-DAILY_COST_LIMIT=1                   # $1 for testing
-CACHE_EXPIRY_DAYS=90
-MAX_RETRIES=3
-RETRY_DELAY_MS=5000
-TEN_DLC_REGISTERED=false            # Until registered
-SMS_MONTHLY_LIMIT=1000
+#### 3. Field_Mapping_Log (NEW - CRITICAL)
+**Purpose**: Track unknown webhook fields
+**Fields**:
+- timestamp, unknown_field, webhook_source
+- occurrence_count, first_seen, last_seen
+**Usage**: Weekly review to update field normalizer
 
-Step 2: Create Main WorkflowCreate workflow: uysp-lead-processing-v1Webhook Receiver:Path: kajabi-leads
-Authentication: Header Auth
-Header Name: X-API-Key
-Use credential for key storage
-Import Field Normalizer:Add "Execute Workflow" node
-Select: uysp-field-normalizer-v1
-Pass webhook data through
-Test Mode Check:IF node: {{ $env.TEST_MODE === 'true' }}
-True path: Set test_mode_record = true
-False path: Continue normal flow
-Identity Resolution:Airtable Search node
-Table ID: tblXXXXXX (NOT name!)
-Filter: {email} = '{{ $node["Field Normalizer"].json.normalized.email }}'
-Enable "Always Output Data" in Settings tab
-Duplicate Check:IF node: {{ $node["Search People"].json.length > 0 }}
-True: Update existing record
-False: Create new record
-Enable "Always Output Data" in Settings tab
-Step 3: Test FoundationSend test payload (Pattern 06, Test 1)
-Verify webhook receives (200 OK)
-Check field normalization output
-Confirm Airtable record created
-Send same payload again
-Verify duplicate is updated, not created
+#### 4. Daily_Costs - Circuit Breaker
+Primary key: date
+**Purpose**: Hard stop at $50/day limit
+**Tracks**: All API costs by service
+**Critical**: circuit_breaker_triggered field
 
-Success CriteriaWebhook receives and normalizes fields
-Test mode properly enforced
-Airtable create/update working
-No duplicate records created
-Exported to backups/session-1-foundation.json
+#### 5. DND_List - Compliance
+Primary key: phone
+**Purpose**: Never contact opt-outs
+**Critical**: Checked before EVERY SMS
 
-Session 2: Compliance & Safety (2 hours)PrerequisitesSession 1 working completely
-Pattern 02 loaded
-DND_List table has test entries
-SMS limits understood
+#### 6. Human_Review_Queue
+Links to: People
+**Triggers**: Unclear company, non-sales role, international
+**SLA**: 48-hour review before auto-archive
 
-Step 1: DND List ManagementInitialize DND Check:Add after field normalization
-Airtable Search: DND_List
-Filter: {phone} = '{{ $json.normalized.phone }}'
-Check if opted out
-Monthly SMS Count:Airtable Count: Communications
-Filter: AND({sent_time} >= '{{ $now.startOf('month').toISO() }}')
-Store count for limit check
-Time Window Check:Code node for timezone logic
-Check 8am-9pm recipient time
-Account for area code timezone
-Step 2: Compliance GatesCreate "SMS Pre-flight Check" node:javascript
+#### 7. Daily_Metrics - Performance
+**Enhanced Fields**:
+- enhancement_rate, avg_processing_time
+- sms_delivery_rate, compliance_check_rate
+- field_mapping_success_rate
 
-const checks = {
-  dnd: $node["DND Check"].json.length === 0,
-  monthlyLimit: $node["Monthly Count"].json.count < 1000,
-  timeWindow: checkTimeWindow($json.normalized.phone),
-  tendlc: $env.TEN_DLC_REGISTERED === 'true' || 
-          $node["Monthly Count"].json.count < 1000
+### Key Design Patterns
+- **Identity Resolution**: Email + Phone matching with duplicate handling
+- **Cache-First**: 90-day enrichment cache to reduce costs
+- **Circuit Breaker**: Hard stop at daily spend limit
+- **Compliance First**: DND check, time window, 10DLC
+- **Field Normalization**: MANDATORY first step after webhook
+
+---
+
+## Two-Phase Qualification Logic
+
+### Phase 1: Company Qualification ($0.01/check)
+
+**Input**: Email domain or company name
+**API**: Apollo Organizations API
+**Check**: Is this a B2B tech company?
+
+**Known Good Domains** (bypass API):
+- Salesforce, HubSpot, Microsoft, Google
+- Any domain in "known_b2b_tech" list
+
+**Decision Tree**:
+- B2B Tech → Proceed to Phase 2
+- Non-B2B → Archive immediately  
+- Unclear → Human review queue
+- No data → Human review queue
+
+### Phase 2: Person Enrichment ($0.025/check)
+
+**Trigger**: ONLY if Phase 1 passes
+**API**: Apollo People API
+**Check**: Is this a sales/revenue role?
+
+**Sales Keywords**: 
+- **Positive**: "sales", "account executive", "business development", "revenue"
+- **Negative**: "engineer", "marketing", "support", "success"
+
+**Decision Tree**:
+- Sales role → ICP Scoring
+- Non-sales → Human review
+- No title → Human review
+- CEO/Founder → Special handling
+
+### Cost Optimization
+- Phase 1 filters ~72% of leads
+- Only 28% proceed to Phase 2
+- Saves $0.025 per filtered lead
+- Monthly savings: ~$400
+
+---
+
+## ICP Scoring Algorithm
+
+### Primary Method: Claude AI Analysis
+```javascript
+const scoringPrompt = `
+Score this sales professional 0-100 based on:
+- Title: ${enrichedData.title}
+- Company: ${enrichedData.company} 
+- Company Size: ${enrichedData.company_size}
+- Technologies: ${enrichedData.technologies}
+
+Scoring Guidelines:
+95-100: Enterprise AE at Tier 1 B2B SaaS
+85-94: Strategic/Enterprise AE at known B2B
+70-84: Mid-Market AE or Senior SDR
+50-69: SMB AE or SDR
+30-49: Junior SDR or unclear role
+0-29: Not sales or very junior
+
+Return only the numeric score.
+`;
+```
+
+**Fallback Method: Domain-Based Scoring**
+Used when Claude API fails or times out:
+
+```javascript
+const domainScores = {
+  'salesforce.com': 95,
+  'hubspot.com': 90,
+  'microsoft.com': 90,
+  // ... extensive list
+  'unknown': 60
 };
+```
 
-if (!checks.dnd) throw new Error('Number on DND list');
-if (!checks.monthlyLimit) throw new Error('Monthly limit exceeded');
-if (!checks.timeWindow) throw new Error('Outside time window');
-if (!checks.tendlc) throw new Error('10DLC limit exceeded');
+### Routing Logic
 
-return { 
-  ...items[0].json,
-  compliance_checks: checks,
-  can_send_sms: Object.values(checks).every(c => c === true)
-};
+| Score | Tier | Action | Timing |
+|-------|------|--------|---------|
+| 95-100 | Ultra | SMS immediately | <1 min |
+| 85-94 | High | SMS within 5 min | Quick |
+| 70-84 | Medium | SMS within 15 min | Standard |
+| 50-69 | Low | Archive | None |
+| 0-49 | Archive | No action | None |
+| Error | Review | Human queue | 48hr SLA |
 
-Success CriteriaDND list properly checked
-Monthly limits enforced
-Time windows calculated correctly
-All compliance gates working
-Exported to backups/session-2-compliance.json
+## SMS Execution Framework
 
-Session 3: Qualification & Enrichment (3 hours)PrerequisitesSessions 1-2 complete
-Pattern 03 loaded
-Apollo API credentials added
-Cost tracking tested
+### Compliance Requirements
 
-Step 1: Enrichment Cache SetupCheck Cache First:Airtable Search: Enrichment_Cache
-Filter: AND({email} = '{{ $json.normalized.email }}', {cache_expiry} > NOW())
-If found, use cached data
-Cost Check Before API:Get today's costs from Daily_Costs
-Add next API cost
-If exceeds limit, HALT
-Step 2: Two-Phase QualificationPhase 1 - Company Check:javascript
+**10DLC Registration**: 
+- Pre-registration: 1,000 SMS/month limit
+- Post-registration: Based on trust score
+- Current: TEN_DLC_REGISTERED=false
 
-// Check known B2B domains first
-const knownB2B = ['salesforce.com', 'hubspot.com', ...];
-const domain = email.split('@')[1];
+**Time Windows**: 
+- 8am-9pm recipient local time
+- Timezone detection via area code
+- Fallback to company timezone
 
-if (knownB2B.includes(domain)) {
-  return { b2b_tech: true, used_api: false };
-}
+**DND Enforcement**:
+- Check before EVERY send
+- Instant opt-out processing
+- Weekly audit of compliance
 
-// Otherwise, call Apollo Org API
-Phase 2 - Person Enrichment:Only if Phase 1 passes
-Apollo People API call
-Extract title, LinkedIn, company info
-Route based on sales keywords
-Step 3: ICP ScoringPrimary - Claude AI:Send enriched data to Claude
-Get 0-100 score
-Store scoring reasoning
-Fallback - Domain Score:If Claude fails/timeout
-Use domain-based scoring
-Document which method used
-If non-US prefix (e.g., not +1), route to human review queueSuccess CriteriaCache checks working
-Cost tracking accurate
-Two-phase qualification filters correctly
-ICP scores assigned to all qualified
-Human review queue populated
-Exported to backups/session-3-qualification.json
+### SMS Template Structure
 
-Session 4: SMS Sending (2 hours)PrerequisitesSessions 1-3 complete
-Pattern 04 loaded
-SimpleTexting API configured
-Test phone numbers ready
+```
+[Personalization] + [Value Prop] + [CTA] = <135 chars
+```
 
-Step 1: Phone ValidationFormat to E.164:Strip all non-numeric
-Add country code if missing
-Validate length
-Twilio Lookup (if not in test mode):Check if mobile vs landline
-Get carrier info
-Verify deliverable
-Step 2: SMS Template Enginejavascript
+**Examples**:
+```
+"Hi {first_name}, saw you joined {company} as {title}! 
+Other {similar_title}s love our {value_prop}. 
+Chat with Davidson? {tracking_link}"
+```
 
-const templates = {
-  'webinar-signup': 
-    `Hi {{ first_name }}, saw you signed up for our webinar! 
-     Other {{ title }}s at {{ company }} love our framework. 
-     Quick chat with Davidson? {{ link }}`,
+### Tracking & Attribution
+- Unique short links per recipient
+- UTM parameters: source, medium, campaign, content
+- Click tracking via redirect
+- Meeting attribution via Calendly webhook
+
+## Implementation Phases
+
+### Phase 1: MVP Foundation (Month 1)
+
+**BUILDING**: 
+✅ Webhook reception with field normalization
+✅ Lead validation and deduplication  
+✅ Two-phase qualification (B2B → Sales)
+✅ ICP scoring with Claude AI
+✅ One-way SMS to qualified leads
+✅ Basic metrics and cost tracking
+✅ Python validation suite (session-0-validator.py) for webhook testing, requiring requests library. Handle None in special_checks: if special_checks: for check in special_checks: .... Test booleans ('yes', 1) and international phones (+44...). Success: 95% pass rate in JSON output with timestamps.
+
+**NOT BUILDING**: 
+❌ Two-way SMS conversations
+❌ Phone enrichment services
+❌ Email automation changes
+❌ LinkedIn automation
+❌ Complex multi-touch sequences
+❌ Real-time dashboards
+
+### Phase 2: Scale & Optimize (Month 2)
+**Adding**:
+- Database mining (30k existing contacts)
+- Enhanced delivery tracking
+- SMS template A/B testing
+- Batch processing optimization
+- Weekly performance reports
+
+**Still NOT**:
+- Two-way SMS (wait for Month 3)
+- Email campaigns
+- Voice calling
+- Multi-channel orchestration
+
+### Phase 3: Intelligence Layer (Month 3)
+**Finally Adding**:
+- Two-way SMS with Claude AI
+- Phone enrichment for high-value (85+)
+- Behavioral triggers
+- Re-engagement campaigns
+- Predictive scoring
+
+### Phase 4-6: Future Vision
+**Potential** (not committed):
+- Email automation outside Kajabi
+- LinkedIn automation
+- Voice AI calling
+- WhatsApp international
+- Full omnichannel orchestration
+
+## Success Metrics Framework
+
+### Three Levels of Measurement
+
+#### Level 1: System Execution (We Control)
+**Definition**: Our code working correctly
+**Target**: 100% success rate
+
+| Metric | Success Criteria | Measurement |
+|--------|------------------|-------------|
+| Webhook Processing | 100% return 200 | Response logs |
+| Field Normalization | 95%+ field capture | Mapping success rate |
+| Lead Validation | 100% validated | No invalid data |
+| ICP Scoring | 100% scored | Score field populated |
+| Routing Logic | 100% routed | Routing field set |
+| Cost Tracking | 100% logged | Daily_Costs updated |
+
+#### Level 2: External Dependencies (We Monitor)
+**Definition**: Third-party service performance
+**Target**: Work around failures
+
+| Service | Expected | If Down | Our Response |
+|---------|----------|---------|--------------|
+| Apollo API | 95% uptime | Can't enrich | Use cache + queue |
+| Claude API | 95% uptime | Can't score | Domain fallback |
+| SimpleTexting | 99% uptime | Can't SMS | Retry queue |
+| Twilio | 95% uptime | Can't validate | Skip validation |
+
+#### Level 3: Business Outcomes (We Enable)
+**Definition**: Results from everything working
+**Target**: Hit business goals
+
+| Metric | Month 1 Target | Formula | Proves |
+|--------|----------------|---------|---------|
+| Meetings Booked | 30+ | Tracking links | System works |
+| SMS → Meeting | 5%+ | Meetings/SMS sent | Message quality |
+| Cost per Meeting | <$5 | Total cost/Meetings | Economics work |
+| Processing Time | <5 min | End time - Start time | Fast enough |
+
+### Month 1 Success Definition
+
+**Minimum Viable Success**
+✅ System processes 95%+ leads without errors
+✅ 20+ meetings booked
+✅ Zero compliance violations  
+✅ Costs tracked and controlled
+
+**Target Success**
+✅ System processes 99%+ leads
+✅ 30+ meetings booked
+✅ 5%+ SMS conversion rate
+✅ <$5 per meeting
+
+**Exceptional Success**
+✅ 40+ meetings booked
+✅ 7%+ SMS conversion rate
+✅ <$3 per meeting
+✅ Ready for Phase 2 scaling
+
+## Critical Decision Log
+
+### Why SMS-First?
+- Email: 14% open rate (not fixing)
+- SMS: 98% open rate
+- Target: Mobile sales professionals
+- Timing: Strike while intent is hot
+- Compliance: SimpleTexting handles
+
+### Why Apollo Only?
+- Simplifies integration (one API)
+- Adequate data quality (80%+)
+- Predictable costs
+- Two-phase saves money
+- Good enough for MVP
+
+### Why Not HubSpot?
+- Ian: "Don't want it in HubSpot"
+- Adds complexity
+- Airtable simpler for team
+- Visual database preferred
+- Easy no-code automation
+
+### Why Human Review Queue?
+- ~30% of leads are unclear
+- Preserves potential value
+- Learning opportunity
+- Improves algorithm
+- Safety net for edge cases
+
+## Risk Mitigation
+
+### Technical Risks
+
+| Risk | Impact | Mitigation | Owner |
+|------|--------|------------|-------|
+| API Rate Limits | Halts processing | Exponential backoff + queue | System |
+| Cost Overrun | Budget breach | Circuit breaker at $50/day | System |
+| Field Variations | Data loss | Field normalizer + monitoring | PM |
+| Platform Bugs | Features break | Document + workaround | PM |
+
+### Business Risks
+
+| Risk | Impact | Mitigation | Owner |
+|------|--------|------------|-------|
+| Low Qualification | Few SMS | Adjust thresholds | Team |
+| Poor SMS Response | No meetings | Test templates | Team |
+| Compliance Issues | Legal risk | Built-in checks | System |
+| Team Adoption | Manual continues | Training + docs | PM |
+
+## Operational Handoffs
+
+### For Development (Cursor AI)
+- Patterns in order: 00 → 01 → 02 → 03 → 04 → 05
+- Test requirements: 10 payloads minimum
+- Evidence required: IDs for all claims
+- Platform gotchas: See Critical Patterns doc
+
+### For Operations (Human Team)
+- **Daily**: Check human review queue
+- **Daily**: Monitor cost dashboard
+- **Weekly**: Review Field_Mapping_Log
+- **Weekly**: Analyze conversion metrics
+- **Monthly**: Optimize templates
+
+### For Sales (End Users)
+- **What changes**: Leads arrive pre-qualified
+- **Timing**: Meetings book automatically
+- **Quality**: Only ICP 70+ reach you
+- **Volume**: Expect 10-15 meetings/week
+- **Your job**: Close deals, not qualify
+
+## Appendix: Technical Specifications
+
+### Required API Keys
+
+```yaml
+Apollo:
+  - API_KEY: Required
+  - Plan: Pro ($99/month)
+  - Credits: 2,000/day
   
-  'default':
-    `Hi {{ first_name }}, noticed you're the {{ title }} at {{ company }}. 
-     We help similar teams close 20% more deals. 
-     Worth a quick chat? {{ link }}`
+SimpleTexting:
+  - API_KEY: Required  
+  - PHONE_NUMBER: E.164 format
+  - 10DLC: Register before production
+  
+Twilio:
+  - ACCOUNT_SID: Required
+  - AUTH_TOKEN: Required
+  - Services: Lookup API v2
+  
+Claude:
+  - API_KEY: Required
+  - Model: claude-4-opus
+  - Usage: ICP scoring
+  
+Airtable:
+  - PERSONAL_ACCESS_TOKEN: Required
+  - Scopes: data.records:read/write
+  - Base_ID: From URL
+```
+
+### Webhook Configuration
+
+```javascript
+// Zapier → n8n webhook format
+{
+  method: 'POST',
+  headers: {
+    'X-API-Key': 'your-webhook-key',
+    'Content-Type': 'application/json'
+  },
+  body: {
+    // Highly variable fields - see normalizer
+    email: 'user@example.com', // or Email, EMAIL, email_address
+    name: 'John Doe',          // or Name, full_name, etc.
+    phone: '555-0123',         // or Phone, phone_number, etc.
+    company: 'Acme Corp',      // or Company, company_name, etc.
+    // ... 50+ possible field variations
+  }
+}
+```
+
+**Python-Based Webhook Validation**
+To test this webhook configuration, use session-0-validator.py which sends payloads via requests library. Install dependencies: pip install requests (Python 3.12+). Handle errors gracefully: try: response = requests.post(url, json=payload) except requests.exceptions.RequestException: log_error(). Note: Webhook failures (e.g., timeouts) should skip tests; consider mocking with httpbin.org for local testing.
+
+### Cost Control Configuration
+
+```javascript
+// Daily limit enforcement
+const DAILY_COST_LIMIT = 50; // USD
+const COSTS = {
+  APOLLO_ORG: 0.01,
+  APOLLO_PERSON: 0.025,
+  TWILIO_LOOKUP: 0.015,
+  SMS_SEND: 0.02,
+  CLAUDE_API: 0.001
 };
 
-// Shorten with tracking link
-const finalMessage = await shortenLinks(
-  fillTemplate(templates[source_form] || templates.default, data)
-);
-
-if (finalMessage.length > 135) {
-  throw new Error('Message too long after personalization');
+// Circuit breaker logic
+if (todayCosts + nextCallCost > DAILY_COST_LIMIT) {
+  throw new Error('Daily cost limit exceeded');
 }
+```
 
-Step 3: Send & TrackSimpleTexting Send:Use test number in TEST_MODE
-Include opt-out language
-Get message ID
-Log to Communications:Create record immediately
-Include all tracking data
-Set up for delivery webhook
-Success CriteriaPhone validation working
-Templates personalizing correctly
-Length validation enforced
-Test mode sends to test number only
-Communications logged properly
-Exported to backups/session-4-sms.json
+For Python-based monitoring extensions (e.g., in session-0-validator.py), use: try: ... except Exception as e: print(f'Error: {e}'). Note ANSI colors (\033[92m) may need Windows Terminal for portability; optionally remove for cross-platform.
 
-Session 5: Utilities & Complete System (2 hours)PrerequisitesSessions 1-4 complete
-Pattern 05 loaded
-All components individually tested
-Ready for full flow test
+This document represents the complete system architecture after extensive iteration, failure analysis, and simplification. It prioritizes SMS automation, cost control, and practical implementation over complex multi-channel orchestration.
 
-Step 1: Daily Metrics WorkflowCreate: uysp-daily-metrics-v1Schedule Trigger: Daily at 11pm
-Calculate Metrics:Leads processed
-SMS sent/delivered
-Meetings booked
-Costs by service
-Field mapping success rate
-Store in Daily_Metrics
-
-Step 2: Error Handler WorkflowCreate: uysp-error-handler-v1Catch all workflow errors
-Log to Error_Log table
-Alert if critical
-Auto-retry if transient
-
-Step 3: Connect EverythingMain workflow calls all components
-Error handling on every node
-Cost tracking before every API
-Batch processing for scale
-
-Step 4: Full System TestRun all 10 test payloads through complete system:Webhook → Normalize → Qualify → Score → SMS
-Verify each step with evidence
-Check all tables updated correctly
-Confirm costs tracked accurately
-Stub for Phase 2: Add placeholder IF for two-way SMS (e.g., check for replies).
-
-Success CriteriaAll 10 tests create proper records
-Qualified leads get SMS (test mode)
-Costs accurately tracked
-Errors handled gracefully
-Metrics calculating correctly
-Exported ALL workflows to backups
-
-Post-Implementation ChecklistSystem ValidationField normalization achieving 95%+ capture
-No workflows without Smart Field Mapper
-All IF/Switch nodes have "Always Output Data" ON
-All table references use IDs not names
-All expressions have proper spacing
-Test mode confirmed working
-
-Documentation CompleteAll workflows exported to JSON
-Field mapping variations documented
-Platform gotchas noted
-Test results saved
-Handoff guide created
-
-Production ReadinessRemove TEST_MODE (when ready)
-Set DAILY_COST_LIMIT=50
-Verify 10DLC registration
-Configure monitoring alerts
-Train operations team
-Claude API rate limits handled (backoff for 100 req/min).
-
-Common Pitfalls to Avoid#1: Skipping Field NormalizationSymptom: No records created despite "successful" webhooks
-Fix: Smart Field Mapper MUST be first node#2: Manual Credential UpdatesSymptom: "No authentication data defined"
-Fix: Only update credentials via n8n UI#3: Testing Without VerificationSymptom: Green checkmarks but no Airtable records
-Fix: Always verify actual record creation#4: Fixing in IsolationSymptom: Fix one thing, break three others
-Fix: Test entire workflow after ANY change#5: Ignoring Platform LimitsSymptom: Workflow stops mysteriously
-Fix: Check UI-only settings, spacing, table IDsEmergency RecoveryIf Workflow DeletedCheck backups/ folder
-Import latest JSON
-Reconfigure credentials in UI
-Test with single payload
-
-If Costs SpikeSet TEST_MODE=true immediately
-Check Daily_Costs table
-Review API call logs
-Lower DAILY_COST_LIMIT
-
-If No Records CreatingCheck field normalization first
-Verify webhook receiving data
-Check expression syntax (spaces!)
-Confirm table IDs correct
-Test each node individually
-
-This guide incorporates all lessons learned from 50+ hours of implementation failures. Following these steps exactly, with special attention to Session 0 and evidence-based testing, will result in a working system.
-
