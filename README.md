@@ -119,6 +119,8 @@ curl -X POST https://rebelhq.app.n8n.cloud/webhook/kajabi-leads \
 
 **🎯 SINGLE SOURCE OF TRUTH**: See `docs/MASTER-WORKFLOW-GUIDE.md`
 
+**🚀 TO REPLICATE IN NEW PROJECTS**: See `docs/UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md`
+
 **Quick Commands**:
 - `npm run start-work` - Initialize work session
 - `npm run branch new session-X-name 'description'` - Create feature branch

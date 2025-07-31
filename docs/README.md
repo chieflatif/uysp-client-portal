@@ -10,6 +10,12 @@
 - Voice commands and automation  
 - Single source of truth for all workflow operations
 
+### **FOR NEW PROJECTS**
+📄 **`UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md`** ← **REPLICATE THIS SYSTEM**
+- Complete guide to copy this exact structure to ANY new project
+- Direct file links for all scripts and documentation
+- Service-specific customization instructions (n8n, Airtable, etc.)
+
 ## 📁 **ACTIVE DOCUMENTATION**
 
 ### **Project Management**
@@ -48,6 +54,9 @@
 
 ### **For Workflow Operations**
 ➡️ **`MASTER-WORKFLOW-GUIDE.md`** (branching, backup, versioning)
+
+### **To Replicate This System in New Projects**
+➡️ **`UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md`** (complete implementation guide)
 
 ### **For Testing**
 ➡️ `testing-registry-master.md` + `webhook-testing-guide.md`
