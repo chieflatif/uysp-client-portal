@@ -2,7 +2,7 @@
 
 # UYSP Git Workflow - Unified Branching & Backup System
 # Based on established git-workflow.md patterns + integrated backup system
-# Consolidates: git-backup.sh + smart-branch.sh into single approach
+# Unified workflow system - replaces all scattered git/backup approaches
 
 set -e
 
@@ -24,7 +24,7 @@ show_help() {
     echo "  status                                → Show current workflow status"
     echo "  list                                  → List branches with backup info"
     echo ""
-    echo "🔹 ESTABLISHED PATTERNS (from docs/git-workflow.md):"
+    echo "🔹 ESTABLISHED PATTERNS (from docs/MASTER-WORKFLOW-GUIDE.md):"
     echo "  Feature branches: feature/session-X-description"
     echo "  Backup branches: backup/YYYYMMDD-HHMM"
     echo "  Hotfix branches: hotfix/description"
