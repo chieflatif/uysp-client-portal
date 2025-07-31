@@ -58,6 +58,9 @@
 ### **To Replicate This System in New Projects**
 ➡️ **`UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md`** (complete implementation guide)
 
+### **Context Engineering System (Next Major Project)**
+➡️ **`CONTEXT-ENGINEERING-PROJECT-BRIEF.md`** (comprehensive project brief for fresh AI agent)
+
 ### **For Testing**
 ➡️ `testing-registry-master.md` + `webhook-testing-guide.md`
 
