@@ -115,11 +115,15 @@ curl -X POST https://rebelhq.app.n8n.cloud/webhook/kajabi-leads \
 
 ## 🔧 Development
 
-### Branching Strategy
-- **main**: Production-ready code only
-- **develop**: Integration branch for completed sessions
-- **feature/session-X**: Individual session work
-- **backup/YYYYMMDD**: Daily backup branches
+### 📚 **WORKFLOW SYSTEM**
+
+**🎯 SINGLE SOURCE OF TRUTH**: See `docs/MASTER-WORKFLOW-GUIDE.md`
+
+**Quick Commands**:
+- `npm run start-work` - Initialize work session
+- `npm run branch new session-X-name 'description'` - Create feature branch
+- `npm run branch switch <name>` - Switch safely
+- `npm run real-backup` - Comprehensive backup
 
 ### Commit Convention
 ```
@@ -150,17 +154,21 @@ Types: `feat`, `fix`, `docs`, `test`, `refactor`, `backup`
 
 ## 📚 Documentation
 
-### Implementation Guides
+### **🎯 START HERE**
+- **[MASTER WORKFLOW GUIDE](docs/MASTER-WORKFLOW-GUIDE.md)** ← Git, backup, versioning  
+- **[Documentation Directory](docs/README.md)** ← All docs organized
+
+### Implementation Guides  
 - [Phase 00 Completion Report](docs/phase00-completion-report.md)
-- [Session 0 Readiness Guide](context/session-0/ready.md)
-- [Platform Gotchas Prevention](context/platform-gotchas/)
-- [Field Normalization Patterns](patterns/00-field-normalization-mandatory.txt)
+- [Session Transition Summary](docs/session-transition-summary.md)
+- [Platform Gotchas Prevention](docs/critical-platform-gotchas.md)
+- [Testing Registry](docs/testing-registry-master.md)
 
 ### Reference Materials
-- [Airtable Schemas](schemas/)
-- [Test Suites](tests/)
-- [Memory Bank](memory_bank/)
-- [Critical Patterns](patterns/)
+- [Patterns](patterns/) - Reusable code patterns
+- [Tests](tests/) - Test suites and results
+- [Memory Bank](memory_bank/) - Project context
+- [Config](config/) - Configuration files
 
 ## 🔒 Security
 
