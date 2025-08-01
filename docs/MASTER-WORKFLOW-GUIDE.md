@@ -302,6 +302,35 @@ ls -la workflows/backups/ | head -10
 
 ---
 
+## 🏗️ **PDL ARCHITECTURE INTEGRATION**
+
+### **PRE COMPLIANCE → PDL DEVELOPMENT SEQUENCE**
+- **Foundation**: PRE COMPLIANCE Baseline (ID: `wpg9K9s8wlfofv1u`) ✅ EVIDENCE-BASED CHOICE
+- **Next Phase**: PDL Company qualification integration 
+- **Architecture Docs**: `docs/pdl-architecture/` for complete specifications  
+- **Migration Plan**: `docs/PDL-MIGRATION-ROADMAP.md` for development sequence
+- **Evidence**: GROK execution 1201 proves Smart Field Mapper v4.6 works
+
+### **PDL-Enhanced Workflow Commands**
+```bash
+# PDL development branch creation (from PRE COMPLIANCE baseline)
+npm run branch new session-2-pdl-company 'PDL Company API integration using PRE COMPLIANCE foundation'
+
+# PDL architecture backup (includes cost tracking)  
+npm run pdl-backup  # (Future: will include API cost monitoring)
+
+# PDL testing with reality-based protocols
+npm run test-pdl  # (Future: will test PDL API integration)
+```
+
+### **PDL Documentation Cross-References**
+- **Pattern 07**: PDL Integration Patterns (`patterns/07-pdl-integration-patterns.txt`)
+- **PRE COMPLIANCE Baseline**: Evidence-based foundation (`docs/SESSION-1-BASELINE-REALITY.md`)  
+- **GROK Reference**: Component extraction guide (`tests/results/GROK-EXTRACTION-CHECKLIST.md`)
+- **Development Guide**: SESSION-1 → PDL phases (`docs/PDL-MIGRATION-ROADMAP.md`)
+
+---
+
 ## 🚀 **GET STARTED NOW**
 
 1. **Initialize your session**: `npm run start-work`

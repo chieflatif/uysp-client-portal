@@ -5,10 +5,13 @@ From 03-enrichment-patterns.txt:
 Enrichment Patterns for qualification, caching, scoring, and cost tracking.
 
 # PREREQUISITE: Pattern 00 (Field Normalization) MUST be implemented first
+# BASELINE: PRE COMPLIANCE workflow (ID: wpg9K9s8wlfofv1u) with Smart Field Mapper v4.6
+# PDL INTEGRATION: These patterns designed for PDL Company + Person API integration
 # This pattern assumes Smart Field Mapper is the first node after any webhook
 
-Pattern: Two-Phase Qualification with Human Review
-Purpose: Ensure leads are B2B tech salespeople before expensive scoring/SMS; route unclear to human review
+Pattern: PDL Two-Phase Qualification with Human Review  
+Purpose: PDL Company API ($0.01) → PDL Person API ($0.03) → Claude ICP scoring for B2B tech qualification
+Foundation: PRE COMPLIANCE workflow provides superior cost tracking and error handling infrastructure
 Required Nodes: Code (10DLC/cost checks), Airtable (costs), HTTP (Apollo Org/Person), Switch (decisions), Slack (alerts)
 Configuration:
 // Node 1: Check 10DLC Registration
@@ -17,8 +20,8 @@ Type: Code
 Type: Airtable
 // Node 3: Check Daily Cost Limit
 Type: Code
-// Node 4: Phase 1 - Company Qualification
-Type: HTTP Request (Apollo Org)
+// Node 4: Phase 1 - PDL Company Qualification  
+Type: HTTP Request (PDL Company API - $0.01/call)
 // Node 5: Process Phase 1
 Type: Code
 // ... Up to Node 13: Auto-Archive Unreviewed

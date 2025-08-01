@@ -155,9 +155,10 @@ Types: `feat`, `fix`, `docs`, `test`, `refactor`, `backup`
 - **International Support**: 3 countries tested
 
 ### Workflow Identifiers
-- **Main Workflow**: `CefJB1Op3OySG8nb`
+- **Main Workflow**: `wpg9K9s8wlfofv1u` (PRE COMPLIANCE - Evidence-based choice)
 - **Smart Field Mapper Node**: `a3493afa-1eaf-41bb-99ca-68fe76209a29`
 - **Current Version**: `87e5e6cd-0626-4f94-b58b-423aadfe4f00`
+- **Previous Workflows**: SESSION-1: `THLrjTC7v6LiXZnV`, GROK: `VjJCC0EMwIZp7Y6K`
 
 ## 📚 Documentation
 
@@ -217,4 +218,4 @@ For technical issues or questions:
 
 ---
 
-**Next Milestone**: Session 0 comprehensive testing with 15+ payload variations
+**Next Milestone**: PDL API integration development using PRE COMPLIANCE baseline
