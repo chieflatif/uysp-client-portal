@@ -89,13 +89,14 @@ When claiming "no access", show:
 CHUNK X: [Issue] – Rules: [list], Tools: [list], Steps: [numbered]. Wait for user 'proceed' before next chunk.
 
 ```javascript
-// Step 1: Use Context7 MCP for node schema validation
-mcp_context7_get-library-docs({ 
-  context7CompatibleLibraryID: "/czlonkowski/n8n-mcp", 
-  topic: "update workflow node parameters" 
-})
+// Step 1: Use Context7 for documentation accuracy (add "use context7" to prompts)
+// Example: "Create n8n workflow with HTTP nodes. use context7"
+// Context7 provides current documentation, prevents hallucinated APIs
 
-// Step 2: Execute proven MCP update pattern
+// Step 2: Use n8n MCP tools for schema validation
+mcp_n8n_get_node_essentials({ nodeType: "nodes-base.httpRequest" })
+
+// Step 3: Execute proven MCP update pattern
 mcp_n8n_n8n_update_partial_workflow({
   id: "CefJB1Op3OySG8nb",  // Main workflow ID
   operations: [{
