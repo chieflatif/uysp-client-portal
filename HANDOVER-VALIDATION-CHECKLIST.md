@@ -2,8 +2,10 @@
 
 ## **PRE-DEVELOPMENT VALIDATION**
 
-### **🔧 Tool Access Verification**:
-- [ ] **Context7 MCP**: Test `mcp_context7_get-library-docs` returns n8n documentation
+### **🔧 MCP Tool Access Verification (UPDATED)**:
+- [ ] **Context7 HTTP**: Add "use context7" to prompts for n8n documentation accuracy
+- [ ] **DocFork**: Test `npx docfork@latest` returns 66.5K tokens of n8n documentation
+- [ ] **Exa Search**: Confirm API key access: f82c9e48-3488-4468-a9b0-afe595d99c30
 - [ ] **N8N MCP**: Test `mcp_n8n_n8n_get_workflow(wpg9K9s8wlfofv1u)` returns PRE COMPLIANCE 
 - [ ] **Airtable MCP**: Test `mcp_airtable_list_bases` returns UYSP base access
 - [ ] **Git Access**: Confirm ability to commit changes with evidence-based messages

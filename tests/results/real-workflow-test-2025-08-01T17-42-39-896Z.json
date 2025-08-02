@@ -1,0 +1,216 @@
+{
+  "session_start": "2025-08-01T17:41:07.900Z",
+  "test_summary": {
+    "total_tests": 4,
+    "total_workflows": 2,
+    "execution_time": "2025-08-01T17:42:39.896Z",
+    "overall_success_rate": "0.0%",
+    "workflow_performance": {
+      "GROK": {
+        "tests_executed": 2,
+        "successes": 0,
+        "failures": 2,
+        "success_rate": "0.0%",
+        "avg_response_time": 955
+      },
+      "PRE_COMPLIANCE": {
+        "tests_executed": 2,
+        "successes": 0,
+        "failures": 2,
+        "success_rate": "0.0%",
+        "avg_response_time": 30034
+      }
+    },
+    "recommendation": "Equal performance - analyze detailed results"
+  },
+  "workflows": {
+    "GROK": {
+      "webhook_url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-cleaned",
+      "workflow_id": "VjJCC0EMwIZp7Y6K",
+      "tests_executed": 2,
+      "successes": 0,
+      "failures": 2,
+      "executions": [
+        {
+          "workflow": "GROK",
+          "test_id": "TEST001",
+          "test_name": "Basic Lead Test",
+          "webhook_url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-cleaned",
+          "payload": {
+            "email": "test-basic-001@example.com",
+            "name": "John Basic Test",
+            "phone": "555-0001",
+            "company": "Test Corp",
+            "source_form": "webinar-signup",
+            "interested_in_coaching": "yes",
+            "request_id": "TEST001-basic-lead"
+          },
+          "start_time": "2025-08-01T17:41:07.906Z",
+          "status": "HTTP_ERROR",
+          "http_status": "404",
+          "response_body": "{\"code\":404,\"message\":\"This webhook is not registered for POST requests. Did you mean to make a GET request?\"}",
+          "processing_time_ms": 983,
+          "end_time": "2025-08-01T17:41:08.889Z",
+          "error": "HTTP 404"
+        },
+        {
+          "workflow": "GROK",
+          "test_id": "TEST002",
+          "test_name": "Boolean Conversion Test",
+          "webhook_url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-cleaned",
+          "payload": {
+            "email": "test-boolean-002@example.com",
+            "name": "Jane Boolean Test",
+            "phone": "555-0002",
+            "interested_in_coaching": "true",
+            "qualified_lead": "false",
+            "contacted": "0",
+            "request_id": "TEST002-boolean-test"
+          },
+          "start_time": "2025-08-01T17:41:53.930Z",
+          "status": "HTTP_ERROR",
+          "http_status": "404",
+          "response_body": "{\"code\":404,\"message\":\"This webhook is not registered for POST requests. Did you mean to make a GET request?\"}",
+          "processing_time_ms": 926,
+          "end_time": "2025-08-01T17:41:54.856Z",
+          "error": "HTTP 404"
+        }
+      ]
+    },
+    "PRE_COMPLIANCE": {
+      "webhook_url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads",
+      "workflow_id": "wpg9K9s8wlfofv1u",
+      "tests_executed": 2,
+      "successes": 0,
+      "failures": 2,
+      "executions": [
+        {
+          "workflow": "PRE_COMPLIANCE",
+          "test_id": "TEST001",
+          "test_name": "Basic Lead Test",
+          "webhook_url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads",
+          "payload": {
+            "email": "test-basic-001@example.com",
+            "name": "John Basic Test",
+            "phone": "555-0001",
+            "company": "Test Corp",
+            "source_form": "webinar-signup",
+            "interested_in_coaching": "yes",
+            "request_id": "TEST001-basic-lead"
+          },
+          "start_time": "2025-08-01T17:41:15.891Z",
+          "status": "FAILED",
+          "error": "Command failed: curl -X POST \"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"test-basic-001@example.com\",\"name\":\"John Basic Test\",\"phone\":\"555-0001\",\"company\":\"Test Corp\",\"source_form\":\"webinar-signup\",\"interested_in_coaching\":\"yes\",\"request_id\":\"TEST001-basic-lead\"}' -w \"%{http_code}\" -s --max-time 30",
+          "processing_time_ms": 30035,
+          "end_time": "2025-08-01T17:41:45.926Z"
+        },
+        {
+          "workflow": "PRE_COMPLIANCE",
+          "test_id": "TEST002",
+          "test_name": "Boolean Conversion Test",
+          "webhook_url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads",
+          "payload": {
+            "email": "test-boolean-002@example.com",
+            "name": "Jane Boolean Test",
+            "phone": "555-0002",
+            "interested_in_coaching": "true",
+            "qualified_lead": "false",
+            "contacted": "0",
+            "request_id": "TEST002-boolean-test"
+          },
+          "start_time": "2025-08-01T17:42:01.858Z",
+          "status": "FAILED",
+          "error": "Command failed: curl -X POST \"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"test-boolean-002@example.com\",\"name\":\"Jane Boolean Test\",\"phone\":\"555-0002\",\"interested_in_coaching\":\"true\",\"qualified_lead\":\"false\",\"contacted\":\"0\",\"request_id\":\"TEST002-boolean-test\"}' -w \"%{http_code}\" -s --max-time 30",
+          "processing_time_ms": 30033,
+          "end_time": "2025-08-01T17:42:31.891Z"
+        }
+      ]
+    }
+  },
+  "execution_evidence": [
+    {
+      "workflow": "GROK",
+      "test_id": "TEST001",
+      "test_name": "Basic Lead Test",
+      "webhook_url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-cleaned",
+      "payload": {
+        "email": "test-basic-001@example.com",
+        "name": "John Basic Test",
+        "phone": "555-0001",
+        "company": "Test Corp",
+        "source_form": "webinar-signup",
+        "interested_in_coaching": "yes",
+        "request_id": "TEST001-basic-lead"
+      },
+      "start_time": "2025-08-01T17:41:07.906Z",
+      "status": "HTTP_ERROR",
+      "http_status": "404",
+      "response_body": "{\"code\":404,\"message\":\"This webhook is not registered for POST requests. Did you mean to make a GET request?\"}",
+      "processing_time_ms": 983,
+      "end_time": "2025-08-01T17:41:08.889Z",
+      "error": "HTTP 404"
+    },
+    {
+      "workflow": "PRE_COMPLIANCE",
+      "test_id": "TEST001",
+      "test_name": "Basic Lead Test",
+      "webhook_url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads",
+      "payload": {
+        "email": "test-basic-001@example.com",
+        "name": "John Basic Test",
+        "phone": "555-0001",
+        "company": "Test Corp",
+        "source_form": "webinar-signup",
+        "interested_in_coaching": "yes",
+        "request_id": "TEST001-basic-lead"
+      },
+      "start_time": "2025-08-01T17:41:15.891Z",
+      "status": "FAILED",
+      "error": "Command failed: curl -X POST \"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"test-basic-001@example.com\",\"name\":\"John Basic Test\",\"phone\":\"555-0001\",\"company\":\"Test Corp\",\"source_form\":\"webinar-signup\",\"interested_in_coaching\":\"yes\",\"request_id\":\"TEST001-basic-lead\"}' -w \"%{http_code}\" -s --max-time 30",
+      "processing_time_ms": 30035,
+      "end_time": "2025-08-01T17:41:45.926Z"
+    },
+    {
+      "workflow": "GROK",
+      "test_id": "TEST002",
+      "test_name": "Boolean Conversion Test",
+      "webhook_url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-cleaned",
+      "payload": {
+        "email": "test-boolean-002@example.com",
+        "name": "Jane Boolean Test",
+        "phone": "555-0002",
+        "interested_in_coaching": "true",
+        "qualified_lead": "false",
+        "contacted": "0",
+        "request_id": "TEST002-boolean-test"
+      },
+      "start_time": "2025-08-01T17:41:53.930Z",
+      "status": "HTTP_ERROR",
+      "http_status": "404",
+      "response_body": "{\"code\":404,\"message\":\"This webhook is not registered for POST requests. Did you mean to make a GET request?\"}",
+      "processing_time_ms": 926,
+      "end_time": "2025-08-01T17:41:54.856Z",
+      "error": "HTTP 404"
+    },
+    {
+      "workflow": "PRE_COMPLIANCE",
+      "test_id": "TEST002",
+      "test_name": "Boolean Conversion Test",
+      "webhook_url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads",
+      "payload": {
+        "email": "test-boolean-002@example.com",
+        "name": "Jane Boolean Test",
+        "phone": "555-0002",
+        "interested_in_coaching": "true",
+        "qualified_lead": "false",
+        "contacted": "0",
+        "request_id": "TEST002-boolean-test"
+      },
+      "start_time": "2025-08-01T17:42:01.858Z",
+      "status": "FAILED",
+      "error": "Command failed: curl -X POST \"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"test-boolean-002@example.com\",\"name\":\"Jane Boolean Test\",\"phone\":\"555-0002\",\"interested_in_coaching\":\"true\",\"qualified_lead\":\"false\",\"contacted\":\"0\",\"request_id\":\"TEST002-boolean-test\"}' -w \"%{http_code}\" -s --max-time 30",
+      "processing_time_ms": 30033,
+      "end_time": "2025-08-01T17:42:31.891Z"
+    }
+  ]
+}

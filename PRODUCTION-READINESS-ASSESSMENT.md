@@ -21,7 +21,7 @@
 ✅ **mcp_airtable_list_records**: Examined existing Airtable data  
 ✅ **mcp_airtable_get_record**: Verified specific record details  
 ✅ **mcp_claude-code-server_Bash**: Executed production webhook test  
-✅ **mcp_context7_resolve-library-id**: Researched n8n documentation  
+✅ **Context7 HTTP**: Researched n8n documentation via resolve-library-id tool  
 ✅ **mcp_n8n_get_node_documentation**: Studied Airtable node behavior  
 ✅ **mcp_airtable_create_record**: Tested direct Airtable API behavior  
 ✅ **web_search**: Researched boolean false handling patterns  

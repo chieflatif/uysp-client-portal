@@ -140,9 +140,12 @@ SMS (≥70, US) | Archive (<70) | Human Review (International)
 - **Phase 3**: ICP scoring system enhancement
 - **Phase 4**: SMS service integration with SimpleTexting
 
-### **Tool Requirements (Context7 + N8N MCP Integration)**
-- **Context7 MCP**: mcp_context7_get-library-docs for n8n node validation (mandatory)
-- **N8N MCP Tools**: mcp_n8n_get_node_documentation, mcp_n8n_validate_workflow
+### **MCP Tool Requirements (Updated Specifications)**
+- **Context7 HTTP**: https://context7.liam.sh/mcp with resolve-library-id, get-library-docs for documentation accuracy
+- **DocFork**: npx docfork@latest for latest n8n documentation (66.5K tokens, 16-hour updates)
+- **Exa Search**: API key f82c9e48-3488-4468-a9b0-afe595d99c30 for implementation research
+- **N8N MCP Tools**: 39-tool suite for workflow operations (mcp_n8n_get_workflow, mcp_n8n_validate_workflow)
+- **Airtable MCP Tools**: 13-tool suite for database operations (mcp_airtable_get_record, mcp_airtable_list_records)
 - **Evidence Collection**: mcp_n8n_n8n_get_execution for all operations
 - **Database Verification**: mcp_airtable_get_record for record validation
 - **Cost Verification**: Daily_Costs table monitoring

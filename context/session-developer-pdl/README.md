@@ -15,8 +15,11 @@
 
 #### **Context7 MCP** (CONFIRMED OPERATIONAL):
 ```markdown
-✅ mcp_context7_get-library-docs - N8N node documentation validation  
-✅ mcp_context7_resolve-library-id - N8N library research and compatibility
+✅ Context7 HTTP - Documentation accuracy tool (https://context7.liam.sh/mcp)
+  - Tools: resolve-library-id, get-library-docs
+  - Usage: Add "use context7" to prompts for current n8n documentation
+✅ DocFork - Latest n8n docs (npx docfork@latest, 66.5K tokens, 16-hour updates)
+✅ Exa Search - Implementation research (API key: f82c9e48-3488-4468-a9b0-afe595d99c30)
 
 USAGE: ALWAYS validate n8n node documentation with Context7 before creation/modification
 ```
@@ -109,7 +112,7 @@ USAGE: ALWAYS validate n8n node documentation with Context7 before creation/modi
 ### **Context7 + N8N MCP Workflow**:
 ```markdown
 1. CONTEXT7 VALIDATION:
-   - Use mcp_context7_get-library-docs before ANY n8n node creation
+   - Add "use context7" to prompts for documentation accuracy before n8n node creation
    - Validate node parameters and compatibility
    - Confirm current n8n API documentation
 

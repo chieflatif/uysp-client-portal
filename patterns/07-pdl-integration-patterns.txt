@@ -1,0 +1,139 @@
+# Pattern 07: PDL Integration Patterns (COMPLIANT VERSION)
+# VERSION: 1.0 - Reformed from docs/pdl-architecture/Core Patterns .txt
+# COMPLIANCE: Aligned with PM-MASTER-GUIDE.md and context engineering standards
+# INTEGRATION: Session protocols, N8N MCP tools, evidence requirements
+# CROSS-REFERENCES: Pattern 00 (mandatory), Pattern 03 (enrichment), Pattern 06 (testing)
+
+## CRITICAL COMPLIANCE FIXES:
+# REMOVED: "NEVER use MCP for workflow updates" (contradicted PM protocols)
+# ADDED: N8N MCP mandatory usage per PM-MASTER-GUIDE.md
+# INTEGRATED: Context engineering session protocols
+# ALIGNED: Evidence collection and chunking requirements
+
+## PDL COMPANY QUALIFICATION PATTERN
+# Integration Point: After Pattern 00 (Field Normalization) - MANDATORY FIRST
+# API: PDL Company API ($0.01/call)
+# Input: Normalized company name from Smart Field Mapper
+# Output: B2B tech company qualification status
+# Evidence Required: API response IDs, cost tracking entries, Airtable record updates
+
+### Session Protocol:
+CHUNK 1: Company API Integration (≤5 operations)
+1. **Node Creation** → Tool: mcp_n8n_get_node_documentation → Evidence: Node schema validation
+2. **API Configuration** → Tool: mcp_n8n_validate_node_operation → Evidence: Parameter verification  
+3. **Cost Tracking Setup** → Tool: mcp_airtable_get_record → Evidence: Daily_Costs table entry
+4. **Test Execution** → Tool: mcp_n8n_n8n_get_execution → Evidence: Execution ID success
+5. **Workflow Backup** → Tool: run_terminal_cmd → Evidence: JSON export timestamp
+
+### Integration Requirements:
+- Pattern 00: Field normalization MUST complete before PDL lookup
+- Cost Control: $50 daily limit enforcement via circuit breaker
+- Evidence: PDL API response + cost log + Airtable record ID
+- Error Handling: Graceful degradation to manual review queue
+
+## PDL PERSON QUALIFICATION PATTERN  
+# Integration Point: After Company Qualification passes
+# API: PDL Person API ($0.03/call)
+# Input: Normalized email + company qualification data
+# Output: Sales role verification and enrichment data
+# Evidence Required: API response IDs, cost tracking, person data updates
+
+### Session Protocol:
+CHUNK 2: Person API Integration (≤5 operations)
+1. **Conditional Logic** → Tool: mcp_n8n_get_node_documentation → Evidence: IF node schema
+2. **Person API Node** → Tool: mcp_n8n_validate_node_operation → Evidence: Configuration verified
+3. **Data Mapping** → Tool: mcp_airtable_get_record → Evidence: Field updates confirmed
+4. **Cost Logging** → Tool: mcp_n8n_n8n_get_execution → Evidence: $0.03 cost entry
+5. **Validation** → Tool: mcp_n8n_validate_workflow → Evidence: End-to-end flow verified
+
+### Integration Requirements:
+- Dependency: Company qualification MUST pass first
+- Cost Tracking: Cumulative daily budget monitoring
+- Evidence: Person API response + enrichment data + cost verification
+- Fallback: Route to human review if API fails
+
+## ICP SCORING PATTERN
+# Integration Point: After Person Qualification completes
+# Service: Claude AI integration for 0-100 scoring
+# Threshold: ≥70 for SMS campaign eligibility
+# Evidence Required: Score calculations, routing decisions, threshold compliance
+
+### Session Protocol:
+CHUNK 3: ICP Scoring Integration (≤5 operations)
+1. **Scoring Logic** → Tool: mcp_n8n_get_node_documentation → Evidence: Claude AI node schema
+2. **Score Calculation** → Tool: mcp_n8n_validate_node_operation → Evidence: 0-100 range verified
+3. **Threshold Routing** → Tool: mcp_n8n_n8n_get_execution → Evidence: ≥70 → SMS, <70 → Archive
+4. **Score Storage** → Tool: mcp_airtable_get_record → Evidence: ICP_Score field updated
+5. **Flow Validation** → Tool: mcp_n8n_validate_workflow → Evidence: Complete routing verified
+
+### Integration Requirements:
+- Input: Company + Person qualification data combined
+- Scoring: 0-100 scale with business logic validation
+- Evidence: Score value + routing decision + Airtable update
+- Quality Gate: Manual review for edge cases
+
+## SMS SERVICE INTEGRATION PATTERN
+# Integration Point: After ICP Score ≥70 AND US phone number
+# Service: SimpleTexting direct API (no compliance pre-checks)
+# Filter: phone_country_code = "+1" (US only)
+# Evidence Required: SMS delivery status, response tracking, opt-out handling
+
+### Session Protocol:
+CHUNK 4: SMS Service Integration (≤5 operations)
+1. **US Phone Filter** → Tool: mcp_n8n_get_node_documentation → Evidence: Filter logic verified
+2. **SMS API Node** → Tool: mcp_n8n_validate_node_operation → Evidence: SimpleTexting config
+3. **Response Handling** → Tool: mcp_n8n_n8n_get_execution → Evidence: Delivery tracking
+4. **Opt-out Processing** → Tool: mcp_airtable_get_record → Evidence: Status updates
+5. **Cost Tracking** → Tool: mcp_n8n_validate_workflow → Evidence: SMS cost logging
+
+### Integration Requirements:
+- Prerequisites: ICP Score ≥70 + US phone number verified
+- Service: Direct SimpleTexting API (bypass compliance checks)
+- Evidence: SMS delivery ID + response status + cost tracking
+- Compliance: Let SMS service handle DND/TCPA (no custom logic)
+
+## TESTING INTEGRATION WITH PATTERN 06
+# Reference: tests/reality-based-tests-v3.json for PDL testing scenarios
+# Evidence: All PDL operations require execution IDs and record verification
+# Integration: Update docs/testing-registry-master.md with PDL test categories
+
+### PDL Test Categories:
+- Company API Testing: 10 scenarios across company types
+- Person API Testing: 10 scenarios across role types  
+- ICP Scoring Testing: 10 scenarios across score ranges
+- SMS Integration Testing: 10 scenarios with delivery tracking
+
+### Evidence Standards:
+- API Response IDs: PDL Company + Person API call verification
+- Execution IDs: n8n workflow success confirmation
+- Record IDs: Airtable updates with enrichment data
+- Cost Verification: Daily_Costs table accurate tracking
+
+## CROSS-PATTERN DEPENDENCIES
+# Pattern 00: Field Normalization - MANDATORY FIRST (no exceptions)
+# Pattern 03: Enrichment - UPDATED with PDL API specifications  
+# Pattern 06: Testing - EXTENDED with PDL testing requirements
+# Pattern 07: PDL Integration - THIS PATTERN (complete PDL workflow)
+
+### Enforcement Sequence:
+1. Pattern 00 (Field Normalization) - ALWAYS FIRST
+2. Pattern 07 (PDL Integration) - Company → Person → ICP → SMS
+3. Pattern 06 (Testing) - Evidence collection throughout
+4. Pattern 03 (Enrichment) - Updated with PDL specifications
+
+### Evidence Chain:
+Field Norm → PDL Company → PDL Person → ICP Score → SMS → Complete Record
+Each step requires: API response + execution ID + Airtable record + cost tracking
+
+---
+
+# COMPLIANCE VERIFICATION:
+✅ MCP Tool Usage: Aligned with PM-MASTER-GUIDE.md (N8N MCP mandatory)
+✅ Session Protocols: ≤5 operations per chunk with user confirmation waits
+✅ Evidence Standards: Execution IDs, record IDs, API responses, cost tracking
+✅ Pattern Integration: Proper dependencies and cross-references established
+✅ Testing Alignment: Compatible with reality-based testing protocols
+
+# LAST UPDATED: August 1, 2025 (Reformed from incompatible .txt format)
+# NEXT REVIEW: After first PDL integration session completion
+# MAINTAINED BY: Development Team following context engineering standards

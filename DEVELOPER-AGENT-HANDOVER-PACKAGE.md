@@ -188,15 +188,21 @@ MANDATORY SEQUENCE:
 4. **Review Specifications**: Study PDL architecture docs and migration roadmap
 5. **Plan Sprint 1**: Break down PDL Company API integration into ≤5 operation chunks
 
-### **Context7 + N8N MCP Setup Verification**:
+### **MCP Tool Setup Verification (Updated)**:
 ```bash
-# Verify Context7 MCP access
-mcp_context7_get-library-docs → Should return n8n documentation
+# Verify Context7 HTTP access (Documentation Tool)
+# Add "use context7" to your prompts for n8n documentation accuracy
 
-# Verify N8N MCP access  
+# Verify DocFork access
+npx docfork@latest → Should return 66.5K tokens of n8n documentation
+
+# Verify Exa Search access  
+# API Key: f82c9e48-3488-4468-a9b0-afe595d99c30
+
+# Verify N8N MCP access (39 tools)
 mcp_n8n_n8n_get_workflow(wpg9K9s8wlfofv1u) → Should return PRE COMPLIANCE workflow
 
-# Verify Airtable MCP access
+# Verify Airtable MCP access (13 tools)
 mcp_airtable_list_bases → Should return UYSP base access
 ```
 
