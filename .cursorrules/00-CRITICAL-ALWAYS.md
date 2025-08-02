@@ -19,11 +19,36 @@
 - Gotcha #17: Workspace contamination - verify project workspace
 - Gotcha #18: Credential JSON null is NORMAL (security feature)
 
-## 10. ANTI-HALLUCINATION PROTOCOL
-**Before any claim (e.g., 'fixed' or 'complete'), perform a Reality Check:**
-1. Use a tool (e.g., mcp_n8n_n8n_get_execution) to fetch real data
-2. If evidence is missing, respond: 'Claim withheld due to lack of evidence. Running tool now.'
-3. Document assumptions in a table: | Assumption | Evidence Status | Alternative |
+## 10. ANTI-HALLUCINATION & HOLISTIC PROBLEM-SOLVING PROTOCOL
+**MANDATORY: NO "EUREKA" OR "ROOT CAUSE" CLAIMS WITHOUT VALIDATION**
+
+### **BEFORE ANY INVESTIGATION:**
+1. **System Map First**: Create comprehensive map of ALL connected components
+2. **Hypothesis Log**: Track ALL previous theories with evidence status
+3. **Multi-Source Validation**: Gather data from ≥3 independent sources
+4. **Alternative Testing**: Rule out ≥2 alternative explanations before concluding
+
+### **STRUCTURED DEBUGGING PROCESS (MANDATORY):**
+```
+Step 1: Reproduce Issue - Exact steps, timestamps, patterns
+Step 2: Gather Data Holistically - Query ALL relevant systems  
+Step 3: Analyze Patterns - Look for correlations, edge cases
+Step 4: Test Hypotheses - 2-3 tests per theory, report results verbatim
+Step 5: Propose Next Actions - User-confirmable, not assumptions
+```
+
+### **RESPONSE FORMAT (MANDATORY):**
+```
+Current System Map: [Table/list of ALL connected components]
+Hypothesis Log: [Table with #, Description, Evidence For/Against, Status, Next Test]
+Investigation Steps: [Numbered list with actual results]
+Findings: [Evidence-based only - NO HYPE]
+Next Steps: [User-actionable list]
+```
+
+### **FORBIDDEN PHRASES:**
+❌ "EUREKA" ❌ "CRITICAL FINDING" ❌ "ROOT CAUSE IDENTIFIED" ❌ "Found the issue"
+✅ Use: "Evidence suggests", "Requires validation", "Testing hypothesis"
 
 ## 11. TASK MANAGEMENT CHUNKING
 **Break ALL tasks into ≤5-step chunks. Use tables:**
@@ -31,9 +56,20 @@
 
 **For multi-issue tasks, number issues 1-3 max, fix sequentially.**
 
-## 12. HONESTY DECLARATION
-**End EVERY response with:**
-HONESTY CHECK: [100% evidence-based / Assumptions: list]. No manipulations. If <100%, explain and correct.
+### **ANTI-WHACK-A-MOLE PROTOCOL:**
+- **If similar issue repeats**: PAUSE → Review hypothesis log → Escalate to deep dive mode
+- **No quick fixes without system mapping**: Always map full system before proposing solutions
+- **Track failure patterns**: | Previous Fix | Why It Failed | System Component Missed |
+
+## 12. ENHANCED HONESTY DECLARATION
+**End EVERY response with MANDATORY sections:**
+```
+SYSTEM MAP COMPLETENESS: [% of components mapped / Missing components: list]
+HYPOTHESIS VALIDATION: [# tested / # validated / # refuted]
+EVIDENCE SOURCES: [List 3+ independent sources used]
+HONESTY CHECK: [100% evidence-based / Assumptions: list]. No manipulations.
+```
+**If <100% evidence-based, explain gaps and propose validation plan.**
 
 ## 19. TESTING SEQUENCING PROTOCOL
 **After building test suite/strategy, BEFORE full testing:**

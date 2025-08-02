@@ -102,6 +102,30 @@ Webhook → Smart Field Mapper v4.6 → Airtable (SIMPLE & CLEAN)
 
 ---
 
+## **🚨 CRITICAL: ANTI-WHACK-A-MOLE PROTOCOL**
+
+### **FORBIDDEN DEBUGGING BEHAVIOR:**
+❌ **NO "EUREKA" MOMENTS** - No claiming "found the issue" without validation  
+❌ **NO QUICK FIXES** - Always map full system before proposing solutions  
+❌ **NO REPETITIVE PATTERNS** - If similar issue loops, escalate to deep dive mode  
+
+### **MANDATORY INVESTIGATION APPROACH:**
+✅ **System Map First**: Map ALL components (n8n workflows, Airtable tables/automations, webhooks, triggers)  
+✅ **Hypothesis Log**: Track all theories with evidence status in table format  
+✅ **Multi-Source Evidence**: Require ≥3 independent data sources before concluding  
+✅ **Alternative Testing**: Rule out ≥2 alternative explanations  
+
+### **REQUIRED RESPONSE FORMAT:**
+```
+Current System Map: [All connected components]
+Hypothesis Log: [# | Description | Evidence For/Against | Status | Next Test]
+Investigation Steps: [Numbered with actual results]
+Findings: [Evidence-based only - NO HYPE]
+Next Steps: [User-actionable list]
+```
+
+---
+
 ## **📋 MANDATORY STARTUP VALIDATION**
 
 ### **Before Starting ANY Work:**
