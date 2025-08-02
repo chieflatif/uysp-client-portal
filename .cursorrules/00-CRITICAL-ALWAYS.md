@@ -7,6 +7,14 @@
 4. **CRITICAL**: Ensure n8n operations target PROJECT workspace: H4VRaaZhd8VKQANf ONLY
 5. **BEFORE ANY NODE CREATION: Check context/platform-gotchas/n8n-platform-gotchas-complete.md**
 
+## ⛔ EMERGENCY ANTI-STEAMROLLING PROTOCOL
+**🚨 MANDATORY STOPS - NO EXCEPTIONS:**
+1. **CHUNK BOUNDARY STOP**: After presenting ANY evidence block or completing ≤5 operations → STOP and explicitly ask "Ready for next chunk?"
+2. **NO COMPLETION CLAIMS**: NEVER use words "COMPLETE", "FINISHED", "DONE" without explicit user validation of results
+3. **NO DOCUMENTATION CREATION**: NEVER create completion docs, evidence packages, or handover materials until user confirms success
+4. **FORCED BREAKS**: Between EVERY major operation (workflow mod, testing, documentation) → STOP and wait for user "proceed"
+5. **EVIDENCE VERIFICATION STOP**: After claiming ANY success → STOP and ask user to verify evidence before proceeding
+
 ## Platform Gotcha Quick Reference
 **For ANY error: First check if it's a known platform gotcha**
 
@@ -48,7 +56,15 @@ Next Steps: [User-actionable list]
 
 ### **FORBIDDEN PHRASES:**
 ❌ "EUREKA" ❌ "CRITICAL FINDING" ❌ "ROOT CAUSE IDENTIFIED" ❌ "Found the issue"
-✅ Use: "Evidence suggests", "Requires validation", "Testing hypothesis"
+❌ "COMPLETE" ❌ "FINISHED" ❌ "DONE" ❌ "SUCCESS" ❌ "ACHIEVED" (without user validation)
+✅ Use: "Evidence suggests", "Requires validation", "Testing hypothesis", "Awaiting user confirmation"
+
+### **🚨 EMERGENCY FORBIDDEN BEHAVIORS:**
+❌ **CREATING COMPLETION DOCUMENTATION** without user validation
+❌ **CLAIMING SESSION COMPLETE** without comprehensive user review
+❌ **PROCEEDING TO NEXT CHUNK** without explicit user "proceed" command
+❌ **MAKING SUCCESS CLAIMS** based on limited testing (1-2 records)
+❌ **GENERATING HANDOVER MATERIALS** before user confirms all work validated
 
 ## 11. TASK MANAGEMENT CHUNKING
 **Break ALL tasks into ≤5-step chunks. Use tables:**
@@ -56,10 +72,21 @@ Next Steps: [User-actionable list]
 
 **For multi-issue tasks, number issues 1-3 max, fix sequentially.**
 
+### **🚨 CHUNK EXECUTION PROTOCOL (EMERGENCY UPDATE):**
+```
+CHUNK FORMAT (MANDATORY):
+1. Present chunk plan with ≤5 operations
+2. Execute operations with evidence collection
+3. Present evidence block with specific results
+4. STOP and ask: "EVIDENCE COLLECTED. Ready for next chunk? (Type 'proceed')"
+5. WAIT for explicit user confirmation before ANY next action
+```
+
 ### **ANTI-WHACK-A-MOLE PROTOCOL:**
 - **If similar issue repeats**: PAUSE → Review hypothesis log → Escalate to deep dive mode
 - **No quick fixes without system mapping**: Always map full system before proposing solutions
 - **Track failure patterns**: | Previous Fix | Why It Failed | System Component Missed |
+- **🚨 STEAMROLL DETECTION**: If executing >1 chunk without user confirmation → EMERGENCY STOP
 
 ## 12. ENHANCED HONESTY DECLARATION
 **End EVERY response with MANDATORY sections:**

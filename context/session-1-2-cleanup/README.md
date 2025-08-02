@@ -124,6 +124,20 @@ Findings: [Evidence-based only - NO HYPE]
 Next Steps: [User-actionable list]
 ```
 
+### **🚨 EMERGENCY ANTI-STEAMROLLING PROTOCOL:**
+```
+⛔ MANDATORY STOPS AFTER EVERY CHUNK:
+1. Present evidence block with specific results
+2. STOP and ask: "EVIDENCE COLLECTED. Ready for next chunk? (Type 'proceed')"
+3. WAIT for explicit user confirmation before ANY next action
+4. NEVER create completion documentation without user validation
+5. NEVER claim "COMPLETE" or "FINISHED" without comprehensive user review
+
+FORBIDDEN: Executing multiple chunks without user confirmation between each
+FORBIDDEN: Creating handover materials before user validates all work
+FORBIDDEN: Making success claims based on minimal testing (1-2 records)
+```
+
 ---
 
 ## **📋 MANDATORY STARTUP VALIDATION**
