@@ -1,0 +1,144 @@
+# UYSP System Patterns - PDL Integration
+
+## Development Discipline
+- NO HALLUCINATION: Build only from blueprint/patterns; quote specs.
+- NO FEATURES: No extras/optimizations.
+- NO ASSUMPTIONS: Ask if unclear.
+- NO SHORTCUTS: Follow patterns exactly.
+- TEST EVERYTHING: Node/component tests with actual output.
+- DOCUMENT REALITY: Report only what exists/works.
+- ANTI-HALLUCINATION: Before claims, tool verify; assumption table: | Assumption | Evidence | Alternative |.
+- HONESTY CHECK: End responses with "HONESTY CHECK: 100% evidence-based. Assumptions: [list]."
+- CHUNKING: Break tasks into ≤5 steps; use tables: | Step | Action | Tool/Rules | Status/Evidence |.
+
+## Role Boundaries
+Responsible: n8n workflows (n8n-mcp), Airtable schema (airtable-mcp), testing (testsprite); Cursor as developer agent, Claude Desktop as manager.
+Not: Business decisions, architecture changes, tool choices, teaching.
+
+## Document Strategy
+- Load only specified: Current session pattern, blueprint sections.
+- Reference: Section/quote, no paraphrase.
+- Check existence first.
+
+## Session Structure
+- Verify state: ✓ List workflows/tables.
+- State next: Component, pattern ref, outcome.
+- Response: Acknowledge, load, build, report, test.
+
+## MCP Usage
+- n8n-mcp: Create nodes/workflows.
+- airtable-mcp: Create tables/records.
+- testsprite: Test webhooks/APIs.
+- claude-code-server: Code execution for fallbacks; announce switch before use.
+Fallback: Diagnose, alternative (JSON), manual steps; switch to claude-code-server with announcement.
+
+## Building Standards
+- Pre-Build: Exists? Pattern? Output? Tests?
+- Exact: No additions.
+- Test Points: After component, before next, session end.
+- Code Nodes: Try-catch, return success/data.
+- Anti-Patterns: No caching/scheduling unless specified.
+
+## Testing Protocol
+- Prove: Show actual output, not assumptions.
+- One file/session: e.g., Session1_tests.md with checks.
+- Verification: Curl/response examples.
+- Sequencing: After build BEFORE execution: Update context (append changes/gotchas/patterns/tests to phase00-field-normalization-complete.md); commit; user confirm table: | Update Type | File | Changes | Commit | Ready? |.
+- Cleanup: Post-tests, batch delete (preserve duplicates >0; max 100/batch); user UI validate; log evidence_log.md.
+
+## Progress Reporting
+- Component: ✓ Nodes, connections, tests, notes.
+- Session: % complete, ✓/⏳/⏹ items.
+
+## Implementation Rules
+- Blueprint Alignment: Verify before build.
+- Scope: No creep (e.g., no templates beyond spec).
+- State: After component, list built/works/next/not.
+
+## Patterns Integration - PDL Enhanced
+Incorporate exact node configs from patterns/*.txt with PDL integration.
+
+### Core Patterns:
+- ✓ Bootstrap vars/tables, webhook auth, upsert.
+
+### Enrichment Patterns (UPDATED for PDL):
+- **Two-phase**: PDL Company API ($0.01) → PDL Person API ($0.03)
+- **Cache-first**: 90-day PDL response caching in Enrichment_Cache table
+- **Enhanced scoring**: Job history from PDL for recent move detection
+- **Cost tracking**: Updated Daily_Costs with PDL_COMPANY_COST, PDL_PERSON_COST
+- **International routing**: Non-US leads to human review (PDL has global coverage)
+
+### PDL Integration Specifics:
+```javascript
+// Phase 1: Company Check
+const companyResponse = await fetch('https://api.peopledatalabs.com/v5/company/enrich', {
+  headers: { 'X-Api-Key': PDL_API_KEY },
+  params: { company: normalizedCompany }
+});
+
+// Phase 2: Person Check (if Phase 1 passes)
+const personResponse = await fetch('https://api.peopledatalabs.com/v5/person/enrich', {
+  headers: { 'X-Api-Key': PDL_API_KEY },
+  params: { 
+    first_name: firstName,
+    last_name: lastName, 
+    company: company,
+    email: email,
+    min_likelihood: 6 
+  }
+});
+```
+
+### SMS: Sending with checks, monthly count.
+### Utilities: Metrics (updated for PDL match rates), Calendly, error handler.
+
+## Common Tasks
+- Workflows: Create inactive, log ID.
+- Variables: Set in n8n (add PDL_API_KEY).
+- Credentials: Add PDL API key, human configures in UI.
+
+## Troubleshooting - PDL Enhanced
+- API 429: PDL rate limits (100/min free, 1000/min paid) - retry exponential.
+- Airtable 422: Check types.
+- Webhook 404: Active/URL.
+- **PDL 404**: No match found - route to human review.
+- **PDL 402**: Credits exhausted - circuit breaker trigger.
+
+## Violations to Avoid
+- No "added notifications".
+- No "should work"—prove.
+- No scope expansion.
+- **PDL-specific**: No Apollo references in new code.
+
+## Context Engineering
+- Per-Session: Load hyper-focused (e.g., Session 0: Pattern 00, Tests 06, rules/evidence).
+- Directory: context/session-[N]/loader.md for specifics.
+- Update: After changes, append to context_engineering.md; reference patterns/gotchas.
+- **PDL Context**: Include PDL API documentation, error codes, cost tracking.
+
+## Cost Control - PDL Optimized
+```javascript
+// Updated cost constants
+const PDL_COSTS = {
+  COMPANY_ENRICHMENT: 0.01,  // Per successful match
+  PERSON_ENRICHMENT: 0.03,   // Per successful match
+  FREE_TIER_LIMIT: 100      // Monthly free matches
+};
+
+// Cost calculation per lead
+const estimatedCost = (phase1Pass ? PDL_COSTS.COMPANY_ENRICHMENT : 0) + 
+                     (phase2Pass ? PDL_COSTS.PERSON_ENRICHMENT : 0);
+
+// Circuit breaker check
+if (todaysCosts + estimatedCost > DAILY_LIMIT) {
+  throw new Error('Daily cost limit would be exceeded');
+}
+```
+
+## Success Metrics - PDL Enhanced
+- **PDL Match Rate**: >90% for company enrichment, >85% for person enrichment
+- **Cost Efficiency**: <$0.04 average per processed lead (vs $0.035 + base with Apollo)
+- **Data Quality**: Job history available for >80% of matches
+- **Cache Performance**: >20% cache hit rate after first month
+
+Success: Matches blueprint exactly, tested, no extras, optimized for PDL cost/performance.
