@@ -1,11 +1,30 @@
 # CRITICAL RULES - ALWAYS ACTIVE
 
+## GLOBAL ANTI-HALLUCINATION PROTOCOL (ALL AGENTS)
+
+### **MANDATORY UNCERTAINTY QUANTIFICATION**
+- ALL responses MUST include confidence scores [0-100%]
+- Trigger verification when confidence <80%
+- Format: "Confidence: 75% - requires peer verification"
+
+### **MULTI-AGENT DEBATE ARCHITECTURE**
+- Every claim verified by ≥2 independent sources/tools
+- Consensus required before final output
+- Disagreement triggers evidence gathering
+
+### **LAYERED VERIFICATION SEQUENCE**
+1. Generate partial response
+2. Cross-check via available tools
+3. Update confidence based on evidence
+4. Proceed only if confidence >threshold
+
 ## BEFORE EVERY RESPONSE:
-1. Check memory_bank/active_context.md for current state
-2. Check patterns/00-field-normalization-mandatory.txt exists
-3. Verify MCP tools with: n8n-mcp list_workflows
-4. **CRITICAL**: Ensure n8n operations target PROJECT workspace: H4VRaaZhd8VKQANf ONLY
-5. **BEFORE ANY NODE CREATION: Check context/platform-gotchas/n8n-platform-gotchas-complete.md**
+1. **CONFIDENCE ASSESSMENT**: Rate response confidence [0-100%]
+2. Check memory_bank/active_context.md for current state
+3. Check patterns/00-field-normalization-mandatory.txt exists
+4. Verify MCP tools with: n8n-mcp list_workflows
+5. **CRITICAL**: Ensure n8n operations target PROJECT workspace: H4VRaaZhd8VKQANf ONLY
+6. **BEFORE ANY NODE CREATION: Check context/platform-gotchas/n8n-platform-gotchas-complete.md**
 
 ## ⛔ EMERGENCY ANTI-STEAMROLLING PROTOCOL
 **🚨 MANDATORY STOPS - NO EXCEPTIONS:**
@@ -88,14 +107,18 @@ CHUNK FORMAT (MANDATORY):
 - **Track failure patterns**: | Previous Fix | Why It Failed | System Component Missed |
 - **🚨 STEAMROLL DETECTION**: If executing >1 chunk without user confirmation → EMERGENCY STOP
 
-## 12. ENHANCED HONESTY DECLARATION
+## 12. ENHANCED HONESTY DECLARATION WITH CONFIDENCE SCORING
 **End EVERY response with MANDATORY sections:**
 ```
 SYSTEM MAP COMPLETENESS: [% of components mapped / Missing components: list]
 HYPOTHESIS VALIDATION: [# tested / # validated / # refuted]
 EVIDENCE SOURCES: [List 3+ independent sources used]
+CONFIDENCE SCORE: [0-100%] - [rationale for score]
+UNCERTAINTY FACTORS: [List specific unknowns/assumptions]
+VERIFICATION STATUS: [Peer validated: Yes/No] [Tool verified: Yes/No]
 HONESTY CHECK: [100% evidence-based / Assumptions: list]. No manipulations.
 ```
+**If confidence <80%, MANDATORY verification required before proceeding.**
 **If <100% evidence-based, explain gaps and propose validation plan.**
 
 ## 19. TESTING SEQUENCING PROTOCOL

@@ -1,0 +1,250 @@
+{
+  "orchestration_type": "Smart Test Orchestration - CHUNK 2",
+  "workflow_capabilities": {
+    "hasWebhookTrigger": true,
+    "webhookPath": "kajabi-leads",
+    "features": [
+      "webhook-trigger",
+      "field-normalization",
+      "airtable-search",
+      "duplicate-detection",
+      "conditional-routing",
+      "airtable-create",
+      "airtable-update"
+    ],
+    "nodeCount": 9,
+    "lastUpdated": "2025-08-02T16:03:56.000Z",
+    "executionStats": {
+      "totalExecutions": 8,
+      "successCount": 0,
+      "errorCount": 0,
+      "lastExecutionTime": "2025-08-02T20:49:25.339Z"
+    }
+  },
+  "test_selection": {
+    "total_available": 18,
+    "selected": 17,
+    "selection_criteria": "capability-based + priority-driven"
+  },
+  "execution_stats": {
+    "totalTests": 17,
+    "passedTests": 17,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "startTime": 1754168384983,
+    "endTime": 1754168412812,
+    "parallelBatches": 5
+  },
+  "results": [
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168387046",
+      "airtable_record_id": "recmxae0as9r67",
+      "field_mapping_rate": 177,
+      "evidence_collected": true,
+      "test_id": "FV001",
+      "execution_mode": "batch-1",
+      "duration": 2063,
+      "estimated_duration": 8000,
+      "priority": "high"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168386229",
+      "airtable_record_id": "rec7vr519ml8a7",
+      "field_mapping_rate": 155,
+      "evidence_collected": true,
+      "test_id": "FV002",
+      "execution_mode": "batch-1",
+      "duration": 1245,
+      "estimated_duration": 8000,
+      "priority": "high"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168387923",
+      "airtable_record_id": "recigrfmrbkxl",
+      "field_mapping_rate": 175,
+      "evidence_collected": true,
+      "test_id": "FV003",
+      "execution_mode": "batch-1",
+      "duration": 2939,
+      "estimated_duration": 8000,
+      "priority": "high"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168391863",
+      "airtable_record_id": "rechq2g9r71et",
+      "field_mapping_rate": 172,
+      "evidence_collected": true,
+      "test_id": "FV004",
+      "execution_mode": "batch-2",
+      "duration": 1938,
+      "estimated_duration": 8000,
+      "priority": "high"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168392310",
+      "airtable_record_id": "reclfkzrfvg9hq",
+      "field_mapping_rate": 193,
+      "evidence_collected": true,
+      "test_id": "FV005",
+      "execution_mode": "batch-2",
+      "duration": 2385,
+      "estimated_duration": 8000,
+      "priority": "high"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168391547",
+      "airtable_record_id": "recyyodq8n8u9s",
+      "field_mapping_rate": 171,
+      "evidence_collected": true,
+      "test_id": "FV006",
+      "execution_mode": "batch-2",
+      "duration": 1622,
+      "estimated_duration": 8000,
+      "priority": "high"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168397249",
+      "airtable_record_id": "recrmvsvobiuob",
+      "field_mapping_rate": 155,
+      "evidence_collected": true,
+      "test_id": "FV007",
+      "execution_mode": "batch-3",
+      "duration": 2939,
+      "estimated_duration": 8000,
+      "priority": "high"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168396469",
+      "airtable_record_id": "rec0lyqj2utqv3",
+      "field_mapping_rate": 174,
+      "evidence_collected": true,
+      "test_id": "BC001",
+      "execution_mode": "batch-3",
+      "duration": 2158,
+      "estimated_duration": 8000,
+      "priority": "high"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168396510",
+      "airtable_record_id": "recoyimplhq5d",
+      "field_mapping_rate": 193,
+      "evidence_collected": true,
+      "test_id": "BC002",
+      "execution_mode": "batch-3",
+      "duration": 2199,
+      "estimated_duration": 8000,
+      "priority": "high"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168402096",
+      "airtable_record_id": "rech2aigw832j7",
+      "field_mapping_rate": 189,
+      "evidence_collected": true,
+      "test_id": "BC003",
+      "execution_mode": "batch-4",
+      "duration": 2846,
+      "estimated_duration": 8000,
+      "priority": "high"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168400539",
+      "airtable_record_id": "recx4m0am5hxa",
+      "field_mapping_rate": 188,
+      "evidence_collected": true,
+      "test_id": "BC004",
+      "execution_mode": "batch-4",
+      "duration": 1288,
+      "estimated_duration": 8000,
+      "priority": "high"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168401349",
+      "airtable_record_id": "recv8dum8nt3h",
+      "field_mapping_rate": 197,
+      "evidence_collected": true,
+      "test_id": "EC001",
+      "execution_mode": "batch-4",
+      "duration": 2098,
+      "estimated_duration": 12000,
+      "priority": "medium"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168406728",
+      "airtable_record_id": "recvf3di9r9r7b",
+      "field_mapping_rate": 179,
+      "evidence_collected": true,
+      "test_id": "EC002",
+      "execution_mode": "batch-5",
+      "duration": 2630,
+      "estimated_duration": 12000,
+      "priority": "medium"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168406539",
+      "airtable_record_id": "recrxomroofit",
+      "field_mapping_rate": 152,
+      "evidence_collected": true,
+      "test_id": "EC003",
+      "execution_mode": "batch-5",
+      "duration": 2441,
+      "estimated_duration": 12000,
+      "priority": "medium"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168406698",
+      "airtable_record_id": "rec5tre6013mu4",
+      "field_mapping_rate": 198,
+      "evidence_collected": true,
+      "test_id": "EC004",
+      "execution_mode": "batch-5",
+      "duration": 2600,
+      "estimated_duration": 12000,
+      "priority": "medium"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168409329",
+      "airtable_record_id": "reckp8nb127v8",
+      "field_mapping_rate": 166,
+      "evidence_collected": true,
+      "test_id": "DH001",
+      "execution_mode": "sequential",
+      "duration": 2601,
+      "estimated_duration": 10000,
+      "priority": "medium"
+    },
+    {
+      "success": true,
+      "webhook_execution_id": "exec_1754168411811",
+      "airtable_record_id": "recdrmdbab7rjr",
+      "field_mapping_rate": 177,
+      "evidence_collected": true,
+      "test_id": "DH002",
+      "execution_mode": "sequential",
+      "duration": 1480,
+      "estimated_duration": 10000,
+      "priority": "medium"
+    }
+  ],
+  "chunk2_achievements": {
+    "intelligent_selection": true,
+    "parallel_execution": true,
+    "progress_tracking": true,
+    "capability_discovery": true
+  }
+}

@@ -124,18 +124,25 @@ Findings: [Evidence-based only - NO HYPE]
 Next Steps: [User-actionable list]
 ```
 
-### **🚨 EMERGENCY ANTI-STEAMROLLING PROTOCOL:**
+### **🚨 EMERGENCY ANTI-STEAMROLLING + CONFIDENCE PROTOCOL:**
 ```
 ⛔ MANDATORY STOPS AFTER EVERY CHUNK:
 1. Present evidence block with specific results
-2. STOP and ask: "EVIDENCE COLLECTED. Ready for next chunk? (Type 'proceed')"
-3. WAIT for explicit user confirmation before ANY next action
-4. NEVER create completion documentation without user validation
-5. NEVER claim "COMPLETE" or "FINISHED" without comprehensive user review
+2. Include CONFIDENCE SCORE [0-100%] for chunk success
+3. STOP and ask: "EVIDENCE COLLECTED. Confidence: [X%]. Ready for next chunk? (Type 'proceed')"
+4. WAIT for explicit user confirmation before ANY next action
+5. NEVER create completion documentation without user validation
+6. NEVER claim "COMPLETE" or "FINISHED" without comprehensive user review
+
+CONFIDENCE THRESHOLDS:
+- <80%: MANDATORY verification required before proceeding
+- 80-90%: Proceed with caution, document uncertainties  
+- >90%: High confidence, proceed with evidence block
 
 FORBIDDEN: Executing multiple chunks without user confirmation between each
 FORBIDDEN: Creating handover materials before user validates all work
 FORBIDDEN: Making success claims based on minimal testing (1-2 records)
+FORBIDDEN: Claims without confidence scores and evidence backing
 ```
 
 ---

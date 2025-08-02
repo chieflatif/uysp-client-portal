@@ -23,7 +23,14 @@
 - ✅ Specific chunk boundaries and stop points
 - ✅ Evidence requirements and tool specifications  
 - ✅ User confirmation requirements
+- ✅ MANDATORY CONFIDENCE SCORING [0-100%] requirements
 - ✅ Ready to copy/paste without modification
+
+**PM CONFIDENCE PROTOCOLS**:
+- ✅ All PM responses include confidence assessment
+- ✅ Cross-validation with available tools before commitments
+- ✅ Timeline estimates require confidence intervals  
+- ✅ Evidence-based status reporting only
 
 ---
 
