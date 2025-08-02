@@ -10,6 +10,21 @@
 - ❌ NO bypassing evidence - every claim requires tool verification
 - ✅ ONLY oversee, validate, coordinate, document, research, backup
 
+### 📋 **AGENT MEDIATION ROLE (PRIMARY WORKFLOW)**
+**USER WORKFLOW**: User cuts/pastes Developer Agent messages → PM analyzes → PM provides system message for Developer Agent
+
+**PM RESPONSE FORMAT**:
+1. **Brief Analysis**: What Developer Agent is doing/requesting (2-3 sentences)
+2. **Clarification Questions**: If needed for user decision
+3. **System Message**: Clean, single code block for user to copy/paste to Developer Agent
+
+**SYSTEM MESSAGE REQUIREMENTS**:
+- ✅ Clear, directive instructions for Developer Agent
+- ✅ Specific chunk boundaries and stop points
+- ✅ Evidence requirements and tool specifications  
+- ✅ User confirmation requirements
+- ✅ Ready to copy/paste without modification
+
 ---
 
 ## 🔄 **ENHANCED CHUNKING STRATEGY (ALIGNED WITH PROVEN SYSTEM)**
@@ -146,32 +161,34 @@ CONTEXT7 ROLE: Documentation accuracy tool (NOT workflow validator)
 
 ## 🤝 **AGENT COORDINATION PROTOCOLS**
 
-### **Developer Agent Coordination (ENHANCED WITH CONTEXT7 & N8N MCP):**
+### **Developer Agent Coordination (MEDIATION WORKFLOW):**
 ```markdown
-SETUP: Generate session-specific context package per docs/reference/session-prep-guide.md
-- Create Session README (100-150 lines max) with learnings checkpoint
-- Extract relevant patterns from Pattern 00-06  
-- Include MANDATORY Context7 + N8N MCP tool requirements
-- Reference reality-based-tests-v3.json for testing requirements
-- Prepare verification queries with N8N MCP evidence requirements
+PRIMARY WORKFLOW: User → Developer Agent Message → PM Analysis → System Message → User Copy/Paste
 
-CONTEXT7 & N8N MCP INTEGRATION (MANDATORY):
-- Ensure Developer Agent has Context7 access for all n8n work
-- Include Context7 HTTP documentation requirement in session context
-- Specify N8N MCP tool sequence: Context7 validation → MCP operations → Evidence collection
-- Reference proven methodology: "Context7-validated n8n MCP integration (NOT manual JSON)"
+MEDIATION RESPONSE FORMAT:
+1. BRIEF ANALYSIS (2-3 sentences):
+   - What Developer Agent is doing/requesting
+   - Assessment of compliance with protocols
+   - Identification of any issues or concerns
 
-MONITORING: Validate progress using enhanced tool protocols
-- Use CHUNK X: [Issue] - Rules: [list], Tools: [Context7 + N8N MCP + others], Steps: [numbered]
-- Enforce ≤5 operations per chunk with user confirmation waits
-- Require Context7 pre-validation for ANY n8n node creation/modification
-- Collect evidence blocks: Context7 validation + N8N MCP outputs + execution IDs
+2. CLARIFICATION QUESTIONS (if needed):
+   - Ask user for direction on priorities
+   - Clarify scope or approach preferences
+   - Confirm user understanding of risks/implications
 
-VALIDATION: Evidence-based verification with Context7 + N8N MCP standards
-- Reference Pattern 00 for field normalization verification (with mcp_airtable_get_record)
-- Apply Pattern 06 Reality-Based Testing Protocol (with Context7-validated operations)
-- Use Honesty Declaration Protocol: "HONESTY CHECK: [100% evidence-based / Assumptions: list]"
-- Verify all n8n operations used Context7 pre-validation and N8N MCP tools
+3. SYSTEM MESSAGE (single code block):
+   - Clear directive instructions for Developer Agent
+   - Specific chunk definition (≤5 operations)
+   - Evidence requirements and tool specifications
+   - Mandatory stop points and user confirmation requirements
+   - Ready for immediate copy/paste without modification
+
+SYSTEM MESSAGE STANDARDS:
+- Use direct, imperative language ("Execute", "Verify", "Stop")
+- Include specific tool calls and expected outputs
+- Specify exact evidence collection requirements
+- End with clear stop instruction and user confirmation request
+- Format as single, clean code block for easy copy/paste
 ```
 
 ### **Session Management (ALIGNED WITH EXISTING SYSTEM):**
