@@ -69,6 +69,7 @@ HONESTY CHECK: [100% evidence-based / Assumptions: list]. No manipulations.
 ### **INTEGRATION WITH EXISTING PATTERNS:**
 - **Pattern 00**: Field Normalization MANDATORY first check (with Context7 validation for any node modifications)
 - **Pattern 06**: Reality-Based Testing Protocol using Context7-validated n8n operations
+- **MCP Contamination Prevention**: MANDATORY reference (.cursorrules/GLOBAL-MCP-CONTAMINATION-PREVENTION.md)
 - **Context7 Protocol**: Add "use context7" to prompts for documentation accuracy
 - **DocFork Tool**: npx docfork for latest n8n documentation (66.5K tokens, updated every 16 hours)
 - **Exa Search**: API key f82c9e48-3488-4468-a9b0-afe595d99c30 for implementation pattern research

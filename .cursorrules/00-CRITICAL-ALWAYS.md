@@ -22,11 +22,12 @@
 1. **TECHNICAL ENFORCEMENT**: Run anti-hallucination enforcement system (tests/anti-hallucination-enforcement.js)
 2. **CONFIDENCE ASSESSMENT**: Rate response confidence [0-100%] - TECHNICALLY ENFORCED
 3. **MCP VERIFICATION**: Verify all MCP calls are real, not simulated - TECHNICALLY ENFORCED  
-4. Check memory_bank/active_context.md for current state
-5. Check patterns/00-field-normalization-mandatory.txt exists
-6. Verify MCP tools with: n8n-mcp list_workflows
-7. **CRITICAL**: Ensure n8n operations target PROJECT workspace: H4VRaaZhd8VKQANf ONLY
-8. **BEFORE ANY NODE CREATION: Check context/platform-gotchas/n8n-platform-gotchas-complete.md**
+4. **MCP CONTAMINATION CHECK**: Verify no claims about embedding MCP tools in scripts (.cursorrules/GLOBAL-MCP-CONTAMINATION-PREVENTION.md)
+5. Check memory_bank/active_context.md for current state
+6. Check patterns/00-field-normalization-mandatory.txt exists
+7. Verify MCP tools with: n8n-mcp list_workflows
+8. **CRITICAL**: Ensure n8n operations target PROJECT workspace: H4VRaaZhd8VKQANf ONLY
+9. **BEFORE ANY NODE CREATION: Check context/platform-gotchas/n8n-platform-gotchas-complete.md**
 
 ## 🔒 ENHANCED TECHNICAL ANTI-HALLUCINATION ENFORCEMENT (MANDATORY)
 **AUTOMATIC TECHNICAL BARRIERS - CANNOT BE BYPASSED:**
