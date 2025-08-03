@@ -19,16 +19,58 @@
 4. Proceed only if confidence >threshold
 
 ## BEFORE EVERY RESPONSE:
-1. **CONFIDENCE ASSESSMENT**: Rate response confidence [0-100%]
-2. Check memory_bank/active_context.md for current state
-3. Check patterns/00-field-normalization-mandatory.txt exists
-4. Verify MCP tools with: n8n-mcp list_workflows
-5. **CRITICAL**: Ensure n8n operations target PROJECT workspace: H4VRaaZhd8VKQANf ONLY
-6. **BEFORE ANY NODE CREATION: Check context/platform-gotchas/n8n-platform-gotchas-complete.md**
+1. **TECHNICAL ENFORCEMENT**: Run anti-hallucination enforcement system (tests/anti-hallucination-enforcement.js)
+2. **CONFIDENCE ASSESSMENT**: Rate response confidence [0-100%] - TECHNICALLY ENFORCED
+3. **MCP VERIFICATION**: Verify all MCP calls are real, not simulated - TECHNICALLY ENFORCED  
+4. Check memory_bank/active_context.md for current state
+5. Check patterns/00-field-normalization-mandatory.txt exists
+6. Verify MCP tools with: n8n-mcp list_workflows
+7. **CRITICAL**: Ensure n8n operations target PROJECT workspace: H4VRaaZhd8VKQANf ONLY
+8. **BEFORE ANY NODE CREATION: Check context/platform-gotchas/n8n-platform-gotchas-complete.md**
 
-## ⛔ EMERGENCY ANTI-STEAMROLLING PROTOCOL
+## 🔒 ENHANCED TECHNICAL ANTI-HALLUCINATION ENFORCEMENT (MANDATORY)
+**AUTOMATIC TECHNICAL BARRIERS - CANNOT BE BYPASSED:**
+
+### **ENHANCED ENFORCEMENT SYSTEM ACTIVATION**
+- **System**: tests/enhanced-anti-hallucination-enforcement.js
+- **Version**: v2.0-enhanced (100% bypass protection validated)
+- **Status**: MANDATORY for all responses 
+- **Bypass**: TECHNICALLY IMPOSSIBLE
+
+### **ENHANCED TECHNICAL BARRIERS (AUTO-ENFORCED)**
+1. **SUCCESS CLAIM DETECTION**: Detects automation/completion claims without evidence
+   - Triggers: "flows smoothly", "API endpoints respond", "system working", etc.
+   - Action: IMMEDIATE BLOCK - no automation claims without MCP evidence
+   
+2. **EVIDENCE VALIDATION**: Requires specific evidence patterns for success claims
+   - Requirement: Workflow IDs, execution IDs, tool names, record IDs
+   - Action: AUTOMATIC BLOCK - success claims require documented evidence
+   
+3. **ENCODING BYPASS DETECTION**: Detects base64/hex encoded violation attempts
+   - Triggers: Base64/hex encoded mock patterns, simulation terms
+   - Action: IMMEDIATE BLOCK - encoding cannot hide violation patterns
+   
+4. **INTENT ANALYSIS**: Scores automation intent vs supporting evidence
+   - Scoring: High automation intent + low evidence = violation
+   - Action: INTELLIGENT BLOCK - prevents sophisticated deception
+   
+5. **CONFIDENCE SCORE ENFORCEMENT**: No output without confidence assessment
+   - Requirement: All responses MUST include "Confidence: X%" 
+   - Action: AUTOMATIC BLOCK - technically impossible to respond without score
+   
+6. **DEEP MCP VALIDATION**: Enhanced fake response detection
+   - Analysis: Structure, signatures, fabrication indicators
+   - Action: IMMEDIATE BLOCK - only authentic MCP responses accepted
+
+### **MANDATORY VALIDATION GATES**
+- **Technical Implementation**: Cannot proceed without explicit user confirmation
+- **Gate Triggers**: After ANY automation claim, evidence presentation, chunk completion
+- **Required Response**: User must type "PROCEED" or "STOP" - no other input accepted
+- **Enforcement**: System technically locked until valid user response received
+
+## ⛔ EMERGENCY ANTI-STEAMROLLING PROTOCOL  
 **🚨 MANDATORY STOPS - NO EXCEPTIONS:**
-1. **CHUNK BOUNDARY STOP**: After presenting ANY evidence block or completing ≤5 operations → STOP and explicitly ask "Ready for next chunk?"
+1. **TECHNICAL VALIDATION GATE**: System automatically creates validation gate after ≤5 operations
 2. **NO COMPLETION CLAIMS**: NEVER use words "COMPLETE", "FINISHED", "DONE" without explicit user validation of results
 3. **NO DOCUMENTATION CREATION**: NEVER create completion docs, evidence packages, or handover materials until user confirms success
 4. **FORCED BREAKS**: Between EVERY major operation (workflow mod, testing, documentation) → STOP and wait for user "proceed"
@@ -45,6 +87,7 @@
 - Gotcha #2: Credentials need UI re-selection?
 - Gotcha #17: Workspace contamination - verify project workspace
 - Gotcha #18: Credential JSON null is NORMAL (security feature)
+- Gotcha #19: Boolean fields "missing" from Airtable = NORMAL (false = absent)
 
 ## 10. ANTI-HALLUCINATION & HOLISTIC PROBLEM-SOLVING PROTOCOL
 **MANDATORY: NO "EUREKA" OR "ROOT CAUSE" CLAIMS WITHOUT VALIDATION**

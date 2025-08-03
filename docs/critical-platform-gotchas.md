@@ -140,6 +140,38 @@ for i in range(0, len(records), 10):
 
 ---
 
+## 🚨 TESTING GOTCHA: Boolean Fields "Missing" is NORMAL
+
+### The Confusion:
+During testing, agents often report: "Boolean fields are broken - they don't appear in Airtable records!"
+
+### The Reality:
+**This is CORRECT Airtable behavior, not a bug:**
+- ✅ **True/Checked**: Field appears in API response as `true`
+- ✅ **False/Unchecked**: Field is completely absent from API response (NOT `false`)
+
+### Example:
+```json
+// Input to Smart Field Mapper
+{"interested_in_coaching": "no", "qualified_lead": "yes"}
+
+// Airtable record response  
+{
+  "fields": {
+    "qualified_lead": true
+    // interested_in_coaching is ABSENT (not false) - this is CORRECT
+  }
+}
+```
+
+### For Testing Agents:
+- **Don't panic** when boolean fields are "missing" from Airtable responses
+- **Absent field = unchecked/false** in Airtable's design
+- **Only investigate** if you expect `true` but field is absent
+- **This is documented behavior**, not broken functionality
+
+---
+
 ## 🚨 NEW CONTEXT ENGINEERING GOTCHAS
 
 ### Gotcha 1: n8n Workflow Automation
@@ -243,6 +275,9 @@ EVIDENCE:
 
 **Boolean conversion failing?**
 → Map false to null, never send false directly
+
+**Boolean fields "missing" during testing?**
+→ Normal behavior! False = absent, true = present
 
 **Test cleanup needed?**
 → Use Airtable API batch delete with preservation filters

@@ -4,9 +4,11 @@
  * 
  * This file has been quarantined due to fake testing patterns:
  * 
- * ❌ commentedMCP: Commented out real MCP calls (HIGH)
+ * ❌ simulatedMCP: Simulated MCP calls instead of real ones (CRITICAL)
+ * ❌ fakeResponseGeneration: Fake response generation (CRITICAL)
+ * ❌ antiHallucinationBypass: Anti-hallucination enforcement bypass attempts (CRITICAL)
  * 
- * Original file moved to: tests/QUARANTINED-FAKE-PATTERNS/REAL-WORKING-TEST-RUNNER.js
+ * Original file moved to: tests/QUARANTINED-FAKE-PATTERNS/FAKE-PATTERN-DETECTOR.js
  * 
  * DO NOT USE QUARANTINED FILES - THEY CONTAIN FAKE PATTERNS
  * Use REAL-MCP-TESTING-FRAMEWORK.js or mcp-automated-testing-system-FIXED.js instead

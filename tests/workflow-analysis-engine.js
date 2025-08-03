@@ -3,9 +3,10 @@
 /**
  * COMPREHENSIVE WORKFLOW ANALYSIS & TESTING ENGINE
  * 
- * Purpose: Analyze, compare, and test n8n workflows systematically
- * Capabilities: Deep workflow analysis, comparative testing, strategic reporting
- * Reality: Uses actual MCP tools, creates real data, generates actionable insights
+ * PURPOSE: Data correlation and analysis algorithms for workflow debugging
+ * ARCHITECTURE: Node.js runtime - receives data from AI agent, performs correlation analysis
+ * CAPABILITIES: Pattern analysis, comparative testing, strategic reporting on provided data
+ * SCOPE: Analysis algorithms only - AI agent provides MCP data separately
  */
 
 const fs = require('fs');
@@ -45,9 +46,10 @@ class WorkflowAnalysisEngine {
 
   /**
    * WORKFLOW DEEP ANALYSIS
-   * Analyzes workflow structure, capabilities, performance characteristics
+   * Analyzes provided workflow data structure, capabilities, performance characteristics
+   * Note: Expects workflow data to be provided by AI agent from MCP tools
    */
-  async analyzeWorkflow(workflowId, workflowName = null) {
+  async analyzeWorkflow(workflowId, workflowData, workflowName = null) {
     console.log(`\n🔬 ANALYZING WORKFLOW: ${workflowId}`);
     
     const analysis = {
@@ -58,13 +60,18 @@ class WorkflowAnalysisEngine {
       capabilities: null,
       performance: null,
       nodes: null,
-      errors: []
+      errors: [],
+      data_source: 'ai_agent_mcp_provided'
     };
 
     try {
-      // Get detailed workflow information
-      console.log('📋 Fetching workflow details...');
-      analysis.structure = await this.callMCPTool('mcp_n8n_n8n_get_workflow_details', { id: workflowId });
+      // Validate provided workflow data
+      if (!workflowData) {
+        throw new Error('Workflow data must be provided by AI agent - cannot collect from Node.js');
+      }
+      
+      console.log('📋 Analyzing provided workflow data...');
+      analysis.structure = workflowData;
       
       // Analyze node structure and capabilities
       console.log('🔍 Analyzing node structure...');
@@ -74,9 +81,9 @@ class WorkflowAnalysisEngine {
       console.log('⚡ Determining capabilities...');
       analysis.capabilities = this.determineCapabilities(analysis.structure, analysis.nodes);
       
-      // Get recent performance data
-      console.log('📊 Collecting performance data...');
-      analysis.performance = await this.analyzePerformance(workflowId);
+      // Generate performance analysis framework (requires execution data from AI agent)
+      console.log('📊 Setting up performance analysis framework...');
+      analysis.performance = this.createPerformanceAnalysisFramework(workflowId);
       
       // Store analysis
       this.workflows.set(workflowId, analysis);
@@ -255,19 +262,45 @@ class WorkflowAnalysisEngine {
   }
 
   /**
-   * PERFORMANCE ANALYSIS
-   * Collects and analyzes execution performance data
+   * PERFORMANCE ANALYSIS FRAMEWORK
+   * Creates framework for analyzing execution performance data provided by AI agent
    */
-  async analyzePerformance(workflowId) {
-    try {
-      console.log('📊 Fetching execution history...');
-      const executions = await this.callMCPTool('mcp_n8n_n8n_list_executions', {
-        workflowId: workflowId,
-        limit: 20
-      });
+  createPerformanceAnalysisFramework(workflowId) {
+    console.log('📊 Creating performance analysis framework...');
+    
+    return {
+      workflowId: workflowId,
+      framework_created: new Date().toISOString(),
+      requires_execution_data: true,
+      analysis_capabilities: {
+        execution_timing: 'Available when execution data provided',
+        success_rate: 'Available when execution data provided', 
+        error_patterns: 'Available when execution data provided',
+        throughput: 'Available when execution data provided'
+      },
+      data_requirements: {
+        execution_list: 'mcp_n8n_n8n_list_executions result',
+        execution_details: 'Individual execution data',
+        timeframe: 'Recommended 20 most recent executions'
+      }
+    };
+  }
 
-      // Handle MCP wrapper structure
-      const actualData = executions?.simulatedResult || executions;
+  /**
+   * PERFORMANCE ANALYSIS
+   * Analyzes execution performance data provided by AI agent
+   */
+  analyzeProvidedPerformanceData(executionData) {
+    try {
+      console.log('📊 Analyzing provided execution data...');
+
+      // Validate provided execution data structure
+      if (!executionData) {
+        throw new Error('Execution data must be provided by AI agent');
+      }
+      
+      // Handle MCP result structure
+      const actualData = executionData?.data || executionData;
       
       if (!actualData?.data?.executions) {
         return { error: 'No execution data available' };
@@ -345,7 +378,7 @@ class WorkflowAnalysisEngine {
       const test = testsToRun[i];
       console.log(`\n📋 Test ${i + 1}/${testsToRun.length}: ${test.name}`);
       
-      const result = await this.executeTest(test, workflowId);
+      const result = await this.analyzeTestWithProvidedEvidence(test, workflowId, null);
       testResults.results.push(result);
       
       // Brief pause between tests
@@ -363,59 +396,76 @@ class WorkflowAnalysisEngine {
   }
 
   /**
-   * EXECUTE SINGLE TEST
-   * Runs one test with comprehensive evidence collection
+   * EXECUTE SINGLE TEST ANALYSIS
+   * Analyzes test results using evidence provided by AI agent
    */
-  async executeTest(test, workflowId) {
+  async analyzeTestWithProvidedEvidence(test, workflowId, evidence) {
     const result = {
       testName: test.name,
       payload: test.payload,
       startTime: new Date().toISOString(),
       success: false,
-      evidence: {},
-      errors: []
+      evidence: evidence || {},
+      errors: [],
+      requires_ai_agent_evidence: !evidence
     };
 
     try {
-      // Step 1: Trigger webhook
-      console.log('  🔗 Triggering webhook...');
-      const webhookResult = await this.callMCPTool('mcp_n8n_n8n_trigger_webhook_workflow', {
-        webhookUrl: 'https://rebelhq.app.n8n.cloud/webhook/kajabi-leads',
-        data: test.payload,
-        httpMethod: 'POST',
-        waitForResponse: true
-      });
-      
-      result.evidence.webhook = webhookResult;
-      
-      if (!webhookResult.success) {
-        throw new Error('Webhook trigger failed');
+      if (!evidence) {
+        // Create evidence collection framework for AI agent
+        console.log('  📋 Creating evidence collection framework...');
+        result.evidence_requirements = {
+          webhook_trigger: {
+            tool: 'mcp_n8n_n8n_trigger_webhook_workflow',
+            params: {
+              webhookUrl: 'https://rebelhq.app.n8n.cloud/webhook/kajabi-leads',
+              data: test.payload,
+              httpMethod: 'POST'
+            }
+          },
+          airtable_verification: {
+            tool: 'mcp_airtable_search_records',
+            params: {
+              baseId: 'appuBf0fTe8tp8ZaF',
+              tableId: 'tblSk2Ikg21932uE0',
+              searchTerm: test.payload.email || test.payload.EMAIL || test.payload.Email,
+              maxRecords: 5
+            }
+          },
+          execution_verification: {
+            tool: 'mcp_n8n_n8n_list_executions',
+            params: {
+              workflowId: workflowId,
+              limit: 3
+            }
+          }
+        };
+        
+        result.status = 'EVIDENCE_COLLECTION_FRAMEWORK_CREATED';
+        console.log('  ✅ Framework created - AI agent must collect evidence');
+        return result;
       }
 
-      // Step 2: Wait for processing
-      console.log('  ⏳ Waiting for processing...');
-      await this.sleep(5000);
+      // Analyze provided evidence
+      console.log('  🔍 Analyzing provided evidence...');
+      
+      // Step 1: Analyze webhook evidence
+      if (evidence.webhook) {
+        result.evidence.webhook = evidence.webhook;
+        console.log('  ✅ Webhook evidence analyzed');
+      }
 
-      // Step 3: Verify Airtable record
-      console.log('  🔍 Verifying Airtable record...');
-      const email = test.payload.email || test.payload.EMAIL || test.payload.Email;
-      const airtableResult = await this.callMCPTool('mcp_airtable_search_records', {
-        baseId: 'appuBf0fTe8tp8ZaF',
-        tableId: 'tblSk2Ikg21932uE0',
-        searchTerm: email,
-        maxRecords: 5
-      });
-      
-      result.evidence.airtable = airtableResult;
-      
-      // Step 4: Get execution evidence
-      console.log('  📊 Collecting execution evidence...');
-      const executions = await this.callMCPTool('mcp_n8n_n8n_list_executions', {
-        workflowId: workflowId,
-        limit: 3
-      });
-      
-      result.evidence.executions = executions;
+      // Step 2: Analyze Airtable evidence  
+      if (evidence.airtable) {
+        result.evidence.airtable = evidence.airtable;
+        console.log('  ✅ Airtable evidence analyzed');
+      }
+
+      // Step 3: Analyze execution evidence
+      if (evidence.executions) {
+        result.evidence.executions = evidence.executions;
+        console.log('  ✅ Execution evidence analyzed');
+      }
 
       // Analyze results
       result.success = this.analyzeTestSuccess(result.evidence, test);
@@ -463,95 +513,17 @@ class WorkflowAnalysisEngine {
   }
 
   /**
-   * MCP TOOL WRAPPER
-   * NOTE: This runs in Node.js environment without direct MCP access
-   * Real MCP calls would need to be executed in Claude Code Server environment
+   * MCP TOOL FUNCTION REMOVED
+   * 
+   * ARCHITECTURAL VIOLATION CORRECTED:
+   * Previous function attempted to call MCP tools from Node.js environment.
+   * This violates separation of concerns - Node.js scripts cannot call MCP tools.
+   * 
+   * CORRECT ARCHITECTURE:
+   * - AI agent calls MCP tools separately
+   * - AI agent provides data to this analysis engine
+   * - This engine performs correlation analysis on provided data
    */
-  async callMCPTool(toolName, params) {
-    console.log(`    🔧 ${toolName}`);
-    
-    // In reality, these would be actual MCP tool calls through Claude Code Server
-    // For the Node.js testing framework, we indicate what MCP calls are needed
-    
-    const mcpCallNeeded = {
-      tool: toolName,
-      parameters: params,
-      timestamp: new Date().toISOString(),
-      requiresClaudeCodeServerEnvironment: true
-    };
-    
-    console.log(`    ⚠️  MCP call needed: ${toolName}`);
-    
-    switch (toolName) {
-      case 'mcp_n8n_n8n_trigger_webhook_workflow':
-        // Return structure that indicates what the real call would return
-        return {
-          success: true,
-          mcpCallNeeded,
-          simulatedResult: {
-            status: 200,
-            data: { recordId: `rec${Date.now()}` }
-          }
-        };
-        
-      case 'mcp_airtable_search_records':
-        // Return structure that indicates what the real call would return
-        return {
-          success: true,
-          mcpCallNeeded,
-          simulatedResult: [{
-            id: `rec${Date.now()}`,
-            fields: {
-              email: params.searchTerm,
-              first_name: 'Test',
-              last_name: 'User',
-              company_input: 'Test Corp'
-            }
-          }]
-        };
-        
-      case 'mcp_n8n_n8n_list_executions':
-        return {
-          success: true,
-          mcpCallNeeded,
-          simulatedResult: {
-            data: {
-              executions: [
-                {
-                  id: `exec${Date.now()}`,
-                  finished: true,
-                  startedAt: new Date(Date.now() - 5000).toISOString(),
-                  stoppedAt: new Date().toISOString()
-                }
-              ]
-            }
-          }
-        };
-        
-      case 'mcp_n8n_n8n_get_workflow_details':
-        return {
-          success: true,
-          mcpCallNeeded,
-          simulatedResult: {
-            data: {
-              workflow: {
-                id: params.id,
-                name: 'Sample Workflow',
-                nodes: [
-                  { type: 'n8n-nodes-base.webhook', name: 'Webhook', parameters: {} },
-                  { type: 'n8n-nodes-base.code', name: 'Field Mapper', parameters: { jsCode: 'fieldMappings normalized' } },
-                  { type: 'n8n-nodes-base.airtable', name: 'Airtable', parameters: { operation: 'search' } }
-                ],
-                connections: {}
-              }
-            }
-          }
-        };
-        
-      default:
-        throw new Error(`Unknown MCP tool: ${toolName}`);
-    }
-  }
 
   // Utility methods
   analyzeDataFlow(nodes, connections) {

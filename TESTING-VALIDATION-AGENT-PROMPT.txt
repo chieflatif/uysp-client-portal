@@ -1,0 +1,54 @@
+TESTING VALIDATION AGENT - IMMEDIATE INSTRUCTIONS
+
+CONTEXT: Complete testing automation infrastructure has been built and requires full validation.
+
+YOUR MISSION: Clean up Airtable + Execute comprehensive testing + Validate infrastructure meets all requirements
+
+VERIFIED BASELINE:
+- Working Workflow: wpg9K9s8wlfofv1u (UYSP WORKING PRE COMPLIANCE - TESTING ACTIVE)
+- Smart Field Mapper: Node b8d9c432-2f9f-455e-a0f4-06863abfa10f (v4.6)
+- Airtable Base: appuBf0fTe8tp8ZaF, Table: tblSk2Ikg21932uE0
+- Webhook: https://rebelhq.app.n8n.cloud/webhook/kajabi-leads
+
+TESTING INFRASTRUCTURE READY:
+- Main System: tests/mcp-automated-testing-system.js (17,997 bytes, verified)
+- Runner Script: tests/run-automated-tests.sh (989 bytes, executable)
+- Enhanced Enforcement: tests/enhanced-anti-hallucination-enforcement.js (validated)
+
+EXECUTE THESE STEPS:
+
+1. AIRTABLE CLEANUP
+   - Use mcp_airtable_list_records to find test records (emails ending @testdomain.com, @test.com)
+   - Use mcp_airtable_delete_records to remove test data (preserve production records)
+   - Verify cleanup with record count before/after
+
+2. FULL TESTING EXECUTION  
+   - Run: ./tests/run-automated-tests.sh
+   - Monitor: All 5 test categories (Field Mapping, Boolean Conversion, Phone Strategy, Duplicate Handling, Integration Flow)
+   - Collect: Execution evidence, success rates, generated results files
+
+3. VALIDATION REQUIREMENTS
+   - Success Rate: ≥80% overall across all categories
+   - Evidence Collection: Execution IDs, record IDs, webhook responses documented
+   - MCP Integration: N8N + Airtable tools working correctly
+   - Results Archive: JSON reports saved in tests/results/
+   - Manual Process Replacement: Confirm automation replaces 30-minute manual workflow
+
+4. ENHANCED ENFORCEMENT VALIDATION
+   - Run: node tests/enhanced-anti-hallucination-enforcement.js
+   - Verify: All automation claims backed by MCP tool evidence
+   - Validate: No completion claims without user-verifiable results
+
+SUCCESS CRITERIA:
+✅ Airtable cleaned (test records removed, production preserved)
+✅ Testing infrastructure executes successfully
+✅ All 5 test categories achieve ≥80% success rate
+✅ Evidence properly collected and archived
+✅ Enhanced enforcement validation passes
+✅ Manual 30-minute process successfully automated
+
+CRITICAL: Use enhanced enforcement validation for all claims. Include confidence scores. Provide specific evidence (execution IDs, record counts, file paths, timestamps).
+
+TOOLS AVAILABLE: MCP N8N suite (39 tools), MCP Airtable suite (13 tools), terminal commands, file system operations.
+
+START WITH: Airtable cleanup, then execute testing infrastructure validation.

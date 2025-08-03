@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 
 /**
- * 🚀 MCP Automated Test Runner - CHUNK 1 Implementation
+ * 🚀 HTTP Test Runner & Evidence Framework Generator
  * 
- * Replaces manual testing with full MCP automation:
- * - No manual webhook clicks required
- * - Automated Airtable verification 
- * - Evidence collection built-in
- * - Basic test orchestration framework
+ * ARCHITECTURE: Node.js runtime - HTTP testing and evidence collection only
+ * PURPOSE: Webhook testing with structured evidence for AI agent MCP correlation
+ * CAPABILITIES: HTTP requests, evidence generation, test orchestration frameworks
+ * SCOPE: AI agent handles MCP tools separately for cross-system verification
  */
 
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 
-class MCPTestOrchestrator {
+class HTTPTestOrchestrator {
   constructor() {
     this.testSuite = null;
     this.results = [];
@@ -27,100 +27,93 @@ class MCPTestOrchestrator {
       fs.mkdirSync(this.resultsDir, { recursive: true });
     }
     
-    console.log('🎯 MCP Automated Test Runner initialized');
-    console.log('✨ Zero manual intervention required!');
+    console.log('🎯 HTTP Test Runner & Evidence Framework Generator initialized');
+    console.log('✨ Generates evidence collection requirements for AI agent!');
   }
 
   /**
-   * Trigger webhook test using MCP tools
-   * Replaces manual "Execute Workflow" clicks
+   * Trigger webhook test using HTTP requests
+   * Generates evidence for AI agent MCP verification
    */
   async triggerWebhookTest(payload) {
-    console.log(`\n🔄 Triggering webhook test automatically...`);
+    console.log(`\n🔄 Triggering webhook test via HTTP...`);
     
     try {
-      // NOTE: Using MCP tool to trigger webhook
-      // This replaces the manual n8n workflow execution
-      const mcpResult = await this.executeMCPTool('mcp_n8n_n8n_trigger_webhook_workflow', {
-        webhookUrl: this.webhookUrl,
-        data: payload,
-        httpMethod: 'POST',
-        waitForResponse: true
-      });
+      // HTTP webhook testing (Node.js capability)
+      const webhookResult = await this.sendHTTPWebhook(payload);
       
-      if (mcpResult.success) {
-        console.log('✅ Webhook triggered successfully via MCP');
-        console.log(`📋 Execution ID: ${mcpResult.executionId}`);
+      // Generate evidence collection framework for AI agent
+      const evidenceFramework = this.generateEvidenceCollectionFramework(payload, webhookResult);
+      
+      if (webhookResult.success) {
+        console.log('✅ Webhook triggered successfully via HTTP');
+        console.log(`📋 Status Code: ${webhookResult.statusCode}`);
         return {
           success: true,
-          executionId: mcpResult.executionId,
-          timestamp: new Date().toISOString()
+          http_evidence: webhookResult,
+          evidence_framework: evidenceFramework,
+          timestamp: new Date().toISOString(),
+          requires_ai_agent_mcp_verification: true
         };
       } else {
-        throw new Error(`MCP webhook trigger failed: ${mcpResult.error}`);
+        throw new Error(`HTTP webhook trigger failed: ${webhookResult.error}`);
       }
     } catch (error) {
       console.error('❌ Failed to trigger webhook:', error.message);
       return {
         success: false,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        evidence_framework_available: false
       };
     }
   }
 
   /**
-   * Automatically verify Airtable record creation
-   * Replaces manual Airtable checking
+   * Generate Airtable verification framework
+   * Creates evidence collection requirements for AI agent MCP verification
    */
-  async verifyAirtableRecord(email, expectedFields) {
-    console.log(`\n🔍 Verifying Airtable record automatically...`);
+  async generateAirtableVerificationFramework(email, expectedFields) {
+    console.log(`\n📋 Generating Airtable verification framework...`);
     
-    // Wait for processing
-    console.log('⏳ Waiting 3 seconds for record creation...');
-    await this.sleep(3000);
+    // Processing wait time for AI agent coordination
+    console.log('⏳ Framework includes 3-second processing wait...');
     
-    try {
-      // NOTE: Using MCP tool to search for the record
-      const searchResult = await this.executeMCPTool('mcp_airtable_search_records', {
-        baseId: this.airtableBaseId,
-        tableId: this.airtableTableId,
-        searchTerm: email,
-        maxRecords: 1
-      });
-      
-      if (searchResult.records && searchResult.records.length > 0) {
-        const record = searchResult.records[0];
-        console.log(`✅ Record found: ${record.id}`);
-        
-        // Calculate field mapping success
-        const fieldMappingResult = this.calculateFieldMapping(record.fields, expectedFields);
-        
-        return {
-          success: true,
-          recordId: record.id,
-          fields: record.fields,
-          fieldMappingRate: fieldMappingResult.successRate,
-          mappedFields: fieldMappingResult.mappedFields,
-          missingFields: fieldMappingResult.missingFields,
-          timestamp: new Date().toISOString()
-        };
-      } else {
-        console.log('❌ No record found with email:', email);
-        return {
-          success: false,
-          error: 'Record not found',
-          timestamp: new Date().toISOString()
-        };
+    const verificationFramework = {
+      email_to_search: email,
+      expected_fields: expectedFields,
+      processing_wait_seconds: 3,
+      mcp_tool_requirements: {
+        tool: 'mcp_airtable_search_records',
+        params: {
+          baseId: this.airtableBaseId,
+          tableId: this.airtableTableId,
+          searchTerm: email,
+          maxRecords: 1
+        }
+      },
+      analysis_framework: {
+        success_criteria: 'Record found with email match',
+        field_mapping_analysis: 'Calculate mapping success rate',
+        evidence_required: ['recordId', 'fields', 'fieldMappingRate']
+      },
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('✅ Airtable verification framework generated');
+    console.log(`📧 Email to search: ${email}`);
+    console.log(`📊 Expected fields: ${expectedFields.length} fields`);
+    
+    return {
+      success: true,
+      framework: verificationFramework,
+      requires_ai_agent_mcp_execution: true,
+      analysis_capabilities: {
+        field_mapping_calculator: 'Available when MCP data provided',
+        success_rate_analysis: 'Available when MCP data provided',
+        missing_field_detection: 'Available when MCP data provided'
       }
-    } catch (error) {
-      console.error('❌ Failed to verify Airtable record:', error.message);
-      return {
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      };
-    }
+    };
   }
 
   /**
@@ -180,16 +173,16 @@ class MCPTestOrchestrator {
         throw new Error(`Webhook trigger failed: ${webhookResult.error}`);
       }
       
-      // Step 2: Verify Airtable record automatically
-      const verificationResult = await this.verifyAirtableRecord(
+      // Step 2: Generate Airtable verification framework
+      const verificationResult = await this.generateAirtableVerificationFramework(
         test.payload.email || test.payload.EMAIL || test.payload.Email,
         test.expected.normalized_fields || []
       );
       testResult.airtable_verification = verificationResult;
       
-      // Step 3: Collect execution evidence
-      if (webhookResult.executionId) {
-        const executionEvidence = await this.collectExecutionEvidence(webhookResult.executionId);
+      // Step 3: Generate execution evidence framework
+      if (webhookResult.http_evidence && webhookResult.http_evidence.statusCode < 300) {
+        const executionEvidence = this.generateExecutionEvidenceFramework(`http_${Date.now()}`);
         testResult.execution_evidence = executionEvidence;
       }
       
@@ -220,80 +213,127 @@ class MCPTestOrchestrator {
   }
 
   /**
-   * Collect execution evidence using MCP tools
+   * Generate execution evidence collection framework
+   * Creates requirements for AI agent MCP execution verification
    */
-  async collectExecutionEvidence(executionId) {
-    try {
-      const executionDetails = await this.executeMCPTool('mcp_n8n_n8n_get_execution', {
+  generateExecutionEvidenceFramework(executionId) {
+    console.log('📋 Generating execution evidence collection framework...');
+    
+    const framework = {
+      execution_id: executionId,
+      mcp_tool_required: 'mcp_n8n_n8n_get_execution',
+      parameters: {
         id: executionId,
         includeData: true
-      });
-      
-      return {
-        executionId: executionId,
-        status: executionDetails.status,
-        startedAt: executionDetails.startedAt,
-        stoppedAt: executionDetails.stoppedAt,
-        workflowId: executionDetails.workflowId,
-        nodeExecutions: executionDetails.data ? Object.keys(executionDetails.data).length : 0
-      };
-    } catch (error) {
-      console.warn('⚠️  Could not collect execution evidence:', error.message);
-      return null;
-    }
+      },
+      evidence_requirements: {
+        execution_status: 'success/error/running',
+        timing_data: ['startedAt', 'stoppedAt'],
+        workflow_id: 'Workflow identification',
+        node_execution_count: 'Number of nodes executed'
+      },
+      analysis_framework: {
+        success_verification: 'Status = success',
+        timing_analysis: 'Duration calculation',
+        node_completion: 'All expected nodes executed'
+      },
+      framework_generated: new Date().toISOString()
+    };
+    
+    return {
+      framework: framework,
+      requires_ai_agent_mcp_execution: true,
+      execution_id: executionId
+    };
   }
 
   /**
-   * Mock MCP tool execution (to be replaced with actual MCP integration)
-   * In production, this would use actual MCP tool calls
+   * MCP TOOL EXECUTION FUNCTION REMOVED
+   * 
+   * ARCHITECTURAL VIOLATION CORRECTED:
+   * Previous function attempted to execute MCP tools from Node.js environment.
+   * This violates separation of concerns - Node.js scripts cannot call MCP tools.
+   * 
+   * CORRECT ARCHITECTURE:
+   * - AI agent calls MCP tools separately
+   * - This script generates evidence collection frameworks
+   * - This script performs HTTP testing within Node.js capabilities
    */
-  async executeMCPTool(toolName, params) {
-    console.log(`🔧 Executing MCP tool: ${toolName}`);
-    console.log(`📋 Parameters:`, JSON.stringify(params, null, 2));
-    
-    // TODO: Replace with actual MCP tool integration
-    // For now, simulating successful responses
-    
-    if (toolName === 'mcp_n8n_n8n_trigger_webhook_workflow') {
-      // Simulate webhook trigger
-      const curlCommand = `curl -X POST "${params.webhookUrl}" -H "Content-Type: application/json" -d '${JSON.stringify(params.data)}'`;
-      const { execSync } = require('child_process');
+
+  /**
+   * HTTP Webhook Sender (Node.js capability)
+   * Sends actual HTTP requests to webhook endpoints
+   */
+  async sendHTTPWebhook(payload) {
+    return new Promise((resolve, reject) => {
+      const postData = JSON.stringify(payload);
+      const url = new URL(this.webhookUrl);
       
-      try {
-        const response = execSync(curlCommand, { encoding: 'utf8' });
-        return {
-          success: true,
-          executionId: `exec_${Date.now()}`,
-          response: response
-        };
-      } catch (error) {
-        return {
+      const options = {
+        hostname: url.hostname,
+        path: url.pathname,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      };
+      
+      const req = https.request(options, (res) => {
+        let responseData = '';
+        res.on('data', chunk => responseData += chunk);
+        res.on('end', () => {
+          resolve({
+            success: res.statusCode < 300,
+            statusCode: res.statusCode,
+            response: responseData,
+            timestamp: new Date().toISOString()
+          });
+        });
+      });
+      
+      req.on('error', (error) => {
+        resolve({
           success: false,
-          error: error.message
-        };
-      }
-    }
+          error: error.message,
+          timestamp: new Date().toISOString()
+        });
+      });
+      
+      req.write(postData);
+      req.end();
+    });
+  }
+
+  /**
+   * Generate Evidence Collection Framework
+   * Creates structured requirements for AI agent MCP correlation
+   */
+  generateEvidenceCollectionFramework(payload, webhookResult) {
+    const email = payload.email || payload.EMAIL || payload.Email;
     
-    if (toolName === 'mcp_airtable_search_records') {
-      // TODO: Implement actual Airtable MCP search
-      // For now, returning mock data
-      console.log('⚠️  Using mock Airtable verification - replace with actual MCP tool');
-      return {
-        records: []
-      };
-    }
-    
-    if (toolName === 'mcp_n8n_n8n_get_execution') {
-      // TODO: Implement actual execution details retrieval
-      return {
-        status: 'success',
-        startedAt: new Date().toISOString(),
-        stoppedAt: new Date().toISOString(),
-        workflowId: 'wpg9K9s8wlfofv1u'
-      };
-    }
-    
-    throw new Error(`Unknown MCP tool: ${toolName}`);
+    return {
+      test_payload: payload,
+      webhook_evidence: webhookResult,
+      mcp_verification_required: {
+        airtable_search: {
+          tool: 'mcp_airtable_search_records',
+          email: email,
+          expected_processing_wait: 3000
+        },
+        execution_verification: {
+          tool: 'mcp_n8n_n8n_list_executions',
+          workflow_id: 'wpg9K9s8wlfofv1u',
+          limit: 3
+        }
+      },
+      correlation_analysis: {
+        webhook_to_airtable: 'Verify record creation after webhook',
+        field_mapping_verification: 'Check normalized field population',
+        execution_success_correlation: 'Match webhook with n8n execution'
+      },
+      framework_generated: new Date().toISOString()
+    };
   }
 
   /**
@@ -413,11 +453,11 @@ class MCPTestOrchestrator {
 
 // Main execution
 async function main() {
-  console.log('🎯 MCP AUTOMATED TEST RUNNER - CHUNK 1');
-  console.log('📋 Core MCP Automation Implementation');
-  console.log('✨ Replacing manual testing with full automation\n');
+  console.log('🎯 HTTP TEST RUNNER & EVIDENCE FRAMEWORK GENERATOR');
+  console.log('📋 Node.js HTTP Testing with AI Agent Evidence Collection');
+  console.log('✨ Proper separation of concerns - HTTP testing only\n');
   
-  const orchestrator = new MCPTestOrchestrator();
+  const orchestrator = new HTTPTestOrchestrator();
   
   // Run 5 validation tests
   await orchestrator.runValidationTests(5);
@@ -431,4 +471,4 @@ if (require.main === module) {
   main().catch(console.error);
 }
 
-module.exports = MCPTestOrchestrator;
+module.exports = HTTPTestOrchestrator;

@@ -90,12 +90,12 @@ python session-0-real-data-validator.py --mode basic_validation
 - **Duplicate Detection**: Email-based with increment counters
 - **Field Conflict Resolution**: Latest values properly overwrite existing
 
-### **Workflow Backup**
-- **File**: `workflows/backups/session-1-comprehensive-testing-complete.json`
-- **Version ID**: 1e5613a4-2f8f-4ae8-b6a8-1de79750860e
-- **Workflow ID**: CefJB1Op3OySG8nb  
-- **Smart Field Mapper Node**: a3493afa-1eaf-41bb-99ca-68fe76209a29
-- **Backup Date**: July 24, 2025 22:45 UTC
+### **Current Working Baseline**
+- **Active Workflow**: `wpg9K9s8wlfofv1u` (UYSP WORKING PRE COMPLIANCE - TESTING ACTIVE)
+- **Version ID**: 907974cb-2a93-4097-aa33-7adaef5e2475
+- **Smart Field Mapper Node**: b8d9c432-2f9f-455e-a0f4-06863abfa10f
+- **Status**: ✅ **ACTIVE** with 10+ successful executions
+- **Last Updated**: August 2, 2025 22:26 UTC
 
 ### **Rerun Instructions**
 To validate Session 1 results:
