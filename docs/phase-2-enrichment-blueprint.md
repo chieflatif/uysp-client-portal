@@ -17,17 +17,19 @@ This blueprint defines the exact implementation approach for Phase 2 enrichment 
 
 ### 🏗️ **COMPLETE ENRICHMENT ARCHITECTURE**
 
-#### **Phase 2 Processing Flow (COMPLETE SYSTEM)**
+#### **Phase 2 Processing Flow (PLANNED SYSTEM)**
+**⚠️ STATUS UPDATE**: Only PDL Person integration complete. Company qualification and ICP scoring not started.
+
 ```
 New Lead → Field Normalization → Duplicate Check → Qualification Pipeline
                                                           ↓
 ┌─────── Two-Phase Qualification ───────┐
-│ Phase 1: Company Check (Apollo Org)   │ $0.01/check
+│ Phase 1: Company Check (PDL Company)  │ $0.01/check   ❌ NOT STARTED
 │ ├─ B2B Tech? Yes → Phase 2            │
 │ ├─ B2B Tech? No → Archive             │
 │ └─ Unclear → Human Review             │
 │                                       │
-│ Phase 2: Person Check (Apollo People) │ $0.025/check
+│ Phase 2: Person Check (PDL Person)    │ $0.03/check   ✅ COMPLETE
 │ ├─ Sales Role? Yes → ICP Scoring      │
 │ ├─ Sales Role? No → Human Review      │
 │ └─ No Data → Human Review             │
