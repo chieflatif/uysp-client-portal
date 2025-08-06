@@ -62,6 +62,41 @@
 2. **N8N MCP Operations**: Use mcp_n8n_n8n_* tools (NOT manual JSON)
 3. **Evidence Collection**: Capture execution IDs, Airtable record IDs, cost tracking data
 4. **Chunked Development**: ≤5 operations per chunk with user confirmation waits
+5. **Connection Management**: AI attempts initial connections; hand off complex routing to human
+
+### **Workflow Connection Protocol**:
+```markdown
+AI AGENT RESPONSIBILITY:
+✅ Create nodes with proper configuration
+✅ Attempt initial simple connections using MCP tools
+✅ Use addConnection/removeConnection for straightforward routing
+❌ Stop after 2-3 failed connection attempts
+
+HUMAN HANDOFF TRIGGERS:
+❌ Complex conditional routing (IF nodes with multiple TRUE/FALSE paths)  
+❌ Multiple MCP connection attempts failing
+❌ outputIndex/inputIndex confusion after 2-3 tries
+
+MCP CONNECTION OPERATIONS:
+mcp_n8n_n8n_update_partial_workflow({
+  id: "workflow-id",
+  operations: [{
+    type: "addConnection",
+    source: "Source Node Name",
+    target: "Target Node Name",
+    sourceOutput: "main", 
+    targetInput: "main",
+    outputIndex: 0,  // 0=TRUE, 1=FALSE for IF nodes
+    inputIndex: 0    // Usually 0 for most nodes
+  }]
+})
+
+HANDOFF PROTOCOL:
+1. AI documents node configuration and attempted connections
+2. Human uses n8n UI for drag-and-drop connection fixes
+3. AI verifies final routing with mcp_n8n_n8n_get_workflow_structure
+4. AI continues with workflow development
+```
 
 ---
 

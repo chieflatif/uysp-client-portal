@@ -1,5 +1,66 @@
 # Critical n8n Platform Gotchas - MUST READ
 
+## 🚨 GOTCHA #20: IF NODE CONFIGURATION REALITY CHECK (CRITICAL)
+
+### **THE DISASTER PATTERN THAT COST 1 WEEK:**
+**SYMPTOM**: AI agent claims IF node is configured, user sees blank configuration UI
+**ROOT CAUSE**: Node has `"parameters": {}` (empty) but AI assumes configuration exists
+**IMPACT**: Complete workflow failure, wasted development time
+
+### **THE TECHNICAL REALITY:**
+```json
+// CONFIGURED IF NODE (Working)
+{
+  "id": "node-id",
+  "parameters": {
+    "conditions": {
+      "conditions": [
+        {
+          "leftValue": "={{$json.field}}",
+          "rightValue": "false",
+          "operator": {"type": "boolean", "operation": "equals"}
+        }
+      ]
+    }
+  }
+}
+
+// UNCONFIGURED IF NODE (Broken - shows blank UI)
+{
+  "id": "node-id", 
+  "parameters": {}  // ← EMPTY = NOT CONFIGURED
+}
+```
+
+### **MANDATORY VERIFICATION PROTOCOL:**
+```markdown
+BEFORE claiming ANY node is configured:
+1. ALWAYS call: mcp_n8n_n8n_get_workflow(workflow_id)
+2. CHECK: "parameters": {...} vs "parameters": {}
+3. IF EMPTY: Explicitly state "Node has empty parameters - not configured"
+4. NEVER claim "backend configuration" - user UI shows reality
+```
+
+### **USER SCREENSHOT CONTRADICTION PROTOCOL:**
+```markdown
+WHEN user shows screenshot contradicting AI claim:
+1. Acknowledge: "Your screenshot shows [specific detail]"
+2. Immediately verify: mcp_n8n_n8n_get_workflow
+3. Compare tool result to screenshot evidence
+4. Admit error if screenshot was correct
+5. NEVER explain away visual evidence
+```
+
+### **PREVENTION CHECKLIST:**
+- [ ] Used mcp_n8n_n8n_get_workflow to verify node parameters
+- [ ] Checked for `"parameters": {}` (empty = unconfigured)
+- [ ] Acknowledged user screenshots showing blank configuration
+- [ ] No claims about invisible "backend" configuration
+
+**This gotcha pattern caused systematic lying about node configuration when parameters were empty. The simple fix: trust the tools and user evidence over assumptions.**
+
+---
+
 ## 🚨 NEW DISCOVERY: Credential JSON Null Behavior (Not a Bug!)
 
 ### The Issue:
@@ -172,6 +233,60 @@ During testing, agents often report: "Boolean fields are broken - they don't app
 
 ---
 
+## 🚨 WORKFLOW CONNECTION TROUBLESHOOTING GOTCHA
+
+### The Challenge:
+Complex conditional routing (IF nodes with multiple paths) is difficult to fix programmatically via MCP tools. Connection operations can be confusing with outputIndex/inputIndex parameters and may require multiple attempts to get right.
+
+### The Division of Labor:
+**✅ AI Agent (Initial Creation)**:
+- Create nodes with proper configuration 
+- Attempt initial simple connections using MCP tools
+- Use `addConnection` and `removeConnection` operations for straightforward routing
+
+**✅ Human Handoff (Complex Troubleshooting)**:
+- Take over when AI encounters connection issues after 2-3 attempts
+- Use n8n UI to quickly drag-and-drop complex routing connections
+- Much faster for multi-path conditional logic fixes
+
+### AI Agent MCP Connection Protocol:
+```javascript
+// CORRECT MCP Connection Operations
+mcp_n8n_n8n_update_partial_workflow({
+  id: "workflow-id",
+  operations: [
+    {
+      type: "addConnection",
+      source: "Source Node Name",
+      target: "Target Node Name", 
+      sourceOutput: "main",
+      targetInput: "main",
+      outputIndex: 0,  // 0 = TRUE path, 1 = FALSE path for IF nodes
+      inputIndex: 0    // Usually 0 for most nodes
+    }
+  ]
+})
+```
+
+### Connection Troubleshooting Sequence:
+1. **AI attempts MCP connection operations** (max 3 attempts)
+2. **If issues persist**, document node configuration and hand off to human
+3. **Human uses UI** to make connections quickly 
+4. **AI verifies** final routing with `mcp_n8n_n8n_get_workflow_structure`
+
+### When to Handoff to Human:
+- ❌ Complex conditional routing (IF nodes with multiple TRUE/FALSE paths)
+- ❌ Multiple connection attempts failing with MCP tools
+- ❌ outputIndex/inputIndex confusion after 2-3 tries
+- ✅ Nodes are properly configured, just need connections fixed
+
+### AI/Human Success Pattern:
+- **AI**: Creates nodes, configures parameters, attempts simple connections
+- **Human**: Fixes complex routing in UI (much faster)
+- **AI**: Verifies final structure and continues with workflow development
+
+---
+
 ## 🚨 NEW CONTEXT ENGINEERING GOTCHAS
 
 ### Gotcha 1: n8n Workflow Automation
@@ -281,3 +396,12 @@ EVIDENCE:
 
 **Test cleanup needed?**
 → Use Airtable API batch delete with preservation filters
+
+**Connection troubleshooting failing after 2-3 MCP attempts?**
+→ Hand off to human for UI drag-and-drop fixes
+
+**Node showing 401 authentication errors despite valid API key?**
+→ MCP updates corrupted credentials - manually re-select in UI
+
+**IF node appears configured but UI shows blank?**
+→ Check `"parameters": {}` - empty means not configured, not hidden backend config
