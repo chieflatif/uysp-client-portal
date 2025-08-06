@@ -223,8 +223,8 @@ CHUNK X: [Issue] – Rules: [list], Tools: [list], Steps: [numbered]. Wait for u
 // Example: "Create n8n workflow with HTTP nodes. use context7"
 // Context7 provides current documentation, prevents hallucinated APIs
 
-// Step 2: Use n8n MCP tools for schema validation
-mcp_n8n_get_node_essentials({ nodeType: "nodes-base.httpRequest" })
+// Step 2: Use n8n MCP tools for node information
+mcp_n8n_get_node_info({ nodeType: "nodes-base.httpRequest" })
 
 // Step 3: Execute proven MCP update pattern
 mcp_n8n_n8n_update_partial_workflow({

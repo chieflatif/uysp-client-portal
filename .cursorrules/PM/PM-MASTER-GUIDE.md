@@ -132,7 +132,7 @@ HONESTY CHECK: [100% evidence-based / Assumptions: list]. No manipulations.
 2. **Workflow modifications**: Use mcp_n8n_n8n_update_partial_workflow with ≤5 operations per batch
 3. **After changes**: Use mcp_n8n_validate_workflow for structure verification
 4. **Evidence collection**: Use mcp_n8n_n8n_get_execution for execution status/IDs
-5. **Schema validation**: Use mcp_n8n_get_node_essentials for parameter verification
+5. **Schema validation**: Use mcp_n8n_get_node_info for parameter verification
 ```
 
 #### **MCP Tool Precedence Hierarchy:**

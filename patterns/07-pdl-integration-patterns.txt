@@ -20,7 +20,7 @@
 ### Session Protocol:
 CHUNK 1: Company API Integration (≤5 operations)
 1. **Node Creation** → Tool: mcp_n8n_get_node_documentation → Evidence: Node schema validation
-2. **API Configuration** → Tool: mcp_n8n_validate_node_operation → Evidence: Parameter verification  
+2. **API Configuration** → Tool: mcp_n8n_validate_node_minimal → Evidence: Parameter verification  
 3. **Cost Tracking Setup** → Tool: mcp_airtable_get_record → Evidence: Daily_Costs table entry
 4. **Test Execution** → Tool: mcp_n8n_n8n_get_execution → Evidence: Execution ID success
 5. **Workflow Backup** → Tool: run_terminal_cmd → Evidence: JSON export timestamp
@@ -41,7 +41,7 @@ CHUNK 1: Company API Integration (≤5 operations)
 ### Session Protocol:
 CHUNK 2: Person API Integration (≤5 operations)
 1. **Conditional Logic** → Tool: mcp_n8n_get_node_documentation → Evidence: IF node schema
-2. **Person API Node** → Tool: mcp_n8n_validate_node_operation → Evidence: Configuration verified
+2. **Person API Node** → Tool: mcp_n8n_validate_node_minimal → Evidence: Configuration verified
 3. **Data Mapping** → Tool: mcp_airtable_get_record → Evidence: Field updates confirmed
 4. **Cost Logging** → Tool: mcp_n8n_n8n_get_execution → Evidence: $0.03 cost entry
 5. **Validation** → Tool: mcp_n8n_validate_workflow → Evidence: End-to-end flow verified
@@ -61,7 +61,7 @@ CHUNK 2: Person API Integration (≤5 operations)
 ### Session Protocol:
 CHUNK 3: ICP Scoring Integration (≤5 operations)
 1. **Scoring Logic** → Tool: mcp_n8n_get_node_documentation → Evidence: Claude AI node schema
-2. **Score Calculation** → Tool: mcp_n8n_validate_node_operation → Evidence: 0-100 range verified
+2. **Score Calculation** → Tool: mcp_n8n_validate_node_minimal → Evidence: 0-100 range verified
 3. **Threshold Routing** → Tool: mcp_n8n_n8n_get_execution → Evidence: ≥70 → SMS, <70 → Archive
 4. **Score Storage** → Tool: mcp_airtable_get_record → Evidence: ICP_Score field updated
 5. **Flow Validation** → Tool: mcp_n8n_validate_workflow → Evidence: Complete routing verified
@@ -81,7 +81,7 @@ CHUNK 3: ICP Scoring Integration (≤5 operations)
 ### Session Protocol:
 CHUNK 4: SMS Service Integration (≤5 operations)
 1. **US Phone Filter** → Tool: mcp_n8n_get_node_documentation → Evidence: Filter logic verified
-2. **SMS API Node** → Tool: mcp_n8n_validate_node_operation → Evidence: SimpleTexting config
+2. **SMS API Node** → Tool: mcp_n8n_validate_node_minimal → Evidence: SimpleTexting config
 3. **Response Handling** → Tool: mcp_n8n_n8n_get_execution → Evidence: Delivery tracking
 4. **Opt-out Processing** → Tool: mcp_airtable_get_record → Evidence: Status updates
 5. **Cost Tracking** → Tool: mcp_n8n_validate_workflow → Evidence: SMS cost logging
