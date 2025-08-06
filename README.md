@@ -156,7 +156,7 @@ Types: `feat`, `fix`, `docs`, `test`, `refactor`, `backup`
 
 ### Workflow Identifiers
 - **Main Workflow**: `wpg9K9s8wlfofv1u` (PRE COMPLIANCE - Evidence-based choice)
-- **Smart Field Mapper Node**: `a3493afa-1eaf-41bb-99ca-68fe76209a29`
+- **Smart Field Mapper Node**: `b8d9c432-2f9f-455e-a0f4-06863abfa10f`
 - **Current Version**: `87e5e6cd-0626-4f94-b58b-423aadfe4f00`
 - **Previous Workflows**: SESSION-1: `THLrjTC7v6LiXZnV`, GROK: `VjJCC0EMwIZp7Y6K`
 

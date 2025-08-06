@@ -51,10 +51,10 @@ Phase 00 Field Normalization has been successfully completed with a comprehensiv
 | 2A | Field_Mapping_Log | ✅ COMPLETE | Infrastructure complete |
 
 ### Technical Specifications
-- **Workflow ID**: CefJB1Op3OySG8nb
-- **Smart Field Mapper Node**: a3493afa-1eaf-41bb-99ca-68fe76209a29  
+- **Workflow ID**: wpg9K9s8wlfofv1u
+- **Smart Field Mapper Node**: b8d9c432-2f9f-455e-a0f4-06863abfa10f  
 - **Final Version**: 87e5e6cd-0626-4f94-b58b-423aadfe4f00
-- **Component Version**: v3.0-2025-07-23
+- **Component Version**: v4.6-boolean-null-fix
 
 ## Success Metrics Achieved
 

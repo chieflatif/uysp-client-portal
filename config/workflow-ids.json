@@ -1,7 +1,7 @@
 {
   "main_workflow": "wpg9K9s8wlfofv1u",
   "baseline_name": "PRE COMPLIANCE",
-  "smart_field_mapper_node": "a3493afa-1eaf-41bb-99ca-68fe76209a29",
+  "smart_field_mapper_node": "b8d9c432-2f9f-455e-a0f4-06863abfa10f",
   "webhook_node": "a01c64a7-880f-4003-86e1-61f129f329a9", 
   "check_unknown_fields_node": "unknown-fields-check",
   "field_mapping_log_node": "field-mapping-log-create",

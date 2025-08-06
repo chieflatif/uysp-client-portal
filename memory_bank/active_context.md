@@ -63,7 +63,7 @@
 ### **WORKFLOW INFRASTRUCTURE:**
 ✅ **Target Workspace**: https://rebelhq.app.n8n.cloud/projects/H4VRaaZhd8VKQANf/  
 ✅ **Main Workflow**: PRE COMPLIANCE Baseline (ID: wpg9K9s8wlfofv1u) - Evidence-based chosen  
-✅ **Smart Field Mapper v4.6**: Node a3493afa-1eaf-41bb-99ca-68fe76209a29 - Proven working  
+✅ **Smart Field Mapper v4.6**: Node b8d9c432-2f9f-455e-a0f4-06863abfa10f - Proven working  
 ✅ **Airtable Base**: appuBf0fTe8tp8ZaF - Operational  
 ✅ **Environment Variables**: All 9 required variables configured  
 

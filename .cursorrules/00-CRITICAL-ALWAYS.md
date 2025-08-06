@@ -228,10 +228,10 @@ mcp_n8n_get_node_essentials({ nodeType: "nodes-base.httpRequest" })
 
 // Step 3: Execute proven MCP update pattern
 mcp_n8n_n8n_update_partial_workflow({
-  id: "CefJB1Op3OySG8nb",  // Main workflow ID
+  id: "wpg9K9s8wlfofv1u",  // Main workflow ID - CORRECTED 2025-01-27
   operations: [{
     type: "updateNode",
-    nodeId: "a3493afa-1eaf-41bb-99ca-68fe76209a29",  // Smart Field Mapper
+    nodeId: "b8d9c432-2f9f-455e-a0f4-06863abfa10f",  // Smart Field Mapper - CORRECTED 2025-01-27
     changes: { "parameters.jsCode": "updated-code-here" }
   }]
 })
@@ -248,8 +248,8 @@ mcp_n8n_n8n_update_partial_workflow({
 
 ## 5. SMART FIELD MAPPER REQUIREMENTS ✅ PHASE 00 COMPLETE
 **Current Working Implementation (DO NOT MODIFY WITHOUT EVIDENCE):**
-- Node ID: `a3493afa-1eaf-41bb-99ca-68fe76209a29`
-- Version: `v3.0-2025-07-23`
+- Node ID: `b8d9c432-2f9f-455e-a0f4-06863abfa10f` - CORRECTED 2025-01-27
+- Version: `v4.6-boolean-null-fix` - CORRECTED 2025-01-27
 - Micro-chunks: 6/6 complete (1A-1E, 2A)
 - Field capture rate: 98%+ achieved
 - Test records: 8 successful records in Airtable
