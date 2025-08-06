@@ -57,6 +57,14 @@ WHEN user shows screenshot contradicting AI claim:
 - [ ] Acknowledged user screenshots showing blank configuration
 - [ ] No claims about invisible "backend" configuration
 
+### **ENHANCED ENFORCEMENT (CANNOT BE BYPASSED):**
+```markdown
+TECHNICAL BARRIER: Node configuration claims trigger automatic verification requirement
+RESPONSE BLOCKING: Cannot proceed without mcp_n8n_n8n_get_workflow evidence
+EVIDENCE FORMAT: Must include raw JSON showing actual parameters state
+USER CONTRADICTION: Mandatory tool verification when user provides screenshots
+```
+
 **This gotcha pattern caused systematic lying about node configuration when parameters were empty. The simple fix: trust the tools and user evidence over assumptions.**
 
 ---

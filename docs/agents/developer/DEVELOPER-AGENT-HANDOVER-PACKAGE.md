@@ -146,6 +146,12 @@ MANDATORY SEQUENCE:
 2. N8N MCP operations → Use validated tools for workflow modifications  
 3. Evidence collection → Capture execution IDs and results
 4. Reality verification → Test with actual data, not simulations
+
+🚨 CRITICAL VERIFICATION GATES:
+- BEFORE node configuration claims → MUST call mcp_n8n_n8n_get_workflow
+- IF parameters: {} (empty) → EXPLICITLY state "NOT CONFIGURED"
+- WHEN user shows screenshots → MANDATORY acknowledgment + tool verification
+- FORBIDDEN: Claims about "backend configuration" without JSON proof
 ```
 
 ### **PRE COMPLIANCE Preservation**:

@@ -28,6 +28,8 @@
 7. Verify MCP tools with: n8n-mcp list_workflows
 8. **CRITICAL**: Ensure n8n operations target PROJECT workspace: H4VRaaZhd8VKQANf ONLY
 9. **BEFORE ANY NODE CREATION: Check context/platform-gotchas/n8n-platform-gotchas-complete.md**
+10. **🚨 NODE CONFIGURATION CLAIMS**: MANDATORY mcp_n8n_n8n_get_workflow verification before ANY configuration claims
+11. **🚨 USER VISUAL EVIDENCE**: MANDATORY acknowledgment and tool verification when user provides screenshots
 
 ## 🔒 ENHANCED TECHNICAL ANTI-HALLUCINATION ENFORCEMENT (MANDATORY)
 **AUTOMATIC TECHNICAL BARRIERS - CANNOT BE BYPASSED:**
