@@ -1,0 +1,75 @@
+## AI FRAMEWORK CUSTOMIZATION PROMPT TEMPLATE
+
+**Use this prompt template when starting AI customization of the UYSP framework in your new project.**
+
+---
+
+### CUSTOMIZATION PROMPT:
+
+```
+I have imported the UYSP Development Framework into my new project and need you to analyze my project documents and intelligently customize the framework to match my specific requirements.
+
+DOCUMENTS PROVIDED:
+- Product Requirements Document: [attach your requirements document]
+- Architecture Blueprint: [attach your technical architecture]
+- Development Plan: [attach your project timeline/plan]
+- Business Logic Specifications: [attach your workflow/process documents]
+
+PROJECT CONTEXT:
+- Project Name: [Your Project Name]
+- Industry/Domain: [e.g., E-commerce, CRM, Content Management]
+- Primary Use Case: [Brief description of main functionality]
+- Key Integrations: [List external systems to connect]
+- Expected Volume: [Data volume expectations]
+
+CUSTOMIZATION REQUIREMENTS:
+Please follow the AI-AGENT-INSTRUCTIONS.md file in the docs/ directory to:
+
+1. ANALYZE my project documents and extract requirements using the provided framework
+2. CUSTOMIZE the imported UYSP framework components for my specific needs:
+   - Field normalization patterns for my data structure
+   - Workflow templates for my business processes  
+   - Database schema for my data entities
+   - Testing scenarios for my use cases
+   - Documentation specific to my project
+
+3. VALIDATE that customizations meet my requirements and are technically feasible
+
+4. PROVIDE a detailed customization report showing:
+   - Requirements analysis summary
+   - Specific framework adaptations made
+   - Implementation recommendations
+   - Testing and validation plan
+
+FRAMEWORK PRESERVATION REQUIREMENTS:
+- MUST preserve field normalization as first workflow step
+- MUST maintain anti-hallucination protocols and confidence scoring
+- MUST keep 3-agent system separation (PM/Testing/Developer)
+- MUST maintain MCP tool integration patterns
+- MUST preserve platform gotcha prevention patterns
+
+START BY: Reading docs/AI-AGENT-INSTRUCTIONS.md and then analyzing my provided documents to create a customization plan.
+
+Use evidence-based analysis and include confidence scores for all recommendations.
+```
+
+### USAGE INSTRUCTIONS:
+
+1. **Fill in the project context** with your specific information
+2. **Attach your project documents** (requirements, architecture, dev plan)
+3. **Paste this prompt** to your AI agent in the new project
+4. **Review the customization plan** before approving implementation
+5. **Validate results** using the provided testing tools
+
+### EXPECTED TIMELINE:
+- Document Analysis: 30-60 minutes
+- Framework Customization: 1-3 hours  
+- Validation & Testing: 30-60 minutes
+- **Total**: 2-5 hours for complete customized framework
+
+### SUCCESS INDICATORS:
+- ✅ All requirements mapped to framework components
+- ✅ Framework adapted without breaking core patterns
+- ✅ Custom tests created for your specific scenarios
+- ✅ Project-specific documentation generated
+- ✅ Validation confirms readiness for development team handover
