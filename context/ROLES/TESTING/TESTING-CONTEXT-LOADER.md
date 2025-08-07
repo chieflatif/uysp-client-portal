@@ -18,7 +18,7 @@ This file provides instant access to complete Testing Agent context without docu
    Purpose: Current project status and phase information
    Usage: Testing coordination context only
 
-3. REFERENCE: docs/testing-registry-master.md
+3. REFERENCE: docs/PROCESS/testing-registry-master.md
    Purpose: Authoritative testing status and current system readiness
    Usage: Evidence validation only
 ```

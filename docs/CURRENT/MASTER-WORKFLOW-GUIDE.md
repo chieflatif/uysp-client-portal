@@ -1,9 +1,64 @@
 # 🌿 UYSP WORKFLOW SYSTEM - MASTER GUIDE
-**THE SINGLE SOURCE OF TRUTH FOR ALL GIT, BACKUP, AND VERSIONING**
+**THE SINGLE SOURCE OF TRUTH FOR ALL GIT, BACKUP, VERSIONING, AND SESSION MANAGEMENT**
 
 📅 **Created**: July 31, 2025  
-🎯 **Purpose**: Replace all scattered documentation with ONE clear system  
+📅 **Updated**: January 27, 2025 - Session lifecycle management added  
+🎯 **Purpose**: Complete workflow for git operations AND development session management  
 ⚠️ **Status**: This is the ONLY workflow documentation - ignore all others  
+
+---
+
+## 📋 **SESSION LIFECYCLE MANAGEMENT**
+
+### **SESSION ORGANIZATION MODEL**
+```
+context/
+├── ROLES/                    # Persistent role responsibilities
+│   ├── PM/                  # PM rules, anti-hallucination, coordination
+│   ├── DEVELOPER/           # Developer rules, MCP tools, patterns
+│   └── TESTING/             # Testing protocols, validation standards
+├── CURRENT-SESSION/         # Active development phase
+│   ├── SESSION-GUIDE.md     # Current phase overview and progress
+│   └── PHASE-2B/           # Current phase technical context
+└── SESSIONS-ARCHIVE/        # Completed phases
+    ├── PHASE-2A/           # PDL Person integration (completed)
+    └── deprecated/         # Old organizational approach
+```
+
+### **PM SESSION LIFECYCLE RESPONSIBILITIES**
+
+#### **SESSION START (PM Role)**:
+1. **Archive Previous Session**: Move completed session to `SESSIONS-ARCHIVE/`
+2. **Create New Session Context**: Set up `CURRENT-SESSION/PHASE-X/`
+3. **Update Session Guide**: Current objectives, technical architecture, progress tracking
+4. **Update Role Contexts**: Add learnings from previous session to role documentation
+5. **Create Branch**: `npm run branch new phase-X-feature 'Phase X description'`
+6. **Backup State**: `npm run real-backup` before starting new work
+
+#### **SESSION PROGRESS (PM Role)**:
+1. **Track Progress**: Update `SESSION-GUIDE.md` with component status
+2. **Monitor Evidence**: Ensure all development claims have tool verification
+3. **Coordinate Roles**: Ensure Developer/Testing roles reference current session context
+4. **Periodic Backups**: `npm run auto-backup` for work-in-progress protection
+
+#### **SESSION CLOSURE (PM Role)**:
+1. **Verify Completion**: All success criteria met with evidence
+2. **Archive Session**: Move `CURRENT-SESSION/PHASE-X/` to `SESSIONS-ARCHIVE/PHASE-X/`
+3. **Update Documentation**: Integrate learnings into role contexts and patterns
+4. **Final Backup**: `npm run real-backup` with complete session work
+5. **Commit Session**: Git commit with comprehensive session summary
+6. **Prepare Next Session**: Set up next phase context and objectives
+
+### **HOW ROLES USE SESSIONS**
+
+#### **ALL ROLES REFERENCE BOTH**:
+1. **Role Context**: `context/ROLES/[ROLE]/` - Persistent rules, protocols, tools
+2. **Session Context**: `context/CURRENT-SESSION/` - Current phase technical requirements
+
+#### **CHAT ATTACHMENTS**:
+- **For Role Rules**: Attach `context/ROLES/PM/PM-CONTEXT-LOADER.md`
+- **For Current Work**: Attach `context/CURRENT-SESSION/SESSION-GUIDE.md`
+- **For Technical Specs**: Attach specific phase documentation from current session
 
 ---
 

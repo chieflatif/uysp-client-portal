@@ -173,7 +173,7 @@ WAIT FOR USER 'GO' OR 'PROCEED' BETWEEN CHUNKS
 
 ### **Immediate Reading Priority**:
 1. **`config/workflow-ids.json`** - PRE COMPLIANCE workflow ID confirmed
-2. **`docs/PDL-MIGRATION-ROADMAP.md`** - Updated 4-sprint development plan  
+2. **`docs/ARCHITECTURE/PDL-MIGRATION-ROADMAP.md`** - Updated 4-sprint development plan  
 3. **`tests/results/GROK-COMPONENT-EXTRACTION-COMPLETE.md`** - Component analysis
 4. **`patterns/exported/smart-field-mapper-v4.6-grok.js`** - Proven field mapper code
 

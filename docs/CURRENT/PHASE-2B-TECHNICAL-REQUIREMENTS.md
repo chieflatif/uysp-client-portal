@@ -18,19 +18,40 @@ Phase 2B implements the ICP Scoring V3.0 methodology with human-first workflow, 
 ```json
 {
   "model": "claude-3-5-sonnet-20241022",
-  "prompt": "ICP_SCORING_V3_PROMPT",
+  "prompt": "You are an expert ICP scoring system for Untap Your Sales Potential (UYSP), a B2B sales coaching platform. Score prospects 0-100 using this methodology:\n\n**COMPANY FACTORS (25% max):**\n- B2B SaaS/Tech: 15 points (salesforce.com, hubspot.com, etc. +15 tech boost)\n- Known Brand: +10 points (Fortune 500 recognition)\n- Generic domains: -10 points (gmail.com, yahoo.com, etc.)\n- B2C/Unknown: 2 points max\n\n**ROLE FACTORS (40% max):**\n- Account Executive (any level): 20 points (60%+ of successful customers)\n- Enterprise/Senior AE: +5 bonus (25 total)\n- 3+ years experience: +10 points (proven sweet spot)\n- Recent role change (<90 days): +10 points\n- SDR/BDR: 3 points (99% can't afford)\n- Non-sales: 0 points\n\n**ENGAGEMENT FACTORS (35% max):**\n- 'Yes' to coaching interest: +10 points (critical signal)\n- Multiple touchpoints (3+): 15 points (shows indoctrination)\n- Webinar attendance: 8-10 points\n- Course purchaser: 10 points (proven buyer)\n- Sales-focused motivations: +5 points\n\n**ROUTING LOGIC:**\n- 90-100: Ultra (immediate human call)\n- 75-89: High (same-day outreach)\n- 70-74: Qualified (SMS campaign)\n- <70: Archive\n\n**OUTPUT REQUIRED:** Return JSON with {score: number, tier: string, reason: string, outreach_potential: boolean (true if >=70), human_review_needed: boolean, domain_boost_applied: number}\n\nAnalyze this prospect data and return the JSON scoring result:",
   "parameters": {
     "max_tokens": 1000,
     "temperature": 0.1
+  },
+  "authentication": {
+    "api_key": "${ANTHROPIC_API_KEY}",
+    "base_url": "https://api.anthropic.com"
+  },
+  "timeout": 30000,
+  "retry_config": {
+    "max_retries": 1,
+    "retry_on_status": [502, 503, 504],
+    "backoff_factor": 2
   }
 }
+```
+
+**Environment Variables Required**:
+```bash
+ANTHROPIC_API_KEY=sk-ant-xxx  # Anthropic API key for Claude AI
+CLAUDE_MAX_COST_PER_DAY=10   # Daily cost limit in USD
+CLAUDE_TIMEOUT_MS=30000      # API timeout in milliseconds
 ```
 
 **Expected Output Structure**:
 ```json
 {
-  "total_score": 85,
-  "tier": "High Priority",
+  "score": 85,
+  "tier": "High",
+  "reason": "Tech domain boost +15; Account Executive +20; 3+ years experience +10; Multiple touchpoints +15; Coaching interest +10",
+  "outreach_potential": true,
+  "human_review_needed": false,
+  "domain_boost_applied": 15
   "breakdown": {
     "company_score": 23,
     "role_score": 35,
@@ -84,8 +105,24 @@ Phase 2B implements the ICP Scoring V3.0 methodology with human-first workflow, 
 {
   "webhook_url": "https://hooks.slack.com/services/[TEAM]/[CHANNEL]/[TOKEN]",
   "channel": "#sales-alerts",
-  "username": "UYSP Lead Bot"
+  "username": "UYSP Lead Bot",
+  "security": {
+    "verify_ssl": true,
+    "user_agent": "UYSP-LeadBot/1.0",
+    "timeout": 10000
+  },
+  "rate_limiting": {
+    "max_messages_per_second": 1,
+    "burst_limit": 5
+  }
 }
+```
+
+**Environment Variables Required**:
+```bash
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/xxx  # Slack webhook URL
+SLACK_CHANNEL=#sales-alerts                             # Target Slack channel
+SLACK_MAX_ALERTS_PER_HOUR=50                           # Rate limiting
 ```
 
 **Alert Triggers**:
@@ -150,6 +187,40 @@ const responseCategories = {
 };
 ```
 
+**SMS Response Database Schema**:
+```json
+{
+  "sms_responses_table": "tblSMSResponses123456",
+  "fields": {
+    "lead_id": {
+      "type": "link",
+      "linked_table": "tblPeople",
+      "description": "Link to original lead record"
+    },
+    "response_message": {
+      "type": "multilineText",
+      "description": "Full SMS response content"
+    },
+    "response_category": {
+      "type": "singleSelect",
+      "options": ["interested", "not_interested", "questions"]
+    },
+    "received_at": {
+      "type": "dateTime",
+      "description": "When response was received"
+    },
+    "phone_number": {
+      "type": "phoneNumber",
+      "description": "Phone number that sent response"
+    },
+    "forwarded_to_slack": {
+      "type": "checkbox",
+      "description": "Whether response was forwarded to Davidson"
+    }
+  }
+}
+```
+
 ### Response Alert Format
 
 **Slack Alert for SMS Responses**:
@@ -208,9 +279,12 @@ const isBusinessHours = () => {
 
 **Automatic Human Review Triggers**:
 1. **Anomalies**: High engagement score (>25) but non-sales title
-2. **International**: Non-US phone numbers
-3. **Unclear Titles**: Job titles requiring manual AE verification
-4. **Data Quality**: Missing key fields or suspicious data patterns
+2. **International**: Non-US phone numbers (country code ≠ +1)
+3. **Unclear Titles**: Job titles containing "specialist", "coordinator", "associate" without clear AE indicators
+4. **Data Quality**: Missing key fields (email, name) or suspicious patterns (10+ numbers in name)
+5. **Score Conflicts**: Claude AI score differs from domain fallback by >30 points
+6. **High Engagement + Low Role**: 30+ engagement points but <10 role points
+7. **New Company Domains**: Companies not in domain scoring database
 
 **Review Queue Fields**:
 ```json

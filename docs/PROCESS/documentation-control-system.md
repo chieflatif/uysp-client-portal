@@ -14,17 +14,20 @@ These documents are **ACTIVELY MAINTAINED** and should be the **ONLY** sources r
 ### **1. PRIMARY AUTHORITATIVE DOCUMENTS**
 | **Document** | **Purpose** | **Update Frequency** | **Responsibility** |
 |--------------|-------------|---------------------|-------------------|
-| `docs/testing-registry-master.md` | **Testing status across all phases** | End of each phase | Development Team |
-| `memory_bank/active_context.md` | **Current system state & infrastructure** | Real-time during development | Development Team |
-| `patterns/00-field-normalization-mandatory.txt` | **Core field normalization requirements** | As needed with discoveries | Development Team |
-| `docs/critical-platform-gotchas.md` | **Platform-specific prevention measures** | As gotchas discovered | Development Team |
+| `docs/PROCESS/testing-registry-master.md` | **Testing status across all phases** | End of each phase | Testing Agent |
+| `memory_bank/active_context.md` | **Current system state & infrastructure** | Real-time during development | PM Agent |
+| `patterns/00-field-normalization-mandatory.txt` | **Core field normalization requirements** | As needed with discoveries | Developer Agent |
+| `docs/CURRENT/critical-platform-gotchas.md` | **Platform-specific prevention measures** | As gotchas discovered | Developer Agent |
+| `context/CURRENT-SESSION/SESSION-GUIDE.md` | **Current development phase context** | Per session transition | PM Agent |
 
 ### **2. SECONDARY AUTHORITATIVE DOCUMENTS**
 | **Document** | **Purpose** | **Update Frequency** | **Responsibility** |
 |--------------|-------------|---------------------|-------------------|
-| `docs/phone-number-lifecycle-strategy.md` | **3-field phone strategy** | Major architecture changes | Development Team |
-| `docs/phase-2-enrichment-blueprint.md` | **Next phase development guide** | Phase transitions | Development Team |
-| `docs/complete-enrichment-architecture-summary.md` | **Complete system architecture** | Major system changes | Development Team |
+| `docs/ARCHITECTURE/phone-number-lifecycle-strategy.md` | **3-field phone strategy** | Major architecture changes | Developer Agent |
+| `docs/ARCHITECTURE/phase-2-enrichment-blueprint.md` | **Next phase development guide** | Phase transitions | PM Agent |
+| `docs/ARCHITECTURE/complete-enrichment-architecture-summary.md` | **Complete system architecture** | Major system changes | Developer Agent |
+| `docs/CURRENT/ICP-SCORING-V3-METHODOLOGY.md` | **Current ICP scoring methodology** | Client feedback integration | PM Agent |
+| `docs/CURRENT/PHASE-2B-TECHNICAL-REQUIREMENTS.md` | **Current phase technical specs** | Active development phase | Developer Agent |
 
 ---
 

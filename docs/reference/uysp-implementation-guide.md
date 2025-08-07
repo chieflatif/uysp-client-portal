@@ -165,19 +165,38 @@ Links to: People
 
 ---
 
-## ICP Scoring Algorithm
+## ICP Scoring Algorithm V3.0
 
-### Primary Method: Claude AI Analysis
+### Primary Method: Claude AI Analysis (V3.0 Methodology)
 ```javascript
-const scoringPrompt = `
-Score this sales professional 0-100 based on:
-- Title: ${enrichedData.title}
-- Company: ${enrichedData.company} 
-- Company Size: ${enrichedData.company_size}
-- Technologies: ${enrichedData.technologies}
+const scoringPromptV3 = `
+You are scoring sales professionals for UYSP membership qualification using the V3.0 methodology.
 
-Scoring Guidelines:
-95-100: Enterprise AE at Tier 1 B2B SaaS
+PERSON DATA:
+- Title: ${pdlData.job_title}
+- Company: ${pdlData.job_company_name}  
+- Industry: ${pdlData.industry}
+- Recent Role Change: ${recentRoleChange ? 'Yes (<90 days)' : 'No'}
+
+ENGAGEMENT DATA:
+- Touchpoints: ${engagementData.touchpoints || 0}
+- Said Yes to Coaching: ${engagementData.coaching_interest || 'Unknown'}
+
+SCORING WEIGHTS (V3.0):
+- ENGAGEMENT (35 points max): Multiple touchpoints = critical, "Yes" to coaching = +10 bonus
+- ROLE (40 points max): Account Executive (any level) = 20 points, AE-first approach
+- COMPANY (25 points max): B2B tech = 15 points, company size irrelevant per client feedback
+
+KEY PRINCIPLES:
+- AE at startup scores same as AE at Salesforce if engagement equal
+- Multiple touchpoints show "indoctrination" - key buying signal  
+- Company size nearly irrelevant - startups need coaching too
+
+TIER TARGETS:
+90-100: Ultra High (Davidson calls immediately)
+75-89: High Priority (A-list for calling)  
+70-74: Qualified (SMS only)
+<70: Archive (no contact)
 85-94: Strategic/Enterprise AE at known B2B
 70-84: Mid-Market AE or Senior SDR
 50-69: SMB AE or SDR

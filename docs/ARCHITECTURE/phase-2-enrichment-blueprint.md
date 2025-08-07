@@ -393,7 +393,7 @@ const routingDecision = (lead) => {
 ### 📝 **FUTURE ENHANCEMENTS**
 
 #### **Advanced Qualification Features**
-- **Company Size Scoring**: Weight ICP score by employee count
+- **Role-Based Scoring Enhancement**: Deeper analysis of quota-carrying roles and AE variations
 - **Technology Stack Analysis**: Bonus points for specific tech stacks
 - **Geographic Scoring**: Adjust scores by territory value
 - **Intent Signals**: Incorporate website activity and engagement

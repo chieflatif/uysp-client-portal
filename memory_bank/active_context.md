@@ -26,14 +26,15 @@
 ✅ **Context Engineering**: Complete Phase 2B development package prepared
 
 **❌ PHASE 2B COMPONENTS TO IMPLEMENT:**
-❌ **Claude AI ICP Scoring**: 0-100 algorithm with Engagement (35%), Role (40%), Company (25%) weights
-❌ **Score-Based Routing**: 90-100 (Davidson calls immediately), 75-89 (A-list), 70-74 (SMS only), <70 (archive)
-❌ **Slack Integration**: Real-time alerts to Davidson for 75+ scores with rich attachments and action buttons
-❌ **Human-First Workflow**: AE-focused targeting, company size nearly irrelevant per client feedback
-❌ **Domain Fallback Scoring**: Engagement-weighted domain scoring when Claude AI fails
+❌ **AI-Enhanced Claude ICP Scoring**: 0-100 algorithm with customer data insights (+15 tech domains, -10 generic, 3+ years experience boost)
+❌ **Outreach Potential Detection**: Score ≥70 triggers calls/SMS with upgrade potential assumption
+❌ **Score-Based Routing**: 90-100 (Ultra - immediate call), 75-89 (High - same day), 70-74 (Qualified - SMS), <70 (Archive)
+❌ **Slack Integration**: Real-time alerts with rich attachments, outreach potential flags, and action buttons
+❌ **Hybrid Scoring System**: Claude AI primary with enhanced JavaScript fallback including domain analysis
+❌ **Enhanced Airtable Schema**: New fields for outreach_potential, human_review_needed, domain_boost_applied, experience_years
 ❌ **SMS Response Handling**: One-way SMS with response categorization and Davidson forwarding
 ❌ **Business Hours Logic**: EST-only timezone (9am-5pm EST) for Phase 1 simplicity
-❌ **Human Review Queue**: Anomalies, international leads, unclear titles routing
+❌ **AI Monitoring System**: Claude API success rate, score distribution tracking, conversion metrics
 
 **❌ REMAINING PHASE 2 COMPONENTS (POST-2B):**
 ❌ **Company Qualification (Phase 2C)**: PDL Company API + B2B tech verification  
@@ -138,4 +139,18 @@
 
 ---
 
-**Note**: For all testing procedures and current system readiness, reference `docs/testing-registry-master.md` as authoritative source.
+## 📚 **DOCUMENTATION STRUCTURE UPDATE - 2025-01-27**
+
+### **✅ COMPLETED TODAY (EVIDENCE-VERIFIED):**
+1. **Documentation Reorganization**: Docs folder restructured by purpose (CURRENT/PROCESS/ARCHITECTURE/ARCHIVE)  
+2. **Role Context Updates**: All role contexts updated to reference new documentation paths  
+3. **Authority Clarification**: Each document assigned clear agent ownership  
+4. **Session Integration**: Documentation fully supports ROLE + SESSION workflow  
+
+### **NEW DOCUMENTATION PATHS**:
+- **Current/Active**: `docs/CURRENT/` - Platform gotchas, ICP V3.0, Phase 2B specs, workflows
+- **Process/Workflow**: `docs/PROCESS/` - Testing registry, documentation control, procedures  
+- **Technical Architecture**: `docs/ARCHITECTURE/` - System design, migration roadmaps, blueprints
+- **Historical Archive**: `docs/ARCHIVE/outdated-2025-jan/` - Phase 00 reports and outdated materials
+
+**Note**: For all testing procedures and current system readiness, reference `docs/PROCESS/testing-registry-master.md` as authoritative source.

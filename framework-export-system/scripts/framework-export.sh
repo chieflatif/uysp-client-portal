@@ -6,7 +6,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 EXPORT_DIR="${1:-./framework-export}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
@@ -24,15 +24,43 @@ echo "🔸 Step 1: Exporting Core Framework Components"
 
 # Copy CRITICAL COMPONENTS (Must Export)
 echo "📦 Exporting Universal Workflow System..."
-cp "$PROJECT_ROOT/docs/UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md" "$EXPORT_DIR/docs/"
+cp "$PROJECT_ROOT/docs/PROCESS/UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md" "$EXPORT_DIR/docs/PROCESS/" 2>/dev/null || true
 
 echo "📦 Exporting Anti-Hallucination Core..."
-cp -r "$PROJECT_ROOT/.cursorrules" "$EXPORT_DIR/cursorrules/"
+cp -r "$PROJECT_ROOT/.cursorrules"/* "$EXPORT_DIR/cursorrules/" 2>/dev/null || true
 
 echo "📦 Exporting 3-Agent Context System..."
-cp -r "$PROJECT_ROOT/context/PM" "$EXPORT_DIR/context/"
-cp -r "$PROJECT_ROOT/context/TESTING" "$EXPORT_DIR/context/"
-cp -r "$PROJECT_ROOT/context/DEVELOPER" "$EXPORT_DIR/context/"
+cp -r "$PROJECT_ROOT/context/ROLES" "$EXPORT_DIR/context/"
+
+echo "📦 Exporting Session Management System..."
+# Create session structure template (don't export active session data)
+mkdir -p "$EXPORT_DIR/context/CURRENT-SESSION"
+mkdir -p "$EXPORT_DIR/context/SESSIONS-ARCHIVE"
+
+# Create session guide template
+cat > "$EXPORT_DIR/context/CURRENT-SESSION/SESSION-GUIDE.template.md" << 'EOF'
+# {{PROJECT_NAME}} - Session Guide
+
+## Current Phase: {{CURRENT_PHASE}}
+**Status**: Active Development
+**Last Updated**: {{TIMESTAMP}}
+
+## Phase Objectives
+- [ ] {{OBJECTIVE_1}}
+- [ ] {{OBJECTIVE_2}}
+- [ ] {{OBJECTIVE_3}}
+
+## Technical Requirements
+See PHASE-{{PHASE_NUMBER}}/TECHNICAL-REQUIREMENTS.md
+
+## Progress Tracking
+**Completion**: {{COMPLETION_PERCENTAGE}}%
+**Evidence**: {{EVIDENCE_FILES}}
+
+## Next Steps
+1. {{NEXT_STEP_1}}
+2. {{NEXT_STEP_2}}
+EOF
 
 echo "📦 Exporting Pattern System..."
 cp -r "$PROJECT_ROOT/patterns" "$EXPORT_DIR/"
@@ -51,9 +79,56 @@ cp "$PROJECT_ROOT"/scripts/*.js "$EXPORT_DIR/scripts/"
 echo "📦 Exporting Testing Framework..."
 cp -r "$PROJECT_ROOT/tests" "$EXPORT_DIR/"
 
-echo "📦 Exporting Documentation Control..."
-cp "$PROJECT_ROOT/docs/README.md" "$EXPORT_DIR/docs/"
-cp "$PROJECT_ROOT/docs/MASTER-WORKFLOW-GUIDE.md" "$EXPORT_DIR/docs/"
+echo "📦 Exporting Documentation Management System..."
+# Export documentation structure and control system
+mkdir -p "$EXPORT_DIR/docs"/{CURRENT,PROCESS,ARCHITECTURE,ARCHIVE}
+
+# Core documentation control
+cp "$PROJECT_ROOT/docs/PROCESS/documentation-control-system.md" "$EXPORT_DIR/docs/PROCESS/"
+cp "$PROJECT_ROOT/docs/PROCESS/UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md" "$EXPORT_DIR/docs/PROCESS/"
+
+# Current active documentation
+if [ -f "$PROJECT_ROOT/docs/CURRENT/MASTER-WORKFLOW-GUIDE.md" ]; then
+    cp "$PROJECT_ROOT/docs/CURRENT/MASTER-WORKFLOW-GUIDE.md" "$EXPORT_DIR/docs/CURRENT/"
+fi
+if [ -f "$PROJECT_ROOT/docs/CURRENT/critical-platform-gotchas.md" ]; then
+    cp "$PROJECT_ROOT/docs/CURRENT/critical-platform-gotchas.md" "$EXPORT_DIR/docs/CURRENT/"
+fi
+
+# Architecture documents (examples)
+if [ -d "$PROJECT_ROOT/docs/ARCHITECTURE" ]; then
+    cp "$PROJECT_ROOT/docs/ARCHITECTURE"/*.md "$EXPORT_DIR/docs/ARCHITECTURE/" 2>/dev/null || true
+fi
+
+# Legacy compatibility
+cp "$PROJECT_ROOT/docs/README.md" "$EXPORT_DIR/docs/" 2>/dev/null || true
+
+# Create documentation structure templates
+cat > "$EXPORT_DIR/docs/README.template.md" << 'EOF'
+# {{PROJECT_NAME}} Documentation
+
+## Navigation
+
+### 📋 **CURRENT** (Active Development)
+- [Master Workflow Guide](CURRENT/MASTER-WORKFLOW-GUIDE.md) - Complete workflow system
+- [Platform Gotchas](CURRENT/critical-platform-gotchas.md) - Prevention measures
+
+### 🔄 **PROCESS** (How We Work)
+- [Documentation Control System](PROCESS/documentation-control-system.md) - Single source of truth
+- [Universal Workflow System](PROCESS/UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md) - Implementation guide
+
+### 🏗️ **ARCHITECTURE** (Technical Design)
+- Technical specifications and system design documents
+
+### 📦 **ARCHIVE** (Historical)
+- Completed phase documentation and historical references
+
+## Documentation Control
+
+**CRITICAL**: Always reference the [Documentation Control System](PROCESS/documentation-control-system.md) to ensure you're using current, authoritative sources.
+
+**LAST UPDATED**: {{TIMESTAMP}}
+EOF
 
 echo ""
 echo "🔸 Step 3: Creating Customization Templates"
@@ -131,7 +206,9 @@ echo "📊 Airtable Base: $AIRTABLE_BASE_ID"
 # Create target directory structure
 echo ""
 echo "🔸 Step 1: Creating Directory Structure"
-mkdir -p "$TARGET_DIR"/{.cursorrules,context,patterns,tests,scripts,docs,workflows/backups,data/schemas,memory_bank}
+mkdir -p "$TARGET_DIR"/{.cursorrules,context,patterns,tests,scripts,workflows/backups,data/schemas,memory_bank}
+mkdir -p "$TARGET_DIR/docs"/{CURRENT,PROCESS,ARCHITECTURE,ARCHIVE}
+mkdir -p "$TARGET_DIR/context"/{ROLES,CURRENT-SESSION,SESSIONS-ARCHIVE}
 
 # Copy framework files
 echo ""
@@ -141,6 +218,33 @@ cp -r context/* "$TARGET_DIR/context/"
 cp -r patterns/* "$TARGET_DIR/patterns/"
 cp -r tests/* "$TARGET_DIR/tests/"
 cp -r docs/* "$TARGET_DIR/docs/"
+
+# Customize documentation templates
+echo ""
+echo "🔸 Step 2.1: Customizing Documentation Templates"
+if [ -f "$TARGET_DIR/docs/README.template.md" ]; then
+    sed -e "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
+        -e "s/{{TIMESTAMP}}/$(date)/g" \
+        "$TARGET_DIR/docs/README.template.md" > "$TARGET_DIR/docs/README.md"
+    rm "$TARGET_DIR/docs/README.template.md"
+fi
+
+# Customize session guide template
+if [ -f "$TARGET_DIR/context/CURRENT-SESSION/SESSION-GUIDE.template.md" ]; then
+    sed -e "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
+        -e "s/{{CURRENT_PHASE}}/Setup/g" \
+        -e "s/{{TIMESTAMP}}/$(date)/g" \
+        -e "s/{{PHASE_NUMBER}}/1/g" \
+        -e "s/{{OBJECTIVE_1}}/Framework Setup/g" \
+        -e "s/{{OBJECTIVE_2}}/Service Configuration/g" \
+        -e "s/{{OBJECTIVE_3}}/Initial Testing/g" \
+        -e "s/{{COMPLETION_PERCENTAGE}}/0/g" \
+        -e "s/{{EVIDENCE_FILES}}/TBD/g" \
+        -e "s/{{NEXT_STEP_1}}/Configure service IDs/g" \
+        -e "s/{{NEXT_STEP_2}}/Test workflow automation/g" \
+        "$TARGET_DIR/context/CURRENT-SESSION/SESSION-GUIDE.template.md" > "$TARGET_DIR/context/CURRENT-SESSION/SESSION-GUIDE.md"
+    rm "$TARGET_DIR/context/CURRENT-SESSION/SESSION-GUIDE.template.md"
+fi
 
 # Customize scripts with project-specific variables
 echo ""
@@ -248,8 +352,34 @@ VALIDATION_ERRORS=0
 
 # Check directory structure
 echo "🔸 Checking Directory Structure..."
-REQUIRED_DIRS=(".cursorrules" "context" "patterns" "tests" "scripts" "docs")
+REQUIRED_DIRS=("cursorrules" "context" "patterns" "tests" "scripts" "docs")
 for dir in "${REQUIRED_DIRS[@]}"; do
+    if [ -d "$TARGET_DIR/$dir" ]; then
+        echo "✅ $dir/ exists"
+    else
+        echo "❌ $dir/ missing"
+        ((VALIDATION_ERRORS++))
+    fi
+done
+
+# Check documentation structure
+echo ""
+echo "🔸 Checking Documentation Structure..."
+DOC_DIRS=("docs/CURRENT" "docs/PROCESS" "docs/ARCHITECTURE" "docs/ARCHIVE")
+for dir in "${DOC_DIRS[@]}"; do
+    if [ -d "$TARGET_DIR/$dir" ]; then
+        echo "✅ $dir/ exists"
+    else
+        echo "❌ $dir/ missing"
+        ((VALIDATION_ERRORS++))
+    fi
+done
+
+# Check context structure
+echo ""
+echo "🔸 Checking Context Structure..."
+CONTEXT_DIRS=("context/ROLES" "context/CURRENT-SESSION" "context/SESSIONS-ARCHIVE")
+for dir in "${CONTEXT_DIRS[@]}"; do
     if [ -d "$TARGET_DIR/$dir" ]; then
         echo "✅ $dir/ exists"
     else
@@ -262,13 +392,16 @@ done
 echo ""
 echo "🔸 Checking Critical Files..."
 CRITICAL_FILES=(
-    "docs/UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md"
+    "docs/PROCESS/UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md"
+    "docs/PROCESS/documentation-control-system.md"
     "docs/MCP-TOOL-SPECIFICATIONS-COMPLETE.md"
-    ".cursorrules/00-CRITICAL-ALWAYS.md"
+    "cursorrules/00-CRITICAL-ALWAYS.md"
     "patterns/00-field-normalization-mandatory.txt"
     "scripts/git-workflow.sh"
     "scripts/real-n8n-export.sh"
-    "package.json"
+    "scripts/framework-import.sh"
+    "scripts/framework-validate.sh"
+    "context/CURRENT-SESSION/SESSION-GUIDE.template.md"
 )
 
 for file in "${CRITICAL_FILES[@]}"; do

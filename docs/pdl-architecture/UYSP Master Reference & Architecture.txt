@@ -164,20 +164,29 @@ if (personData.job_title.includes('sales') ||
 
 ---
 
-## ICP Scoring Algorithm
+## ICP Scoring Algorithm V3.0
 
-### Primary Method: Claude AI Analysis
+### Primary Method: Claude AI Analysis (V3.0 Methodology)
 ```javascript
-const scoringPrompt = `
-Score this sales professional 0-100 based on:
-- Title: ${personData.job_title}
-- Company: ${personData.job_company_name} 
-- Company Size: ${personData.job_company_size_range}
-- Technologies: ${personData.job_company_tags}
-- Recent Move: ${recentMove ? 'Yes - started within 3 months' : 'No'}
-- Job History: ${personData.experience.length} previous roles
+const scoringPromptV3 = `
+You are scoring sales professionals for UYSP membership qualification using the V3.0 methodology.
 
-Scoring Guidelines:
+PERSON DATA:
+- Title: ${pdlData.job_title}
+- Company: ${pdlData.job_company_name}  
+- Industry: ${pdlData.industry}
+- Recent Role Change: ${recentRoleChange ? 'Yes (<90 days)' : 'No'}
+
+ENGAGEMENT DATA:
+- Touchpoints: ${engagementData.touchpoints || 0}
+- Said Yes to Coaching: ${engagementData.coaching_interest || 'Unknown'}
+
+SCORING WEIGHTS (V3.0):
+- ENGAGEMENT (35 points max): Multiple touchpoints = critical, "Yes" to coaching = +10 bonus
+- ROLE (40 points max): Account Executive (any level) = 20 points, AE-first approach
+- COMPANY (25 points max): B2B tech = 15 points, company size irrelevant per client feedback
+
+Scoring Guidelines V3.0:
 95-100: Enterprise AE at Tier 1 B2B SaaS (recent move +5)
 85-94: Strategic/Enterprise AE at known B2B
 70-84: Mid-Market AE or Senior SDR

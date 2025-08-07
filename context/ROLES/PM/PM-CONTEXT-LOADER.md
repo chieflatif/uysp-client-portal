@@ -7,20 +7,53 @@ This file provides instant access to complete PM context without document overlo
 
 ### 📋 **STREAMLINED PM CONTEXT LOADING**
 
-#### **SINGLE SOURCE ACCESS:**
+#### **ROLE CONTEXT ACCESS:**
 ```markdown
 1. LOAD: .cursorrules/PM/PM-MASTER-GUIDE.md
    Contains: Complete PM system (identity, protocols, coordination, integration)
    Purpose: Single source of truth for all PM operations
    Critical: No cross-references, no document overload, complete system
 
-2. VERIFY: memory_bank/active_context.md  
+2. LOAD: context/CURRENT-SESSION/SESSION-GUIDE.md
+   Contains: Current development phase context and technical requirements
+   Purpose: Understanding what we're building right now
+   Critical: Session-specific objectives, progress tracking, completion criteria
+
+3. VERIFY: memory_bank/active_context.md  
    Purpose: Current project status and phase information
    Usage: PM coordination context only
 
-3. REFERENCE: docs/testing-registry-master.md
+4. REFERENCE: docs/PROCESS/testing-registry-master.md
    Purpose: Authoritative testing status (when testing coordination needed)
    Usage: Evidence validation only
+
+5. AUTHORITY: docs/PROCESS/documentation-control-system.md
+   Purpose: Documentation standards and control protocols
+   Usage: Ensure proper document usage and updates
+```
+
+#### **SESSION LIFECYCLE MANAGEMENT (PM RESPONSIBILITY):**
+```markdown
+SESSION START:
+1. Archive completed session to SESSIONS-ARCHIVE/
+2. Create new CURRENT-SESSION/PHASE-X/ with technical context
+3. Update SESSION-GUIDE.md with objectives and progress tracking
+4. Create branch: npm run branch new phase-X-feature 'description'
+5. Backup state: npm run real-backup
+
+SESSION PROGRESS:
+1. Track progress in SESSION-GUIDE.md
+2. Monitor evidence collection for all development claims
+3. Coordinate roles using current session context
+4. Periodic backups: npm run auto-backup
+
+SESSION CLOSURE:
+1. Verify all success criteria met with evidence
+2. Archive session: CURRENT-SESSION/ → SESSIONS-ARCHIVE/PHASE-X/
+3. Update role contexts with learnings
+4. Final backup: npm run real-backup
+5. Comprehensive session commit
+6. Prepare next session context
 ```
 
 ### 🎯 **PM CONTEXT LOADED CONFIRMATION**
