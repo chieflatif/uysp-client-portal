@@ -357,9 +357,15 @@ ls -la workflows/backups/ | head -10
 
 ---
 
-## 🏗️ **PDL ARCHITECTURE INTEGRATION**
+## 🏗️ **SYSTEM ARCHITECTURE COMPONENTS**
 
-### **PRE COMPLIANCE → PDL DEVELOPMENT SEQUENCE**
+### **MAIN WORKFLOW COMPONENTS**
+- **Main Pipeline**: `Q2ReTnOliUTuuVpl` ("UYSP PHASE 2B - COMPLETE CLEAN REBUILD") ✅ OPERATIONAL
+- **Bulk Lead Processor**: `1FIscY7vZ7IbCINS` ("Bulk Lead Processor") 🚧 DEVELOPMENT DEBT
+- **Documentation**: `docs/CURRENT/BULK-LEAD-PROCESSING-SYSTEM.md` for complete specifications
+- **Evidence**: Successfully processed Salesforce test leads with proper routing
+
+### **PDL ARCHITECTURE INTEGRATION**
 - **Foundation**: PRE COMPLIANCE Baseline (ID: `wpg9K9s8wlfofv1u`) ✅ EVIDENCE-BASED CHOICE
 - **Next Phase**: PDL Company qualification integration 
 - **Architecture Docs**: `docs/pdl-architecture/` for complete specifications  

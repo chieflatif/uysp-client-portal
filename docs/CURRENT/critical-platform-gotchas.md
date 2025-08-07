@@ -376,6 +376,23 @@ mcp_n8n_n8n_update_partial_workflow({
 
 ---
 
+## 🚨 PHASE 2C SPECIFIC GOTCHAS
+
+### PDL Company API Response Handling Gotcha
+**PDL Company API returns different response structures based on match confidence**
+- **High Confidence**: Full company data with industry, size, tech stack
+- **Low Confidence**: Partial data with many null fields  
+- **No Match**: 404 error response
+- **Implementation**: Always check response.data existence before extraction
+- **Cost**: $0.01 charged even for "not found" responses (HTTP 200)
+
+### B2B Tech Company Classification Gotcha
+**No single field indicates "B2B tech" status in PDL responses**
+- **B2B Indicators**: tags include 'b2b', 'enterprise', or no 'b2c' tag
+- **Tech Indicators**: industry includes 'Technology'/'Software' OR tech stack length ≥3
+- **Implementation**: Must combine multiple criteria for accurate classification
+- **Reference**: Phase 2C Technical Requirements document
+
 ## 🚨 NEW CONTEXT ENGINEERING GOTCHAS
 
 ### Gotcha 1: n8n Workflow Automation
