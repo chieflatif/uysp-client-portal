@@ -4,11 +4,13 @@
 
 Phase 2B implements the ICP Scoring V3.0 methodology with human-first workflow, Slack integration, and EST-only business hours for simplified Phase 1 deployment.
 
+> **NOTE (2025-08-07)** The architecture has migrated from **Anthropic Claude** to **OpenAI GPT-4** for all LLM operations. Remaining references to Claude/Anthropic are retained solely for historical context and will be phased out.
+
 ---
 
 ## Core Technical Components
 
-### 1. Claude AI ICP Scoring Node
+### 1. OpenAI ICP Scoring Node
 
 **Purpose**: Primary scoring engine using ICP V3.0 algorithm  
 **Input**: Normalized lead data from Smart Field Mapper  
@@ -17,15 +19,15 @@ Phase 2B implements the ICP Scoring V3.0 methodology with human-first workflow, 
 **Required Configuration**:
 ```json
 {
-  "model": "claude-3-5-sonnet-20241022",
+  "model": "gpt-4",
   "prompt": "You are an expert ICP scoring system for Untap Your Sales Potential (UYSP), a B2B sales coaching platform. Score prospects 0-100 using this methodology:\n\n**COMPANY FACTORS (25% max):**\n- B2B SaaS/Tech: 15 points (salesforce.com, hubspot.com, etc. +15 tech boost)\n- Known Brand: +10 points (Fortune 500 recognition)\n- Generic domains: -10 points (gmail.com, yahoo.com, etc.)\n- B2C/Unknown: 2 points max\n\n**ROLE FACTORS (40% max):**\n- Account Executive (any level): 20 points (60%+ of successful customers)\n- Enterprise/Senior AE: +5 bonus (25 total)\n- 3+ years experience: +10 points (proven sweet spot)\n- Recent role change (<90 days): +10 points\n- SDR/BDR: 3 points (99% can't afford)\n- Non-sales: 0 points\n\n**ENGAGEMENT FACTORS (35% max):**\n- 'Yes' to coaching interest: +10 points (critical signal)\n- Multiple touchpoints (3+): 15 points (shows indoctrination)\n- Webinar attendance: 8-10 points\n- Course purchaser: 10 points (proven buyer)\n- Sales-focused motivations: +5 points\n\n**ROUTING LOGIC:**\n- 90-100: Ultra (immediate human call)\n- 75-89: High (same-day outreach)\n- 70-74: Qualified (SMS campaign)\n- <70: Archive\n\n**OUTPUT REQUIRED:** Return JSON with {score: number, tier: string, reason: string, outreach_potential: boolean (true if >=70), human_review_needed: boolean, domain_boost_applied: number}\n\nAnalyze this prospect data and return the JSON scoring result:",
   "parameters": {
     "max_tokens": 1000,
     "temperature": 0.1
   },
   "authentication": {
-    "api_key": "${ANTHROPIC_API_KEY}",
-    "base_url": "https://api.anthropic.com"
+    "api_key": "${OPENAI_API_KEY}",
+    "base_url": "https://api.openai.com/v1"
   },
   "timeout": 30000,
   "retry_config": {
@@ -38,9 +40,9 @@ Phase 2B implements the ICP Scoring V3.0 methodology with human-first workflow, 
 
 **Environment Variables Required**:
 ```bash
-ANTHROPIC_API_KEY=sk-ant-xxx  # Anthropic API key for Claude AI
-CLAUDE_MAX_COST_PER_DAY=10   # Daily cost limit in USD
-CLAUDE_TIMEOUT_MS=30000      # API timeout in milliseconds
+OPENAI_API_KEY=sk-xxx          # OpenAI API key for GPT-4
+OPENAI_MAX_COST_PER_DAY=10     # Daily cost limit in USD
+OPENAI_TIMEOUT_MS=30000        # API timeout in milliseconds
 ```
 
 **Expected Output Structure**:
@@ -64,8 +66,8 @@ CLAUDE_TIMEOUT_MS=30000      # API timeout in milliseconds
 
 ### 2. Domain Fallback Scoring Node
 
-**Purpose**: Backup scoring when Claude AI fails  
-**Trigger**: Claude AI timeout, error, or low confidence (<0.7)  
+**Purpose**: Backup scoring when OpenAI fails  
+**Trigger**: OpenAI timeout, error, or low confidence (<0.7)  
 **Method**: Engagement-weighted domain scoring algorithm  
 
 **Scoring Logic**:
@@ -282,7 +284,7 @@ const isBusinessHours = () => {
 2. **International**: Non-US phone numbers (country code ≠ +1)
 3. **Unclear Titles**: Job titles containing "specialist", "coordinator", "associate" without clear AE indicators
 4. **Data Quality**: Missing key fields (email, name) or suspicious patterns (10+ numbers in name)
-5. **Score Conflicts**: Claude AI score differs from domain fallback by >30 points
+5. **Score Conflicts**: OpenAI score differs from domain fallback by >30 points
 6. **High Engagement + Low Role**: 30+ engagement points but <10 role points
 7. **New Company Domains**: Companies not in domain scoring database
 
@@ -325,10 +327,10 @@ const isBusinessHours = () => {
 
 ## Error Handling & Monitoring
 
-### Claude AI Failure Handling
+### OpenAI Failure Handling
 
 **Timeout Handling**: 30-second timeout → Domain fallback  
-**Error Logging**: All Claude AI failures logged to monitoring  
+**Error Logging**: All OpenAI failures logged to monitoring  
 **Retry Logic**: Single retry on 5xx errors, no retry on 4xx  
 
 ### Slack Integration Monitoring
@@ -366,7 +368,7 @@ const isBusinessHours = () => {
 ## Implementation Priority
 
 ### Phase 2B Immediate (Week 1)
-1. Claude AI ICP Scoring node
+1. OpenAI ICP Scoring node
 2. Score-based routing logic
 3. Basic Slack alerts (text only)
 4. EST business hours logic

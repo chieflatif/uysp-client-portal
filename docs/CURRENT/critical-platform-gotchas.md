@@ -128,6 +128,87 @@ Add parallel test path:
 
 ---
 
+## 🚨 GOTCHA #21: SYSTEMATIC CREDENTIAL PERSISTENCE SOLUTION (CRITICAL)
+
+### **THE RECURRING NIGHTMARE:**
+**PROBLEM**: HTTP Request nodes with manual headers/authentication have credential persistence bugs in n8n Cloud. Credentials disappear every time you refresh the page, even after being properly selected.
+
+**IMPACT**: Hours wasted re-selecting credentials that never stick, workflow failures, repeated troubleshooting of the same issue.
+
+### **THE SYSTEMATIC SOLUTION:**
+
+**✅ WORKING PATTERN (COPY FROM SUCCESSFUL NODES):**
+```json
+{
+  "authentication": "predefinedCredentialType",
+  "nodeCredentialType": "openAiApi", // or "airtableTokenApi", "httpHeaderAuth"
+  "sendHeaders": false // Let n8n handle headers automatically
+}
+```
+
+**❌ FAILED PATTERNS (NEVER USE):**
+```json
+{
+  "authentication": "none",
+  "sendHeaders": true,
+  "headerParameters": {"parameters": [{"name": "Authorization", "value": "Bearer YOUR_KEY"}]}
+}
+```
+
+### **EVIDENCE FROM WORKING NODES:**
+
+**✅ Airtable Node (WORKS):**
+```json
+{
+  "authentication": "predefinedCredentialType",
+  "nodeCredentialType": "airtableTokenApi"
+}
+```
+
+**✅ PDL HTTP Request (WORKS):**
+```json
+{
+  "authentication": "predefinedCredentialType", 
+  "nodeCredentialType": "httpHeaderAuth"
+}
+```
+
+**✅ OpenAI HTTP Request (FIXED):**
+```json
+{
+  "authentication": "predefinedCredentialType",
+  "nodeCredentialType": "openAiApi"
+}
+```
+
+### **MANDATORY IMPLEMENTATION PROTOCOL:**
+
+1. **ALWAYS use `predefinedCredentialType` for API authentication**
+2. **NEVER use manual headers with credential dropdowns**
+3. **Set `sendHeaders: false`** - let n8n handle headers automatically
+4. **Use the correct `nodeCredentialType`** for each service:
+   - OpenAI: `"openAiApi"`
+   - Airtable: `"airtableTokenApi"` 
+   - Generic APIs: `"httpHeaderAuth"`
+5. **Test credentials persist after page refresh**
+
+### **DETECTION & PREVENTION:**
+- **Symptom**: Credentials disappear after page refresh
+- **Root Cause**: Using manual headers instead of predefinedCredentialType
+- **Solution**: Copy the working pattern from existing nodes
+- **Prevention**: Always use predefinedCredentialType for API authentication
+
+### **NEVER AGAIN CHECKLIST:**
+- [ ] Used `"authentication": "predefinedCredentialType"`
+- [ ] Set correct `nodeCredentialType` for the service
+- [ ] Set `"sendHeaders": false`
+- [ ] Avoided manual header parameters with credentials
+- [ ] Tested credential persistence after page refresh
+
+**This pattern has been proven to work across all services (OpenAI, Airtable, PDL). Copy it exactly - never deviate.**
+
+---
+
 ## 🚨 Previously Documented Gotchas
 
 ### 1. "Always Output Data" Toggle
@@ -410,6 +491,9 @@ EVIDENCE:
 
 **Node showing 401 authentication errors despite valid API key?**
 → MCP updates corrupted credentials - manually re-select in UI
+
+**Credentials disappearing after page refresh?**
+→ Use predefinedCredentialType pattern, never manual headers
 
 **IF node appears configured but UI shows blank?**
 → Check `"parameters": {}` - empty means not configured, not hidden backend config
