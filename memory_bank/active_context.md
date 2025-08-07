@@ -28,8 +28,18 @@
 **❌ PHASE 2B COMPONENTS TO IMPLEMENT:**
 ❌ **Claude AI ICP Scoring**: 0-100 algorithm with Engagement (35%), Role (40%), Company (25%) weights
 ❌ **Score-Based Routing**: 90-100 (Davidson calls immediately), 75-89 (A-list), 70-74 (SMS only), <70 (archive)
-❌ **Slack Integration**: Real-time alerts to Davidson for 75+ scores  
-❌ **Human-First Workflow**: AE-focused targeting, company size nearly irrelevant per client feedback  
+❌ **Slack Integration**: Real-time alerts to Davidson for 75+ scores with rich attachments and action buttons
+❌ **Human-First Workflow**: AE-focused targeting, company size nearly irrelevant per client feedback
+❌ **Domain Fallback Scoring**: Engagement-weighted domain scoring when Claude AI fails
+❌ **SMS Response Handling**: One-way SMS with response categorization and Davidson forwarding
+❌ **Business Hours Logic**: EST-only timezone (9am-5pm EST) for Phase 1 simplicity
+❌ **Human Review Queue**: Anomalies, international leads, unclear titles routing
+
+**❌ REMAINING PHASE 2 COMPONENTS (POST-2B):**
+❌ **Company Qualification (Phase 2C)**: PDL Company API + B2B tech verification  
+❌ **Lead Routing Logic (Phase 2C)**: Score-based routing with ≥70 SMS threshold
+❌ **Cost Tracking & Limits (Phase 2D)**: Daily budget enforcement and API cost monitoring
+❌ **Phone Strategy (Phase 2D)**: 3-field validation + enrichment for high-value leads + international handling  
 
 ### 🎯 PREVIOUS ACHIEVEMENTS (2025-08-04): THREE-AGENT SYSTEM ORGANIZATION ✅
 
