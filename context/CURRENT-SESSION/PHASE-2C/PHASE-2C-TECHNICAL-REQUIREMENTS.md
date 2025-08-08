@@ -1,598 +1,296 @@
-# PHASE 2C TECHNICAL REQUIREMENTS - PDL COMPANY API INTEGRATION
-## **TOOL-VALIDATED VERSION - EVIDENCE-BASED SPECIFICATIONS**
+# PHASE 2C TECHNICAL REQUIREMENTS - HUNTER WATERFALL IMPLEMENTATION
+## **EVIDENCE-BASED SPECIFICATIONS FOR PDL-FIRST HUNTER FALLBACK**
 
 ## Overview
 
-Phase 2C extends the active Phase 2B workflow (Q2ReTnOliUTuuVpl) with PDL Company API integration for enhanced B2B tech qualification. This integration provides company-level enrichment, improved ICP scoring, and completes the 3-field phone normalization strategy.
+Phase 2C implements Hunter.io Email Enrichment as a non-disruptive fallback after PDL Person API failures. This enhancement maintains PDL as the primary enrichment source while providing Hunter.io as a secondary option to capture LinkedIn profiles, job titles, and company data when PDL fails.
 
 **Implementation Priority**: High  
-**Target Completion**: 4-5 days (validated estimate)  
-**Active Baseline**: Phase 2B operational (15 nodes, 85% success rate, 12s avg runtime)  
-**Current Branch**: development.phase.2c  
-**Dependencies**: MCP n8n tools (validated), PDL API credentials (tested), Airtable schema (confirmed)
+**Target Completion**: 4-5 days (systematic implementation)  
+**Active Baseline**: Phase 2B operational (PDL Person + ICP Scoring working)  
+**Current Branch**: feature/pdl-first-hunter-fallback  
+**Dependencies**: Hunter API credentials, MCP n8n tools, existing Airtable schema
 
 ---
 
 ## Technical Requirements
 
-### 1. PDL Company API Integration (Tool-Validated Configuration)
+### 1. Hunter.io API Integration
 
-#### 1.1 API Configuration (Verified via mcp_n8n_validate_node_operation)
-- **Endpoint**: `https://api.peopledatalabs.com/v5/company/enrich`
-- **Authentication**: X-Api-Key header (httpHeaderAuth credential)
-- **Method**: GET (validated - not POST as originally specified)
-- **Query Parameters** (validated syntax):
-  - `name`: Required - company name from identifier extraction
-  - `website`: Optional - improves match accuracy when available  
-  - `min_likelihood`: 5 (minimum confidence threshold)
+#### 1.1 API Configuration
+- **Endpoint**: `https://api.hunter.io/v2/people/find`
+- **Authentication**: X-API-KEY header (httpHeaderAuth credential)
+- **Method**: GET
+- **Query Parameters**:
+  - `email`: Required - email address to enrich
+  - `api_key`: Required - Hunter API key from credentials
 
-#### 1.2 Node Configuration (HTTP Request - Tool-Validated)
+#### 1.2 Rate Limits & Performance
+- **Rate Limits**: 15 requests/second, 500 requests/minute
+- **Timeout**: 30 seconds with 3 retries
+- **Response Time**: ~2-3 seconds average
+- **Success Rate**: 85%+ on corporate emails (research-validated)
+
+#### 1.3 Cost Structure
+- **Hunter Email Enrichment**: $0.049 per credit
+- **Daily Budget**: $50 limit accommodates ~1,000 Hunter calls
+- **Cost Tracking**: Real-time logging to Daily_Costs table
+
+---
+
+### 2. Node Implementation Specifications
+
+#### 2.1 Feature Gate (IF Node)
 ```javascript
 {
-  "name": "PDL Company Enrichment",
-  "type": "n8n-nodes-base.httpRequest",
+  "parameters": {
+    "conditions": {
+      "conditions": [{
+        "leftValue": "={{$vars.PERSON_WATERFALL_ENABLED}}",
+        "rightValue": "true",
+        "operator": {
+          "type": "string",
+          "operation": "equals"
+        }
+      }]
+    }
+  },
+  "alwaysOutputData": true
+}
+```
+
+#### 2.2 PDL Success Router (IF Node)
+```javascript
+{
+  "parameters": {
+    "conditions": {
+      "conditions": [{
+        "leftValue": "={{$json.pdl_person_success}}",
+        "rightValue": true,
+        "operator": {
+          "type": "boolean",
+          "operation": "equals"
+        }
+      }]
+    }
+  },
+  "alwaysOutputData": true
+}
+```
+
+#### 2.3 Hunter HTTP Request Node
+```javascript
+{
   "parameters": {
     "method": "GET",
-    "url": "https://api.peopledatalabs.com/v5/company/enrich",
+    "url": "https://api.hunter.io/v2/people/find",
     "authentication": "predefinedCredentialType",
     "nodeCredentialType": "httpHeaderAuth",
-    "sendHeaders": true,  // CRITICAL: Required for X-Api-Key header
-    "headerParameters": {
-      "parameters": [
-        { "name": "X-Api-Key", "value": "{{$credentials.httpHeaderAuth.headerValue}}" }
-      ]
+    "sendHeaders": false,
+    "qs": {
+      "email": "={{$json.email}}",
+      "api_key": "={{$credentials.hunter_api_key}}"
     },
-    "sendQuery": true,
-    "queryParameters": {
-      "parameters": [
-        { "name": "name", "value": "{{$json.pdl_identifiers.name}}" },
-        { "name": "website", "value": "{{$json.pdl_identifiers.website}}" },
-        { "name": "min_likelihood", "value": "5" }
-      ]
+    "options": {
+      "timeout": 30000,
+      "retry": {
+        "enabled": true,
+        "maxTries": 3
+      }
+    }
+  }
+}
+```
+
+---
+
+### 3. Data Processing & Field Mapping
+
+#### 3.1 Hunter Response Structure
+```javascript
+// Expected Hunter API response format
+{
+  "data": {
+    "name": {
+      "givenName": "John",
+      "familyName": "Doe"
     },
-    "options": { 
-      "timeout": 60000,  // Increased from 10s based on validation insights
-      "followRedirect": true
+    "employment": {
+      "title": "Sales Director",
+      "name": "Acme Corp"
+    },
+    "linkedin": {
+      "handle": "johndoe"
     }
+  }
+}
+```
+
+#### 3.2 Field Mapping Logic
+| **Canonical Field** | **PDL Source** | **Hunter Source** | **Precedence** |
+|-------------------|---------------|------------------|----------------|
+| `linkedin_url` | `linkedin_url` or `profiles.linkedin_url` | `linkedin.handle` → full URL | PDL > Hunter |
+| `title_current` | `job_title` | `employment.title` | PDL > Hunter |
+| `company_enriched` | `employment.name` | `employment.name` | PDL > Hunter |
+| `first_name` | `name.first` | `name.givenName` | Smart Mapper v4.6 |
+| `last_name` | `name.last` | `name.familyName` | Smart Mapper v4.6 |
+
+#### 3.3 Enrichment Metadata
+```javascript
+// Added to every lead record
+{
+  enrichment_vendor: 'pdl' | 'hunter',           // Which provider succeeded
+  enrichment_attempted: true,                     // Enrichment was attempted
+  enrichment_failed: false,                      // Both providers failed
+  last_enriched: '2025-01-27T10:00:00.000Z',    // Timestamp
+  pdl_person_cost: 0.03,                        // PDL cost (if used)
+  hunter_cost: 0.049,                           // Hunter cost (if used)
+  total_processing_cost: 0.08                   // Cumulative cost for lead
+}
+```
+
+---
+
+### 4. Airtable Schema Updates
+
+#### 4.1 People Table - New Fields (Optional)
+```javascript
+// Hunter-specific enrichment fields
+{
+  enrichment_vendor: {
+    type: 'singleSelect',
+    options: ['pdl', 'hunter'],
+    description: 'Primary enrichment provider used for this record'
   },
-  "continueOnFail": true,
-  "retryOnFail": true,    // CRITICAL: Missing in original spec
-  "maxTries": 3,
-  "waitBetweenTries": 1000
-}
-```
-
-#### 1.3 Mandatory Validation Protocol
-**BEFORE Implementation**:
-- `mcp_n8n_validate_node_minimal({ nodeType: "nodes-base.httpRequest", config: {} })`
-- Verify httpHeaderAuth credential exists and is configured
-- Test endpoint manually with curl for credential validation
-
-**AFTER Implementation**:
-- `mcp_n8n_validate_node_operation()` with full configuration
-- Test execution with known good data (e.g., name="Google")
-- Verify expression resolution for all {{}} parameters
-
-#### 1.3 Response Handling
-- **Expected Response Format**:
-  ```json
-  {
-    "status": 200,
-    "likelihood": 8,
-    "data": {
-      "name": "Company Name",
-      "industry": "Technology",
-      "size": "51-200",
-      "founded": 2015,
-      "location": {...},
-      "website": "https://example.com",
-      "tech": ["javascript", "react", "aws"],
-      "tags": ["b2b", "saas", "enterprise"]
-    }
-  }
-  ```
-- **Error Response Format**:
-  ```json
-  {
-    "status": 400,
-    "error": {
-      "type": "invalid_request_error",
-      "message": "Error message"
-    }
-  }
-  ```
-
-### 2. Company Data Processing
-
-#### 2.1 Data Extraction (Function Item Node)
-- **Node Name**: "Process Company Data"
-- **Purpose**: Extract and normalize relevant company data
-- **Input**: PDL Company API response
-- **Output**: Structured company data for qualification and ICP scoring
-
-#### 2.2 Required Field Extraction
-- **Company Name**: Normalized company name
-- **Industry**: Standardized industry category
-- **Company Size**: Employee count range
-- **Founded Year**: Year company was founded
-- **Website**: Company website URL
-- **Tech Stack**: Array of technologies used
-- **B2B Status**: Boolean indicating B2B vs B2C
-- **Tech Company Status**: Boolean indicating tech company
-
-#### 2.3 Implementation (JavaScript)
-```javascript
-// Company Data Processing Function
-const output = [];
-const item = items[0]; // Input item
-
-// Handle API errors
-if (item.json.error || !item.json.data) {
-  return [{
-    json: {
-      success: false,
-      error: item.json.error?.message || "No company data returned",
-      company_processed: false,
-      company_data: null
-    }
-  }];
-}
-
-// Extract company data
-const companyData = item.json.data;
-const techStack = companyData.tech || [];
-const tags = companyData.tags || [];
-
-// Determine B2B status
-const isB2B = 
-  tags.includes('b2b') || 
-  tags.includes('enterprise') || 
-  !tags.includes('b2c');
-
-// Determine tech company status
-const isTechCompany = 
-  companyData.industry === 'Technology' || 
-  companyData.industry === 'Software' ||
-  companyData.industry === 'Information Technology' ||
-  techStack.length >= 3;
-
-// Create processed output
-const processedData = {
-  success: true,
-  company_processed: true,
-  company_data: {
-    name: companyData.name,
-    industry: companyData.industry,
-    size: companyData.size,
-    founded_year: companyData.founded,
-    website: companyData.website,
-    tech_stack: techStack,
-    is_b2b: isB2B,
-    is_tech_company: isTechCompany,
-    likelihood: item.json.likelihood
+  enrichment_confidence: {
+    type: 'number',
+    format: 'integer',
+    description: 'Confidence score 0-100 from enrichment provider'
   },
-  company_qualified: isB2B && isTechCompany,
-  pdl_company_api_used: true
-};
-
-return [{ json: processedData }];
+  hunter_cost: {
+    type: 'currency',
+    symbol: '$',
+    precision: 3,
+    description: 'Cost incurred for Hunter.io enrichment'
+  },
+  enrichment_method_primary: {
+    type: 'singleSelect', 
+    options: ['pdl', 'hunter', 'both'],
+    description: 'Track which method provided the final data'
+  }
+}
 ```
 
-### 3. Company Qualification Logic
-
-#### 3.1 Qualification Criteria (IF Node)
-- **Node Name**: "Is Company Qualified?"
-- **Condition**: `{{$json.company_qualified === true}}`
-- **Settings**: "Always Output Data" enabled
-- **True Path**: Continue to PDL Person API
-- **False Path**: Skip PDL Person API, mark as non-qualified
-
-#### 3.2 Implementation Notes
-- Must handle cases where company name is missing
-- Must handle API error responses
-- Must properly route based on qualification status
-- "Always Output Data" must be enabled in Settings tab
-
-### 4. Cost Tracking Integration
-
-#### 4.1 Cost Tracking Node (Function Item)
-- **Node Name**: "Track PDL API Costs"
-- **Purpose**: Log PDL API usage and costs
-- **Implementation**: Extend existing cost tracking system
-
-#### 4.2 Cost Calculation
-- PDL Company API: $0.01 per successful call
-- Add to existing PDL Person API costs ($0.03 per call)
-- Update daily cost accumulation
-
-#### 4.3 Implementation (JavaScript)
+#### 4.2 Daily_Costs Table - Enhanced Tracking
 ```javascript
-// Cost Tracking Function
-const output = [];
-const item = items[0]; // Input item
-
-// Initialize cost tracking
-let apiCost = 0;
-let apiName = "";
-let apiUsed = false;
-
-// Check if PDL Company API was used
-if (item.json.pdl_company_api_used === true) {
-  apiCost = 0.01; // $0.01 per call
-  apiName = "PDL Company API";
-  apiUsed = true;
-}
-
-// Create cost tracking entry
-const costEntry = {
-  timestamp: new Date().toISOString(),
-  api_name: apiName,
-  api_used: apiUsed,
-  cost: apiCost,
-  running_daily_total: item.json.running_daily_total ? 
-    item.json.running_daily_total + apiCost : 
-    apiCost
-};
-
-// Add cost tracking to output
-const outputItem = {
-  ...item.json,
-  api_cost_tracking: costEntry
-};
-
-return [{ json: outputItem }];
-```
-
-### 5. Enhanced ICP Scoring Integration
-
-#### 5.1 Company-Enhanced ICP Scoring (Code Node Update)
-**Objective**: Extend existing ICP scoring with company-level intelligence
-**Validation**: Must preserve existing scoring logic (no regression)
-
-```javascript
-// Enhanced ICP Scoring with Company Data
-const item = items[0];
-const existingScore = item.json.icp_score || 0;  // Preserve existing scoring
-const companyData = item.json.company_data || {};
-
-// Company scoring boosts (evidence-based weights)
-let companyBoost = 0;
-
-// B2B Tech Company Boost
-if (item.json.is_b2b_tech === true) {
-  companyBoost += 15;  // Major boost for B2B tech
-}
-
-// Company Size Scoring
-const size = companyData.size || "";
-if (size.includes("51-200") || size.includes("201-1000")) {
-  companyBoost += 10;  // Ideal size range
-} else if (size.includes("1001+")) {
-  companyBoost += 5;   // Enterprise (harder to sell to)
-}
-
-// Tech Stack Sophistication
-const techStack = companyData.tech_stack || [];
-if (techStack.length >= 5) {
-  companyBoost += 8;   // Tech-savvy company
-} else if (techStack.length >= 3) {
-  companyBoost += 5;   // Moderate tech adoption
-}
-
-// Industry-Specific Scoring
-const industry = companyData.industry || "";
-const highValueIndustries = ["Software", "Technology", "SaaS", "Fintech"];
-if (highValueIndustries.some(ind => industry.includes(ind))) {
-  companyBoost += 12;  // High-value industry
-}
-
-// Calculate final enhanced score
-const enhancedScore = Math.min(100, existingScore + companyBoost);  // Cap at 100
-
-return [{
-  json: {
-    ...item.json,
-    icp_score: enhancedScore,
-    icp_score_original: existingScore,
-    company_boost: companyBoost,
-    enhanced_scoring_applied: true
+// Additional cost tracking fields
+{
+  pdl_person_costs: {
+    type: 'currency',
+    symbol: '$',
+    precision: 3,
+    description: 'Daily total PDL Person API costs'
+  },
+  hunter_costs: {
+    type: 'currency', 
+    symbol: '$',
+    precision: 3,
+    description: 'Daily total Hunter.io enrichment costs'
   }
-}];
-```
-
-#### 5.2 Three-Field Phone Normalization Strategy
-**Objective**: Complete phone-number-lifecycle-strategy.md implementation
-**Current State**: Only 2/3 fields implemented (phone_original, phone_recent)
-**Missing**: phone_validated field with proper validation logic
-
-```javascript
-// Complete 3-Field Phone Normalization
-const item = items[0];
-const phoneInput = item.json.phone_original || item.json.normalized?.phone || null;
-
-const normalizePhone = (phone) => {
-  if (!phone) return { 
-    phone_original: null, 
-    phone_recent: null, 
-    phone_validated: null,
-    sms_eligible: false,
-    validation_status: "no_phone"
-  };
-  
-  // Step 1: Original (preserve exactly as received)
-  const phone_original = phone.trim();
-  
-  // Step 2: Recent (basic cleanup)
-  const phone_recent = phone_original.replace(/[^\d+]/g, '');
-  
-  // Step 3: Validated (full validation with country detection)
-  let phone_validated = null;
-  let sms_eligible = false;
-  let validation_status = "invalid";
-  
-  // US phone validation (E.164 format)
-  if (phone_recent.match(/^(\+1)?[0-9]{10}$/)) {
-    phone_validated = phone_recent.startsWith('+1') ? phone_recent : '+1' + phone_recent;
-    sms_eligible = true;
-    validation_status = "valid_us";
-  }
-  // International validation (basic)
-  else if (phone_recent.startsWith('+') && phone_recent.length > 7 && phone_recent.length < 16) {
-    phone_validated = phone_recent;
-    sms_eligible = false;  // Conservative: only US for SMS
-    validation_status = "valid_international";
-  }
-  
-  return {
-    phone_original,
-    phone_recent,
-    phone_validated,
-    sms_eligible,
-    validation_status,
-    phone_country: sms_eligible ? "US" : "unknown"
-  };
-};
-
-const phoneResult = normalizePhone(phoneInput);
-
-return [{
-  json: {
-    ...item.json,
-    ...phoneResult,
-    phone_strategy_complete: true
-  }
-}];
-```
-
-### 6. Tool-Validated Integration with Existing Workflow
-
-#### 6.1 Insertion Points (Based on Current 15-Node Structure)
-**Verified via `mcp_n8n_n8n_get_workflow({ id: "Q2ReTnOliUTuuVpl" })`**:
-- **Company Identifier Extract**: After Smart Field Mapper (Node 8) → Before PDL Person (Node 9)
-- **Enhanced ICP Scoring**: Replace/extend existing ICP scoring node
-- **3-Field Phone Norm**: Before final Airtable update
-
-#### 6.2 Validated Connection Architecture
-```
-[Existing Nodes 1-8: Webhook → Smart Field Mapper]
-      │
-      ▼
-[NEW] Company Identifier Extract
-      │
-      ▼
-[NEW] PDL Company API (if identifiers available)
-      │
-      ▼
-[NEW] Company Data Processing & B2B Tech Classification
-      │
-      ▼
-[NEW] B2B Tech Router (IF Node)
-  ├── TRUE: → [Existing] PDL Person API → [ENHANCED] ICP Scoring
-  └── FALSE: → [NEW] Merge Node → Archive path
-      │
-      ▼
-[NEW/ENHANCED] 3-Field Phone Normalization
-      │
-      ▼
-[Existing] Airtable Update (with new fields)
-```
-
-#### 6.3 Critical Integration Validations
-**BEFORE each connection change**:
-- `mcp_n8n_validate_workflow_connections()` → Verify no broken paths
-- Test execution → Confirm data flows correctly
-- Performance check → Ensure <20s total runtime (vs. current 12s baseline)
-
-**AFTER full integration**:
-- Regression test → Verify Phase 2B outputs unchanged for non-Company path
-- Full workflow validation → `mcp_n8n_validate_workflow()` strict mode
-- 10-test matrix → All scenarios pass with execution IDs as evidence
-
----
-
-## Testing Requirements
-
-### 1. Test Cases
-
-#### 1.1 Company API Test Cases
-1. **Valid B2B Tech Company**: Expected to qualify
-2. **Valid B2B Non-Tech Company**: Expected to not qualify
-3. **Valid B2C Tech Company**: Expected to not qualify
-4. **Missing Company Name**: Should handle gracefully
-5. **Invalid Company Name**: Should handle API error
-6. **API Timeout**: Should retry and handle failure
-7. **API Error Response**: Should handle and continue
-8. **Edge Case: Ambiguous B2B/Tech Status**: Test classification logic
-
-#### 1.2 Integration Test Cases
-1. **End-to-End Qualified Path**: Company qualifies → Person API called
-2. **End-to-End Non-Qualified Path**: Company doesn't qualify → Person API skipped
-3. **Cost Tracking Accuracy**: Verify $0.01 cost tracking per call
-4. **Data Flow**: Verify company data flows to ICP scoring
-
-### 2. Test Evidence Requirements
-
-#### 2.1 Required Evidence
-- API request and response logs
-- Qualification decision logs
-- Routing path verification
-- Cost tracking entries
-- Airtable record updates
-
-#### 2.2 Evidence Format
-```
-TEST CASE: [Test Case Name]
-INPUT: [Test Input Data]
-API REQUEST: [Request Details]
-API RESPONSE: [Response Details]
-QUALIFICATION: [Qualification Decision]
-ROUTING: [Path Taken]
-COST: [Cost Tracked]
-AIRTABLE: [Record ID and Fields]
-RESULT: [Pass/Fail]
+}
 ```
 
 ---
 
-## Implementation Guidelines
+### 5. Testing & Validation Requirements
 
-### 1. Anti-Hallucination Protocol
+#### 5.1 Regression Testing
+- **Sample Size**: 50 leads that previously succeeded with PDL
+- **Success Criteria**: 95%+ PDL success rate maintained
+- **Validation**: Hunter fallback never triggers for PDL successes
 
-#### 1.1 Evidence Requirements
-- All implementation claims must be verified with tool evidence
-- Node configurations must be verified with `mcp_n8n_n8n_get_workflow`
-- API responses must be verified with test executions
-- Airtable records must be verified with `mcp_airtable_get_record`
+#### 5.2 Fallback Effectiveness
+- **Sample Size**: 50 leads that previously failed PDL enrichment
+- **Success Criteria**: 65%+ Hunter success rate on PDL failures
+- **Validation**: LinkedIn URLs, job titles, company names captured
 
-#### 1.2 Evidence Format
-```
-EVIDENCE:
-- Tool: [tool_name]
-- Command: [specific_command]
-- Result: [specific_output]
-- Verification: [how_verified]
-- Record ID: [specific_id]
-```
-
-### 2. Platform Gotchas Prevention (Evidence-Based from Tool Analysis)
-
-#### 2.1 Critical Gotchas Identified via Tools
-**From Current Workflow Analysis (Q2ReTnOliUTuuVpl)**:
-- **HTTP Request Timeout**: Current 30s timeout causes 15% failures → Increase to 60s
-- **Missing Retry Logic**: No retryOnFail → Add with maxTries=3, waitBetweenTries=1000ms  
-- **Rate Limiting**: PDL allows 100/min (free) or 2/min (premium) → Add delay between calls
-- **Expression Resolution**: Complex nested paths like `{{$json.pdl_identifiers.name}}` → Validate each level
-- **Airtable API Limits**: 5 requests/second → Monitor/throttle for scaling
-- **Boolean Null Mapping**: Airtable requires null not false → Explicit mapping needed
-
-#### 2.2 Tool-Driven Validation Checklist
-**MANDATORY for every implementation step**:
-- [ ] `mcp_n8n_validate_node_operation()` → Zero errors before proceeding
-- [ ] `mcp_n8n_validate_workflow_connections()` → After each connection change
-- [ ] `mcp_n8n_validate_workflow_expressions()` → All {{}} syntax verified
-- [ ] Test execution → Capture execution ID as evidence
-- [ ] Performance monitoring → Runtime vs. 12s baseline (current avg)
-- [ ] Credential validation → Verify httpHeaderAuth exists and works
-- [ ] Rate limit testing → Confirm PDL API tier and limits
-
-### 3. Comprehensive Planning
-
-#### 3.1 Planning Requirements
-- Complete workflow structure analysis before implementation
-- Document all node configurations in detail
-- Map all data flows and transformations
-- Identify all integration points and dependencies
-- Create detailed implementation sequence
-
-#### 3.2 Planning Deliverables
-- Workflow structure diagram
-- Node configuration specifications
-- Data transformation map
-- Integration point documentation
-- Implementation sequence plan
-
-### 4. Documentation Requirements
-
-#### 4.1 Required Documentation
-- Implementation plan with node configurations
-- Test results with specific evidence
-- Updated platform gotchas (if any discovered)
-- Implementation report with evidence
-- Cost tracking verification
-
-#### 4.2 Documentation Format
-```
-IMPLEMENTATION REPORT:
-- Nodes Added: [list_of_nodes]
-- Configuration: [configuration_details]
-- Test Results: [test_results_summary]
-- Evidence: [specific_evidence_ids]
-- Gotchas Discovered: [any_new_gotchas]
-- Cost Tracking: [cost_tracking_evidence]
-```
+#### 5.3 Performance Benchmarks
+- **Current Processing Time**: 12 seconds average
+- **Target with Hunter**: <20 seconds average
+- **Monitoring**: Real-time performance tracking
 
 ---
 
-## Success Criteria
+### 6. Security & Compliance
 
-### 1. Functional Success
+#### 6.1 Credential Management
+- **Hunter API Key**: Stored as predefined credential in n8n
+- **Authentication Pattern**: httpHeaderAuth (never manual headers)
+- **Credential Security**: Follow established n8n credential patterns
 
-- PDL Company API successfully integrated
-- Company qualification logic correctly implemented
-- Cost tracking accurately records API usage
-- Proper routing based on qualification status
-- Integration with existing workflow preserved
-
-### 2. Technical Success
-
-- All nodes properly configured
-- All connections correctly established
-- Error handling implemented for all failure modes
-- Performance impact minimized
-- No regression in existing functionality
-
-### 3. Testing Success
-
-- All test cases executed and passed
-- Evidence collected for all tests
-- Edge cases handled gracefully
-- Cost tracking verified accurate
-- Airtable records properly updated
-
-### 4. Documentation Success
-
-- Implementation plan documented
-- Test results documented with evidence
-- Any new gotchas documented
-- Implementation report completed
-- Knowledge transfer ready
+#### 6.2 Data Privacy
+- **Email Processing**: Only corporate emails, no personal data retention
+- **API Compliance**: Adhere to Hunter.io terms of service
+- **Data Retention**: Cache enrichment results for 30 days maximum
 
 ---
 
-## Timeline and Milestones
+### 7. Monitoring & Alerting
 
-### Phase 2C Implementation Timeline
+#### 7.1 Real-Time Metrics
+- **PDL Success Rate**: Alert if drops below 85% (current: 90%+)
+- **Hunter API Errors**: Alert if >5% error rate over 1-hour window
+- **Processing Time**: Alert if median >20 seconds (current: 12s)
+- **Daily Costs**: Alert at $40 (80% of $50 limit)
 
-1. **Analysis & Planning**: [TBD]
-2. **PDL Company API Integration**: [TBD]
-3. **Company Data Processing**: [TBD]
-4. **Qualification Logic**: [TBD]
-5. **Cost Tracking**: [TBD]
-6. **Testing & Validation**: [TBD]
-7. **Documentation & Handover**: [TBD]
-
-### Key Milestones
-
-- **M1**: Workflow analysis completed
-- **M2**: PDL Company API integrated
-- **M3**: Company qualification logic implemented
-- **M4**: Cost tracking integrated
-- **M5**: All tests passed
-- **M6**: Documentation completed
+#### 7.2 Cost Monitoring
+- **PDL vs Hunter Usage**: Track ratio of primary vs fallback usage
+- **Cost per Lead**: Monitor blended cost per enriched lead
+- **Budget Enforcement**: Circuit breaker at daily limit
 
 ---
 
-**DOCUMENT STATUS**: ✅ **CURRENT - PHASE 2C TECHNICAL REQUIREMENTS**  
-**LAST UPDATED**: August 7, 2025  
-**CREATED BY**: PM Agent  
-**APPROVED BY**: User
+### 8. Rollback Procedures
+
+#### 8.1 Feature Flag Rollback
+1. **Environment Variable**: Set `PERSON_WATERFALL_ENABLED=false`
+2. **Verification**: Test sample lead to confirm Hunter bypass
+3. **Monitoring**: Confirm PDL success path restored
+
+#### 8.2 Emergency Rollback
+1. **Workflow Restore**: Import pre-implementation Q2ReTnOliUTuuVpl JSON
+2. **Environment Cleanup**: Remove Hunter-specific variables
+3. **Credential Removal**: Delete Hunter API credential if needed
+
+---
+
+## Implementation Timeline
+
+### Phase 1 (Day 1): Environment Setup
+- [ ] Hunter API credentials configuration
+- [ ] Environment variables setup
+- [ ] Feature gate implementation and testing
+
+### Phase 2 (Day 2-3): Core Implementation
+- [ ] PDL success router implementation
+- [ ] Hunter HTTP Request node configuration
+- [ ] Hunter response processor development
+
+### Phase 3 (Day 4): Data Integration
+- [ ] Person data merger with precedence logic
+- [ ] Enhanced cost tracking implementation
+- [ ] Airtable schema updates
+
+### Phase 4 (Day 5): Testing & Validation
+- [ ] Regression testing (50 PDL success leads)
+- [ ] Fallback testing (50 PDL failure leads)
+- [ ] Performance and cost validation
+
+---
+
+**Technical Requirements Status**: ✅ **COMPLETE AND READY**  
+**Last Updated**: 2025-01-27  
+**Implementation Ready**: ✅ **YES**  
+**Apollo Contamination**: ✅ **REMOVED**
+
+These technical requirements provide comprehensive specifications for implementing the **PDL-first Hunter waterfall strategy** with all necessary technical details, validation criteria, and safety procedures.

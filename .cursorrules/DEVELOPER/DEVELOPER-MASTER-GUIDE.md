@@ -192,7 +192,7 @@ HANDOFF PROTOCOL:
 ### **Airtable Integration (OPERATIONAL)**:
 - **Duplicate Handler**: Advanced duplicate detection with count management
 - **Create/Update Logic**: Conditional upsert based on duplicate status
-- **Cost Tracking Fields**: apollo_org_cost, apollo_person_cost, claude_cost, total_processing_cost
+- **Cost Tracking Fields**: pdl_person_cost, hunter_cost, claude_cost, total_processing_cost
 
 ### **Error Handling & Retry (ROBUST)**:
 - **Retry Error Handler**: Node ID: f2752aaf-feb8-49b8-b173-b898deb79971
