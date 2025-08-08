@@ -1,0 +1,60 @@
+{
+  "projectName": "CRM Integration Hub",
+  "projectDescription": "Multi-CRM data synchronization and lead routing system",
+  "projectSlug": "crm-hub",
+  "services": {
+    "n8n": {
+      "workflowId": "NEW_WORKFLOW_ID_HERE",
+      "workflowName": "crm-hub-main-workflow",
+      "webhookPath": "crm-webhook"
+    },
+    "airtable": {
+      "baseId": "NEW_AIRTABLE_BASE_ID",
+      "keyTables": ["Leads", "Companies", "Activities", "Sync_Log"]
+    },
+    "integrations": [
+      "hubspot",
+      "salesforce", 
+      "pipedrive"
+    ]
+  },
+  "framework": {
+    "agentSystem": true,
+    "mcpTools": true,
+    "testingFramework": true,
+    "backupSystem": true
+  },
+  "customization": {
+    "patterns": [
+      "00-field-normalization-mandatory.txt",
+      "01-crm-integration-patterns.txt",
+      "02-deduplication-patterns.txt"
+    ],
+    "fieldMappings": {
+      "primaryEntity": "contacts",
+      "keyFields": ["email", "company", "source_crm", "contact_id"],
+      "enrichmentFields": ["industry", "company_size", "revenue", "last_activity"]
+    },
+    "testingFocus": [
+      "multi_crm_field_mapping",
+      "contact_deduplication", 
+      "bidirectional_sync",
+      "data_quality_validation"
+    ],
+    "requiredScripts": [
+      "git-workflow.sh",
+      "work-start.sh",
+      "real-n8n-export.sh", 
+      "auto-backup.sh",
+      "crm-sync-monitor.sh"
+    ]
+  },
+  "businessLogic": {
+    "primaryFlow": "CRM Webhook → Field Normalization → Deduplication → Lead Scoring → CRM Update",
+    "keyDecisionPoints": [
+      "Contact exists check",
+      "Data quality validation",
+      "Sync conflict resolution"
+    ]
+  }
+}

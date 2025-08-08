@@ -1,0 +1,396 @@
+# UYSP Master Reference & Architecture - PDL Integration
+*Complete System Specification and Success Framework*
+
+## Executive Summary
+
+### What We're Building
+An automated lead qualification and outreach system that transforms UYSP's manual process (100 leads/day) into an AI-powered system processing 700+ leads/week initially, scaling to 7,000/week. The system qualifies leads, enriches data, scores them 0-100, and sends personalized SMS to book meetings.
+
+### Key Business Metrics
+- **Current State**: 40 manual calls/day → 6-8 conversations → 1-2 meetings
+- **Target State**: 700+ automated touches/week → 70+ conversations → 50+ meetings
+- **ROI**: 3-5x increase in meetings booked at <$5 per meeting
+- **Timeline**: MVP in 4 weeks, full system in 12 weeks
+
+### Critical Decisions Made
+1. **SMS-First Strategy**: No email improvements (accepting 14% open rate)
+2. **PDL-Only Enrichment**: Single provider for simplicity and cost optimization
+3. **Two-Phase Qualification**: Verify B2B tech first, then sales role
+4. **Human Review Queue**: Route unclear cases for manual review
+5. **No Complex CRM**: Airtable as simple identity layer
+
+**ARCHITECTURAL CHANGE**: Enrichment provider changed from Apollo to People Data Labs (PDL) for 60% cost reduction and deeper data coverage including job history and LinkedIn URLs.
+
+---
+
+## System Architecture
+
+### High-Level Flow
+
+```
+Kajabi Forms → Zapier Webhook → n8n Orchestration
+    ↓
+Field Normalization (MANDATORY FIRST STEP)
+    ↓
+Identity Resolution (Airtable)
+    ↓
+Two-Phase Qualification:
+├─ Phase 1: Company (PDL Company API) → B2B Tech? ($0.01)
+│   ├─ Yes → Phase 2
+│   └─ No → Archive
+└─ Phase 2: Person (PDL Person API) → Sales Role? ($0.03)
+    ├─ Yes → ICP Scoring (0-100)
+    └─ No → Human Review
+    ↓
+Routing Decision:
+├─ Score 70+ with Phone → SMS Campaign
+├─ Score 70+ no Phone → Skip (Phase 1)
+├─ Score <70 → Archive
+└─ Unclear → Human Review
+```
+
+### Technology Stack & Costs
+
+| Platform | Purpose | Monthly Cost | Why This Choice |
+|----------|---------|--------------|-----------------|
+| n8n Cloud | Orchestration hub | $150 | Visual workflows, MCP compatible |
+| Airtable Team | Identity/CRM | $240 | Simple, non-technical friendly |
+| Zapier Starter | Kajabi bridge | $29 | Kajabi has no webhooks |
+| SimpleTexting | SMS delivery | $300 | Built-in compliance |
+| **PDL** | **Enrichment** | **~$77** | **Usage-based, comprehensive data** |
+| API Costs | Various | ~$50 | Pay-per-use services |
+| **Total** | **Platform costs** | **~$846** | **PDL-only optimized** |
+
+**COST OPTIMIZATION**: PDL-only implementation at $77/mo provides comprehensive enrichment with job history, LinkedIn URLs, and global coverage.
+
+---
+
+## Data Architecture
+
+### Core Tables (Airtable)
+
+#### 1. People - Golden Records
+Primary key: email
+Secondary identifier: linkedin_url
+**Enhanced PDL Fields**:
+- Identity: email, phone_primary, first_name, last_name
+- Enrichment: company, title, linkedin_url, phone_enriched
+- **PDL Specific**: job_history, company_tech_stack, company_size_range
+- Scoring: icp_score (0-100), icp_tier, routing
+- Tracking: processing_status, test_mode_record
+- **Cost Tracking**: pdl_company_cost, pdl_person_cost
+
+#### 2. Enrichment_Cache - Enhanced
+**PDL-Optimized Caching**:
+- **source**: "pdl_company", "pdl_person"
+- **response_data**: Full PDL JSON including job history
+- **cache_expiry**: 90-day reuse
+- **pdl_likelihood**: Match confidence score
+- **person_id**: PDL's unique identifier for tracking
+
+---
+
+## Two-Phase Qualification Logic
+
+### Phase 1: Company Qualification ($0.01/match)
+
+**Input**: Company name or domain from email
+**API**: PDL Company Enrichment API
+**Check**: Is this a B2B tech company?
+
+**Enhanced Decision Logic**:
+```javascript
+const companyData = pdlResponse.data;
+if (companyData && 
+    companyData.industry === 'computer software' && 
+    companyData.tags.includes('saas') && 
+    companyData.size_range !== '1-10') {
+  return { phase1_pass: true, company_details: companyData };
+}
+```
+
+**Known Good Domains** (bypass API):
+- Salesforce, HubSpot, Microsoft, Google
+- Any domain in "known_b2b_tech" list
+
+**Decision Tree**:
+- B2B Tech → Proceed to Phase 2
+- Non-B2B → Archive immediately  
+- Unclear → Human review queue
+- No data → Human review queue
+
+### Phase 2: Person Enrichment ($0.03/match)
+
+**Trigger**: ONLY if Phase 1 passes
+**API**: PDL Person Enrichment API
+**Check**: Is this a sales/revenue role?
+
+**Enhanced with PDL Data**:
+```javascript
+const personData = pdlResponse.data;
+// Check current role
+if (personData.job_title.includes('sales') || 
+    personData.job_title.includes('account executive')) {
+  
+  // Check job history for recent moves (high-value trigger)
+  const recentMove = personData.experience[0].start_date > 
+    new Date(Date.now() - 90*24*60*60*1000); // 3 months
+  
+  return { 
+    phase2_pass: true, 
+    person_details: personData,
+    recent_move: recentMove,
+    linkedin_url: personData.profiles.linkedin_url
+  };
+}
+```
+
+**Sales Keywords Enhancement**:
+- **Positive**: "sales", "account executive", "business development", "revenue"
+- **Negative**: "engineer", "marketing", "support", "success"
+- **Job History**: Check for sales progression or recent role changes
+
+**Decision Tree**:
+- Sales role → ICP Scoring
+- Non-sales → Human review
+- No title → Human review
+- CEO/Founder → Special handling
+
+### Cost Optimization with PDL
+- Phase 1 filters ~72% of leads
+- Only 28% proceed to Phase 2
+- **Total cost per processed lead**: ~$0.04 average
+- **Monthly savings vs Apollo**: ~$127 (60% reduction)
+
+---
+
+## ICP Scoring Algorithm V3.0
+
+### Primary Method: Claude AI Analysis (V3.0 Methodology)
+```javascript
+const scoringPromptV3 = `
+You are scoring sales professionals for UYSP membership qualification using the V3.0 methodology.
+
+PERSON DATA:
+- Title: ${pdlData.job_title}
+- Company: ${pdlData.job_company_name}  
+- Industry: ${pdlData.industry}
+- Recent Role Change: ${recentRoleChange ? 'Yes (<90 days)' : 'No'}
+
+ENGAGEMENT DATA:
+- Touchpoints: ${engagementData.touchpoints || 0}
+- Said Yes to Coaching: ${engagementData.coaching_interest || 'Unknown'}
+
+SCORING WEIGHTS (V3.0):
+- ENGAGEMENT (35 points max): Multiple touchpoints = critical, "Yes" to coaching = +10 bonus
+- ROLE (40 points max): Account Executive (any level) = 20 points, AE-first approach
+- COMPANY (25 points max): B2B tech = 15 points, company size irrelevant per client feedback
+
+Scoring Guidelines V3.0:
+95-100: Enterprise AE at Tier 1 B2B SaaS (recent move +5)
+85-94: Strategic/Enterprise AE at known B2B
+70-84: Mid-Market AE or Senior SDR
+50-69: SMB AE or SDR
+30-49: Junior SDR or unclear role
+0-29: Not sales or very junior
+
+Return only the numeric score.
+`;
+```
+
+**Fallback Method**: Enhanced Domain-Based Scoring
+```javascript
+const domainScores = {
+  'salesforce.com': 95,
+  'hubspot.com': 90,
+  'microsoft.com': 90,
+  // Enhanced with company size and role
+  'unknown': calculateByRole(personData.job_title, companyData.size_range)
+};
+```
+
+**Routing Logic**:
+| Score | Tier | Action | Timing |
+|-------|------|--------|---------|
+| 95-100 | Ultra | SMS immediately | <1 min |
+| 85-94 | High | SMS within 5 min | Quick |
+| 70-84 | Medium | SMS within 15 min | Standard |
+| 50-69 | Low | Archive | None |
+| 0-49 | Archive | No action | None |
+| Error | Review | Human queue | 48hr SLA |
+
+---
+
+## SMS Execution Framework
+
+### SMS Template Structure
+```
+[Personalization] + [Value Prop] + [CTA] = <135 chars
+
+Enhanced with PDL data:
+"Hi {first_name}, saw you joined {company} as {title}! 
+Other {title}s at similar {company_size} SaaS companies love our framework. 
+Quick chat with Davidson? {tracking_link}"
+```
+
+### Tracking & Attribution
+- Unique short links per recipient
+- UTM parameters: source, medium, campaign, content
+- Click tracking via redirect
+- Meeting attribution via Calendly webhook
+- **Enhanced**: Job history tracking for follow-up sequences
+
+---
+
+## Implementation Phases
+
+### Phase 1: MVP Foundation (Month 1)
+**BUILDING**:
+- Webhook reception with field normalization
+- Lead validation and deduplication  
+- **PDL two-phase qualification** (Company → Person)
+- ICP scoring with Claude AI enhanced with job history
+- One-way SMS to qualified leads
+- Basic metrics and cost tracking
+
+**NOT BUILDING**:
+- Two-way SMS conversations
+- Phone enrichment services
+- Email automation changes
+- LinkedIn automation
+- Complex multi-touch sequences
+
+### Phase 2: Scale & Optimize (Month 2)
+**Adding**:
+- Database mining (30k existing contacts)
+- Enhanced delivery tracking with PDL data
+- SMS template A/B testing
+- **Job history-based re-engagement**
+- Weekly performance reports
+
+### Phase 3: Intelligence Layer (Month 3)
+**Finally Adding**:
+- Two-way SMS with Claude AI
+- Phone enrichment for high-value (85+)
+- **Behavioral triggers based on job changes**
+- Re-engagement campaigns
+- Predictive scoring with job history
+
+---
+
+## Success Metrics Framework
+
+### Level 1: System Execution (We Control)
+| Metric | Success Criteria | PDL Enhancement |
+|--------|------------------|-----------------|
+| Webhook Processing | 100% return 200 | Same |
+| Field Normalization | 95%+ field capture | Same |
+| Lead Validation | 100% validated | Same |
+| **PDL Enrichment** | **90%+ match rate** | **New metric** |
+| ICP Scoring | 100% scored | Enhanced with job history |
+| Routing Logic | 100% routed | Same |
+| Cost Tracking | 100% logged | PDL costs tracked |
+
+### Level 2: External Dependencies (We Monitor)
+| Service | Expected | If Down | Our Response |
+|---------|----------|---------|--------------|
+| **PDL API** | **99% uptime** | **Can't enrich** | **Use cache + queue** |
+| Claude API | 95% uptime | Can't score | Domain fallback |
+| SimpleTexting | 99% uptime | Can't SMS | Retry queue |
+| Twilio | 95% uptime | Can't validate | Skip validation |
+
+### Level 3: Business Outcomes (We Enable)
+| Metric | Month 1 Target | Formula | PDL Impact |
+|--------|----------------|---------|------------|
+| Meetings Booked | 30+ | Tracking links | Better qualification |
+| SMS → Meeting | 5%+ | Meetings/SMS sent | Enhanced targeting |
+| **Cost per Meeting** | **<$3** | **Total cost/Meetings** | **60% cost reduction** |
+| Processing Time | <5 min | End time - Start time | Faster with one API |
+
+---
+
+## Critical Decision Log
+
+### Why PDL vs Apollo?
+- **Cost**: 60% reduction ($77/mo vs $204/mo)
+- **Data Quality**: 90-95% match rate vs Apollo's 80-90%
+- **Depth**: Job history included vs Apollo add-ons needed
+- **Simplicity**: One API call vs separate Org/People APIs
+- **Personal Emails**: Better fuzzy matching capability
+
+### Why Not Other Providers?
+- **Clearbit**: $20k/year minimum, overkill for MVP
+- **ZoomInfo**: $15k/year base, enterprise pricing
+- **Hunter.io**: Limited job history, two-vendor complexity
+
+---
+
+## Risk Mitigation
+
+### Technical Risks
+| Risk | Impact | Mitigation | Owner |
+|------|--------|------------|-------|
+| PDL Rate Limits | Halts processing | Queue + retry logic | System |
+| Cost Overrun | Budget breach | Circuit breaker at $50/day | System |
+| Field Variations | Data loss | Field normalizer + monitoring | PM |
+| Platform Bugs | Features break | Document + workaround | PM |
+
+### Business Risks
+| Risk | Impact | Mitigation | Owner |
+|------|--------|------------|-------|
+| Low PDL Accuracy | Poor qualification | A/B test vs cached Apollo | Team |
+| Poor SMS Response | No meetings | Test templates | Team |
+| Team Adoption | Manual continues | Training + docs | PM |
+
+---
+
+## Required API Keys
+
+```yaml
+PDL:
+  - API_KEY: Required (free tier: 100 matches/mo)
+  - Plan: Usage-based (no monthly minimum)
+  - Endpoints: Company Enrichment, Person Enrichment
+  
+SimpleTexting:
+  - API_KEY: Required  
+  - PHONE_NUMBER: E.164 format
+  
+Twilio:
+  - ACCOUNT_SID: Required
+  - AUTH_TOKEN: Required
+  - Services: Lookup API v2
+  
+Claude:
+  - API_KEY: Required
+  - Model: claude-4-opus
+  - Usage: ICP scoring enhanced with PDL data
+  
+Airtable:
+  - PERSONAL_ACCESS_TOKEN: Required
+  - Scopes: data.records:read/write
+  - Base_ID: From URL
+```
+
+---
+
+## Cost Control Configuration
+
+```javascript
+// Updated for PDL
+const DAILY_COST_LIMIT = 50; // USD
+const COSTS = {
+  PDL_COMPANY: 0.01,
+  PDL_PERSON: 0.03,
+  TWILIO_LOOKUP: 0.015,
+  SMS_SEND: 0.02,
+  CLAUDE_API: 0.001
+};
+
+// Circuit breaker logic
+if (todayCosts + nextCallCost > DAILY_COST_LIMIT) {
+  throw new Error('Daily cost limit exceeded');
+}
+```
+
+*This document represents the complete system architecture optimized with PDL integration for maximum cost efficiency and data depth.*

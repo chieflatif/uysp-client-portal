@@ -1,0 +1,254 @@
+{
+  "summary": {
+    "total_scenarios": 2,
+    "missing_data_upsert_success": true,
+    "phone_conflict_same_record": true
+  },
+  "scenarios": {
+    "missing_data_upsert": {
+      "scenario": "missing_data_upsert",
+      "email": "brooke+test@brookeestin.com",
+      "step1_no_phone": {
+        "payload": {
+          "name": "Brooke TESTJunny",
+          "email": "brooke+test@brookeestin.com",
+          "request_id": "upsert-no-phone-1753361337",
+          "interested_in_coaching": "Yes"
+        },
+        "response": {
+          "success": true,
+          "status_code": 200,
+          "data": {
+            "message": "Workflow complete",
+            "success": true,
+            "timestamp": "2025-07-24T12:49:03.161Z",
+            "data": {
+              "id": "recirhtj6qOyFtKPM",
+              "createdTime": "2025-07-24T12:32:27.000Z",
+              "fields": {
+                "email": "brooke+test@brookeestin.com",
+                "first_name": "Brooke",
+                "last_name": "TESTJunny",
+                "phone_primary": "333333",
+                "icp_score": 0,
+                "lead_status": "New",
+                "interested_in_coaching": true,
+                "created_date": "2025-07-24",
+                "reengagement_count": 0,
+                "request_id": "csv-test-1753360342-505",
+                "duplicate_count": 7,
+                "field_mapping_success_rate": 75,
+                "normalization_version": "v4.4-webhook-fix",
+                "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"145\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"964388ebc2fbed2a-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753361337\",\"x-forwarded-for\":\"178.22.255.251, 172.69.68.121\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-86vpc\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Brooke TESTJunny\",\"email\":\"brooke+test@brookeestin.com\",\"request_id\":\"upsert-no-phone-1753361337\",\"interested_in_coaching\":\"Yes\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+                "webhook_field_count": 4,
+                "mapped_field_count": 3,
+                "unknown_field_list": "request_id",
+                "apollo_org_cost": 0,
+                "apollo_person_cost": 0,
+                "twilio_cost": 0,
+                "claude_cost": 0,
+                "total_processing_cost": 0,
+                "phone_country_code": "+1"
+              }
+            }
+          },
+          "response_time": 5.300547
+        },
+        "analysis": {
+          "email": "brooke+test@brookeestin.com",
+          "is_duplicate": true,
+          "duplicate_count": 7,
+          "action_taken": "updated_existing",
+          "airtable_id": "recirhtj6qOyFtKPM",
+          "processing_time": 5.300547
+        }
+      },
+      "step2_with_phone": {
+        "payload": {
+          "name": "Brooke TESTJunny",
+          "email": "brooke+test@brookeestin.com",
+          "request_id": "upsert-with-phone-1753361345",
+          "interested_in_coaching": "Yes",
+          "phone": "333333"
+        },
+        "response": {
+          "success": true,
+          "status_code": 200,
+          "data": {
+            "message": "Workflow complete",
+            "success": true,
+            "timestamp": "2025-07-24T12:49:08.515Z",
+            "data": {
+              "id": "recirhtj6qOyFtKPM",
+              "createdTime": "2025-07-24T12:32:27.000Z",
+              "fields": {
+                "email": "brooke+test@brookeestin.com",
+                "first_name": "Brooke",
+                "last_name": "TESTJunny",
+                "phone_primary": "333333",
+                "icp_score": 0,
+                "lead_status": "New",
+                "interested_in_coaching": true,
+                "created_date": "2025-07-24",
+                "reengagement_count": 0,
+                "request_id": "csv-test-1753360342-505",
+                "duplicate_count": 9,
+                "field_mapping_success_rate": 80,
+                "normalization_version": "v4.4-webhook-fix",
+                "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"166\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"964389199636995b-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753361345\",\"x-forwarded-for\":\"178.22.255.251, 172.69.9.116\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Brooke TESTJunny\",\"email\":\"brooke+test@brookeestin.com\",\"request_id\":\"upsert-with-phone-1753361345\",\"interested_in_coaching\":\"Yes\",\"phone\":\"333333\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+                "webhook_field_count": 5,
+                "mapped_field_count": 4,
+                "unknown_field_list": "request_id",
+                "apollo_org_cost": 0,
+                "apollo_person_cost": 0,
+                "twilio_cost": 0,
+                "claude_cost": 0,
+                "total_processing_cost": 0,
+                "phone_country_code": "+1"
+              }
+            }
+          },
+          "response_time": 3.359589
+        },
+        "analysis": {
+          "email": "brooke+test@brookeestin.com",
+          "is_duplicate": true,
+          "duplicate_count": 9,
+          "action_taken": "updated_existing",
+          "airtable_id": "recirhtj6qOyFtKPM",
+          "processing_time": 3.359589
+        }
+      },
+      "upsert_success": true,
+      "timestamp": "2025-07-24T14:49:08.562491"
+    },
+    "phone_number_conflict": {
+      "scenario": "phone_number_conflict",
+      "email": "alec@salesbrand.co",
+      "step1_original_phone": {
+        "payload": {
+          "name": "Alec",
+          "email": "alec@salesbrand.co",
+          "phone": "8586925689",
+          "request_id": "conflict-original-1753361351",
+          "interested_in_coaching": "Yes"
+        },
+        "response": {
+          "success": true,
+          "status_code": 200,
+          "data": {
+            "message": "Workflow complete",
+            "success": true,
+            "timestamp": "2025-07-24T12:49:14.679Z",
+            "data": {
+              "id": "recBZW7eRBKxo9aLm",
+              "createdTime": "2025-07-24T12:32:39.000Z",
+              "fields": {
+                "email": "alec@salesbrand.co",
+                "first_name": "Alec",
+                "phone_primary": "8586925689",
+                "icp_score": 0,
+                "lead_source": "Opt-In: Killer Proposal Template",
+                "lead_status": "New",
+                "interested_in_coaching": true,
+                "created_date": "2025-07-24",
+                "reengagement_count": 0,
+                "request_id": "csv-test-1753360356-626",
+                "duplicate_count": 7,
+                "field_mapping_success_rate": 80,
+                "normalization_version": "v4.4-webhook-fix",
+                "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"149\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643894024785183-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753361351\",\"x-forwarded-for\":\"178.22.255.251, 172.69.9.98\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Alec\",\"email\":\"alec@salesbrand.co\",\"phone\":\"8586925689\",\"request_id\":\"conflict-original-1753361351\",\"interested_in_coaching\":\"Yes\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+                "webhook_field_count": 5,
+                "mapped_field_count": 4,
+                "unknown_field_list": "landing_page_id, request_id",
+                "apollo_org_cost": 0,
+                "apollo_person_cost": 0,
+                "twilio_cost": 0,
+                "claude_cost": 0,
+                "total_processing_cost": 0,
+                "phone_country_code": "+1"
+              }
+            }
+          },
+          "response_time": 3.138749
+        },
+        "analysis": {
+          "email": "alec@salesbrand.co",
+          "is_duplicate": true,
+          "duplicate_count": 7,
+          "action_taken": "updated_existing",
+          "airtable_id": "recBZW7eRBKxo9aLm",
+          "processing_time": 3.138749
+        }
+      },
+      "step2_different_phone": {
+        "payload": {
+          "name": "Alec",
+          "email": "alec@salesbrand.co",
+          "phone": "999-888-7777",
+          "request_id": "conflict-different-1753361356",
+          "interested_in_coaching": "Yes"
+        },
+        "response": {
+          "success": true,
+          "status_code": 200,
+          "data": {
+            "message": "Workflow complete",
+            "success": true,
+            "timestamp": "2025-07-24T12:49:19.882Z",
+            "data": {
+              "id": "recBZW7eRBKxo9aLm",
+              "createdTime": "2025-07-24T12:32:39.000Z",
+              "fields": {
+                "email": "alec@salesbrand.co",
+                "first_name": "Alec",
+                "phone_primary": "999-888-7777",
+                "icp_score": 0,
+                "lead_source": "Opt-In: Killer Proposal Template",
+                "lead_status": "New",
+                "interested_in_coaching": true,
+                "created_date": "2025-07-24",
+                "reengagement_count": 0,
+                "request_id": "csv-test-1753360356-626",
+                "duplicate_count": 9,
+                "field_mapping_success_rate": 80,
+                "normalization_version": "v4.4-webhook-fix",
+                "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"152\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643896102661498-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753361356\",\"x-forwarded-for\":\"178.22.255.251, 172.69.9.81\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Alec\",\"email\":\"alec@salesbrand.co\",\"phone\":\"999-888-7777\",\"request_id\":\"conflict-different-1753361356\",\"interested_in_coaching\":\"Yes\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+                "webhook_field_count": 5,
+                "mapped_field_count": 4,
+                "unknown_field_list": "landing_page_id, request_id",
+                "apollo_org_cost": 0,
+                "apollo_person_cost": 0,
+                "twilio_cost": 0,
+                "claude_cost": 0,
+                "total_processing_cost": 0,
+                "phone_country_code": "+1"
+              }
+            }
+          },
+          "response_time": 3.215336
+        },
+        "analysis": {
+          "email": "alec@salesbrand.co",
+          "is_duplicate": true,
+          "duplicate_count": 9,
+          "action_taken": "updated_existing",
+          "airtable_id": "recBZW7eRBKxo9aLm",
+          "processing_time": 3.215336
+        }
+      },
+      "same_record_updated": true,
+      "original_phone": "8586925689",
+      "conflict_phone": "999-888-7777",
+      "timestamp": "2025-07-24T14:49:19.929811"
+    }
+  },
+  "findings": [
+    "Upsert functionality working: Missing data correctly added to existing records",
+    "Phone conflicts handled by updating existing record"
+  ],
+  "recommendations": [
+    "Implement phone conflict resolution policy (keep original vs. update with latest)"
+  ],
+  "timestamp": "2025-07-24T14:49:19.929849"
+}

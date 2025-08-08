@@ -1,13 +1,17 @@
+03-enrichment-patterns.txt
 patterns/03-enrichment-patterns.txt
 From 03-enrichment-patterns.txt:
 
 Enrichment Patterns for qualification, caching, scoring, and cost tracking.
 
 # PREREQUISITE: Pattern 00 (Field Normalization) MUST be implemented first
+# BASELINE: PRE COMPLIANCE workflow (ID: wpg9K9s8wlfofv1u) with Smart Field Mapper v4.6
+# PDL INTEGRATION: These patterns designed for PDL Company + Person API integration
 # This pattern assumes Smart Field Mapper is the first node after any webhook
 
-Pattern: Two-Phase Qualification with Human Review
-Purpose: Ensure leads are B2B tech salespeople before expensive scoring/SMS; route unclear to human review
+Pattern: PDL Two-Phase Qualification with Human Review  
+Purpose: PDL Company API ($0.01) → PDL Person API ($0.03) → Claude ICP Scoring V3.0 (Engagement 35%, Role 40%, Company 25%) for AE-focused qualification
+Foundation: PRE COMPLIANCE workflow provides superior cost tracking and error handling infrastructure
 Required Nodes: Code (10DLC/cost checks), Airtable (costs), HTTP (Apollo Org/Person), Switch (decisions), Slack (alerts)
 Configuration:
 // Node 1: Check 10DLC Registration
@@ -16,8 +20,8 @@ Type: Code
 Type: Airtable
 // Node 3: Check Daily Cost Limit
 Type: Code
-// Node 4: Phase 1 - Company Qualification
-Type: HTTP Request (Apollo Org)
+// Node 4: Phase 1 - PDL Company Qualification  
+Type: HTTP Request (PDL Company API - $0.01/call)
 // Node 5: Process Phase 1
 Type: Code
 // ... Up to Node 13: Auto-Archive Unreviewed
@@ -48,6 +52,7 @@ Type: Code
 // Node 3: Route Cache Decision
 Type: Switch
 Error Handling: Track cache performance.
+// Post-test: Clean cache via Airtable delete for test emails.
 
 Pattern: ICP Scoring with AI
 Purpose: Calculate ICP score (0-100) using Claude AI with domain fallback
@@ -61,6 +66,7 @@ Type: HTTP Request
 Type: Code
 // Node 5: Domain Fallback Scoring
 Type: Code
+// GOTCHA: Boolean inputs to scoring: Map false to null before API.
 Error Handling: Log fallbacks.
 
 Pattern: Phone Enrichment for High-Value Leads
@@ -110,3 +116,33 @@ Configuration:
 // Group by: None
 // This is a manual process - check daily
 Error Handling: None - manual process
+
+Pattern: AI-Enhanced ICP Scoring V3.0 with Customer Data Integration
+Purpose: Score leads 0-100 using AI-optimized methodology with domain analysis and upgrade potential detection
+Required Nodes: HTTP (Claude AI), Code (Hybrid Fallback), Code (Outreach Router), HTTP (Slack), Airtable (Update)
+Configuration:
+// Node 1: Claude AI Enhanced ICP Scoring
+Type: HTTP Request (Anthropic API)
+URL: https://api.anthropic.com/v1/messages
+Headers: {"x-api-key": "${ANTHROPIC_API_KEY}", "anthropic-version": "2023-06-01"}
+Body: {
+  "model": "claude-3-5-sonnet-20241022",
+  "max_tokens": 1000,
+  "temperature": 0.1,
+  "messages": [{"role": "user", "content": "You are an expert ICP scoring system for UYSP. Score 0-100 using: Company (25% max, +15 tech domains, -10 generic), Role (40% max, AE=20pts, 3+yrs=+10), Engagement (35% max, coaching interest=+10, 3+ touchpoints=+15). Return JSON: {score, tier, reason, outreach_potential: >=70, human_review_needed, domain_boost_applied}. Data: {{$json.normalized}}"}]
+}
+// Node 2: Domain Fallback Scoring (if Claude fails)
+Type: Code
+// Node 3: Score-Based Routing
+Type: IF Node
+Conditions: 
+- "={{$json.total_score >= 90}}" → Ultra High Path
+- "={{$json.total_score >= 75}}" → High Priority Path  
+- "={{$json.total_score >= 70}}" → Qualified Path
+- Default → Archive Path
+// Node 4: Slack Alert (75+ scores)
+Type: HTTP Request (Slack Webhook)
+// Node 5: Update Airtable with Scores
+Type: Airtable Update
+Fields: icp_score, icp_tier, score_breakdown, scoring_method
+Error Handling: Claude timeout → Domain fallback, log all scoring decisions

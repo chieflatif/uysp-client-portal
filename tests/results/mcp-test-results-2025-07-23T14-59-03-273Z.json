@@ -1,0 +1,44 @@
+{
+  "test_session": {
+    "start_time": "2025-07-23T14:58:48.471Z",
+    "end_time": "2025-07-23T14:59:03.273Z",
+    "total_tests": 1,
+    "automation_level": "webhook_only_mcp_verification_needed"
+  },
+  "test_results": [
+    {
+      "test_id": "FV001",
+      "test_name": "Standard Kajabi Format",
+      "category": "field_variations",
+      "start_time": "2025-07-23T14:58:48.471Z",
+      "payload": {
+        "email": "test-standard@example.com",
+        "name": "John Standard",
+        "phone": "555-0001",
+        "company": "Standard Corp",
+        "source_form": "webinar-signup",
+        "interested_in_coaching": "yes",
+        "request_id": "test-FV001"
+      },
+      "expected": {
+        "normalized_fields": [
+          "email",
+          "first_name",
+          "last_name",
+          "phone",
+          "company",
+          "source_form",
+          "interested_in_coaching"
+        ],
+        "airtable_record": true,
+        "field_mapping_rate": 100
+      },
+      "curl_command": "curl -X POST \"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"test-standard@example.com\",\"name\":\"John Standard\",\"phone\":\"555-0001\",\"company\":\"Standard Corp\",\"source_form\":\"webinar-signup\",\"interested_in_coaching\":\"yes\",\"request_id\":\"test-FV001\"}' -s",
+      "webhook_response": "{\"message\":\"Workflow complete\",\"success\":true,\"timestamp\":\"2025-07-23T14:58:53.227Z\",\"data\":{\"id\":\"recaHiessXjmnfL0G\",\"createdTime\":\"2025-07-23T14:55:59.000Z\",\"fields\":{\"email\":\"test-standard@example.com\",\"first_name\":\"John\",\"last_name\":\"Standard\",\"phone_primary\":\"555-0001\",\"company_input\":\"Standard Corp\",\"icp_score\":0,\"lead_source\":\"webinar-signup\",\"lead_status\":\"New\",\"interested_in_coaching\":true,\"created_date\":\"2025-07-23\",\"reengagement_count\":0,\"request_id\":\"test-FV001\",\"duplicate_count\":1,\"field_mapping_success_rate\":185.7,\"normalization_version\":\"v3.2-2025-07-23-BUGFIX\",\"raw_webhook_data\":\"{\\\"email\\\":\\\"test-standard@example.com\\\",\\\"name\\\":\\\"John Standard\\\",\\\"phone\\\":\\\"555-0001\\\",\\\"company\\\":\\\"Standard Corp\\\",\\\"source_form\\\":\\\"webinar-signup\\\",\\\"interested_in_coaching\\\":\\\"yes\\\",\\\"request_id\\\":\\\"test-FV001\\\"}\",\"webhook_field_count\":7,\"mapped_field_count\":15,\"unknown_field_list\":\"[]\",\"apollo_org_cost\":0,\"apollo_person_cost\":0,\"twilio_cost\":0,\"claude_cost\":0,\"total_processing_cost\":0,\"phone_country_code\":\"+1\"}}}",
+      "needs_mcp_verification": true,
+      "verification_email": "test-standard@example.com",
+      "execution_time_ms": 14801,
+      "end_time": "2025-07-23T14:59:03.272Z"
+    }
+  ]
+}

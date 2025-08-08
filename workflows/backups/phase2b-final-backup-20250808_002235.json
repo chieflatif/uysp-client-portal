@@ -1,0 +1,18 @@
+{
+  "workflow": {
+    "id": "Q2ReTnOliUTuuVpl",
+    "name": "UYSP PHASE 2B - COMPLETE CLEAN REBUILD",
+    "active": true,
+    "createdAt": "2025-08-07T11:27:37.900Z",
+    "updatedAt": "2025-08-07T15:16:14.854Z",
+    "nodeCount": 19,
+    "versionId": "72d35b18-6ba5-4878-9c61-a9cf2d3aad8d",
+    "triggerCount": 1
+  },
+  "backupMetadata": {
+    "timestamp": "2025-08-07T17:22:12Z",
+    "backupType": "full_workflow_backup",
+    "nodeCount": 19,
+    "status": "active"
+  }
+}

@@ -1,0 +1,322 @@
+{
+  "test_type": "3-field-phone-versioning-comprehensive",
+  "timestamp": "2025-07-24-15-05-53",
+  "test_email": "phone-v3-test-1753362326@example.com",
+  "test_results": [
+    {
+      "test": "new_lead_phone_versioning",
+      "payload": {
+        "name": "Jane Smith",
+        "email": "phone-v3-test-1753362326@example.com",
+        "phone": "555-111-2222",
+        "company": "Test Company",
+        "request_id": "new-lead-1753362326"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:05:31.366Z",
+          "data": {
+            "id": "recBR2QwyM9WLfp83",
+            "createdTime": "2025-07-24T13:05:30.000Z",
+            "fields": {
+              "email": "phone-v3-test-1753362326@example.com",
+              "first_name": "Jane",
+              "last_name": "Smith",
+              "phone_primary": "555-111-2222",
+              "company_input": "Test Company",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "new-lead-1753362326",
+              "duplicate_count": 1,
+              "field_mapping_success_rate": 80,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"160\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a10c431bed25-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362326\",\"x-forwarded-for\":\"178.22.255.251, 172.69.68.75\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Jane Smith\",\"email\":\"phone-v3-test-1753362326@example.com\",\"phone\":\"555-111-2222\",\"company\":\"Test Company\",\"request_id\":\"new-lead-1753362326\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 5,
+              "mapped_field_count": 4,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-111-2222"
+            }
+          }
+        },
+        "response_time": 5.087036
+      },
+      "analysis": {
+        "input_fields": 5,
+        "mapped_fields": 4,
+        "field_mapping_rate": 80,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": true
+      }
+    },
+    {
+      "test": "phone_update_different",
+      "payload": {
+        "name": "Jane Smith",
+        "email": "phone-v3-test-1753362326@example.com",
+        "phone": "555-333-4444",
+        "company": "Test Company Updated",
+        "request_id": "update-phone-1753362333"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:05:36.519Z",
+          "data": {
+            "id": "recBR2QwyM9WLfp83",
+            "createdTime": "2025-07-24T13:05:30.000Z",
+            "fields": {
+              "email": "phone-v3-test-1753362326@example.com",
+              "first_name": "Jane",
+              "last_name": "Smith",
+              "phone_primary": "555-333-4444",
+              "company_input": "Test Company",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "new-lead-1753362326",
+              "duplicate_count": 3,
+              "field_mapping_success_rate": 80,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"172\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a138a0f2eda0-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362333\",\"x-forwarded-for\":\"178.22.255.251, 172.70.216.109\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-xx8dm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Jane Smith\",\"email\":\"phone-v3-test-1753362326@example.com\",\"phone\":\"555-333-4444\",\"company\":\"Test Company Updated\",\"request_id\":\"update-phone-1753362333\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 5,
+              "mapped_field_count": 4,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-111-2222"
+            }
+          }
+        },
+        "response_time": 3.152919
+      },
+      "analysis": {
+        "input_fields": 5,
+        "mapped_fields": 4,
+        "field_mapping_rate": 80,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": true
+      }
+    },
+    {
+      "test": "phone_update_multi_1",
+      "payload": {
+        "name": "Jane Smith",
+        "email": "phone-v3-test-1753362326@example.com",
+        "phone": "555-555-6666",
+        "company": "Test Company Update 1",
+        "request_id": "multi-update-1-1753362338"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:05:41.661Z",
+          "data": {
+            "id": "recBR2QwyM9WLfp83",
+            "createdTime": "2025-07-24T13:05:30.000Z",
+            "fields": {
+              "email": "phone-v3-test-1753362326@example.com",
+              "first_name": "Jane",
+              "last_name": "Smith",
+              "phone_primary": "555-555-6666",
+              "company_input": "Test Company",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "new-lead-1753362326",
+              "duplicate_count": 5,
+              "field_mapping_success_rate": 80,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"175\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a1592401edae-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362338\",\"x-forwarded-for\":\"178.22.255.251, 172.70.216.104\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Jane Smith\",\"email\":\"phone-v3-test-1753362326@example.com\",\"phone\":\"555-555-6666\",\"company\":\"Test Company Update 1\",\"request_id\":\"multi-update-1-1753362338\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 5,
+              "mapped_field_count": 4,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-111-2222"
+            }
+          }
+        },
+        "response_time": 3.124857
+      },
+      "analysis": {
+        "input_fields": 5,
+        "mapped_fields": 4,
+        "field_mapping_rate": 80,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": true
+      }
+    },
+    {
+      "test": "phone_update_multi_2",
+      "payload": {
+        "name": "Jane Smith",
+        "email": "phone-v3-test-1753362326@example.com",
+        "phone": "555-777-8888",
+        "company": "Test Company Update 2",
+        "request_id": "multi-update-2-1753362342"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:05:45.734Z",
+          "data": {
+            "id": "recBR2QwyM9WLfp83",
+            "createdTime": "2025-07-24T13:05:30.000Z",
+            "fields": {
+              "email": "phone-v3-test-1753362326@example.com",
+              "first_name": "Jane",
+              "last_name": "Smith",
+              "phone_primary": "555-777-8888",
+              "company_input": "Test Company",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "new-lead-1753362326",
+              "duplicate_count": 7,
+              "field_mapping_success_rate": 80,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"175\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a172a2deedb6-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362342\",\"x-forwarded-for\":\"178.22.255.251, 172.70.216.102\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-xx8dm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Jane Smith\",\"email\":\"phone-v3-test-1753362326@example.com\",\"phone\":\"555-777-8888\",\"company\":\"Test Company Update 2\",\"request_id\":\"multi-update-2-1753362342\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 5,
+              "mapped_field_count": 4,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-111-2222"
+            }
+          }
+        },
+        "response_time": 3.085252
+      },
+      "analysis": {
+        "input_fields": 5,
+        "mapped_fields": 4,
+        "field_mapping_rate": 80,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": true
+      }
+    },
+    {
+      "test": "phone_update_multi_3",
+      "payload": {
+        "name": "Jane Smith",
+        "email": "phone-v3-test-1753362326@example.com",
+        "phone": "555-999-0000",
+        "company": "Test Company Update 3",
+        "request_id": "multi-update-3-1753362346"
+      },
+      "response": {
+        "success": true,
+        "status_code": 200,
+        "data": {
+          "message": "Workflow complete",
+          "success": true,
+          "timestamp": "2025-07-24T13:05:52.104Z",
+          "data": {
+            "id": "recBR2QwyM9WLfp83",
+            "createdTime": "2025-07-24T13:05:30.000Z",
+            "fields": {
+              "email": "phone-v3-test-1753362326@example.com",
+              "first_name": "Jane",
+              "last_name": "Smith",
+              "phone_primary": "555-999-0000",
+              "company_input": "Test Company",
+              "icp_score": 0,
+              "lead_status": "New",
+              "created_date": "2025-07-24",
+              "reengagement_count": 0,
+              "request_id": "new-lead-1753362326",
+              "duplicate_count": 9,
+              "field_mapping_success_rate": 80,
+              "normalization_version": "v4.5-phone-versioning",
+              "raw_webhook_data": "{\"headers\":{\"host\":\"rebelhq.app.n8n.cloud\",\"user-agent\":\"python-requests/2.32.4\",\"content-length\":\"175\",\"accept\":\"*/*\",\"accept-encoding\":\"gzip, br\",\"cdn-loop\":\"cloudflare; loops=1; subreqs=1\",\"cf-connecting-ip\":\"178.22.255.251\",\"cf-ew-via\":\"15\",\"cf-ipcountry\":\"IT\",\"cf-ray\":\"9643a18d3303eddc-MXP\",\"cf-visitor\":\"{\\\"scheme\\\":\\\"https\\\"}\",\"cf-worker\":\"n8n.cloud\",\"content-type\":\"application/json\",\"x-api-key\":\"csv-validator-1753362346\",\"x-forwarded-for\":\"178.22.255.251, 172.70.216.104\",\"x-forwarded-host\":\"rebelhq.app.n8n.cloud\",\"x-forwarded-port\":\"443\",\"x-forwarded-proto\":\"https\",\"x-forwarded-server\":\"traefik-prod-users-gwc-20-65bb84f5c9-zzjlm\",\"x-is-trusted\":\"yes\",\"x-real-ip\":\"178.22.255.251\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"Jane Smith\",\"email\":\"phone-v3-test-1753362326@example.com\",\"phone\":\"555-999-0000\",\"company\":\"Test Company Update 3\",\"request_id\":\"multi-update-3-1753362346\"},\"webhookUrl\":\"https://rebelhq.app.n8n.cloud/webhook/kajabi-leads\",\"executionMode\":\"production\"}",
+              "webhook_field_count": 5,
+              "mapped_field_count": 4,
+              "unknown_field_list": "request_id",
+              "apollo_org_cost": 0,
+              "apollo_person_cost": 0,
+              "twilio_cost": 0,
+              "claude_cost": 0,
+              "total_processing_cost": 0,
+              "phone_country_code": "+1",
+              "phone_original": "555-111-2222"
+            }
+          }
+        },
+        "response_time": 5.345566
+      },
+      "analysis": {
+        "input_fields": 5,
+        "mapped_fields": 4,
+        "field_mapping_rate": 80,
+        "unmapped_fields": [],
+        "unknown_fields": [
+          "request_id"
+        ],
+        "boolean_conversions": {},
+        "name_splitting": true
+      }
+    }
+  ],
+  "summary": {
+    "total_tests": 5,
+    "successful_webhooks": 5,
+    "phone_versioning_strategy": "3-field: phone_original + phone_primary + phone_enriched",
+    "expected_behavior": {
+      "phone_original": "Set once on first lead, never changed",
+      "phone_primary": "Always updated with latest phone number",
+      "phone_enriched": "Set during validation/enrichment process"
+    }
+  }
+}

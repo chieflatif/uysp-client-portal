@@ -1,3 +1,4 @@
+01-core-patterns.txt
 patterns/01-core-patterns.txt
 Core Patterns for foundational setup, webhooks, and data handling.
 
@@ -30,14 +31,7 @@ Core Patterns for foundational setup, webhooks, and data handling.
 - Webhook only listens for one request
 - Not a bug - by design for development
 - Production mode: Always listening
-- **Testing Solution**: Use `/scripts/automated-webhook-test.sh`
-- **Production URL** (no manual steps): `https://rebelhq.app.n8n.cloud/webhook/kajabi-leads`
-
-## Credential JSON Display
-- Credentials showing as `null` in JSON exports is NORMAL
-- This is n8n's security feature, not corruption
-- Trust the UI credential display, not JSON
-- Only re-select if you get actual auth errors
+- Use n8n API for batch activation to automate testing sequences.
 
 ## Table References
 - Use Table IDs: `tblXXXXXXXXXXXXXX` ✓
@@ -53,6 +47,9 @@ Core Patterns for foundational setup, webhooks, and data handling.
 
 "No authentication data defined on node!"
 → Credential corrupted, needs UI re-selection
+
+6. **Workflow Activation**: Manual UI for test mode; use API (PUT /api/v1/workflows/{id}/activate) for automation. Symptom: Tests fail without activation.
+7. **Expression False Preservation**: Omit false; use {{$json.field !== undefined ? $json.field : null}}. Symptom: Boolean false lost.
 
 Pattern: Bootstrap and Initial Setup
 Purpose: Fully automate the initial setup of environment variables, tables, and sample data using commands.
@@ -110,10 +107,6 @@ Error Handling: In SMS nodes - if test_mode, log and simulate success.
 Pattern: Webhook Authentication with Duplicate Prevention
 Purpose: Secure webhook reception with header-based authentication and duplicate request prevention
 Required Nodes: Webhook (trigger), Code (validation + duplicate check), Airtable (check request_id), Switch (route duplicates)
-CRITICAL Platform Notes:
-- See Gotcha #5 in platform-gotchas: Webhook test mode requires manual "Execute Workflow" click per test
-- See Gotcha #17: Credential JSON shows null in exports (NORMAL - security feature)
-- Testing: Use automated script at /scripts/automated-webhook-test.sh or see /docs/webhook-testing-guide.md
 Configuration:
 // Node 1: Webhook
 Type: Webhook
@@ -172,3 +165,79 @@ Configuration:
 Type: Code
 async function getWorkflowId(workflowName) { ... } // From env or Airtable
 Error Handling: Throw if not found.
+Pattern: Airtable Test Cleanup
+Purpose: Clean test records post-testing, preserving duplicates
+Required Nodes: Code (query), Airtable (batch delete)
+Configuration:
+// Node 1: Query Test Records
+Type: Airtable
+Filter: {email} LIKE 'test%'
+// Node 2: Batch Delete
+Type: Code
+// Preserve if duplicate_count >0
+Error Handling: Backup base first.
+
+## TECHNICAL LEARNINGS: Advanced Automation Patterns
+
+### Pattern: n8n API Workflow Automation
+Purpose: Programmatic workflow activation and execution for testing
+Required Tools: REST API calls with authentication
+Configuration:
+// API Authentication
+Headers: X-N8N-API-KEY: your_api_key
+Base URL: https://your-n8n-domain.com/api/v1
+
+// Activation Pattern
+Method: PUT
+Endpoint: /workflows/{workflow_id}/activate
+Body: {"active": true}
+
+// Execution Pattern  
+Method: POST
+Endpoint: /workflows/{workflow_id}/execute
+Body: {"data": test_payload}
+
+// Best Practices:
+// - Wait 5 seconds after activation before execution
+// - Batch tests with 2-second delays between calls
+// - Deactivate workflows post-testing to conserve resources
+// - Use for comprehensive test automation only
+
+### Pattern: Enhanced Airtable Cleanup Protocol
+Purpose: Systematic test record cleanup with duplicate preservation
+Required Tools: Airtable API batch operations
+Configuration:
+// Query Pattern (preserves production data)
+Filter: OR(SEARCH('test', {email}), SEARCH('a1-', {email}), 
+           SEARCH('b2-', {email}), SEARCH('c3-', {email}))
+Exclusion: NOT({duplicate_count} > 0)
+
+// Batch Delete Pattern (API Limit: 10 records max)
+Method: DELETE
+Endpoint: /v0/{base_id}/{table_id}
+Body: {"records": ["rec123", "rec456", ...]}
+
+// Safety Protocols:
+// - Always backup base before bulk operations
+// - Filter carefully using specific test patterns
+// - Preserve duplicate lookup records for data integrity
+// - Rate limit: Maximum 5 requests per second
+// - Log deletion counts for verification
+
+### Pattern: Expression Safety with Boolean Preservation
+Purpose: Handle n8n expression engine boolean omission
+Required: Ternary operators in all boolean expressions
+Configuration:
+// Safe Boolean Expression Pattern
+Unsafe: {{$json.normalized.contacted}}
+Safe: {{$json.normalized.contacted !== undefined ? $json.normalized.contacted : null}}
+
+// Checkbox Field Mapping (Airtable API)
+True values: true → true (checked)
+False values: false → null (unchecked, API ignores false)
+Pattern: normalized[field] = isTruthy ? true : null
+
+// Application:
+// - Use in all IF/Switch node conditions
+// - Required for Airtable checkbox fields
+// - Prevents silent expression failures

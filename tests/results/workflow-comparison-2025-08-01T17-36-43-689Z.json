@@ -1,0 +1,279 @@
+{
+  "session_start": "2025-08-01T17:36:28.521Z",
+  "workflows": {
+    "GROK": {
+      "info": {
+        "id": "VjJCC0EMwIZp7Y6K",
+        "name": "GROK (Fixed)",
+        "webhook": "kajabi-leads-cleaned",
+        "description": "16 nodes, Smart Field Mapper v4.6, recently fixed formula"
+      },
+      "executions": [
+        {
+          "test_id": "COMP001",
+          "test_name": "Standard Lead",
+          "workflow_id": "VjJCC0EMwIZp7Y6K",
+          "webhook_url": "https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned",
+          "payload": {
+            "email": "comp-test-001@example.com",
+            "name": "John Comparison",
+            "phone": "555-0001",
+            "company": "Comparison Corp",
+            "source_form": "webinar-signup",
+            "interested_in_coaching": "yes",
+            "request_id": "COMP001-standard"
+          },
+          "start_time": "2025-08-01T17:36:28.527Z",
+          "status": "FAILED",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-001@example.com\",\"name\":\"John Comparison\",\"phone\":\"555-0001\",\"company\":\"Comparison Corp\",\"source_form\":\"webinar-signup\",\"interested_in_coaching\":\"yes\",\"request_id\":\"COMP001-standard\"}' -w \"%{http_code}\" -s",
+          "end_time": "2025-08-01T17:36:28.547Z",
+          "processing_time_ms": 20
+        },
+        {
+          "test_id": "COMP002",
+          "test_name": "Boolean Test",
+          "workflow_id": "VjJCC0EMwIZp7Y6K",
+          "webhook_url": "https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned",
+          "payload": {
+            "email": "comp-test-002@example.com",
+            "name": "Jane Boolean",
+            "phone": "555-0002",
+            "interested_in_coaching": "true",
+            "qualified_lead": "false",
+            "contacted": "0",
+            "request_id": "COMP002-boolean"
+          },
+          "start_time": "2025-08-01T17:36:33.576Z",
+          "status": "FAILED",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-002@example.com\",\"name\":\"Jane Boolean\",\"phone\":\"555-0002\",\"interested_in_coaching\":\"true\",\"qualified_lead\":\"false\",\"contacted\":\"0\",\"request_id\":\"COMP002-boolean\"}' -w \"%{http_code}\" -s",
+          "end_time": "2025-08-01T17:36:33.607Z",
+          "processing_time_ms": 31
+        },
+        {
+          "test_id": "COMP003",
+          "test_name": "Field Variation",
+          "workflow_id": "VjJCC0EMwIZp7Y6K",
+          "webhook_url": "https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned",
+          "payload": {
+            "email_address": "comp-test-003@example.com",
+            "full_name": "Bob Variation",
+            "phone_number": "555-0003",
+            "company_name": "Field Test Inc",
+            "request_id": "COMP003-variation"
+          },
+          "start_time": "2025-08-01T17:36:38.634Z",
+          "status": "FAILED",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned\" -H \"Content-Type: application/json\" -d '{\"email_address\":\"comp-test-003@example.com\",\"full_name\":\"Bob Variation\",\"phone_number\":\"555-0003\",\"company_name\":\"Field Test Inc\",\"request_id\":\"COMP003-variation\"}' -w \"%{http_code}\" -s",
+          "end_time": "2025-08-01T17:36:38.656Z",
+          "processing_time_ms": 23
+        }
+      ],
+      "performance": {},
+      "issues": [
+        {
+          "test_id": "COMP001",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-001@example.com\",\"name\":\"John Comparison\",\"phone\":\"555-0001\",\"company\":\"Comparison Corp\",\"source_form\":\"webinar-signup\",\"interested_in_coaching\":\"yes\",\"request_id\":\"COMP001-standard\"}' -w \"%{http_code}\" -s",
+          "timestamp": "2025-08-01T17:36:28.547Z"
+        },
+        {
+          "test_id": "COMP002",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-002@example.com\",\"name\":\"Jane Boolean\",\"phone\":\"555-0002\",\"interested_in_coaching\":\"true\",\"qualified_lead\":\"false\",\"contacted\":\"0\",\"request_id\":\"COMP002-boolean\"}' -w \"%{http_code}\" -s",
+          "timestamp": "2025-08-01T17:36:33.607Z"
+        },
+        {
+          "test_id": "COMP003",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned\" -H \"Content-Type: application/json\" -d '{\"email_address\":\"comp-test-003@example.com\",\"full_name\":\"Bob Variation\",\"phone_number\":\"555-0003\",\"company_name\":\"Field Test Inc\",\"request_id\":\"COMP003-variation\"}' -w \"%{http_code}\" -s",
+          "timestamp": "2025-08-01T17:36:38.657Z"
+        }
+      ]
+    },
+    "PRE_COMPLIANCE": {
+      "info": {
+        "id": "wpg9K9s8wlfofv1u",
+        "name": "PRE COMPLIANCE",
+        "webhook": "kajabi-leads",
+        "description": "19 nodes, Smart Field Mapper v4.6, advanced compliance"
+      },
+      "executions": [
+        {
+          "test_id": "COMP001",
+          "test_name": "Standard Lead",
+          "workflow_id": "wpg9K9s8wlfofv1u",
+          "webhook_url": "https://n8n.latifhorst.com/webhook/kajabi-leads",
+          "payload": {
+            "email": "comp-test-001@example.com",
+            "name": "John Comparison",
+            "phone": "555-0001",
+            "company": "Comparison Corp",
+            "source_form": "webinar-signup",
+            "interested_in_coaching": "yes",
+            "request_id": "COMP001-standard"
+          },
+          "start_time": "2025-08-01T17:36:30.548Z",
+          "status": "FAILED",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-001@example.com\",\"name\":\"John Comparison\",\"phone\":\"555-0001\",\"company\":\"Comparison Corp\",\"source_form\":\"webinar-signup\",\"interested_in_coaching\":\"yes\",\"request_id\":\"COMP001-standard\"}' -w \"%{http_code}\" -s",
+          "end_time": "2025-08-01T17:36:30.574Z",
+          "processing_time_ms": 26
+        },
+        {
+          "test_id": "COMP002",
+          "test_name": "Boolean Test",
+          "workflow_id": "wpg9K9s8wlfofv1u",
+          "webhook_url": "https://n8n.latifhorst.com/webhook/kajabi-leads",
+          "payload": {
+            "email": "comp-test-002@example.com",
+            "name": "Jane Boolean",
+            "phone": "555-0002",
+            "interested_in_coaching": "true",
+            "qualified_lead": "false",
+            "contacted": "0",
+            "request_id": "COMP002-boolean"
+          },
+          "start_time": "2025-08-01T17:36:35.608Z",
+          "status": "FAILED",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-002@example.com\",\"name\":\"Jane Boolean\",\"phone\":\"555-0002\",\"interested_in_coaching\":\"true\",\"qualified_lead\":\"false\",\"contacted\":\"0\",\"request_id\":\"COMP002-boolean\"}' -w \"%{http_code}\" -s",
+          "end_time": "2025-08-01T17:36:35.632Z",
+          "processing_time_ms": 24
+        },
+        {
+          "test_id": "COMP003",
+          "test_name": "Field Variation",
+          "workflow_id": "wpg9K9s8wlfofv1u",
+          "webhook_url": "https://n8n.latifhorst.com/webhook/kajabi-leads",
+          "payload": {
+            "email_address": "comp-test-003@example.com",
+            "full_name": "Bob Variation",
+            "phone_number": "555-0003",
+            "company_name": "Field Test Inc",
+            "request_id": "COMP003-variation"
+          },
+          "start_time": "2025-08-01T17:36:40.658Z",
+          "status": "FAILED",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email_address\":\"comp-test-003@example.com\",\"full_name\":\"Bob Variation\",\"phone_number\":\"555-0003\",\"company_name\":\"Field Test Inc\",\"request_id\":\"COMP003-variation\"}' -w \"%{http_code}\" -s",
+          "end_time": "2025-08-01T17:36:40.686Z",
+          "processing_time_ms": 28
+        }
+      ],
+      "performance": {},
+      "issues": [
+        {
+          "test_id": "COMP001",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-001@example.com\",\"name\":\"John Comparison\",\"phone\":\"555-0001\",\"company\":\"Comparison Corp\",\"source_form\":\"webinar-signup\",\"interested_in_coaching\":\"yes\",\"request_id\":\"COMP001-standard\"}' -w \"%{http_code}\" -s",
+          "timestamp": "2025-08-01T17:36:30.574Z"
+        },
+        {
+          "test_id": "COMP002",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-002@example.com\",\"name\":\"Jane Boolean\",\"phone\":\"555-0002\",\"interested_in_coaching\":\"true\",\"qualified_lead\":\"false\",\"contacted\":\"0\",\"request_id\":\"COMP002-boolean\"}' -w \"%{http_code}\" -s",
+          "timestamp": "2025-08-01T17:36:35.632Z"
+        },
+        {
+          "test_id": "COMP003",
+          "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email_address\":\"comp-test-003@example.com\",\"full_name\":\"Bob Variation\",\"phone_number\":\"555-0003\",\"company_name\":\"Field Test Inc\",\"request_id\":\"COMP003-variation\"}' -w \"%{http_code}\" -s",
+          "timestamp": "2025-08-01T17:36:40.686Z"
+        }
+      ]
+    }
+  },
+  "comparisons": [
+    {
+      "test_id": "COMP001",
+      "grok": {
+        "status": "FAILED",
+        "processing_time_ms": 20,
+        "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-001@example.com\",\"name\":\"John Comparison\",\"phone\":\"555-0001\",\"company\":\"Comparison Corp\",\"source_form\":\"webinar-signup\",\"interested_in_coaching\":\"yes\",\"request_id\":\"COMP001-standard\"}' -w \"%{http_code}\" -s"
+      },
+      "pre_compliance": {
+        "status": "FAILED",
+        "processing_time_ms": 26,
+        "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-001@example.com\",\"name\":\"John Comparison\",\"phone\":\"555-0001\",\"company\":\"Comparison Corp\",\"source_form\":\"webinar-signup\",\"interested_in_coaching\":\"yes\",\"request_id\":\"COMP001-standard\"}' -w \"%{http_code}\" -s"
+      },
+      "analysis": {
+        "performance": {
+          "faster_workflow": "GROK",
+          "time_difference_ms": 6,
+          "grok_time": 20,
+          "pre_compliance_time": 26
+        },
+        "reliability": {
+          "grok_success": false,
+          "pre_compliance_success": false,
+          "more_reliable": "EQUAL"
+        }
+      }
+    },
+    {
+      "test_id": "COMP002",
+      "grok": {
+        "status": "FAILED",
+        "processing_time_ms": 31,
+        "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-002@example.com\",\"name\":\"Jane Boolean\",\"phone\":\"555-0002\",\"interested_in_coaching\":\"true\",\"qualified_lead\":\"false\",\"contacted\":\"0\",\"request_id\":\"COMP002-boolean\"}' -w \"%{http_code}\" -s"
+      },
+      "pre_compliance": {
+        "status": "FAILED",
+        "processing_time_ms": 24,
+        "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email\":\"comp-test-002@example.com\",\"name\":\"Jane Boolean\",\"phone\":\"555-0002\",\"interested_in_coaching\":\"true\",\"qualified_lead\":\"false\",\"contacted\":\"0\",\"request_id\":\"COMP002-boolean\"}' -w \"%{http_code}\" -s"
+      },
+      "analysis": {
+        "performance": {
+          "faster_workflow": "PRE_COMPLIANCE",
+          "time_difference_ms": 7,
+          "grok_time": 31,
+          "pre_compliance_time": 24
+        },
+        "reliability": {
+          "grok_success": false,
+          "pre_compliance_success": false,
+          "more_reliable": "EQUAL"
+        }
+      }
+    },
+    {
+      "test_id": "COMP003",
+      "grok": {
+        "status": "FAILED",
+        "processing_time_ms": 23,
+        "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads-cleaned\" -H \"Content-Type: application/json\" -d '{\"email_address\":\"comp-test-003@example.com\",\"full_name\":\"Bob Variation\",\"phone_number\":\"555-0003\",\"company_name\":\"Field Test Inc\",\"request_id\":\"COMP003-variation\"}' -w \"%{http_code}\" -s"
+      },
+      "pre_compliance": {
+        "status": "FAILED",
+        "processing_time_ms": 28,
+        "error": "Command failed: curl -X POST \"https://n8n.latifhorst.com/webhook/kajabi-leads\" -H \"Content-Type: application/json\" -d '{\"email_address\":\"comp-test-003@example.com\",\"full_name\":\"Bob Variation\",\"phone_number\":\"555-0003\",\"company_name\":\"Field Test Inc\",\"request_id\":\"COMP003-variation\"}' -w \"%{http_code}\" -s"
+      },
+      "analysis": {
+        "performance": {
+          "faster_workflow": "GROK",
+          "time_difference_ms": 5,
+          "grok_time": 23,
+          "pre_compliance_time": 28
+        },
+        "reliability": {
+          "grok_success": false,
+          "pre_compliance_success": false,
+          "more_reliable": "EQUAL"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total_tests": 3,
+    "workflows_tested": 2,
+    "test_completion_time": "2025-08-01T17:36:43.688Z",
+    "grok": {
+      "total_executions": 3,
+      "successful_executions": 0,
+      "failed_executions": 3,
+      "success_rate": "0.0%",
+      "average_processing_time_ms": 25,
+      "issues_count": 3
+    },
+    "pre_compliance": {
+      "total_executions": 3,
+      "successful_executions": 0,
+      "failed_executions": 3,
+      "success_rate": "0.0%",
+      "average_processing_time_ms": 26,
+      "issues_count": 3
+    },
+    "recommendation": "GROK - Equal success, faster processing"
+  }
+}

@@ -1,0 +1,328 @@
+{
+  "name": "UYSP Airtable Schemas - Simplified Architecture",
+  "version": "4.0",
+  "last_updated": "2025-07-26",
+  "architectural_changes": [
+    "REMOVED: DND_List table - SMS service handles compliance",
+    "REMOVED: Custom compliance fields from Communications table", 
+    "SIMPLIFIED: Focus on SMS service response tracking",
+    "ENHANCED: Business intelligence tracking without compliance overhead",
+    "STREAMLINED: 40% reduction in field complexity"
+  ],
+  "tables": [
+    {
+      "name": "Field_Mapping_Log",
+      "description": "CRITICAL: Tracks unknown webhook field variations for weekly review",
+      "purpose": "Prevent field normalization failures by monitoring unknown fields",
+      "fields": [
+        {"name": "id", "type": "autoNumber", "primary": true},
+        {"name": "timestamp", "type": "dateTime", "required": true},
+        {"name": "unknown_field", "type": "singleLineText", "required": true},
+        {"name": "webhook_source", "type": "singleLineText", "description": "kajabi, zapier, etc"},
+        {"name": "raw_value", "type": "singleLineText", "description": "The actual value received"},
+        {"name": "occurrence_count", "type": "number", "default": 1},
+        {"name": "first_seen", "type": "dateTime"},
+        {"name": "last_seen", "type": "dateTime"},
+        {"name": "added_to_mapper", "type": "checkbox", "description": "Has this been added to field normalization code?"},
+        {"name": "review_status", "type": "singleSelect", "options": ["New", "Reviewing", "Added", "Ignored"]}
+      ]
+    },
+    {
+      "name": "People", 
+      "description": "Enhanced with tracking fields, simplified compliance",
+      "fields": [
+        {"name": "email", "type": "email", "primary": true},
+        {"name": "linkedin_url", "type": "url"},
+        {"name": "first_name", "type": "singleLineText"},
+        {"name": "last_name", "type": "singleLineText"},
+        {"name": "phone_primary", "type": "phoneNumber"},
+        {"name": "phone_type", "type": "singleSelect", "options": ["mobile", "landline", "voip", "unknown"]},
+        {"name": "phone_enriched", "type": "phoneNumber"},
+        {"name": "phone_country_code", "type": "singleLineText", "description": "e.g., +44 for international detection"},
+        {"name": "company_input", "type": "singleLineText", "description": "As received from webhook"},
+        {"name": "company_enriched", "type": "singleLineText", "description": "From Apollo API"},
+        {"name": "title_current", "type": "singleLineText"},
+        {"name": "icp_score", "type": "number", "min": 0, "max": 100},
+        {"name": "icp_tier", "type": "singleSelect", "options": ["Ultra", "High", "Medium", "Low", "Archive"]},
+        {"name": "lead_source", "type": "singleLineText"},
+        {"name": "lead_status", "type": "singleSelect", "options": ["New", "Contacted", "Engaged", "Booked", "Meeting Scheduled"]},
+        {"name": "interested_in_coaching", "type": "checkbox"},
+        {"name": "kajabi_id", "type": "singleLineText"},
+        {"name": "kajabi_tags", "type": "multipleSelects"},
+        {"name": "last_enriched", "type": "date"},
+        {"name": "created_date", "type": "date"},
+        {"name": "sms_sent", "type": "checkbox"},
+        {"name": "sms_sent_time", "type": "date"},
+        {"name": "sms_clicked", "type": "checkbox"},
+        {"name": "sms_click_time", "type": "date"},
+        {"name": "sms_opted_out", "type": "checkbox", "description": "Populated by SMS service response"},
+        {"name": "sms_opt_out_time", "type": "date", "description": "When SMS service reported opt-out"},
+        {"name": "meeting_booked", "type": "checkbox"},
+        {"name": "meeting_time", "type": "date"},
+        {"name": "score_breakdown", "type": "richText"},
+        {"name": "scoring_date", "type": "date"},
+        {"name": "scoring_method", "type": "singleSelect", "options": ["ai", "domain", "manual"]},
+        {"name": "ready_for_sms", "type": "checkbox"},
+        {"name": "should_enrich_phone", "type": "checkbox"},
+        {"name": "reengagement_count", "type": "number"},
+        {"name": "last_activity", "type": "date"},
+        {"name": "workflow_id", "type": "singleLineText"},
+        {"name": "request_id", "type": "singleLineText", "description": "Unique webhook request ID for duplicate prevention"},
+        {"name": "test_mode_record", "type": "checkbox"},
+        {"name": "international_phone", "type": "checkbox"},
+        {"name": "duplicate_count", "type": "number"},
+        {"name": "routing", "type": "singleSelect", "options": ["auto_qualify", "phase1_fail", "phase2_fail", "data_gaps", "international", "human_review"]},
+        {"name": "reviewed", "type": "checkbox"},
+        {"name": "review_notes", "type": "richText"},
+        {"name": "processing_status", "type": "singleSelect", "options": ["Pending", "Qualified", "Failed", "Reviewed", "Archived"]},
+        
+        {"name": "processing_started", "type": "dateTime", "description": "When lead entered system"},
+        {"name": "processing_completed", "type": "dateTime", "description": "When processing finished"},
+        {"name": "enrichment_attempted", "type": "checkbox", "description": "Did we try to enrich this lead?"},
+        {"name": "title_found", "type": "checkbox", "description": "Did enrichment find a job title?"},
+        {"name": "company_verified", "type": "checkbox", "description": "Did company check pass?"},
+        {"name": "enrichment_failed", "type": "checkbox", "description": "Did enrichment API fail?"},
+        {"name": "field_mapping_success_rate", "type": "number", "description": "% of expected fields captured from webhook"},
+        {"name": "normalization_version", "type": "singleLineText", "description": "Which version of field mapper was used"},
+        {"name": "raw_webhook_data", "type": "longText", "description": "Original payload for debugging"},
+        {"name": "validation_errors", "type": "longText", "description": "JSON of any validation issues found"},
+        
+        {"name": "webhook_field_count", "type": "number", "description": "Total fields in original webhook"},
+        {"name": "mapped_field_count", "type": "number", "description": "How many fields were successfully mapped"},
+        {"name": "unknown_field_list", "type": "longText", "description": "JSON array of unmapped field names"},
+        
+        {"name": "phase1_attempted", "type": "checkbox", "description": "Was company qualification attempted?"},
+        {"name": "phase1_passed", "type": "checkbox", "description": "Did company qualification pass?"},  
+        {"name": "phase2_attempted", "type": "checkbox", "description": "Was person enrichment attempted?"},
+        {"name": "phase2_passed", "type": "checkbox", "description": "Did person enrichment pass?"},
+        {"name": "scoring_attempted", "type": "checkbox", "description": "Was ICP scoring attempted?"},
+        {"name": "scoring_method_used", "type": "singleSelect", "options": ["claude_ai", "domain_fallback", "manual"], "description": "Which scoring method was used"},
+        
+        {"name": "apollo_org_cost", "type": "currency", "description": "Cost of company lookup"},
+        {"name": "apollo_person_cost", "type": "currency", "description": "Cost of person enrichment"}, 
+        {"name": "twilio_cost", "type": "currency", "description": "Cost of phone validation"},
+        {"name": "claude_cost", "type": "currency", "description": "Cost of AI scoring"},
+        {"name": "total_processing_cost", "type": "currency", "description": "Sum of all API costs for this lead"},
+        {"name": "qualified_lead", "type": "checkbox", "description": "Boolean from webhook variations"},
+        {"name": "contacted", "type": "checkbox", "description": "Boolean from webhook variations"}
+      ]
+    },
+    {
+      "name": "Communications",
+      "description": "Simplified to focus on SMS service response tracking",
+      "fields": [
+        {"name": "person_id", "type": "multipleRecordLinks", "table": "People"},
+        {"name": "message_type", "type": "singleSelect", "options": ["SMS", "Email"]},
+        {"name": "message_content", "type": "richText"},
+        {"name": "sent_time", "type": "dateTime"},
+        {"name": "template_used", "type": "singleLineText"},
+        {"name": "tracking_link", "type": "url"},
+        {"name": "clicked", "type": "checkbox"},
+        {"name": "click_time", "type": "dateTime"},
+        {"name": "campaign", "type": "singleLineText"},
+        {"name": "simpletexting_id", "type": "singleLineText"},
+        {"name": "delivery_status", "type": "singleLineText", "description": "From SMS service: delivered, opted_out, invalid_number, rate_limited"},
+        {"name": "opt_out_received", "type": "checkbox", "description": "SMS service reported opt-out"},
+        {"name": "test_mode_send", "type": "checkbox"},
+        {"name": "cost_logged", "type": "currency"},
+        {"name": "sms_service_response", "type": "longText", "description": "Full SMS service response JSON for debugging"}
+      ]
+    },
+    {
+      "name": "Daily_Metrics",
+      "description": "Enhanced with detailed performance tracking",
+      "fields": [
+        {"name": "date", "type": "date", "primary": true},
+        {"name": "leads_processed", "type": "number"},
+        {"name": "leads_by_source", "type": "richText"},
+        {"name": "sms_sent", "type": "number"},
+        {"name": "sms_clicked", "type": "number"},
+        {"name": "meetings_booked", "type": "number"},
+        {"name": "enrichment_costs", "type": "currency"},
+        {"name": "sms_costs", "type": "currency"},
+        {"name": "total_costs", "type": "currency"},
+        {"name": "budget_remaining", "type": "currency"},
+        {"name": "cost_overrun", "type": "checkbox"},
+        {"name": "circuit_breaker_triggered", "type": "checkbox"},
+        {"name": "created_at", "type": "dateTime"},
+        {"name": "last_updated", "type": "dateTime"},
+        {"name": "daily_limit", "type": "currency", "description": "What was the limit when this was created"},
+        
+        {"name": "field_mapping_success_rate", "type": "number", "description": "Daily average field capture %"},
+        {"name": "avg_processing_time", "type": "number", "description": "Average minutes per lead"},
+        {"name": "sms_delivery_rate", "type": "number", "description": "% of SMS actually delivered by service"},
+        {"name": "sms_opt_out_rate", "type": "number", "description": "% of SMS that resulted in opt-outs"},
+        {"name": "enrichment_success_rate", "type": "number", "description": "% of enrichment attempts that found data"},
+        {"name": "api_error_rate", "type": "number", "description": "% of API calls that failed"},
+        {"name": "cache_hit_rate", "type": "number", "description": "% of enrichment served from cache"},
+        {"name": "cost_per_meeting", "type": "currency", "description": "Total costs / meetings booked"}
+      ]
+    },
+    {
+      "name": "Workflow_IDs",
+      "fields": [
+        {"name": "name", "type": "singleLineText", "primary": true},
+        {"name": "id", "type": "singleLineText", "description": "n8n workflow ID"},
+        {"name": "created_date", "type": "dateTime"},
+        {"name": "description", "type": "richText"},
+        {"name": "status", "type": "singleSelect", "options": ["Active", "Testing", "Archived"]},
+        {"name": "version", "type": "singleLineText"}
+      ]
+    },
+    {
+      "name": "Enrichment_Cache",
+      "fields": [
+        {"name": "email", "type": "email", "primary": true},
+        {"name": "source", "type": "singleSelect", "options": ["apollo_org", "apollo_people", "twilio", "leadmagic"]},
+        {"name": "response_data", "type": "longText", "description": "JSON response from API"},
+        {"name": "cached_date", "type": "dateTime"},
+        {"name": "cache_expiry", "type": "dateTime"},
+        {"name": "cost", "type": "currency"},
+        {"name": "success", "type": "checkbox"},
+        {"name": "error_message", "type": "longText"},
+        {"name": "hit_count", "type": "number", "description": "How many times this cache entry was used"}
+      ]
+    },
+    {
+      "name": "Daily_Costs",
+      "fields": [
+        {"name": "date", "type": "date", "primary": true},
+        {"name": "apollo_org_costs", "type": "currency"},
+        {"name": "apollo_people_costs", "type": "currency"},
+        {"name": "twilio_costs", "type": "currency"},
+        {"name": "sms_costs", "type": "currency"},
+        {"name": "claude_costs", "type": "currency"},
+        {"name": "total_costs", "type": "currency"},
+        {"name": "budget_remaining", "type": "currency"},
+        {"name": "cost_overrun", "type": "checkbox"},
+        {"name": "circuit_breaker_triggered", "type": "checkbox"},
+        {"name": "created_at", "type": "dateTime"},
+        {"name": "last_updated", "type": "dateTime"},
+        {"name": "daily_limit", "type": "currency", "description": "What was the limit when this was created"}
+      ]
+    },
+    {
+      "name": "Error_Log",
+      "description": "Enhanced error tracking focused on system errors",
+      "fields": [
+        {"name": "id", "type": "autoNumber", "primary": true},
+        {"name": "workflow_name", "type": "singleLineText"},
+        {"name": "execution_id", "type": "singleLineText"},
+        {"name": "error_message", "type": "longText"},
+        {"name": "error_node", "type": "singleLineText"},
+        {"name": "error_type", "type": "singleSelect", "options": ["validation", "api", "rate_limit", "timeout", "unknown", "duplicate", "field_mapping", "sms_service"]},
+        {"name": "lead_email", "type": "email"},
+        {"name": "timestamp", "type": "dateTime"},
+        {"name": "resolved", "type": "checkbox"},
+        {"name": "raw_error", "type": "longText"},
+        {"name": "resolution_notes", "type": "longText"},
+        {"name": "resolution_date", "type": "dateTime"}
+      ]
+    },
+    {
+      "name": "Human_Review_Queue",
+      "description": "Route unclear leads for manual review",
+      "purpose": "Handle leads that need human decision - about 30% initially",
+      "fields": [
+        {"name": "id", "type": "autoNumber", "primary": true},
+        {"name": "person_id", "type": "multipleRecordLinks", "table": "People", "required": true},
+        {"name": "error_log_id", "type": "multipleRecordLinks", "table": "Error_Log", "description": "Link to related errors if review triggered by failure"},
+        {"name": "review_reason", "type": "singleSelect", "options": ["no_company_data", "non_b2b_unclear", "non_sales_role", "international", "data_quality_issues", "api_failure", "sms_service_error"]},
+        {"name": "created_date", "type": "dateTime", "required": true},
+        {"name": "reviewed", "type": "checkbox", "default": false},
+        {"name": "reviewer", "type": "singleLineText"},
+        {"name": "review_date", "type": "dateTime"},
+        {"name": "review_decision", "type": "singleSelect", "options": ["qualify", "archive", "edit_and_retry", "escalate"]},
+        {"name": "review_notes", "type": "longText"},
+        {"name": "priority", "type": "singleSelect", "options": ["High", "Medium", "Low"], "default": "Medium"},
+        {"name": "sla_deadline", "type": "dateTime", "description": "48-hour SLA for review"},
+        {"name": "auto_archive_date", "type": "dateTime", "description": "When to auto-archive if not reviewed"}
+      ]
+    },
+    {
+      "name": "Meetings",
+      "fields": [
+        {"name": "person_id", "type": "multipleRecordLinks", "table": "People"},
+        {"name": "meeting_time", "type": "dateTime"},
+        {"name": "meeting_type", "type": "singleLineText"},
+        {"name": "booking_source", "type": "singleLineText"},
+        {"name": "booking_campaign", "type": "singleLineText"},
+        {"name": "booking_content", "type": "richText"},
+        {"name": "calendly_event_id", "type": "singleLineText"},
+        {"name": "created_at", "type": "dateTime"},
+        {"name": "attended", "type": "checkbox"},
+        {"name": "outcome", "type": "singleSelect", "options": ["Qualified", "Not Qualified", "Rescheduled", "No Show"]}
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Communications",
+      "to": "People", 
+      "type": "many_to_one",
+      "description": "Each communication links to one person"
+    },
+    {
+      "from": "Meetings",
+      "to": "People",
+      "type": "many_to_one", 
+      "description": "Each meeting links to one person"
+    },
+    {
+      "from": "Error_Log",
+      "to": "People",
+      "type": "many_to_one",
+      "field": "lead_email",
+      "description": "Errors can be traced back to specific leads"
+    },
+    {
+      "from": "Human_Review_Queue",
+      "to": "Error_Log",
+      "type": "many_to_one",
+      "description": "Reviews can link to triggering errors"
+    }
+  ],
+  "critical_views": [
+    {
+      "name": "Human Review Queue",
+      "table": "People",
+      "filter": "routing = 'human_review' AND reviewed = false",
+      "sort": "created_date ASC",
+      "purpose": "Daily processing queue for manual review"
+    },
+    {
+      "name": "Field Mapping Issues", 
+      "table": "Field_Mapping_Log",
+      "filter": "added_to_mapper = false",
+      "sort": "occurrence_count DESC",
+      "purpose": "Weekly review of unmapped fields"
+    },
+    {
+      "name": "Low Field Mapping Success",
+      "table": "People", 
+      "filter": "field_mapping_success_rate < 0.90",
+      "sort": "created_date DESC",
+      "purpose": "Identify leads with poor field capture"
+    },
+    {
+      "name": "Failed Enrichments",
+      "table": "People",
+      "filter": "enrichment_attempted = true AND enrichment_failed = true",
+      "purpose": "Debug enrichment API issues"
+    },
+    {
+      "name": "SMS Service Issues",
+      "table": "Communications",
+      "filter": "delivery_status IN ('opted_out', 'invalid_number', 'rate_limited')",
+      "sort": "sent_time DESC",
+      "purpose": "Monitor SMS service response patterns"
+    },
+    {
+      "name": "Test Records", 
+      "table": "People", 
+      "filter": "test_mode_record = true", 
+      "sort": "created_date DESC", 
+      "purpose": "Easy identification for post-test cleanup"
+    }
+  ]
+}

@@ -9,9 +9,9 @@
  * - Session 0 metrics tracking
  * - Unknown field logging support
  * 
- * Node ID: a3493afa-1eaf-41bb-99ca-68fe76209a29
- * Workflow: CefJB1Op3OySG8nb
- * Version: v3.0-2025-07-23
+ * Node ID: b8d9c432-2f9f-455e-a0f4-06863abfa10f
+ * Workflow: wpg9K9s8wlfofv1u
+ * Version: v4.6-boolean-null-fix
  */
 
 // Smart Field Mapper with request_id support
@@ -119,7 +119,7 @@ normalized.field_mapping_success_rate =
   (Object.keys(normalized).length / Object.keys(input).length * 100).toFixed(1);
 normalized.webhook_field_count = Object.keys(input).length;
 normalized.mapped_field_count = Object.keys(normalized).length;
-normalized.normalization_version = 'v3.0-2025-07-23';
+normalized.normalization_version = 'v4.6-boolean-null-fix';
 normalized.raw_webhook_data = JSON.stringify(input);
 normalized.unknown_field_list = JSON.stringify(unmappedFields);
 

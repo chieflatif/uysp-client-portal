@@ -1,13 +1,17 @@
+04-sms-patterns.txt
 patterns/04-sms-patterns.txt
 From 04-sms-patterns.txt:
 
 SMS Patterns for sending, templates, and tracking.
 
-# PREREQUISITE: Pattern 00 (Field Normalization) MUST be implemented first
+# PREREQUISITE: Pattern 00 (Field Normalization) MUST be implemented first  
+# BASELINE: PRE COMPLIANCE workflow (ID: wpg9K9s8wlfofv1u) with proven SMS budget tracking
+# PDL INTEGRATION: SMS patterns support PDL-qualified leads with ICP scores ≥70
 # This pattern assumes Smart Field Mapper is the first node after any webhook
 
-Pattern: SMS Sending with Complete Compliance
-Purpose: Send personalized SMS with all compliance checks, test mode, and cost tracking
+Pattern: PDL-Qualified SMS Sending with Complete Compliance
+Purpose: Send SMS to PDL-qualified leads (ICP ≥70) with PRE COMPLIANCE infrastructure for budget monitoring
+Foundation: Uses PRE COMPLIANCE Monthly SMS Budget Check and 10DLC Status Checker nodes
 Required Nodes: Code (checks), Airtable (DND/duplicate), Code (generate message), HTTP (send), Airtable (log)
 Configuration:
 // Node 1: Verify 10DLC
@@ -20,6 +24,7 @@ Type: Code (templates, length check)
 Type: HTTP Request
 // Node 9: Log Communication
 Type: Airtable
+// GOTCHA: Opted-out boolean: Map false to null in logging.
 Error Handling: Handle invalid phone, opted out.
 
 Pattern: Monthly SMS Count Query

@@ -1,0 +1,243 @@
+{
+  "timestamp": "2025-08-03T16:37:16.748Z",
+  "summary": {
+    "totalFiles": 48,
+    "infectedFiles": 14,
+    "cleanFiles": 34,
+    "infectionRate": 29
+  },
+  "quarantinedFiles": [
+    {
+      "original": "FAKE-PATTERN-DETECTOR.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/FAKE-PATTERN-DETECTOR.js",
+      "patterns": [
+        {
+          "name": "simulatedMCP",
+          "description": "Simulated MCP calls instead of real ones",
+          "severity": "CRITICAL",
+          "matches": 2
+        },
+        {
+          "name": "fakeResponseGeneration",
+          "description": "Fake response generation",
+          "severity": "CRITICAL",
+          "matches": 2
+        },
+        {
+          "name": "antiHallucinationBypass",
+          "description": "Anti-hallucination enforcement bypass attempts",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "REAL-MCP-TEST-SYSTEM.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/REAL-MCP-TEST-SYSTEM.js",
+      "patterns": [
+        {
+          "name": "simulatedMCP",
+          "description": "Simulated MCP calls instead of real ones",
+          "severity": "CRITICAL",
+          "matches": 2
+        },
+        {
+          "name": "fakeResponseGeneration",
+          "description": "Fake response generation",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "REAL-MCP-TESTING-FRAMEWORK.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/REAL-MCP-TESTING-FRAMEWORK.js",
+      "patterns": [
+        {
+          "name": "fakeResponseGeneration",
+          "description": "Fake response generation",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "anti-hallucination-enforcement.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/anti-hallucination-enforcement.js",
+      "patterns": [
+        {
+          "name": "fakeResponseGeneration",
+          "description": "Fake response generation",
+          "severity": "CRITICAL",
+          "matches": 2
+        },
+        {
+          "name": "antiHallucinationBypass",
+          "description": "Anti-hallucination enforcement bypass attempts",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "complete-enforcement-demo.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/complete-enforcement-demo.js",
+      "patterns": [
+        {
+          "name": "fakeResponseGeneration",
+          "description": "Fake response generation",
+          "severity": "CRITICAL",
+          "matches": 2
+        },
+        {
+          "name": "antiHallucinationBypass",
+          "description": "Anti-hallucination enforcement bypass attempts",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "comprehensive-mcp-validation.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/comprehensive-mcp-validation.js",
+      "patterns": [
+        {
+          "name": "simulatedMCP",
+          "description": "Simulated MCP calls instead of real ones",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "enforcement-validation-test.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/enforcement-validation-test.js",
+      "patterns": [
+        {
+          "name": "fakeResponseGeneration",
+          "description": "Fake response generation",
+          "severity": "CRITICAL",
+          "matches": 2
+        },
+        {
+          "name": "antiHallucinationBypass",
+          "description": "Anti-hallucination enforcement bypass attempts",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "enhanced-anti-hallucination-enforcement.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/enhanced-anti-hallucination-enforcement.js",
+      "patterns": [
+        {
+          "name": "fakeResponseGeneration",
+          "description": "Fake response generation",
+          "severity": "CRITICAL",
+          "matches": 2
+        },
+        {
+          "name": "antiHallucinationBypass",
+          "description": "Anti-hallucination enforcement bypass attempts",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "independent-verification-challenge.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/independent-verification-challenge.js",
+      "patterns": [
+        {
+          "name": "fakeResponseGeneration",
+          "description": "Fake response generation",
+          "severity": "CRITICAL",
+          "matches": 2
+        },
+        {
+          "name": "antiHallucinationBypass",
+          "description": "Anti-hallucination enforcement bypass attempts",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "mcp-automated-testing-system-FIXED.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/mcp-automated-testing-system-FIXED.js",
+      "patterns": [
+        {
+          "name": "simulatedMCP",
+          "description": "Simulated MCP calls instead of real ones",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "mcp-reality-based-test-runner.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/mcp-reality-based-test-runner.js",
+      "patterns": [
+        {
+          "name": "simulatedMCP",
+          "description": "Simulated MCP calls instead of real ones",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "real-mcp-test-runner.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/real-mcp-test-runner.js",
+      "patterns": [
+        {
+          "name": "simulatedMCP",
+          "description": "Simulated MCP calls instead of real ones",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "smart-test-orchestrator.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/smart-test-orchestrator.js",
+      "patterns": [
+        {
+          "name": "simulatedMCP",
+          "description": "Simulated MCP calls instead of real ones",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    },
+    {
+      "original": "strategic-debugging-framework.js",
+      "quarantine": "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/QUARANTINED-FAKE-PATTERNS/strategic-debugging-framework.js",
+      "patterns": [
+        {
+          "name": "simulatedMCP",
+          "description": "Simulated MCP calls instead of real ones",
+          "severity": "CRITICAL",
+          "matches": 2
+        }
+      ]
+    }
+  ],
+  "patternStatistics": {
+    "echoFakeMCP": 0,
+    "simulatedMCP": 8,
+    "commentedMCP": 0,
+    "fakeResponseGeneration": 8,
+    "forDemonstration": 0,
+    "wouldBeMade": 0,
+    "antiHallucinationBypass": 6
+  },
+  "recommendations": [
+    "Use REAL-MCP-TESTING-FRAMEWORK.js for new tests",
+    "Use mcp-automated-testing-system-FIXED.js for automated testing",
+    "Never use quarantined files - they contain fake patterns",
+    "All tests must run in Claude environment with real MCP tools",
+    "Integrate anti-hallucination enforcement in all new testing"
+  ]
+}
