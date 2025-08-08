@@ -66,7 +66,7 @@ Updated MCP tool configuration for UYSP Lead Qualification System development. *
 
 **WHEN TO USE**:
 - ✅ Research PDL API implementation patterns
-- ✅ Find integration examples for Apollo → PDL migration
+- ✅ Find integration examples for PDL → Hunter waterfall implementation
 - ✅ Discover SMS compliance requirements (10DLC, TCPA)
 - ✅ Secondary research when primary tools lack coverage
 
