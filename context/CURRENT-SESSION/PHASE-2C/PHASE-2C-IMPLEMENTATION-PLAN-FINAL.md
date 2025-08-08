@@ -60,6 +60,13 @@ EVIDENCE COLLECTED:
 
 INSERTION POINT IDENTIFIED:
 After Smart Field Mapper (position [-840, 680]) → PDL Company API → existing flow
+
+🚨 CRITICAL CORRECTIONS INTEGRATED FROM TOOL RESEARCH:
+✅ PDL Company API uses GET method (not POST)
+✅ PDL uses 'website' parameter (not 'name') 
+✅ Authentication requires sendHeaders: true
+✅ Query parameters for GET request (not body)
+✅ Proper credential reference pattern validated
 ```
 
 ### **3. LINGERING ISSUES ACKNOWLEDGMENT**
@@ -152,7 +159,7 @@ mcp_n8n_get_node_documentation({ nodeType: "n8n-nodes-base.httpRequest" })
 **Duration**: 2 hours  
 **Dependencies**: Chunk 1 complete  
 
-#### **Node Configuration**:
+#### **Node Configuration** (CORRECTED BASED ON TOOL RESEARCH):
 ```javascript
 {
   "id": "[generate-unique-id]",
@@ -160,18 +167,27 @@ mcp_n8n_get_node_documentation({ nodeType: "n8n-nodes-base.httpRequest" })
   "type": "n8n-nodes-base.httpRequest",
   "position": [/* after Smart Field Mapper */],
   "parameters": {
-    "method": "POST",
+    "method": "GET",  // CORRECTED: PDL Company API uses GET, not POST
     "url": "https://api.peopledatalabs.com/v5/company/enrich",
     "authentication": "predefinedCredentialType",
     "nodeCredentialType": "httpHeaderAuth",
-    "sendHeaders": false,
+    "sendHeaders": true,  // CORRECTED: Headers required for authentication
     "headerParameters": {
       "parameters": [{
         "name": "X-Api-Key",
-        "value": "={{$credentials.apiKey}}"
+        "value": "={{$credentials.httpHeaderAuth.headerValue}}"  // CORRECTED: Proper credential reference
       }]
     },
-    "bodyParametersJson": "={{ JSON.stringify({ name: $json.normalized.company, min_likelihood: 5 }) }}",
+    "sendQuery": true,  // CORRECTED: Use query parameters for GET request
+    "queryParameters": {
+      "parameters": [{
+        "name": "website", 
+        "value": "={{$json.normalized.company}}"  // CORRECTED: PDL uses 'website' parameter, not 'name'
+      }, {
+        "name": "min_likelihood",
+        "value": "5"
+      }]
+    },
     "options": {
       "timeout": 10000,
       "batching": {
