@@ -27,16 +27,16 @@
 USAGE: ALWAYS validate n8n node documentation with Context7 before creation/modification
 ```
 
-#### **N8N MCP Suite** (❌ NOT AVAILABLE):
+#### **N8N MCP Suite** (✅ OPERATIONAL):
 ```markdown  
-❌ mcp_n8n_n8n_get_workflow - NOT AVAILABLE (manual UI development required)
-❌ mcp_n8n_n8n_update_partial_workflow - NOT AVAILABLE (use n8n UI directly)
-❌ mcp_n8n_n8n_create_workflow - NOT AVAILABLE (manual workflow creation)
-❌ mcp_n8n_n8n_get_execution - NOT AVAILABLE (screenshot-based evidence)
-❌ mcp_n8n_validate_workflow - NOT AVAILABLE (manual testing required)
-❌ mcp_n8n_get_node_documentation - NOT AVAILABLE (use Context7/DocFork)
+✅ mcp_n8n_n8n_get_workflow - Retrieve workflow details (VERIFIED WORKING)
+✅ mcp_n8n_n8n_update_partial_workflow - Batch node operations (≤5 per chunk) 
+✅ mcp_n8n_n8n_create_workflow - New workflow creation
+✅ mcp_n8n_n8n_get_execution - Execution status and evidence collection
+✅ mcp_n8n_validate_workflow - Structure and logic validation
+✅ mcp_n8n_get_node_documentation - Node schema and parameters
 
-⚠️ IMPACT: Developer Agent must use manual n8n UI development approach
+✅ STATUS: n8n API connected to https://rebelhq.app.n8n.cloud (v1.105.2)
 ```
 
 #### **Airtable MCP Suite** (OPERATIONAL):
@@ -129,40 +129,41 @@ AIRTABLE RECORD CREATION
 
 ## **🛠️ DEVELOPMENT PROTOCOLS**
 
-### **Context7 + Manual Development Workflow**:
+### **Context7 + N8N MCP Workflow**:
 ```markdown
-1. RESEARCH & PLANNING (Context7 + DocFork):
-   - Use Context7 to research n8n node documentation before implementation
-   - Query DocFork for latest n8n API specifications and examples
-   - Validate PDL API integration patterns and authentication methods
-   - Document exact node configurations and parameter requirements
+1. CONTEXT7 VALIDATION:
+   - Add "use context7" to prompts for documentation accuracy before n8n node creation
+   - Validate node parameters and compatibility
+   - Confirm current n8n API documentation
+   - Research PDL API integration patterns
 
-2. MANUAL N8N DEVELOPMENT:
-   - Access n8n UI directly for workflow modifications
-   - Create nodes manually using researched specifications
-   - Test each component individually before integration
-   - Screenshot evidence for each development step
+2. N8N MCP OPERATIONS:
+   - Use mcp_n8n_n8n_get_workflow to retrieve current workflow state
+   - Use mcp_n8n_n8n_update_partial_workflow for node additions (≤5 nodes per update)
+   - Validate with mcp_n8n_validate_workflow after changes
+   - NOTE: Manual credential configuration may still be required in UI
 
 3. EVIDENCE COLLECTION:
-   - Screenshots of workflow development progress
-   - Airtable MCP verification of data storage and cost tracking
-   - Manual execution testing with documented results
-   - Real lead data validation (not simulations)
+   - Capture mcp_n8n_n8n_get_execution IDs for all tests
+   - Verify mcp_airtable_get_record updates for cost tracking
+   - Document real execution data (not simulations)
+   - Screenshot critical workflow states for backup
 ```
 
-### **Manual Development Strategy**:
+### **Chunked Development Strategy**:
 ```markdown
-DEVELOPMENT APPROACH:
-- Research-first planning using Context7/DocFork
-- Manual n8n UI development with detailed documentation
-- Step-by-step implementation with screenshot evidence
-- Airtable MCP verification for data validation
-- User confirmation at each major milestone
+CHUNK FORMAT:
+- Analysis (Context7 validation if needed)
+- ≤5 operations per chunk via MCP
+- Evidence collection (execution IDs, record IDs)
+- User confirmation before next chunk
+
+WAIT FOR USER 'GO' OR 'PROCEED' BETWEEN CHUNKS
 
 EVIDENCE REQUIREMENTS:
-- Screenshots of each development step
+- n8n execution IDs from MCP
 - Airtable record verification via MCP
-- Manual test execution results
+- Real API response data
 - Cost tracking validation
 ```
 
