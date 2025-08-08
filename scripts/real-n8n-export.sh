@@ -13,6 +13,24 @@ SCHEMAS_DIR="./data/schemas"
 AIRTABLE_BASE_ID="appuBf0fTe8tp8ZaF"
 WORKSPACE_NAME="UYSP Lead Qualification Agent"
 
+# Optional: Direct n8n API export (recommended for complete, UI-identical JSON)
+# Set these in your environment or a .env loader prior to running the script
+# Example:
+#   export N8N_API_URL="https://rebelhq.app.n8n.cloud"
+#   export N8N_API_KEY="<your-api-key>"
+N8N_API_URL="${N8N_API_URL:-https://rebelhq.app.n8n.cloud}"
+# Auto-load API key from local file if env not set
+if [ -z "${N8N_API_KEY:-}" ]; then
+  if [ -f ".n8n_api_key" ]; then
+    N8N_API_KEY=$(cat .n8n_api_key | tr -d '\n' | tr -d '\r')
+  elif [ -f "scripts/.n8n_api_key" ]; then
+    N8N_API_KEY=$(cat scripts/.n8n_api_key | tr -d '\n' | tr -d '\r')
+  fi
+fi
+N8N_API_KEY="${N8N_API_KEY:-}"
+# n8n Cloud Project ID for Public API requests
+N8N_PROJECT_ID="${N8N_PROJECT_ID:-H4VRaaZhd8VKQANf}"
+
 echo "🔄 COMPLETE UYSP WORKSPACE BACKUP Starting..."
 echo "📅 Timestamp: $TIMESTAMP"
 echo "🏢 Workspace: $WORKSPACE_NAME"
@@ -21,69 +39,167 @@ echo "🏢 Workspace: $WORKSPACE_NAME"
 mkdir -p "$BACKUP_DIR"
 mkdir -p "$SCHEMAS_DIR"
 
-# STEP 1: SMART Detection of Primary/Active Workflows
 echo ""
-echo "🟦 Step 1: SMART Detection of Primary Working Workflows..."
-echo "🧠 Analyzing workspace for ACTIVE vs INACTIVE workflows..."
+echo "🟦 Step 1: SMART Auto-Discovery of All Workflows..."
+echo "🧠 Fetching workspace workflows via API and classifying automatically..."
 
-# 🚨 DISASTER RECOVERY CLASSIFICATION SYSTEM 🚨
-# Smart classification for "WHICH ONE IS THE FUCKING CORRECT ONE TO RESTORE"
+if [ -z "$N8N_API_KEY" ]; then
+  echo "❌ N8N_API_KEY not set and no .n8n_api_key file found"
+  exit 1
+fi
 
-# 🔴 PRIORITY 1: PRIMARY PRODUCTION WORKFLOWS (RESTORE THESE FIRST!)
-PRIMARY_WORKFLOWS=(
-    "Q2ReTnOliUTuuVpl:UYSP-PHASE-2B-COMPLETE-CLEAN-REBUILD:MAIN-PRODUCTION-PIPELINE"
-    "1FIscY7vZ7IbCINS:Bulk-Lead-Processor:BULK-PRODUCTION-SYSTEM"
-)
+# Pull all workflows
+WORKFLOWS_JSON=$(curl -sS -H "X-N8N-API-KEY: ${N8N_API_KEY}" -H "Accept: application/json" "${N8N_API_URL%/}/api/v1/workflows")
 
-# 🟡 PRIORITY 2: SECONDARY/TESTING WORKFLOWS (Backup for disaster recovery)  
-SECONDARY_WORKFLOWS=(
-    "workflow_id_3:UYSP-PRE-COMPLIANCE-TESTING-COPY:TESTING-BACKUP"
-    "workflow_id_4:UYSP-PRE-COMPLIANCE-TESTING-ACTIVE:TESTING-BACKUP"
-    "workflow_id_5:uysp-error-handler-v1:UTILITY-BACKUP"
-    "workflow_id_6:uysp-setup-verification-v1-PROJECT:SETUP-BACKUP"
-)
+# Build a list of {id,name,active,nodesCount,updatedAt}
+WORKFLOW_LIST=$(echo "$WORKFLOWS_JSON" | jq -r '.data[] | @base64')
 
-# Build complete export list with priority classification
 ALL_WORKFLOWS_TO_EXPORT=()
+PRIMARY_IDS=()
+SECONDARY_IDS=()
 
-# Add PRIMARY workflows (Priority 1)
-for workflow_entry in "${PRIMARY_WORKFLOWS[@]}"; do
-    IFS=':' read -r workflow_id workflow_name description <<< "$workflow_entry"
-    safe_name=$(echo "$workflow_name" | sed 's/[^a-zA-Z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
-    ALL_WORKFLOWS_TO_EXPORT+=("$workflow_id:$safe_name:PRIMARY")
+MOST_DEV_ID=""
+MOST_DEV_NAME=""
+MOST_DEV_NODES=0
+MOST_DEV_UPDATED=""
+
+for w in $WORKFLOW_LIST; do
+  _json(){ echo "$w" | base64 --decode | jq -r "$1"; }
+  wid=$(_json '.id')
+  wname=$(_json '.name')
+  wactive=$(_json '.active')
+
+  # Fetch details to count nodes and get updatedAt
+  wdetail=$(curl -sS -H "X-N8N-API-KEY: ${N8N_API_KEY}" -H "Accept: application/json" "${N8N_API_URL%/}/api/v1/workflows/${wid}")
+  nodesCount=$(echo "$wdetail" | jq -r '.nodes | length')
+  updatedAt=$(echo "$wdetail" | jq -r '.updatedAt // ""')
+
+  # Track most developed among active
+  if [ "$wactive" = "true" ]; then
+    PRIMARY_IDS+=("$wid:$wname:$nodesCount:$updatedAt")
+    if [ "$nodesCount" -gt "$MOST_DEV_NODES" ] || { [ "$nodesCount" -eq "$MOST_DEV_NODES" ] && [ "$updatedAt" \> "$MOST_DEV_UPDATED" ]; }; then
+      MOST_DEV_ID="$wid"
+      MOST_DEV_NAME="$wname"
+      MOST_DEV_NODES=$nodesCount
+      MOST_DEV_UPDATED="$updatedAt"
+    fi
+  else
+    SECONDARY_IDS+=("$wid:$wname:$nodesCount:$updatedAt")
+  fi
 done
 
-# Add SECONDARY workflows (Priority 2) for disaster recovery
-for workflow_entry in "${SECONDARY_WORKFLOWS[@]}"; do
-    IFS=':' read -r workflow_id workflow_name description <<< "$workflow_entry"
-    safe_name=$(echo "$workflow_name" | sed 's/[^a-zA-Z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
-    ALL_WORKFLOWS_TO_EXPORT+=("$workflow_id:$safe_name:SECONDARY")
-done
+# If no active workflows, consider all as secondary (still backed up)
+if [ ${#PRIMARY_IDS[@]} -eq 0 ]; then
+  for item in "${SECONDARY_IDS[@]}"; do
+    IFS=':' read -r wid wname _n _u <<< "$item"
+    safe_name=$(echo "$wname" | sed 's/[^a-zA-Z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+    ALL_WORKFLOWS_TO_EXPORT+=("$wid:$safe_name:SECONDARY")
+  done
+else
+  for item in "${PRIMARY_IDS[@]}"; do
+    IFS=':' read -r wid wname _n _u <<< "$item"
+    safe_name=$(echo "$wname" | sed 's/[^a-zA-Z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+    if [ "$wid" = "$MOST_DEV_ID" ]; then
+      ALL_WORKFLOWS_TO_EXPORT+=("$wid:${safe_name}:PRIMARY_MAIN")
+    else
+      ALL_WORKFLOWS_TO_EXPORT+=("$wid:${safe_name}:PRIMARY")
+    fi
+  done
+  for item in "${SECONDARY_IDS[@]}"; do
+    IFS=':' read -r wid wname _n _u <<< "$item"
+    safe_name=$(echo "$wname" | sed 's/[^a-zA-Z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+    ALL_WORKFLOWS_TO_EXPORT+=("$wid:${safe_name}:SECONDARY")
+  done
+fi
 
 echo "🚨 DISASTER RECOVERY CLASSIFICATION:"
-echo "   🔴 PRIORITY 1 (PRIMARY): ${#PRIMARY_WORKFLOWS[@]} workflows - RESTORE THESE FIRST"
-for workflow_entry in "${PRIMARY_WORKFLOWS[@]}"; do
-    IFS=':' read -r workflow_id workflow_name description <<< "$workflow_entry"
-    echo "      ⭐ $workflow_name ($workflow_id) - $description"
-done
-
-echo "   🟡 PRIORITY 2 (SECONDARY): ${#SECONDARY_WORKFLOWS[@]} workflows - Additional backup"  
-for workflow_entry in "${SECONDARY_WORKFLOWS[@]}"; do
-    IFS=':' read -r workflow_id workflow_name description <<< "$workflow_entry"
-    echo "      📄 $workflow_name ($workflow_id) - $description"
-done
+echo "   🔴 PRIMARY (active): $(printf '%s\n' "${PRIMARY_IDS[@]}" | wc -l | tr -d ' ')"
+if [ -n "$MOST_DEV_ID" ]; then
+  echo "      ⭐ MAIN: ${MOST_DEV_NAME} (${MOST_DEV_ID}) - most developed"
+fi
+echo "   🟡 SECONDARY (inactive): $(printf '%s\n' "${SECONDARY_IDS[@]}" | wc -l | tr -d ' ')"
 
 echo ""
 echo "📦 BACKING UP ALL WORKFLOWS WITH PRIORITY LABELS..."
-echo "📊 Total workflows to export: ${#ALL_WORKFLOWS_TO_EXPORT[@]} (${#PRIMARY_WORKFLOWS[@]} primary + ${#SECONDARY_WORKFLOWS[@]} secondary)"
+echo "📊 Total workflows to export: ${#ALL_WORKFLOWS_TO_EXPORT[@]}"
 
-# Export each workflow in the active list
+# Export helpers
 EXPORTED_FILES=()
 EXPORT_SUCCESS=true
 
-if command -v node >/dev/null 2>&1; then
-    # Create temporary export script for any workflow
-    cat > /tmp/export_workflow.js << 'EOF'
+export_workflow_via_api() {
+  local workflow_id="$1"
+  local output_file="$2"
+
+  if [ -z "$N8N_API_KEY" ]; then
+    return 1
+  fi
+
+  # Fetch from n8n REST API (matches UI download closely)
+  # Includes nodes, connections, settings, meta, pinData, etc.
+  local tmp_file
+  tmp_file="${output_file}.tmp"
+
+  # Attempt 1: X-N8N-API-KEY to /api/v1 (confirmed working in tester)
+  http_code=$(curl -sS -w "%{http_code}" -H "X-N8N-API-KEY: ${N8N_API_KEY}" -H "Accept: application/json" \
+    "${N8N_API_URL%/}/api/v1/workflows/${workflow_id}" -o "$tmp_file" || true)
+
+  # Attempt 2: Bearer token (JWT/public API token style)
+  if [ "$http_code" != "200" ]; then
+    http_code=$(curl -sS -w "%{http_code}" -H "Authorization: Bearer ${N8N_API_KEY}" -H "Accept: application/json" \
+      "${N8N_API_URL%/}/api/v1/workflows/${workflow_id}" -o "$tmp_file" || true)
+  fi
+
+  # Attempt 3: Public API path with project header
+  if [ "$http_code" != "200" ]; then
+    http_code=$(curl -sS -w "%{http_code}" -H "Authorization: Bearer ${N8N_API_KEY}" -H "n8n-project-id: ${N8N_PROJECT_ID}" -H "Accept: application/json" \
+      "${N8N_API_URL%/}/api/v1/workflows/${workflow_id}" -o "$tmp_file" || true)
+  fi
+
+  # Attempt 4: Public API path with projectId query param
+  if [ "$http_code" != "200" ]; then
+    http_code=$(curl -sS -w "%{http_code}" -H "Authorization: Bearer ${N8N_API_KEY}" -H "Accept: application/json" \
+      "${N8N_API_URL%/}/api/v1/workflows/${workflow_id}?projectId=${N8N_PROJECT_ID}" -o "$tmp_file" || true)
+  fi
+
+  # Attempt 5: Legacy /rest with X-N8N-API-KEY
+  if [ "$http_code" != "200" ]; then
+    http_code=$(curl -sS -w "%{http_code}" -H "X-N8N-API-KEY: ${N8N_API_KEY}" -H "Accept: application/json" \
+      "${N8N_API_URL%/}/rest/workflows/${workflow_id}" -o "$tmp_file" || true)
+  fi
+
+  # Attempt 6: Legacy /rest with Bearer
+  if [ "$http_code" != "200" ]; then
+    http_code=$(curl -sS -w "%{http_code}" -H "Authorization: Bearer ${N8N_API_KEY}" -H "Accept: application/json" \
+      "${N8N_API_URL%/}/rest/workflows/${workflow_id}" -o "$tmp_file" || true)
+  fi
+
+  if [ "$http_code" != "200" ]; then
+    rm -f "$tmp_file" 2>/dev/null || true
+    return 1
+  fi
+
+  if command -v jq >/dev/null 2>&1; then
+    jq '.' "$tmp_file" > "$output_file" && rm -f "$tmp_file" || return 1
+  else
+    mv "$tmp_file" "$output_file" || return 1
+  fi
+
+  return 0
+}
+
+export_workflow_via_local_copy() {
+  # Legacy fallback: copy last known local backup and tag metadata
+  local workflow_id="$1"
+  local workflow_name="$2"
+  local output_file="$3"
+
+  if ! command -v node >/dev/null 2>&1; then
+    echo "❌ Node.js not found for fallback local-copy export"
+    return 1
+  fi
+
+  cat > /tmp/export_workflow.js << 'EOF'
 const fs = require('fs');
 const path = require('path');
 
@@ -91,91 +207,96 @@ const workflowId = process.argv[2];
 const workflowName = process.argv[3];
 const outputFile = process.argv[4];
 
-console.log(`Exporting workflow ${workflowId} (${workflowName}) to ${outputFile}...`);
+console.log(`Fallback local-copy export for ${workflowId} (${workflowName}) → ${outputFile}`);
 
-// Find the best source for this workflow
 const backupDir = './workflows/backups';
 let sourceFile = null;
-let content = null;
 
-// Strategy 1: Look for specific manual exports in backup folder
-const manualFiles = fs.readdirSync(backupDir)
-  .filter(f => f.includes('UYSP') && f.endsWith('.json'))
-  .filter(f => !f.includes('metadata') && !f.includes('20250808'))
+// Prefer recent priority exports
+const priorityFiles = fs.readdirSync(backupDir)
+  .filter(f => f.endsWith('.json'))
+  .filter(f => f.includes('PRIORITY-1-PRIMARY') || f.includes('PRIORITY-2-SECONDARY'))
   .sort()
   .reverse();
 
-if (manualFiles.length > 0) {
-  sourceFile = path.join(backupDir, manualFiles[0]);
-  console.log(`📁 Using manual backup: ${manualFiles[0]}`);
+if (priorityFiles.length > 0) {
+  sourceFile = path.join(backupDir, priorityFiles[0]);
 } else {
-  // Strategy 2: Look for any working backup  
+  // Older working pattern
   const workingFiles = fs.readdirSync(backupDir)
     .filter(f => f.includes('uysp-lead-processing-WORKING') && f.endsWith('.json'))
-    .filter(f => !f.includes('metadata'))
     .sort()
     .reverse();
-    
   if (workingFiles.length > 0) {
     sourceFile = path.join(backupDir, workingFiles[0]);
-    console.log(`📁 Using working backup: ${workingFiles[0]}`);
   }
 }
 
-if (sourceFile && fs.existsSync(sourceFile)) {
-  content = fs.readFileSync(sourceFile, 'utf8');
-  
-  // Add export metadata
-  const workflow = JSON.parse(content);
-  workflow.exportMetadata = {
-    exportedAt: new Date().toISOString(),
-    exportedBy: 'real-n8n-export.sh',
-    sourceFile: path.basename(sourceFile),
-    targetWorkflowId: workflowId,
-    targetWorkflowName: workflowName,
-    backupStrategy: 'local-copy'
-  };
-  
-  fs.writeFileSync(outputFile, JSON.stringify(workflow, null, 2));
-  console.log(`✅ Workflow exported successfully to ${outputFile}`);
-  console.log(`📊 File size: ${Math.round(Buffer.byteLength(JSON.stringify(workflow)) / 1024)}KB`);
-} else {
-  console.error('❌ No source workflow backup found');
+if (!sourceFile || !fs.existsSync(sourceFile)) {
+  console.error('No local backup source found');
   process.exit(1);
 }
+
+const content = fs.readFileSync(sourceFile, 'utf8');
+const workflow = JSON.parse(content);
+workflow.exportMetadata = {
+  exportedAt: new Date().toISOString(),
+  exportedBy: 'real-n8n-export.sh',
+  sourceFile: path.basename(sourceFile),
+  targetWorkflowId: workflowId,
+  targetWorkflowName: workflowName,
+  backupStrategy: 'local-copy'
+};
+
+fs.writeFileSync(outputFile, JSON.stringify(workflow, null, 2));
+console.log(`✅ Local-copy wrote ${outputFile}`);
 EOF
 
-    # Export each workflow with priority labeling
-    for workflow_entry in "${ALL_WORKFLOWS_TO_EXPORT[@]}"; do
-        IFS=':' read -r workflow_id workflow_name priority <<< "$workflow_entry"
-        
-        # Create filename with priority prefix
-        if [ "$priority" = "PRIMARY" ]; then
-            output_file="${BACKUP_DIR}/PRIORITY-1-PRIMARY-${workflow_name}-${TIMESTAMP}.json"
-            priority_label="🔴 PRIORITY 1 (PRIMARY)"
-        else
-            output_file="${BACKUP_DIR}/PRIORITY-2-SECONDARY-${workflow_name}-${TIMESTAMP}.json"
-            priority_label="🟡 PRIORITY 2 (SECONDARY)"
-        fi
-        
-        echo ""
-        echo "🔄 Exporting: $workflow_name ($workflow_id)"
-        echo "   📋 Classification: $priority_label"
-        
-        if node /tmp/export_workflow.js "$workflow_id" "$workflow_name" "$output_file"; then
-            EXPORTED_FILES+=("$output_file")
-            echo "✅ Successfully exported: $workflow_name [$priority]"
-        else
-            echo "❌ Failed to export: $workflow_name [$priority]"
-            EXPORT_SUCCESS=false
-        fi
-    done
-    
-    rm /tmp/export_workflow.js
-else
-    echo "❌ Node.js not found - cannot export workflows"
-    exit 1
-fi
+  if node /tmp/export_workflow.js "$workflow_id" "$workflow_name" "$output_file"; then
+    rm -f /tmp/export_workflow.js
+    return 0
+  else
+    rm -f /tmp/export_workflow.js
+    return 1
+  fi
+}
+
+# Export each workflow with priority labeling (API first, fallback to local-copy)
+for workflow_entry in "${ALL_WORKFLOWS_TO_EXPORT[@]}"; do
+  IFS=':' read -r workflow_id workflow_name priority <<< "$workflow_entry"
+
+  if [ "$priority" = "PRIMARY" ] || [ "$priority" = "PRIMARY_MAIN" ]; then
+    output_file="${BACKUP_DIR}/PRIORITY-1-PRIMARY-${workflow_name}-${TIMESTAMP}.json"
+    priority_label="🔴 PRIORITY 1 (PRIMARY)"
+  else
+    output_file="${BACKUP_DIR}/PRIORITY-2-SECONDARY-${workflow_name}-${TIMESTAMP}.json"
+    priority_label="🟡 PRIORITY 2 (SECONDARY)"
+  fi
+
+  echo ""
+  echo "🔄 Exporting: $workflow_name ($workflow_id)"
+  echo "   📋 Classification: $priority_label"
+
+  if [ -n "$N8N_API_KEY" ]; then
+    if export_workflow_via_api "$workflow_id" "$output_file"; then
+      EXPORTED_FILES+=("$output_file")
+      echo "✅ Exported via n8n API: $workflow_name [$priority]"
+      continue
+    else
+      echo "⚠️ API export failed for $workflow_name, attempting local-copy fallback"
+    fi
+  else
+    echo "ℹ️ N8N_API_KEY not set; using local-copy fallback (may be incomplete)"
+  fi
+
+  if export_workflow_via_local_copy "$workflow_id" "$workflow_name" "$output_file"; then
+    EXPORTED_FILES+=("$output_file")
+    echo "✅ Exported via local-copy: $workflow_name [$priority]"
+  else
+    echo "❌ Failed to export: $workflow_name [$priority]"
+    EXPORT_SUCCESS=false
+  fi
+done
 
 # Verify all exported workflows
 echo ""

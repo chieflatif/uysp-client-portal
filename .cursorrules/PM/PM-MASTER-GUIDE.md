@@ -139,20 +139,20 @@ HONESTY CHECK: [100% evidence-based / Assumptions: list]. No manipulations.
 ```markdown
 FOR N8N WORKFLOW OPERATIONS:
 1. N8N MCP Suite (primary) → All workflow CRUD operations
-2. Context7 HTTP (documentation) → API specifications via "use context7" prompts
-3. DocFork (enhancement) → Latest n8n patterns: npx docfork@latest
+2. Context7 (documentation) → API specifications via "use context7" prompts
+3. DocFork (enhancement/backup) → Latest n8n patterns when Context7 unavailable: npx docfork@latest
 4. Claude Code Server (fallback only) → When MCP tools fail
 
 FOR PROJECT RESEARCH:
-1. Context7 HTTP → Specific library documentation  
-2. DocFork → Current community knowledge (66.5K tokens)
+1. Context7 → Specific library documentation (primary MCP tool)
+2. DocFork → Current community knowledge (66.5K tokens, backup/enhancement)
 3. Exa Search → Broader pattern research with API key
 ```
 
-#### **Context7 HTTP Integration Protocol:**
+#### **Context7 Integration Protocol:**
 ```markdown
-CONTEXT7 ROLE: Documentation accuracy tool (NOT workflow validator)
-- HTTP Endpoint: https://context7.liam.sh/mcp
+CONTEXT7 ROLE: Primary documentation accuracy tool (NOT workflow validator)
+- MCP Server: Local Context7 (@upstash/context7-mcp)
 - Tools: resolve-library-id, get-library-docs
 - Usage Pattern: Add "use context7" to prompts when building workflows
 - Example: "Create n8n workflow with Airtable nodes. use context7"

@@ -8,22 +8,22 @@
 
 ## 🎯 **EXECUTIVE SUMMARY**
 
-Updated MCP tool configuration for UYSP Lead Qualification System development. **Context7 migrated from STDIO to HTTP endpoint** with enhanced tool suite including DocFork and Exa Search integration.
+Updated MCP tool configuration for UYSP Lead Qualification System development. **Context7 configured as primary local MCP server** with enhanced tool suite including DocFork and Exa Search integration.
 
 **KEY CHANGES:**
-- ✅ Context7: STDIO → HTTP (https://context7.liam.sh/mcp)  
-- ✅ DocFork: Added for latest n8n documentation (66.5K tokens)
+- ✅ Context7: Primary local MCP server (@upstash/context7-mcp)
+- ✅ DocFork: Enhanced as backup/enhancement to Context7 for latest n8n documentation (66.5K tokens)
 - ✅ Exa Search: Added with API key for implementation research
 - ✅ Tool precedence hierarchy established
-- ✅ Context7 role clarified: Documentation helper (NOT workflow validator)
+- ✅ Context7 role clarified: Primary documentation tool (NOT workflow validator)
 
 ---
 
 ## 🔧 **CORE MCP TOOL SPECIFICATIONS**
 
-### **1. CONTEXT7 HTTP** 
-**Tool ID**: `context7-http`  
-**URL**: `https://context7.liam.sh/mcp`  
+### **1. CONTEXT7** 
+**Tool ID**: `context7`  
+**MCP Server**: Local (@upstash/context7-mcp)  
 **Tools**: `resolve-library-id`, `get-library-docs`
 
 **WHEN TO USE**:
@@ -47,11 +47,12 @@ Updated MCP tool configuration for UYSP Lead Qualification System development. *
 ### **2. DOCFORK**
 **Tool ID**: `docfork`  
 **Command**: `npx docfork@latest`
+**Role**: Enhancement/backup to Context7 for latest n8n documentation
 
 **WHEN TO USE**:
-- ✅ When Context7 lacks coverage for specific libraries
-- ✅ For daily-updated n8n documentation (66.5K tokens updated every 16 hours)
-- ✅ When building workflows requiring latest best practices
+- ✅ When Context7 is unavailable or lacks coverage for specific libraries
+- ✅ As enhancement to Context7 for latest n8n documentation (66.5K tokens updated every 16 hours)
+- ✅ For cross-referencing Context7 results with community best practices
 - ✅ For current community patterns and examples
 
 **PROJECT-SPECIFIC USAGE**:
@@ -142,12 +143,12 @@ Updated MCP tool configuration for UYSP Lead Qualification System development. *
 
 ### **For n8n Workflow Operations**:
 1. **N8N MCP Suite** (primary) → All workflow CRUD operations
-2. **Context7 HTTP** (documentation) → API specifications via "use context7" prompts  
-3. **DocFork** (enhancement) → Latest patterns: npx docfork@latest
+2. **Context7** (documentation) → API specifications via "use context7" prompts  
+3. **DocFork** (enhancement/backup) → Latest patterns when Context7 unavailable: npx docfork@latest
 4. **Claude Code Server** (fallback only) → When MCP tools fail
 
 ### **For Project Research**:
-1. **Context7 HTTP** → Specific library documentation via prompts
+1. **Context7** → Specific library documentation via prompts (primary MCP tool)
 2. **DocFork** → Current community knowledge (66.5K tokens)
 3. **Exa Search** → Broader pattern research with API key
 
@@ -188,7 +189,7 @@ Updated MCP tool configuration for UYSP Lead Qualification System development. *
 ### **Failure Recovery**:
 ```
 IF N8N MCP FAILS → Try alternative N8N MCP tools → Use Claude Code Server (announce switch)
-IF Context7 FAILS → Use DocFork → Use Exa Search → Proceed with caution
+IF Context7 unavailable → Use DocFork (backup) → Use Exa Search → Proceed with caution
 IF Airtable MCP FAILS → Verify connection → Use Claude Code Server for verification
 ```
 

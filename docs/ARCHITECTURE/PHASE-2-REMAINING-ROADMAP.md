@@ -1,12 +1,14 @@
 # PHASE 2 REMAINING COMPONENTS ROADMAP
 ## **ACCURATE DEVELOPMENT SEQUENCE POST PDL PERSON INTEGRATION**
 
-### 🚨 **CRITICAL REALITY CHECK**
+### 🚨 **CRITICAL STATUS UPDATE**
 
 **✅ COMPLETED**: Phase 2A - PDL Person Integration  
-**❌ MISSING**: Phase 2B, 2C, 2D - Critical components required before SMS  
+**✅ COMPLETED**: Phase 2B - ICP Scoring System (Active in Q2ReTnOliUTuuVpl)  
+**🚧 IN PROGRESS**: Phase 2C - Company Qualification (Tool-Validated Plan Ready)  
+**⏳ PENDING**: Phase 2D - Cost & Phone Strategy Enhancement  
 
-**ERROR CORRECTION**: Previous documentation incorrectly stated "Phase 2 Complete" when only PDL Person integration was finished. This roadmap provides the accurate remaining work.
+**STATUS CORRECTION**: Phase 2B (ICP Scoring) has been completed and is operational in the active workflow. Phase 2C development plan has been systematically validated via MCP tools and is ready for implementation.
 
 ---
 
@@ -48,35 +50,53 @@
 
 ---
 
-## 📋 **PHASE 2C: COMPANY QUALIFICATION** (SECOND PRIORITY)
+## 📋 **PHASE 2C: COMPANY QUALIFICATION** (READY FOR IMPLEMENTATION)
 
-### **Why This Is Critical:**
-- **Two-phase qualification architecture requires Company + Person**
-- **Must verify B2B tech company before expensive person enrichment**
-- **Cost optimization: $0.01 company check before $0.03 person check**
+### **Status: Tool-Validated Implementation Plan Complete**
+- **Implementation Plan**: PHASE-2C-IMPLEMENTATION-PLAN-FINAL.md (Tool-Validated)
+- **Technical Specs**: PHASE-2C-TECHNICAL-REQUIREMENTS.md (Evidence-Based)
+- **Validation Protocol**: PHASE-2C-VALIDATION-CHECKLIST.md (MCP Tool Requirements)
+- **Active Baseline**: Q2ReTnOliUTuuVpl workflow (15 nodes, 85% success rate confirmed)
 
-### **Required Components:**
+### **Validated Implementation Architecture:**
 
-#### **2C.1: PDL Company API Integration**
-- **HTTP Request Node**: PDL Company API call
-- **Company Lookup**: By domain from email address
-- **Data Extraction**: Industry, size, technology stack, funding
+#### **2C.1: Company Identifier Extraction (Tool-Validated)**
+- **Node Type**: Code Node with multi-source fallback logic
+- **Input Sources**: normalized.company, raw.company, lead.company
+- **Output**: pdl_identifiers object with name (required), website (optional)
+- **Validation**: Confirmed via mcp_n8n_validate_node_operation
 
-#### **2C.2: B2B Tech Company Verification**
-- **Code Node**: Industry classification logic
-- **B2B Tech Indicators**: SaaS, Software, Technology services
-- **Exclusion Logic**: Consumer, retail, non-tech industries
+#### **2C.2: PDL Company API Integration (MCP Tool Verified)**
+- **Method**: GET (corrected from original POST specification)
+- **Authentication**: X-Api-Key header with sendHeaders: true
+- **Parameters**: name (required), website (optional), min_likelihood=5
+- **Resilience**: timeout=60s, retryOnFail=true, maxTries=3
+- **Evidence**: Validated via mcp_n8n_validate_node_operation with strict profile
 
-#### **2C.3: Two-Phase Qualification Logic**
-- **Phase 1**: Company qualification (B2B tech?)
-- **Phase 2**: Person qualification (sales role?)
-- **Routing**: Only qualified companies proceed to person enrichment
+#### **2C.3: B2B Tech Classification & Routing (Evidence-Based)**
+- **Classification Logic**: Industry keywords, tech stack analysis, tags evaluation
+- **Routing**: IF node with alwaysOutputData=true (critical for data preservation)
+- **True Path**: B2B tech companies → Continue to PDL Person enrichment
+- **False Path**: Non-B2B tech → Route to archive/merge node
 
-### **Success Criteria:**
-- ✅ PDL Company API operational
-- ✅ B2B tech verification working
-- ✅ Two-phase qualification routing functional
-- ✅ Cost optimization: Company check before person check
+#### **2C.4: Enhanced ICP Scoring Integration (Regression-Safe)**
+- **Enhancement**: Additive company boosts preserving existing Phase 2B scoring
+- **Company Boosts**: B2B tech (+15), size ranges (+5-10), tech stack (+5-8), industry (+12)
+- **Implementation**: Extends current ICP scoring without modification to base logic
+
+#### **2C.5: 3-Field Phone Normalization Completion**
+- **Missing Component**: phone_validated field (identified via workflow analysis)
+- **Complete Strategy**: phone_original, phone_recent, phone_validated
+- **SMS Eligibility**: US number validation with E.164 format detection
+- **Implementation**: Before final Airtable update in workflow
+
+### **Implementation Readiness Status:**
+- ✅ **Architecture Validated**: Tool-verified integration points and data flow
+- ✅ **Configuration Confirmed**: All node configurations validated via MCP tools
+- ✅ **Platform Gotchas Addressed**: Timeout, retry, expression validation, IF node settings
+- ✅ **Testing Strategy Defined**: 10-test comprehensive matrix with execution ID requirements
+- ✅ **Performance Baseline**: Current 12s runtime documented, <20s target confirmed
+- ✅ **Regression Prevention**: Zero tolerance policy with before/after validation requirements
 
 ---
 
@@ -119,20 +139,23 @@
 
 ## 🎯 **DEVELOPMENT PRIORITY ORDER**
 
-### **1. IMMEDIATE NEXT: Phase 2B (ICP Scoring)**
-- **Priority**: Critical - blocks all lead qualification
-- **Duration**: 2-3 development sessions
-- **Dependencies**: PDL Person data (✅ complete)
+### **1. ✅ COMPLETED: Phase 2B (ICP Scoring)**
+- **Status**: Operational in active workflow Q2ReTnOliUTuuVpl
+- **Functionality**: PDL Person enrichment + ICP scoring + routing logic
+- **Performance**: 85% success rate, 12s average runtime
+- **Next**: Phase 2C extension for company-level intelligence
 
-### **2. SECOND: Phase 2C (Company Qualification)**
-- **Priority**: High - required for cost optimization
-- **Duration**: 2-3 development sessions
-- **Dependencies**: Phase 2B routing logic
+### **2. 🚧 READY FOR IMPLEMENTATION: Phase 2C (Company Qualification)**
+- **Status**: Tool-validated implementation plan complete
+- **Documentation**: Complete specification with MCP validation requirements
+- **Duration**: 4-5 days with systematic tool validation
+- **Implementation**: Extend active Q2ReTnOliUTuuVpl workflow without regression
 
-### **3. THIRD: Phase 2D (Cost & Phone Strategy)**
-- **Priority**: Medium - required before SMS campaigns
+### **3. ⏳ PLANNED: Phase 2D (Cost & Phone Strategy Enhancement)**
+- **Status**: Pending Phase 2C completion
+- **Priority**: Enhanced cost tracking + complete phone validation strategy
 - **Duration**: 2-3 development sessions
-- **Dependencies**: Phase 2B + 2C qualification logic
+- **Dependencies**: Phase 2C company qualification + enhanced ICP scoring
 
 ---
 
@@ -165,5 +188,7 @@
 # Then: feature/phase-2c-company-qualification
 # Then: feature/phase-2d-cost-phone-strategy
 ```
+
+> Note: Historical PRE COMPLIANCE workflow references (19 nodes) are separate from the current active Phase 2B workflow (15 nodes). Phase 2C builds on the 15-node active workflow.
 
 **This roadmap ensures systematic completion of Phase 2 before any SMS development begins.**

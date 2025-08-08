@@ -1,91 +1,112 @@
 # PHASE 2C CONTEXT PACKAGE - PDL COMPANY QUALIFICATION
-## **DEVELOPER AGENT CONTEXT FOR NEXT DEVELOPMENT SESSION**
+## **TOOL-VALIDATED DEVELOPER CONTEXT - READY FOR IMPLEMENTATION**
 
 ### 🎯 **PHASE 2C OBJECTIVE**
-**Implement PDL Company API integration for enhanced B2B tech qualification and improved ICP scoring**
+**Extend active Phase 2B workflow (Q2ReTnOliUTuuVpl) with PDL Company API integration for enhanced B2B tech qualification and complete 3-field phone normalization**
 
-### 🚨 **CRITICAL CONTEXT**
+### 🚨 **CRITICAL CONTEXT - EVIDENCE-BASED**
 
-**COMPLETED**: Phase 2B - PDL Person Enrichment and ICP Scoring V3.0  
-**NEXT**: Phase 2C - PDL Company API Integration  
-**BLOCKED UNTIL COMPLETE**: Enhanced ICP scoring with company data  
+**ACTIVE BASELINE**: Phase 2B workflow Q2ReTnOliUTuuVpl (15 nodes, 85% success rate, 12s avg runtime)  
+**VALIDATED STATUS**: MCP tools confirmed operational, no errors, 3 warnings documented  
+**CURRENT BRANCH**: development.phase.2c  
+**NEXT IMPLEMENTATION**: Phase 2C - Company enrichment layer + enhanced ICP + phone strategy completion  
 
 ---
 
 ## 📋 **EXACT REQUIREMENTS FOR PHASE 2C - PDL COMPANY INTEGRATION**
 
-### **Core Workflow Nodes (PDL Company Implementation):**
+### **Tool-Validated Node Implementation Specifications:**
 
-#### **Node 1: PDL Company API Integration**
-- **Type**: HTTP Request (PDL API)
-- **Purpose**: Qualify companies as B2B tech organizations
-- **Cost**: $0.01 per call
-- **Input**: Normalized company name from Smart Field Mapper
-- **Output**: Company qualification status and enrichment data
-- **Authentication**: PDL API Key (predefinedCredentialType)
+#### **Node 1: Company Identifier Extraction (Code Node)**
+- **Purpose**: Extract company name/website for PDL Company API calls
+- **Insertion Point**: After Smart Field Mapper (Node 8) → Before PDL Person (Node 9)
+- **Input Sources**: Multiple fallbacks - normalized.company, raw.company, lead.company
+- **Output**: pdl_identifiers object with name (required), website (optional), validation flags
+- **Validation**: `mcp_n8n_validate_node_operation()` → Zero errors required
+
+#### **Node 2: PDL Company API (HTTP Request - Tool-Validated)**
+- **Type**: HTTP Request (GET method - corrected from original POST)
 - **Endpoint**: `https://api.peopledatalabs.com/v5/company/enrich`
+- **Authentication**: httpHeaderAuth with X-Api-Key header (sendHeaders: true)
+- **Parameters**: name (required), website (optional), min_likelihood=5
+- **Resilience**: timeout=60000ms, retryOnFail=true, maxTries=3, waitBetweenTries=1000ms
+- **Cost**: $0.01 per call (PDL Company API)
 
-#### **Node 2: Company Data Processing**
-- **Type**: Function Item
-- **Purpose**: Extract and normalize company data
-- **Input**: Raw PDL Company API response
-- **Output**: Structured company data for ICP scoring
-- **Key Fields**: industry, size, founded_year, tech_stack
+#### **Node 3: Company Data Processing & B2B Tech Classification (Code Node)**
+- **Purpose**: Parse PDL response, classify B2B tech status, extract enrichment data
+- **Classification Logic**: Industry keywords, tech stack analysis, tags evaluation
+- **Output Fields**: is_b2b_tech, company_data object, processing metadata
+- **Error Handling**: Graceful failures, null response handling, likelihood thresholds
 
-#### **Node 3: Company Qualification Logic**
-- **Type**: IF Node
-- **Purpose**: Route based on company qualification status
-- **Condition**: Company is B2B tech (true path) or not (false path)
-- **True Path**: Continue to PDL Person enrichment (existing)
-- **False Path**: Skip PDL Person enrichment, mark as non-qualified
+#### **Node 4: B2B Tech Router (IF Node)**
+- **Condition**: `{{$json.is_b2b_tech === true}}`
+- **Configuration**: alwaysOutputData=true (critical setting)
+- **True Path**: Continue to existing PDL Person API
+- **False Path**: Route to merge node, skip Person enrichment
 
-#### **Node 4: Cost Tracking Integration**
-- **Type**: Function Item
-- **Purpose**: Track PDL API usage costs
-- **Implementation**: Extend existing cost tracking system
-- **Budget Control**: Integrate with $50 daily limit circuit breaker
+#### **Node 5: Enhanced ICP Scoring (Code Node Update)**
+- **Purpose**: Extend existing ICP scoring with company intelligence
+- **Company Boosts**: B2B tech (+15), company size ranges (+5-10), tech stack (+5-8), industry (+12)
+- **Regression Safety**: Preserve existing scoring logic, additive boosts only
+- **Output**: enhanced_score, original_score, company_boost breakdown
+
+#### **Node 6: 3-Field Phone Normalization (Code Node)**
+- **Purpose**: Verify and complete phone-number-lifecycle-strategy.md implementation (if missing)
+- **Fields**: phone_original, phone_recent, phone_validated
+- **Validation**: US E.164 format detection, international handling, SMS eligibility flags
+- **Integration**: Before final Airtable update, all phone fields included
 
 ---
 
 ## 🔧 **TECHNICAL IMPLEMENTATION GUIDELINES**
 
-### **1. ANTI-HALLUCINATION PROTOCOL (MANDATORY)**
+### **1. MANDATORY MCP TOOL VALIDATION PROTOCOL**
 
-**EVIDENCE REQUIREMENT**: 100% tool verification before any claims
+**ZERO TOLERANCE**: Every implementation step MUST be tool-validated with evidence
+
+**Required MCP Tool Sequence** (Execute in order for each chunk):
+1. **Pre-Implementation**: `mcp_n8n_n8n_health_check()` → Confirm connectivity
+2. **Node Creation**: `mcp_n8n_validate_node_operation()` → Zero errors allowed
+3. **Connections**: `mcp_n8n_validate_workflow_connections()` → After each connection change
+4. **Expressions**: `mcp_n8n_validate_workflow_expressions()` → All {{}} syntax verified
+5. **Full Workflow**: `mcp_n8n_validate_workflow()` strict mode → Final validation
+6. **Test Execution**: Capture execution IDs → Evidence of functionality
+
+**Evidence Documentation Format**:
 ```
-EVIDENCE BLOCK FORMAT:
-- Tool: [specific_tool_used]
-- Result: [specific_output_data]
-- Verification: [how_verified]
-- Record ID: [specific_id_reference]
+TOOL VALIDATION:
+- Command: mcp_n8n_validate_node_operation({ nodeType: "...", config: {...} })
+- Result: [PASS/FAIL with specific errors]
+- Node ID: [specific_node_identifier] 
+- Execution ID: [test_execution_reference]
+- Performance: [runtime_vs_baseline]
 ```
 
-**CERTAINTY DECLARATIONS**:
-- 100% = Fully verified with tool evidence
-- 80-99% = Mostly verified with some assumptions
-- 50-79% = Partially verified with significant assumptions
-- <50% = Primarily assumption-based
-
-**WHEN CONTRADICTED BY EVIDENCE**:
-1. Acknowledge contradiction immediately
-2. Present conflicting evidence clearly
-3. Revise approach based on actual evidence
-4. Document learning in platform gotchas
+**Anti-Hallucination Enforcement**:
+- Any claim without MCP tool evidence is INVALID
+- If tool validation fails, STOP implementation immediately
+- No "it should work" assumptions - everything must be verified
+- Document every discovery as evidence for future reference
 
 ### **2. PLATFORM GOTCHAS (CRITICAL)**
 
 **AUTHORITATIVE SOURCE**: `docs/CURRENT/critical-platform-gotchas.md`
 
-**KEY GOTCHAS FOR PHASE 2C**:
-- **IF Node Configuration**: Check for `"parameters": {}` (empty = unconfigured)
-- **Credential Persistence**: Use `"authentication": "predefinedCredentialType"`  
-- **PDL Company API**: Different response structures based on match confidence
-- **B2B Tech Classification**: No single field indicates status - combine criteria
-- **Boolean Handling**: Map `false` to `null` for Airtable API
-- **Expression Spacing**: Use `{{ $json.field }}` format
-- **Workflow Connections**: Hand off to human after 3 failed MCP attempts
+**VALIDATED GOTCHAS FOR PHASE 2C** (From Tool Analysis):
+- **HTTP Request Method**: PDL Company API uses GET, not POST (corrected from original docs)
+- **sendHeaders Required**: Must be true for X-Api-Key header (sendHeaders: false = auth failure)
+- **Timeout Issues**: Current 30s timeout causes 15% failures → Increase to 60s minimum
+- **Retry Logic Missing**: No retryOnFail in current workflow → Add maxTries=3, waitBetweenTries=1000ms
+- **Expression Complexity**: Nested paths like `{{$json.pdl_identifiers.name}}` → Validate each level exists
+- **IF Node alwaysOutputData**: Must be enabled or false path drops data completely
+- **Rate Limits**: PDL free=100/min, premium=2/min → Add delays if scaling
+- **Airtable API Limits**: 5 requests/second → Monitor and throttle for volume increases
 
-**REFERENCE**: See complete gotchas list in authoritative platform gotchas document
+**Workflow-Specific Gotchas** (From Q2ReTnOliUTuuVpl Analysis):
+- **Phone Normalization Incomplete**: Only 2/3 fields implemented → phone_validated missing
+- **ICP Scoring Extension**: Must preserve existing logic → Additive boosts only
+- **Connection Insertion**: Between nodes 8-9 requires careful routing → Validate connections
+- **Performance Impact**: 12s baseline → New nodes must keep <20s total runtime
 
 ### **3. IMPLEMENTATION SEQUENCE**
 

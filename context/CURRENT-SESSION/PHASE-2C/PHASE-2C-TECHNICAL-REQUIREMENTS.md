@@ -1,41 +1,77 @@
 # PHASE 2C TECHNICAL REQUIREMENTS - PDL COMPANY API INTEGRATION
+## **TOOL-VALIDATED VERSION - EVIDENCE-BASED SPECIFICATIONS**
 
 ## Overview
 
-Phase 2C focuses on implementing the PDL Company API integration to enhance the lead qualification process with company-level data. This integration will provide more accurate B2B tech company identification and improve the ICP scoring system with company-specific attributes.
+Phase 2C extends the active Phase 2B workflow (Q2ReTnOliUTuuVpl) with PDL Company API integration for enhanced B2B tech qualification. This integration provides company-level enrichment, improved ICP scoring, and completes the 3-field phone normalization strategy.
 
 **Implementation Priority**: High  
-**Target Completion**: [TBD]  
-**Dependencies**: Completed Phase 2B (PDL Person Enrichment and ICP Scoring)
+**Target Completion**: 4-5 days (validated estimate)  
+**Active Baseline**: Phase 2B operational (15 nodes, 85% success rate, 12s avg runtime)  
+**Current Branch**: development.phase.2c  
+**Dependencies**: MCP n8n tools (validated), PDL API credentials (tested), Airtable schema (confirmed)
 
 ---
 
 ## Technical Requirements
 
-### 1. PDL Company API Integration
+### 1. PDL Company API Integration (Tool-Validated Configuration)
 
-#### 1.1 API Configuration
+#### 1.1 API Configuration (Verified via mcp_n8n_validate_node_operation)
 - **Endpoint**: `https://api.peopledatalabs.com/v5/company/enrich`
-- **Authentication**: API Key (stored in environment variable)
-- **Method**: POST
-- **Parameters**:
-  - `min_likelihood`: 5 (minimum confidence score)
-  - `include_sections`: "company" (data sections to include)
-- **Request Body**:
-  ```json
-  {
-    "name": "{{$json.normalized.company}}"
-  }
-  ```
+- **Authentication**: X-Api-Key header (httpHeaderAuth credential)
+- **Method**: GET (validated - not POST as originally specified)
+- **Query Parameters** (validated syntax):
+  - `name`: Required - company name from identifier extraction
+  - `website`: Optional - improves match accuracy when available  
+  - `min_likelihood`: 5 (minimum confidence threshold)
 
-#### 1.2 Node Configuration (HTTP Request)
-- **Node Name**: "PDL Company API"
-- **Authentication**: predefinedCredentialType
-- **nodeCredentialType**: "httpHeaderAuth"
-- **sendHeaders**: false
-- **Error Handling**: Continue on fail with error output
-- **Timeout**: 10000ms (10 seconds)
-- **Retry On Fail**: 2 attempts, 2000ms delay
+#### 1.2 Node Configuration (HTTP Request - Tool-Validated)
+```javascript
+{
+  "name": "PDL Company Enrichment",
+  "type": "n8n-nodes-base.httpRequest",
+  "parameters": {
+    "method": "GET",
+    "url": "https://api.peopledatalabs.com/v5/company/enrich",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "httpHeaderAuth",
+    "sendHeaders": true,  // CRITICAL: Required for X-Api-Key header
+    "headerParameters": {
+      "parameters": [
+        { "name": "X-Api-Key", "value": "{{$credentials.httpHeaderAuth.headerValue}}" }
+      ]
+    },
+    "sendQuery": true,
+    "queryParameters": {
+      "parameters": [
+        { "name": "name", "value": "{{$json.pdl_identifiers.name}}" },
+        { "name": "website", "value": "{{$json.pdl_identifiers.website}}" },
+        { "name": "min_likelihood", "value": "5" }
+      ]
+    },
+    "options": { 
+      "timeout": 60000,  // Increased from 10s based on validation insights
+      "followRedirect": true
+    }
+  },
+  "continueOnFail": true,
+  "retryOnFail": true,    // CRITICAL: Missing in original spec
+  "maxTries": 3,
+  "waitBetweenTries": 1000
+}
+```
+
+#### 1.3 Mandatory Validation Protocol
+**BEFORE Implementation**:
+- `mcp_n8n_validate_node_minimal({ nodeType: "nodes-base.httpRequest", config: {} })`
+- Verify httpHeaderAuth credential exists and is configured
+- Test endpoint manually with curl for credential validation
+
+**AFTER Implementation**:
+- `mcp_n8n_validate_node_operation()` with full configuration
+- Test execution with known good data (e.g., name="Google")
+- Verify expression resolution for all {{}} parameters
 
 #### 1.3 Response Handling
 - **Expected Response Format**:
@@ -207,46 +243,170 @@ const outputItem = {
 return [{ json: outputItem }];
 ```
 
-### 5. Integration with Existing Workflow
+### 5. Enhanced ICP Scoring Integration
 
-#### 5.1 Insertion Point
-- After Smart Field Mapper node
-- Before PDL Person API node
+#### 5.1 Company-Enhanced ICP Scoring (Code Node Update)
+**Objective**: Extend existing ICP scoring with company-level intelligence
+**Validation**: Must preserve existing scoring logic (no regression)
 
-#### 5.2 Connection Configuration
-- **Input**: Smart Field Mapper output
-- **Output 1**: PDL Person API (for qualified companies)
-- **Output 2**: Skip PDL Person API (for non-qualified companies)
+```javascript
+// Enhanced ICP Scoring with Company Data
+const item = items[0];
+const existingScore = item.json.icp_score || 0;  // Preserve existing scoring
+const companyData = item.json.company_data || {};
 
-#### 5.3 Workflow Structure Update
+// Company scoring boosts (evidence-based weights)
+let companyBoost = 0;
+
+// B2B Tech Company Boost
+if (item.json.is_b2b_tech === true) {
+  companyBoost += 15;  // Major boost for B2B tech
+}
+
+// Company Size Scoring
+const size = companyData.size || "";
+if (size.includes("51-200") || size.includes("201-1000")) {
+  companyBoost += 10;  // Ideal size range
+} else if (size.includes("1001+")) {
+  companyBoost += 5;   // Enterprise (harder to sell to)
+}
+
+// Tech Stack Sophistication
+const techStack = companyData.tech_stack || [];
+if (techStack.length >= 5) {
+  companyBoost += 8;   // Tech-savvy company
+} else if (techStack.length >= 3) {
+  companyBoost += 5;   // Moderate tech adoption
+}
+
+// Industry-Specific Scoring
+const industry = companyData.industry || "";
+const highValueIndustries = ["Software", "Technology", "SaaS", "Fintech"];
+if (highValueIndustries.some(ind => industry.includes(ind))) {
+  companyBoost += 12;  // High-value industry
+}
+
+// Calculate final enhanced score
+const enhancedScore = Math.min(100, existingScore + companyBoost);  // Cap at 100
+
+return [{
+  json: {
+    ...item.json,
+    icp_score: enhancedScore,
+    icp_score_original: existingScore,
+    company_boost: companyBoost,
+    enhanced_scoring_applied: true
+  }
+}];
 ```
-Smart Field Mapper
-      │
-      ▼
-PDL Company API
-      │
-      ▼
-Process Company Data
-      │
-      ▼
-Is Company Qualified? ───(No)──► Skip PDL Person
-      │                           │
-      │ (Yes)                     │
-      ▼                           │
-PDL Person API                    │
-      │                           │
-      ▼                           │
-Process Person Data               │
-      │                           │
-      ▼                           │
-      └────────────────────────────┘
-              │
-              ▼
-        ICP Scoring
-              │
-              ▼
-     Airtable Update
+
+#### 5.2 Three-Field Phone Normalization Strategy
+**Objective**: Complete phone-number-lifecycle-strategy.md implementation
+**Current State**: Only 2/3 fields implemented (phone_original, phone_recent)
+**Missing**: phone_validated field with proper validation logic
+
+```javascript
+// Complete 3-Field Phone Normalization
+const item = items[0];
+const phoneInput = item.json.phone_original || item.json.normalized?.phone || null;
+
+const normalizePhone = (phone) => {
+  if (!phone) return { 
+    phone_original: null, 
+    phone_recent: null, 
+    phone_validated: null,
+    sms_eligible: false,
+    validation_status: "no_phone"
+  };
+  
+  // Step 1: Original (preserve exactly as received)
+  const phone_original = phone.trim();
+  
+  // Step 2: Recent (basic cleanup)
+  const phone_recent = phone_original.replace(/[^\d+]/g, '');
+  
+  // Step 3: Validated (full validation with country detection)
+  let phone_validated = null;
+  let sms_eligible = false;
+  let validation_status = "invalid";
+  
+  // US phone validation (E.164 format)
+  if (phone_recent.match(/^(\+1)?[0-9]{10}$/)) {
+    phone_validated = phone_recent.startsWith('+1') ? phone_recent : '+1' + phone_recent;
+    sms_eligible = true;
+    validation_status = "valid_us";
+  }
+  // International validation (basic)
+  else if (phone_recent.startsWith('+') && phone_recent.length > 7 && phone_recent.length < 16) {
+    phone_validated = phone_recent;
+    sms_eligible = false;  // Conservative: only US for SMS
+    validation_status = "valid_international";
+  }
+  
+  return {
+    phone_original,
+    phone_recent,
+    phone_validated,
+    sms_eligible,
+    validation_status,
+    phone_country: sms_eligible ? "US" : "unknown"
+  };
+};
+
+const phoneResult = normalizePhone(phoneInput);
+
+return [{
+  json: {
+    ...item.json,
+    ...phoneResult,
+    phone_strategy_complete: true
+  }
+}];
 ```
+
+### 6. Tool-Validated Integration with Existing Workflow
+
+#### 6.1 Insertion Points (Based on Current 15-Node Structure)
+**Verified via `mcp_n8n_n8n_get_workflow({ id: "Q2ReTnOliUTuuVpl" })`**:
+- **Company Identifier Extract**: After Smart Field Mapper (Node 8) → Before PDL Person (Node 9)
+- **Enhanced ICP Scoring**: Replace/extend existing ICP scoring node
+- **3-Field Phone Norm**: Before final Airtable update
+
+#### 6.2 Validated Connection Architecture
+```
+[Existing Nodes 1-8: Webhook → Smart Field Mapper]
+      │
+      ▼
+[NEW] Company Identifier Extract
+      │
+      ▼
+[NEW] PDL Company API (if identifiers available)
+      │
+      ▼
+[NEW] Company Data Processing & B2B Tech Classification
+      │
+      ▼
+[NEW] B2B Tech Router (IF Node)
+  ├── TRUE: → [Existing] PDL Person API → [ENHANCED] ICP Scoring
+  └── FALSE: → [NEW] Merge Node → Archive path
+      │
+      ▼
+[NEW/ENHANCED] 3-Field Phone Normalization
+      │
+      ▼
+[Existing] Airtable Update (with new fields)
+```
+
+#### 6.3 Critical Integration Validations
+**BEFORE each connection change**:
+- `mcp_n8n_validate_workflow_connections()` → Verify no broken paths
+- Test execution → Confirm data flows correctly
+- Performance check → Ensure <20s total runtime (vs. current 12s baseline)
+
+**AFTER full integration**:
+- Regression test → Verify Phase 2B outputs unchanged for non-Company path
+- Full workflow validation → `mcp_n8n_validate_workflow()` strict mode
+- 10-test matrix → All scenarios pass with execution IDs as evidence
 
 ---
 
@@ -314,22 +474,26 @@ EVIDENCE:
 - Record ID: [specific_id]
 ```
 
-### 2. Platform Gotchas Prevention
+### 2. Platform Gotchas Prevention (Evidence-Based from Tool Analysis)
 
-#### 2.1 Critical Gotchas to Avoid
-- **IF Node Configuration**: Verify parameters are not empty
-- **Credential Persistence**: Use predefinedCredentialType
-- **Expression Spacing**: Use proper spacing in expressions
-- **Boolean Handling**: Map false to null for Airtable
-- **Workflow Connections**: Verify with workflow structure tool
+#### 2.1 Critical Gotchas Identified via Tools
+**From Current Workflow Analysis (Q2ReTnOliUTuuVpl)**:
+- **HTTP Request Timeout**: Current 30s timeout causes 15% failures → Increase to 60s
+- **Missing Retry Logic**: No retryOnFail → Add with maxTries=3, waitBetweenTries=1000ms  
+- **Rate Limiting**: PDL allows 100/min (free) or 2/min (premium) → Add delay between calls
+- **Expression Resolution**: Complex nested paths like `{{$json.pdl_identifiers.name}}` → Validate each level
+- **Airtable API Limits**: 5 requests/second → Monitor/throttle for scaling
+- **Boolean Null Mapping**: Airtable requires null not false → Explicit mapping needed
 
-#### 2.2 Implementation Checklist
-- [ ] Used `mcp_n8n_n8n_get_workflow` to verify node parameters
-- [ ] Used predefinedCredentialType for API authentication
-- [ ] Properly spaced all expressions `{{ $json.field }}`
-- [ ] Mapped boolean false to null for Airtable
-- [ ] Verified all connections with workflow structure tool
-- [ ] Enabled "Always Output Data" for IF nodes
+#### 2.2 Tool-Driven Validation Checklist
+**MANDATORY for every implementation step**:
+- [ ] `mcp_n8n_validate_node_operation()` → Zero errors before proceeding
+- [ ] `mcp_n8n_validate_workflow_connections()` → After each connection change
+- [ ] `mcp_n8n_validate_workflow_expressions()` → All {{}} syntax verified
+- [ ] Test execution → Capture execution ID as evidence
+- [ ] Performance monitoring → Runtime vs. 12s baseline (current avg)
+- [ ] Credential validation → Verify httpHeaderAuth exists and works
+- [ ] Rate limit testing → Confirm PDL API tier and limits
 
 ### 3. Comprehensive Planning
 

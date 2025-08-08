@@ -34,7 +34,7 @@ Execute comprehensive systematic testing of PDL Person Enrichment integration (P
 
 ### **Step 1: PDL API Credential Verification**
 ```bash
-# Test PDL API credentials directly before any workflow testing
+# Test PDL API credentials directly before any workflow testing (Person API uses POST)
 curl -X POST https://api.peopledatalabs.com/v5/person/enrich \
   -H "X-Api-Key: [PDL_API_KEY]" \
   -H "Content-Type: application/json" \
@@ -53,7 +53,8 @@ mcp_n8n_n8n_get_workflow({ id: "wpg9K9s8wlfofv1u" })
 **Verify PDL Person Enrichment node parameters are correct:**
 - API endpoint: `https://api.peopledatalabs.com/v5/person/enrich`
 - Headers: `X-Api-Key` with valid credential reference
-- Request body: Proper email/company field mapping
+- Request body: Proper email/company field mapping (Person API)
+- Company API (Phase 2C): Uses GET with query params (`name`, optional `website`, `min_likelihood`); not a request body
 
 ---
 

@@ -27,7 +27,8 @@ echo "⏰ Hours since last backup: $HOURS_SINCE"
 
 # Backup if it's been more than 4 hours OR if no recent backups exist
 MIN_HOURS=4
-RECENT_BACKUPS=$(find "$BACKUP_DIR" -name "uysp-lead-processing-WORKING-*.json" -mtime -1 2>/dev/null | wc -l || echo "0")
+# New pattern: priority-labeled exports, with fallback to old WORKING pattern
+RECENT_BACKUPS=$(find "$BACKUP_DIR" \( -name "PRIORITY-1-PRIMARY-*.json" -o -name "PRIORITY-2-SECONDARY-*.json" -o -name "uysp-lead-processing-WORKING-*.json" \) -mtime -1 2>/dev/null | wc -l || echo "0")
 
 if [ "$HOURS_SINCE" -gt "$MIN_HOURS" ] || [ "$RECENT_BACKUPS" -eq "0" ]; then
     echo "🚀 Creating fresh backup (${HOURS_SINCE}h since last backup)"
@@ -41,10 +42,12 @@ if [ "$HOURS_SINCE" -gt "$MIN_HOURS" ] || [ "$RECENT_BACKUPS" -eq "0" ]; then
     echo "✅ Auto-backup completed successfully"
     echo "📅 Next backup due in ${MIN_HOURS} hours"
     
-    # Cleanup old backups (keep last 10)
+    # Cleanup old backups (keep last 10 of each pattern)
     echo "🧹 Cleaning up old backups..."
     cd "$BACKUP_DIR"
-    ls -t uysp-lead-processing-WORKING-*.json | tail -n +11 | xargs rm -f 2>/dev/null || true
+    ls -t PRIORITY-1-PRIMARY-*.json 2>/dev/null | tail -n +11 | xargs rm -f 2>/dev/null || true
+    ls -t PRIORITY-2-SECONDARY-*.json 2>/dev/null | tail -n +11 | xargs rm -f 2>/dev/null || true
+    ls -t uysp-lead-processing-WORKING-*.json 2>/dev/null | tail -n +11 | xargs rm -f 2>/dev/null || true
     cd - > /dev/null
     
     # Cleanup old schemas (keep last 10)
@@ -65,14 +68,14 @@ fi
 echo ""
 echo "📊 BACKUP STATUS SUMMARY"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📁 Total workflow backups: $(find "$BACKUP_DIR" -name "uysp-lead-processing-WORKING-*.json" | wc -l)"
+echo "📁 Total workflow backups: $(find "$BACKUP_DIR" \( -name "PRIORITY-1-PRIMARY-*.json" -o -name "PRIORITY-2-SECONDARY-*.json" -o -name "uysp-lead-processing-WORKING-*.json" \) | wc -l)"
 echo "📁 Total schema backups: $(find "$SCHEMAS_DIR" -name "airtable-enhanced-schema-*.json" | wc -l)"
-echo "📅 Last backup: $(ls -t "$BACKUP_DIR"/uysp-lead-processing-WORKING-*.json 2>/dev/null | head -1 | xargs stat -c %y 2>/dev/null || ls -lt "$BACKUP_DIR"/uysp-lead-processing-WORKING-*.json 2>/dev/null | head -1 | awk '{print $6, $7, $8}' || echo 'No backups found')"
+echo "📅 Last backup: $(ls -t "$BACKUP_DIR"/PRIORITY-1-PRIMARY-*.json "$BACKUP_DIR"/PRIORITY-2-SECONDARY-*.json "$BACKUP_DIR"/uysp-lead-processing-WORKING-*.json 2>/dev/null | head -1 | xargs stat -f %Sm 2>/dev/null || ls -lt "$BACKUP_DIR"/PRIORITY-1-PRIMARY-*.json "$BACKUP_DIR"/PRIORITY-2-SECONDARY-*.json "$BACKUP_DIR"/uysp-lead-processing-WORKING-*.json 2>/dev/null | head -1 | awk '{print $6, $7, $8}' || echo 'No backups found')"
 echo "☁️ GitHub sync: $(git status --porcelain 2>/dev/null | wc -l | awk '{if($1==0) print "✅ Synced"; else print "⚠️ Pending"}')"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # Quick integrity check
-LATEST_BACKUP=$(ls -t "$BACKUP_DIR"/uysp-lead-processing-WORKING-*.json 2>/dev/null | head -1)
+LATEST_BACKUP=$(ls -t "$BACKUP_DIR"/PRIORITY-1-PRIMARY-*.json "$BACKUP_DIR"/PRIORITY-2-SECONDARY-*.json "$BACKUP_DIR"/uysp-lead-processing-WORKING-*.json 2>/dev/null | head -1)
 if [ -n "$LATEST_BACKUP" ] && [ -f "$LATEST_BACKUP" ]; then
     SIZE=$(wc -c < "$LATEST_BACKUP")
     if [ "$SIZE" -gt 50000 ]; then

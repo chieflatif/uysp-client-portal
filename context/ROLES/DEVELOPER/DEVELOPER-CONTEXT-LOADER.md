@@ -18,10 +18,10 @@
 
 #### **Context7 MCP** (CONFIRMED OPERATIONAL):
 ```markdown
-✅ Context7 HTTP - Documentation accuracy tool (https://context7.liam.sh/mcp)
+✅ Context7 - Primary documentation accuracy tool (local MCP server @upstash/context7-mcp)
   - Tools: resolve-library-id, get-library-docs
   - Usage: Add "use context7" to prompts for current n8n documentation
-✅ DocFork - Latest n8n docs (npx docfork@latest, 66.5K tokens, 16-hour updates)
+✅ DocFork - Enhancement/backup to Context7 for latest n8n docs (npx docfork@latest, 66.5K tokens, 16-hour updates)
 ✅ Exa Search - Implementation research (API key: f82c9e48-3488-4468-a9b0-afe595d99c30)
 
 USAGE: ALWAYS validate n8n node documentation with Context7 before creation/modification
@@ -215,8 +215,8 @@ EVIDENCE REQUIREMENTS:
 ## **⚠️ CRITICAL REMINDERS**
 
 ### **Context7 + DocFork Integration** (OPERATIONAL):
-- Context7 is CONFIRMED operational - 6478+ n8n code snippets available
-- DocFork provides latest n8n GitHub documentation
+- Context7 (PRIMARY) is CONFIRMED operational - 6478+ n8n code snippets available
+- DocFork (BACKUP/ENHANCEMENT) provides latest n8n GitHub documentation when Context7 unavailable
 - MANDATORY for ALL n8n node research before manual implementation
 - Essential for PDL API integration patterns and authentication methods
 

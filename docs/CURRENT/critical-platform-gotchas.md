@@ -142,7 +142,7 @@ Add parallel test path:
 {
   "authentication": "predefinedCredentialType",
   "nodeCredentialType": "openAiApi", // or "airtableTokenApi", "httpHeaderAuth"
-  "sendHeaders": false // Let n8n handle headers automatically
+  "sendHeaders": true // Use credential-driven header via httpHeaderAuth (X-Api-Key)
 }
 ```
 
@@ -185,7 +185,7 @@ Add parallel test path:
 
 1. **ALWAYS use `predefinedCredentialType` for API authentication**
 2. **NEVER use manual headers with credential dropdowns**
-3. **Set `sendHeaders: false`** - let n8n handle headers automatically
+3. **Set `sendHeaders: true`** - when using `httpHeaderAuth`, enable headers and bind X-Api-Key via credential
 4. **Use the correct `nodeCredentialType`** for each service:
    - OpenAI: `"openAiApi"`
    - Airtable: `"airtableTokenApi"` 
@@ -201,7 +201,7 @@ Add parallel test path:
 ### **NEVER AGAIN CHECKLIST:**
 - [ ] Used `"authentication": "predefinedCredentialType"`
 - [ ] Set correct `nodeCredentialType` for the service
-- [ ] Set `"sendHeaders": false`
+- [ ] Set `"sendHeaders": true`
 - [ ] Avoided manual header parameters with credentials
 - [ ] Tested credential persistence after page refresh
 
