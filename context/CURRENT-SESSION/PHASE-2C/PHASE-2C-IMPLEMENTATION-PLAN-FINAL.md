@@ -16,6 +16,21 @@
 **EVIDENCE**: Phase 2B Closeout Report confirms PDL Person enrichment and ICP Scoring V3.0 operational  
 **DEPENDENCIES**: Must address lingering Phase 2B data quality issues during implementation  
 
+## 🔬 **CONSOLIDATED RESEARCH FINDINGS**
+**Sources Integrated**: Multiple duplicate plans, pre-flight checklist, technical requirements  
+**Documentation Cleanup**: Removed duplicate/conflicting files to prevent confusion  
+
+**CRITICAL RESEARCH INTEGRATED**:
+✅ **Website Extraction Requirement**: Company API requires website parameter, not company name  
+✅ **GET Method Confirmation**: PDL Company API uses GET, not POST requests  
+✅ **Multi-Source Website Logic**: Extract from company_website, website, domain fields  
+✅ **B2B Classification Logic**: Requires combining industry + tags + tech stack analysis  
+✅ **Authentication Pattern**: sendHeaders: true required for credential integration  
+✅ **Error Handling Specs**: Continue on fail + retry logic for API reliability  
+✅ **Cost Tracking**: $0.01 per call regardless of success/failure  
+
+**DEVELOPER NOTE**: All critical corrections from previous research iterations have been integrated. No need to reference deleted files.
+
 ---
 
 ## 🚨 **CRITICAL PRE-IMPLEMENTATION REQUIREMENTS**
@@ -61,12 +76,16 @@ EVIDENCE COLLECTED:
 INSERTION POINT IDENTIFIED:
 After Smart Field Mapper (position [-840, 680]) → PDL Company API → existing flow
 
-🚨 CRITICAL CORRECTIONS INTEGRATED FROM TOOL RESEARCH:
+🚨 CRITICAL CORRECTIONS INTEGRATED FROM COMPREHENSIVE RESEARCH:
 ✅ PDL Company API uses GET method (not POST)
 ✅ PDL uses 'website' parameter (not 'name') 
 ✅ Authentication requires sendHeaders: true
 ✅ Query parameters for GET request (not body)
-✅ Proper credential reference pattern validated
+✅ Website extraction logic REQUIRED before API call
+✅ No direct company name → website mapping available
+✅ Must extract from multiple sources: company_website, website, domain
+✅ B2B classification requires combining multiple criteria
+✅ Tech company status needs industry + tech stack analysis
 ```
 
 ### **3. LINGERING ISSUES ACKNOWLEDGMENT**
