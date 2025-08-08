@@ -1,11 +1,14 @@
-# 🚀 SESSION: PDL Integration Development - READY
+# 🚀 SESSION: PHASE 2C - PDL COMPANY API INTEGRATION
 
 ## **SESSION CONTEXT: Developer Agent Handover**
 
-**Date**: 2025-01-27  
-**Agent Type**: Developer Agent (PDL Integration)  
-**Foundation**: PRE COMPLIANCE workflow (wpg9K9s8wlfofv1u) - Evidence-based choice  
-**Objective**: Implement PDL Company + Person APIs with ICP scoring and SMS integration  
+**Date**: 2025-08-08  
+**Agent Type**: Developer Agent (Phase 2C Development)  
+**Foundation**: "UYSP PHASE 2B - COMPLETE CLEAN REBUILD" (Q2ReTnOliUTuuVpl) - Operational baseline  
+**Objective**: Implement PDL Company API integration for enhanced B2B tech qualification
+
+## **🎯 PHASE 2C OBJECTIVE**
+**Implement PDL Company API integration for enhanced B2B tech qualification and improved ICP scoring**  
 
 ---
 
@@ -24,14 +27,16 @@
 USAGE: ALWAYS validate n8n node documentation with Context7 before creation/modification
 ```
 
-#### **N8N MCP Suite** (VERIFIED WORKING):
+#### **N8N MCP Suite** (❌ NOT AVAILABLE):
 ```markdown  
-✅ mcp_n8n_n8n_get_workflow - Retrieve workflow details
-✅ mcp_n8n_n8n_update_partial_workflow - Batch node operations (≤5 per chunk)
-✅ mcp_n8n_n8n_create_workflow - New workflow creation
-✅ mcp_n8n_n8n_get_execution - Execution status and evidence collection
-✅ mcp_n8n_validate_workflow - Structure and logic validation
-✅ mcp_n8n_get_node_documentation - Node schema and parameters
+❌ mcp_n8n_n8n_get_workflow - NOT AVAILABLE (manual UI development required)
+❌ mcp_n8n_n8n_update_partial_workflow - NOT AVAILABLE (use n8n UI directly)
+❌ mcp_n8n_n8n_create_workflow - NOT AVAILABLE (manual workflow creation)
+❌ mcp_n8n_n8n_get_execution - NOT AVAILABLE (screenshot-based evidence)
+❌ mcp_n8n_validate_workflow - NOT AVAILABLE (manual testing required)
+❌ mcp_n8n_get_node_documentation - NOT AVAILABLE (use Context7/DocFork)
+
+⚠️ IMPACT: Developer Agent must use manual n8n UI development approach
 ```
 
 #### **Airtable MCP Suite** (OPERATIONAL):
@@ -44,171 +49,198 @@ USAGE: ALWAYS validate n8n node documentation with Context7 before creation/modi
 
 ---
 
-## **🎯 DEVELOPMENT FOUNDATION STATUS**
+## **🎯 PHASE 2B FOUNDATION STATUS (COMPLETED)**
 
-### **PRE COMPLIANCE Baseline** (wpg9K9s8wlfofv1u):
-✅ **19 Nodes Active**: Complete architecture with 10DLC compliance  
-✅ **Smart Field Mapper v4.6**: Proven working (GROK execution 1201 validation)  
-✅ **10DLC Integration**: Monthly SMS limits, TCPA windows, DND checking  
-✅ **Cost Tracking**: Infrastructure ready for PDL API cost monitoring  
-✅ **3-Field Phone Strategy**: phone_original/phone_recent/phone_validated  
+### **UYSP PHASE 2B - COMPLETE CLEAN REBUILD** (Q2ReTnOliUTuuVpl):
+✅ **PDL Person Enrichment**: Operational with proper authentication and data extraction  
+✅ **ICP Scoring V3.0**: 0-100 scoring system operational and writing to Airtable  
+✅ **Smart Field Mapper v4.6**: Proven working and integrated  
+✅ **Lead Processing Pipeline**: Individual lead qualification working end-to-end  
+✅ **Cost Tracking**: PDL Person API ($0.03/call) operational  
 
-### **Component Verification**:
-✅ **Webhook Processing**: Kajabi integration working  
-✅ **Field Normalization**: 26+ field variations mapped correctly  
-✅ **Duplicate Detection**: Robust count management system  
-✅ **Airtable Integration**: Create/update logic operational  
-✅ **Error Handling**: Exponential backoff retry system  
+### **Phase 2B Achievements**:
+✅ **PDL Person API**: Successfully integrated with proper authentication  
+✅ **ICP Scoring**: V3.0 methodology with role, company, and engagement factors  
+✅ **Score-Based Logic**: Proper routing based on ICP score ranges  
+✅ **Airtable Integration**: Complete storage of enriched data and scores  
+✅ **Testing Validation**: Comprehensive test results with evidence  
 
 ---
 
-## **📋 PDL INTEGRATION SPECIFICATIONS**
+## **📋 PHASE 2C TECHNICAL REQUIREMENTS**
 
-### **PHASE 1: PDL Company API** (Sprint 1)
+### **CORE OBJECTIVE: PDL Company API Integration**
 **API Cost**: $0.01/call  
-**Integration Point**: After Smart Field Mapper v4.6  
-**Input**: normalized.company from field mapper  
+**Integration Point**: Between Smart Field Mapper and existing PDL Person API  
+**Input**: Normalized company name from Smart Field Mapper  
 **Output**: B2B tech company qualification status  
 
-**Required Node Configuration**:
-```javascript
-// PDL Company API Node
-{
-  "type": "n8n-nodes-base.httpRequest",
-  "parameters": {
-    "url": "https://api.peopledatalabs.com/v5/company/enrich",
-    "method": "POST", 
-    "headers": {
-      "X-Api-Key": "{{process.env.PDL_API_KEY}}"
-    },
-    "body": {
-      "name": "={{$node['Smart Field Mapper'].json.normalized.company}}"
-    }
-  }
-}
+### **IMPLEMENTATION SEQUENCE**
+
+#### **Step 1: PDL Company API Integration**
+- Create HTTP Request node with proper authentication
+- Configure request parameters and headers  
+- Implement error handling for API failures
+- Test with sample company names
+
+#### **Step 2: Company Data Processing**
+- Extract relevant fields from PDL response
+- Normalize industry classifications
+- Map company size to standardized ranges
+- Identify tech stack indicators
+
+#### **Step 3: Qualification Logic**
+- Implement B2B tech qualification criteria
+- Configure IF node with proper routing
+- Ensure "Always Output Data" is enabled
+- Test both qualification paths
+
+#### **Step 4: Enhanced Cost Tracking**
+- Extend existing cost tracking system
+- Add PDL Company API cost ($0.01/call)
+- Integrate with daily budget monitoring
+- Test cost accumulation logic
+
+### **INTEGRATION ARCHITECTURE**
 ```
-
-### **PHASE 2: PDL Person API** (Sprint 2)  
-**API Cost**: $0.03/call  
-**Conditional Logic**: Only if Company API qualifies lead  
-**Input**: normalized.email + company data  
-**Output**: Sales role verification data  
-
-### **PHASE 3: ICP Scoring** (Sprint 3)
-**AI Integration**: Claude API for 0-100 scoring  
-**Threshold Logic**: ≥70 qualifies for SMS, <70 archives  
-**Input**: Combined company + person data  
-**Output**: ICP score and tier assignment  
-
-### **PHASE 4: SMS Enhancement** (Sprint 4)
-**Integration**: Leverage existing PRE COMPLIANCE SMS system  
-**Qualification**: Only ICP ≥70 leads with US phone numbers  
-**Compliance**: Full 10DLC + TCPA enforcement already operational  
+WEBHOOK INPUT
+    │
+    ▼
+FIELD NORMALIZATION (Smart Field Mapper v4.6)
+    │
+    ▼
+[NEW] PDL COMPANY API ──────┐
+    │                       │
+    ▼                       │
+[NEW] COMPANY QUALIFIED?    │
+    │           │           │
+    │ (YES)     │ (NO)      │
+    ▼           └───────────┘
+PDL PERSON API [EXISTING]   │
+    │                       │
+    ▼                       │
+ICP SCORING [EXISTING]      │
+    │                       │
+    ▼                       ▼
+AIRTABLE RECORD CREATION
+```  
 
 ---
 
 ## **🛠️ DEVELOPMENT PROTOCOLS**
 
-### **Context7 + N8N MCP Workflow**:
+### **Context7 + Manual Development Workflow**:
 ```markdown
-1. CONTEXT7 VALIDATION:
-   - Add "use context7" to prompts for documentation accuracy before n8n node creation
-   - Validate node parameters and compatibility
-   - Confirm current n8n API documentation
+1. RESEARCH & PLANNING (Context7 + DocFork):
+   - Use Context7 to research n8n node documentation before implementation
+   - Query DocFork for latest n8n API specifications and examples
+   - Validate PDL API integration patterns and authentication methods
+   - Document exact node configurations and parameter requirements
 
-2. N8N MCP OPERATIONS:
-   - Use mcp_n8n_n8n_update_partial_workflow for node additions
-   - Batch operations: ≤5 nodes per update
-   - Validate with mcp_n8n_validate_workflow after changes
+2. MANUAL N8N DEVELOPMENT:
+   - Access n8n UI directly for workflow modifications
+   - Create nodes manually using researched specifications
+   - Test each component individually before integration
+   - Screenshot evidence for each development step
 
 3. EVIDENCE COLLECTION:
-   - Capture mcp_n8n_n8n_get_execution IDs for all tests
-   - Verify mcp_airtable_get_record updates for cost tracking
-   - Document real execution data (not simulations)
+   - Screenshots of workflow development progress
+   - Airtable MCP verification of data storage and cost tracking
+   - Manual execution testing with documented results
+   - Real lead data validation (not simulations)
 ```
 
-### **Chunked Development Strategy**:
+### **Manual Development Strategy**:
 ```markdown
-CHUNK FORMAT:
-- Analysis (Context7 validation if needed)
-- ≤5 operations per chunk
-- Evidence collection (execution IDs, record IDs)
-- User confirmation before next chunk
+DEVELOPMENT APPROACH:
+- Research-first planning using Context7/DocFork
+- Manual n8n UI development with detailed documentation
+- Step-by-step implementation with screenshot evidence
+- Airtable MCP verification for data validation
+- User confirmation at each major milestone
 
-WAIT FOR USER 'GO' OR 'PROCEED' BETWEEN CHUNKS
+EVIDENCE REQUIREMENTS:
+- Screenshots of each development step
+- Airtable record verification via MCP
+- Manual test execution results
+- Cost tracking validation
 ```
 
 ---
 
 ## **📊 SUCCESS CRITERIA & EVIDENCE**
 
-### **Sprint 1 Evidence Requirements**:
-- [ ] PDL Company API node created with Context7 validation
-- [ ] 10 test calls with execution IDs logged
-- [ ] Cost tracking: $0.01 per call verified in Airtable
-- [ ] Company qualification logic routing functional
-- [ ] PRE COMPLIANCE baseline preserved (all 19 nodes intact)
+### **Phase 2C Evidence Requirements**:
+- [ ] Context7/DocFork research completed for PDL Company API integration
+- [ ] PDL Company API node created manually with screenshot evidence
+- [ ] Company qualification logic implemented with proper routing
+- [ ] Cost tracking extended for Company API ($0.01/call) via Airtable MCP
+- [ ] Phase 2B foundation preserved (Person API + ICP Scoring intact)
 
-### **Sprint 2 Evidence Requirements**:
-- [ ] PDL Person API conditional logic working
-- [ ] Person + Company cost accumulation accurate
-- [ ] Sales role verification data enriching Airtable records
-- [ ] Conditional routing (Company qualified → Person API)
+### **Integration Testing Requirements**:
+- [ ] End-to-end flow: Company API → Person API → ICP Scoring working
+- [ ] Enhanced ICP scoring with company data improving accuracy
+- [ ] Cost tracking verification: Person ($0.03) + Company ($0.01) combined
+- [ ] Test with real lead data and validate enrichment quality
 
-### **Sprint 3 Evidence Requirements**:
-- [ ] Claude AI integration scoring 0-100
-- [ ] ICP threshold routing (≥70 → SMS queue, <70 → archive)
-- [ ] Score storage in Airtable icp_score field
-- [ ] Claude API cost tracking integrated
-
-### **Sprint 4 Evidence Requirements**:
-- [ ] End-to-end PDL → SMS flow working
-- [ ] US-only phone filtering operational
-- [ ] ICP ≥70 qualification enforced
-- [ ] Full compliance system (10DLC, TCPA, DND) preserved
+### **Performance & Quality Validation**:
+- [ ] Company API response time acceptable (<2 seconds)
+- [ ] Proper error handling for "company not found" scenarios
+- [ ] Data quality verification between PDL and LinkedIn profiles
+- [ ] Integration preserves existing SMS and compliance systems
 
 ---
 
-## **🗂️ QUICK REFERENCE FILES**
+## **🗂️ PHASE 2C REFERENCE FILES**
 
-### **Immediate Reading Priority**:
-1. **`config/workflow-ids.json`** - PRE COMPLIANCE workflow ID confirmed
-2. **`docs/ARCHITECTURE/PDL-MIGRATION-ROADMAP.md`** - Updated 4-sprint development plan  
-3. **`tests/results/GROK-COMPONENT-EXTRACTION-COMPLETE.md`** - Component analysis
-4. **`patterns/exported/smart-field-mapper-v4.6-grok.js`** - Proven field mapper code
+### **IMMEDIATE READING PRIORITY**:
+1. **`context/CURRENT-SESSION/PHASE-2C/PHASE-2C-CONTEXT-PACKAGE.md`** - Complete Phase 2C development package
+2. **`context/CURRENT-SESSION/PHASE-2C/PHASE-2C-TECHNICAL-REQUIREMENTS.md`** - Detailed technical specifications
+3. **`docs/ARCHITECTURE/PDL-MIGRATION-ROADMAP.md`** - AUTHORITATIVE Phase 2C roadmap
+4. **`docs/CURRENT/critical-platform-gotchas.md`** - CRITICAL n8n platform issues and solutions
 
-### **PDL Architecture Specs**:
-- **`docs/pdl-architecture/UYSP Master Reference & Architecture.txt`**
-- **`docs/pdl-architecture/UYSP Implementation Guide.txt`**
-- **`docs/pdl-architecture/Airtable Schema Comparison: v3 → v4 Simplified Architecture.txt`**
+### **BASELINE & FOUNDATION**:
+- **`docs/CURRENT/PHASE-2B-CLOSEOUT-REPORT.md`** - Phase 2B achievements and evidence
+- **`memory_bank/active_context.md`** - Current system status and capabilities
+- **`docs/CURRENT/PHASE-2B-LINGERING-ISSUES.md`** - Known limitations and development debt
 
-### **Testing Framework**:
-- **`tests/README.md`** - Testing suite documentation
-- **`tests/reality-based-tests-v3.json`** - Test payload specifications
+### **IMPLEMENTATION RESOURCES**:
+- **`docs/CURRENT/ICP-SCORING-V3-METHODOLOGY.md`** - AUTHORITATIVE scoring system
+- **`patterns/exported/smart-field-mapper-v4.6-grok.js`** - Proven field mapper code
+- **`docs/CURRENT/MASTER-WORKFLOW-GUIDE.md`** - Main workflow components guide
 
 ---
 
 ## **⚠️ CRITICAL REMINDERS**
 
-### **Context7 MCP Integration** [[memory:4960259]]:
-- Context7 is CONFIRMED operational in this environment
-- Use for ALL n8n node documentation validation
-- Essential for PDL API node creation and parameter validation
+### **Context7 + DocFork Integration** (OPERATIONAL):
+- Context7 is CONFIRMED operational - 6478+ n8n code snippets available
+- DocFork provides latest n8n GitHub documentation
+- MANDATORY for ALL n8n node research before manual implementation
+- Essential for PDL API integration patterns and authentication methods
 
-### **PRE COMPLIANCE Preservation**:
-- **NEVER modify existing 19 nodes** - Only add new nodes
-- Maintain all compliance systems (10DLC, TCPA, SMS budgets)
-- Preserve Smart Field Mapper v4.6 (proven working)
-- Keep 3-field phone strategy intact
+### **Phase 2B Foundation Preservation**:
+- **PRESERVE existing PDL Person enrichment** - Working and tested
+- **PRESERVE existing ICP Scoring V3.0** - Operational and accurate
+- **PRESERVE existing workflow structure** - Only add Company API nodes
+- **PRESERVE existing cost tracking** - Extend for Company API ($0.01/call)
 
-### **Evidence-Based Development**:
-- Every operation must have tool verification
-- Capture n8n execution IDs for all tests
-- Verify Airtable cost tracking accuracy
-- No assumptions - only evidence-backed progress
+### **Anti-Hallucination Protocol (MANDATORY)**:
+- **100% tool verification** before any implementation claims
+- **Evidence requirement**: API responses, execution IDs, record IDs  
+- **Confidence declarations**: Include percentage and assumptions
+- **When contradicted**: Acknowledge, present evidence, revise approach
+
+### **Platform Gotchas (CRITICAL)**:
+- **NO MCP workflow updates available** - Use manual n8n UI development
+- **USE predefinedCredentialType** for all API authentication (never "generic")
+- **VERIFY "Always Output Data"** on all IF nodes (critical for routing)
+- **FOLLOW expression spacing**: `{{ $json.field }}` format (no extra spaces)
+- **PDL API authentication**: Use HTTP Request node with proper headers
+- **REFERENCE**: See `docs/CURRENT/critical-platform-gotchas.md` for complete list
 
 ---
 
-**SESSION STATUS**: ✅ Ready for Developer Agent PDL integration development  
-**Next Step**: Load PM context, verify tool access, begin Sprint 1 PDL Company API integration  
-**Foundation**: PRE COMPLIANCE (wpg9K9s8wlfofv1u) - 19 nodes, evidence-validated baseline
+**SESSION STATUS**: ✅ Ready for Phase 2C - PDL Company API Integration  
+**Next Step**: Begin Phase 2C development with comprehensive workflow analysis  
+**Foundation**: "UYSP PHASE 2B - COMPLETE CLEAN REBUILD" (Q2ReTnOliUTuuVpl) - Operational baseline
