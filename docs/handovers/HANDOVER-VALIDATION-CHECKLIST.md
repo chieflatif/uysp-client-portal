@@ -34,7 +34,7 @@
 
 ### **🧪 Testing Evidence**:
 - [ ] **API Test Calls**: 10 PDL Company API calls with execution IDs logged
-- [ ] **Cost Tracking**: $0.01 per call verified in Airtable apollo_org_cost field
+- [ ] **Cost Tracking**: $0.03 PDL + $0.049 Hunter per call verified in Airtable cost fields
 - [ ] **Success Rate**: ≥95% API success rate achieved
 - [ ] **Error Handling**: Failed calls properly logged and handled
 
