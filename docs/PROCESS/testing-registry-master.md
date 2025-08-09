@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # UYSP Testing Registry - Master Document
 ## **SINGLE SOURCE OF TRUTH FOR ALL TESTING STATUS**
 

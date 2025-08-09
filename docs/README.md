@@ -1,4 +1,6 @@
 # 📚 UYSP Documentation Directory - REORGANIZED 2025-01-27
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
 >
 **⚠️ CRITICAL - NEW ORGANIZATIONAL STRUCTURE**
 
@@ -8,15 +10,15 @@
 >**Purpose**: Documents for active use in current Phase 2B development
 >
 - `README.md` - This guide (you are here)
-- `critical-platform-gotchas.md` - Platform prevention measures (**ALWAYS CHECK**)
-- `ICP-SCORING-V3-METHODOLOGY.md` - Current ICP scoring framework
+- `critical-platform-gotchas.md` - Platform prevention measures (**ALWAYS CHECK**) [AUTHORITATIVE]
+- `ICP-SCORING-V3-METHODOLOGY.md` - Current ICP scoring framework [AUTHORITATIVE]
 - `PHASE-2B-TECHNICAL-REQUIREMENTS.md` - Current phase technical specs
-- `MASTER-WORKFLOW-GUIDE.md` - Git, backup, session management
+- `MASTER-WORKFLOW-GUIDE.md` - Git, backup, session management [AUTHORITATIVE]
 
 ### **📁 PROCESS** (Workflow & Management)
 >**Purpose**: How we work - procedures, workflows, and management
 >
-- `testing-registry-master.md` - **AUTHORITATIVE** testing status
+- `testing-registry-master.md` - **AUTHORITATIVE** testing status [AUTHORITATIVE]
 - `documentation-control-system.md` - Documentation standards and control
 - `webhook-testing-guide.md` - Testing procedures for webhooks  
 - `UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md` - System replication guide
@@ -33,7 +35,8 @@
 ### **📁 ARCHIVE** (Historical/Outdated)
 >**Purpose**: Documents that are no longer current but preserved for reference
 >
-- `outdated-2025-jan/` - Documents from previous organizational structure
+- `outdated-2025-jan/` - Documents from previous organizational structure [HISTORICAL]
+  - Note: Avoid referencing archived docs for current status. Use `PROCESS/testing-registry-master.md` and `CURRENT/*` instead.
 
 ---
 

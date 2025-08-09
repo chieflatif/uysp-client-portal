@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # 🚀 Universal Cursor AI Workflow System - Complete Implementation Guide
 
 **PURPOSE**: This document enables ANY Cursor AI agent to replicate the UYSP dual backup, branching, and documentation system in NEW projects.
@@ -72,7 +75,7 @@ node_modules/
 
 #### **2.1 Primary Workflow Script**
 **File**: `scripts/git-workflow.sh`  
-**Source**: [UYSP: scripts/git-workflow.sh](./scripts/git-workflow.sh)
+**Source**: [UYSP: scripts/git-workflow.sh](../../scripts/git-workflow.sh)
 
 **🔧 CUSTOMIZATION REQUIRED**:
 ```bash
@@ -86,7 +89,7 @@ echo "Example: npm run branch new session-2-compliance 'SMS/TCPA compliance'"
 
 #### **2.2 Session Initialization Script**  
 **File**: `scripts/work-start.sh`  
-**Source**: [UYSP: scripts/work-start.sh](./scripts/work-start.sh)
+**Source**: [UYSP: scripts/work-start.sh](../../scripts/work-start.sh)
 
 **🔧 CUSTOMIZATION REQUIRED**:
 ```bash
@@ -99,7 +102,7 @@ echo "🚀 UYSP Work Session Starting..."
 
 #### **2.3 Git Backup System**
 **File**: `scripts/git-backup.sh`  
-**Source**: [UYSP: scripts/git-backup.sh](./scripts/git-backup.sh)
+**Source**: [UYSP: scripts/git-backup.sh](../../scripts/git-backup.sh)
 
 **🔧 CUSTOMIZATION REQUIRED**:
 ```bash
@@ -113,7 +116,7 @@ fi
 
 #### **2.4 Real Export Backup Script**
 **File**: `scripts/real-n8n-export.sh`  
-**Source**: [UYSP: scripts/real-n8n-export.sh](./scripts/real-n8n-export.sh)
+**Source**: [UYSP: scripts/real-n8n-export.sh](../../scripts/real-n8n-export.sh)
 
 **🔧 CRITICAL CUSTOMIZATION REQUIRED**:
 ```bash
@@ -124,7 +127,7 @@ AIRTABLE_BASE_ID="appuBf0fTe8tp8ZaF" # → Your Airtable base ID
 
 #### **2.5 Enhanced Schema Export**
 **File**: `scripts/enhanced-airtable-export.js`  
-**Source**: [UYSP: scripts/enhanced-airtable-export.js](./scripts/enhanced-airtable-export.js)
+**Source**: [UYSP: scripts/enhanced-airtable-export.js](../../scripts/enhanced-airtable-export.js)
 
 **🔧 CRITICAL CUSTOMIZATION REQUIRED**:
 ```javascript
@@ -139,7 +142,7 @@ if (['email', 'phone_primary', 'first_name', /* your fields */].includes(field.n
 
 #### **2.6 Auto-Backup System**
 **File**: `scripts/auto-backup.sh`  
-**Source**: [UYSP: scripts/auto-backup.sh](./scripts/auto-backup.sh)
+**Source**: [UYSP: scripts/auto-backup.sh](../../scripts/auto-backup.sh)
 
 **🔧 CUSTOMIZATION REQUIRED**:
 ```bash
@@ -152,8 +155,8 @@ echo "📁 Total workflow backups:        $(ls ./workflows/backups/[YOUR_PATTERN
 ### **PHASE 3: Documentation Structure (10 minutes)**
 
 #### **3.1 Master Documentation Guide**
-**File**: `docs/MASTER-WORKFLOW-GUIDE.md`  
-**Template Source**: [UYSP: docs/MASTER-WORKFLOW-GUIDE.md](./docs/MASTER-WORKFLOW-GUIDE.md)
+**File**: `docs/CURRENT/MASTER-WORKFLOW-GUIDE.md`  
+**Template Source**: [UYSP: docs/CURRENT/MASTER-WORKFLOW-GUIDE.md](../../docs/CURRENT/MASTER-WORKFLOW-GUIDE.md)
 
 **🔧 CUSTOMIZATION REQUIRED**:
 - Replace all "UYSP" references with your project name
@@ -163,7 +166,7 @@ echo "📁 Total workflow backups:        $(ls ./workflows/backups/[YOUR_PATTERN
 
 #### **3.2 Documentation Navigation Hub**
 **File**: `docs/README.md`  
-**Template Source**: [UYSP: docs/README.md](./docs/README.md)
+**Template Source**: [UYSP: docs/README.md](../../docs/README.md)
 
 **🔧 CUSTOMIZATION REQUIRED**:
 - Update project-specific guide names
@@ -171,15 +174,15 @@ echo "📁 Total workflow backups:        $(ls ./workflows/backups/[YOUR_PATTERN
 
 #### **3.3 Scripts Directory Guide**
 **File**: `scripts/README.md`  
-**Template Source**: [UYSP: scripts/README.md](./scripts/README.md)
+**Template Source**: [UYSP: scripts/README.md](../../scripts/README.md)
 
 **🔧 CUSTOMIZATION REQUIRED**:
 - Update script names if you modify them
 - Add any project-specific scripts
 
 #### **3.4 Main Project README Updates**
-**File**: `README.md`  
-**Template Section**: [UYSP: README.md lines 118-125](./README.md)
+**File**: `docs/README.md`  
+**Template Section**: [UYSP: docs/README.md](../../docs/README.md)
 
 **Add this section**:
 ```markdown
@@ -386,23 +389,23 @@ git-workflow.sh → backup → create branch → initial commit → push
 ## 🔗 **DIRECT FILE LINKS FOR COPYING**
 
 ### **Core Scripts (Copy These Exactly)**:
-- [git-workflow.sh](./scripts/git-workflow.sh) - Main workflow system
-- [work-start.sh](./scripts/work-start.sh) - Session initialization  
-- [git-backup.sh](./scripts/git-backup.sh) - Git backup branches
-- [auto-backup.sh](./scripts/auto-backup.sh) - Smart scheduling
+- [git-workflow.sh](../../scripts/git-workflow.sh) - Main workflow system
+- [work-start.sh](../../scripts/work-start.sh) - Session initialization  
+- [git-backup.sh](../../scripts/git-backup.sh) - Git backup branches
+- [auto-backup.sh](../../scripts/auto-backup.sh) - Smart scheduling
 
 ### **Service Export Scripts (Customize These)**:
-- [real-n8n-export.sh](./scripts/real-n8n-export.sh) - n8n workflow export
-- [enhanced-airtable-export.js](./scripts/enhanced-airtable-export.js) - Airtable schemas
+- [real-n8n-export.sh](../../scripts/real-n8n-export.sh) - n8n workflow export
+- [enhanced-airtable-export.js](../../scripts/enhanced-airtable-export.js) - Airtable schemas
 
 ### **Documentation Templates (Customize These)**:
-- [MASTER-WORKFLOW-GUIDE.md](./docs/MASTER-WORKFLOW-GUIDE.md) - Main documentation
-- [docs/README.md](./docs/README.md) - Documentation navigation  
-- [scripts/README.md](./scripts/README.md) - Scripts navigation
+- [MASTER-WORKFLOW-GUIDE.md](../../docs/CURRENT/MASTER-WORKFLOW-GUIDE.md) - Main documentation
+- [docs/README.md](../../docs/README.md) - Documentation navigation  
+- [scripts/README.md](../../scripts/README.md) - Scripts navigation
 
 ### **Configuration Templates**:
-- [package.json scripts section](./package.json) - npm commands
-- [README.md workflow section](./README.md) - Project documentation
+- [package.json scripts section](../../package.json) - npm commands
+- [README.md workflow section](../../docs/README.md) - Project documentation
 
 ---
 

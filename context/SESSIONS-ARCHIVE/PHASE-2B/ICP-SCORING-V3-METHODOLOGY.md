@@ -1,3 +1,7 @@
+[HISTORICAL]
+Last Updated: 2025-01-27
+Superseded by: docs/CURRENT/ICP-SCORING-V3-METHODOLOGY.md
+
 # ICP Scoring V3.0 Methodology - Final Client Framework
 
 ## Executive Summary

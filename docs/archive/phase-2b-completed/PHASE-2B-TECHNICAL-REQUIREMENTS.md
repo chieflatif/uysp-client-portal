@@ -1,3 +1,6 @@
+[HISTORICAL]
+Last Updated: 2025-08-08
+
 # Phase 2B Technical Requirements - ICP Scoring Implementation
 
 ## Overview

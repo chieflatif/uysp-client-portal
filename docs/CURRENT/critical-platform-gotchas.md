@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # Critical n8n Platform Gotchas - MUST READ
 
 ## 🚨 GOTCHA #20: IF NODE CONFIGURATION REALITY CHECK (CRITICAL)

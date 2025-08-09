@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # Phone Number Lifecycle Strategy
 ## 3-Field Phone Versioning & Validation Framework
 

@@ -1,3 +1,6 @@
+[HISTORICAL]
+Last Updated: 2025-08-08
+
 # DEPRECATED SESSION-BASED CONTEXT
 
 **⚠️ ORGANIZATIONAL CHANGE: Session-based context has been replaced with role-based organization**

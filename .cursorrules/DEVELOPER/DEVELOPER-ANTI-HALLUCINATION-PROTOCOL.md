@@ -1,3 +1,8 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-09
+
+> This is a platform‑specific annex focused on MCP contamination. The master context engineering SSOT is `.cursorrules/CONTEXT-ENGINEERING-STANDARD.md`. Follow the SSOT in all responses; use this file only for MCP‑specific constraints.
+
 # DEVELOPER AGENT MCP CONTAMINATION PREVENTION
 ## **MANDATORY BOUNDARIES FOR ALL DEVELOPMENT WORK**
 

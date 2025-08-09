@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # Implementation Pattern: Hunter Waterfall Integration
 
 ## Node 1: Feature Gate Configuration

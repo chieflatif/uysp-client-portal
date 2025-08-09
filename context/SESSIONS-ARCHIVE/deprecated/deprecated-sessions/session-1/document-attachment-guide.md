@@ -1,3 +1,6 @@
+[HISTORICAL]
+Last Updated: 2025-08-08
+
 # Session 1: Document Attachment Guide
 *Optimal Context Engineering for Testing & Platform Gotcha Resolution*
 

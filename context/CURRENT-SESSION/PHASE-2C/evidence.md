@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # Evidence Requirements: Phase 2C Hunter Waterfall
 
 ## After Each Chunk Completion

@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # 📚 UYSP Documentation Directory
 
 **⚠️ IMPORTANT - READ THIS FIRST**

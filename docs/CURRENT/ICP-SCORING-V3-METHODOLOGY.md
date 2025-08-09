@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # ICP Scoring V3.0 Methodology - Enhanced AI-Driven Framework
 
 ## Executive Summary

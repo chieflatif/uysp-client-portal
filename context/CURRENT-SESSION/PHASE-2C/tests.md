@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # Test Requirements: Phase 2C Hunter Waterfall
 
 ## Test Payloads

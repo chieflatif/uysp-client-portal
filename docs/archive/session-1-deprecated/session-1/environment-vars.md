@@ -1,3 +1,6 @@
+[HISTORICAL]
+Last Updated: 2025-08-08
+
 # n8n Environment Variables for UYSP Session 1
 
 Set the following environment variables in your n8n instance:
