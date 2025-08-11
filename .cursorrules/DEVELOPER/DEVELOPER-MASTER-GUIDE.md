@@ -73,7 +73,8 @@ Assumptions: <list> | Risks: <list>
 
 ### **NON-NEGOTIABLE TOOL USAGE RULES**:
 1. **Context7 Validation**: MANDATORY use of Context7 for ALL n8n node documentation before creation/modification
-2. **N8N MCP Operations**: ONLY use mcp_n8n_n8n_* tools (manual JSON editing FORBIDDEN)
+2. **N8N Workflow Edits (Primary → Fallback)**: Prefer `mcp_n8n_*` tools. If partial-ops fail due to schema/endpoint limits, generate complete node/workflow JSON for copy‑paste in the n8n UI. See "JSON Fallback Strategy" below.  
+   [Updated per Phase 2C learnings]
 3. **Evidence Collection**: MUST capture execution IDs, Airtable record IDs, cost tracking data for ALL operations
 4. **Chunked Development**: NEVER exceed 5 operations per chunk; MUST wait for user confirmation
 5. **Connection Management**: AI attempts initial connections; MUST hand off complex routing to human after 2-3 failed attempts
@@ -118,6 +119,17 @@ HANDOFF PROTOCOL:
 3. AI verifies final routing with mcp_n8n_n8n_get_workflow_structure
 4. AI continues with workflow development
 ```
+
+### 🧩 JSON Fallback Strategy (Phase 2C Learnings)
+
+When n8n MCP partial operations (e.g., addNode/addConnection) fail or aren’t supported by the exposed endpoints:
+- Pivot to full JSON generation: Output complete, validated node/workflow JSON for user copy‑paste into the n8n canvas. Scope edits to the new segment (e.g., Phase 2C nodes) and preserve existing flow/webhooks.
+- Validate first with Context7: Confirm node schemas/parameters before generating JSON to avoid breaking changes.
+- Provide wiring instructions: Specify connection targets concisely (source node/outputIndex → target node/inputIndex). Reserve manual UI wiring for >2–3 complex paths.
+- Do not modify pre‑existing, working nodes unless explicitly required.
+- Testing: Use the Testing Master Guide to trigger via webhook and verify Airtable and execution evidence.
+
+[Updated per Phase 2C learnings]
 
 ---
 

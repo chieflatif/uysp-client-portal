@@ -144,8 +144,7 @@ Add parallel test path:
 ```json
 {
   "authentication": "predefinedCredentialType",
-  "nodeCredentialType": "openAiApi", // or "airtableTokenApi", "httpHeaderAuth"
-  "sendHeaders": true // Use credential-driven header via httpHeaderAuth (X-Api-Key)
+  "nodeCredentialType": "openAiApi" // or "airtableTokenApi", "httpHeaderAuth"
 }
 ```
 
@@ -188,7 +187,7 @@ Add parallel test path:
 
 1. **ALWAYS use `predefinedCredentialType` for API authentication**
 2. **NEVER use manual headers with credential dropdowns**
-3. **Set `sendHeaders: true`** - when using `httpHeaderAuth`, enable headers and bind X-Api-Key via credential
+3. When using `httpHeaderAuth`, do not add manual `headerParameters`. Leave `sendHeaders` at its default; credentials inject headers.
 4. **Use the correct `nodeCredentialType`** for each service:
    - OpenAI: `"openAiApi"`
    - Airtable: `"airtableTokenApi"` 
@@ -428,6 +427,24 @@ mcp_n8n_n8n_update_partial_workflow({
 - **Backup**: Always backup base before cleanup operations
 - **Script Location**: See cleanup gotcha script above
 - **Reference**: Airtable API batch operations
+
+### Gotcha 5: n8n Partial Ops Limitation → JSON Fallback (Phase 2C)
+**Reality**: Standard n8n REST endpoints and some MCP wrappers do not support granular node‑level operations (addNode/addConnection) reliably. Schema validations may reject “partial” updates or accept metadata only.
+
+**Impact**: Repeated tool failures, hanging requests, or schema errors when attempting small edits.
+
+**Solution (Fallback Strategy)**:
+- Default to generating complete, validated node/workflow JSON for copy‑paste in the n8n UI when partial ops fail.
+- Validate node schemas and parameters with Context7 before outputting JSON to prevent breaking changes.
+- Keep scope tight: introduce new nodes/segments (e.g., Phase 2C waterfall) without altering proven pre‑existing nodes.
+- Provide explicit wiring instructions (source/outputIndex → target/inputIndex). Use manual UI for complex multi‑path connections.
+
+**When to use**:
+- After 1–2 failed partial attempts or schema rejections
+- For config‑heavy nodes (Code, HTTP Request with complex auth/params)
+- When adding a full segment (e.g., IF → HTTP → Processor → Merger) is faster than piecemeal edits
+
+[Updated per Phase 2C learnings]
 
 ## 🚨 CONTEXT ENGINEERING UPGRADE GOTCHAS
 

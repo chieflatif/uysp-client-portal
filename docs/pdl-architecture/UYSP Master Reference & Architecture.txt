@@ -19,7 +19,7 @@ An automated lead qualification and outreach system that transforms UYSP's manua
 4. **Human Review Queue**: Route unclear cases for manual review
 5. **No Complex CRM**: Airtable as simple identity layer
 
-**ARCHITECTURAL CHANGE**: Enrichment provider changed from Apollo to People Data Labs (PDL) for 60% cost reduction and deeper data coverage including job history and LinkedIn URLs.
+**ARCHITECTURAL CHANGE**: Enrichment provider changed from Apollo to People Data Labs (PDL) for 60% cost reduction and deeper data coverage including job history and LinkedIn URLs. Phase 2C adds Hunter.io as a non-disruptive fallback after PDL Person failures (see `docs/ARCHITECTURE/PHASE-2C-HUNTER-WATERFALL-FINAL-PLAN.md`).
 
 ---
 
@@ -40,7 +40,7 @@ Two-Phase Qualification:
 │   └─ No → Archive
 └─ Phase 2: Person (PDL Person API) → Sales Role? ($0.03)
     ├─ Yes → ICP Scoring (0-100)
-    └─ No → Human Review
+    └─ No → Human Review (Phase 2C: try Hunter fallback before Human Review)
     ↓
 Routing Decision:
 ├─ Score 70+ with Phone → SMS Campaign
@@ -61,7 +61,7 @@ Routing Decision:
 | API Costs | Various | ~$50 | Pay-per-use services |
 | **Total** | **Platform costs** | **~$846** | **PDL-only optimized** |
 
-**COST OPTIMIZATION**: PDL-only implementation at $77/mo provides comprehensive enrichment with job history, LinkedIn URLs, and global coverage.
+**COST OPTIMIZATION**: PDL-first with Hunter fallback preserves low cost while improving success on PDL failures. Hunter priced per lookup ($0.049) with feature flag for instant rollback.
 
 ---
 
@@ -81,9 +81,9 @@ Secondary identifier: linkedin_url
 - **Cost Tracking**: pdl_company_cost, pdl_person_cost
 
 #### 2. Enrichment_Cache - Enhanced
-**PDL-Optimized Caching**:
-- **source**: "pdl_company", "pdl_person"
-- **response_data**: Full PDL JSON including job history
+**PDL/Hunter Caching**:
+ - **source**: "pdl_company", "pdl_person", "hunter"
+ - **response_data**: Full provider JSON
 - **cache_expiry**: 90-day reuse
 - **pdl_likelihood**: Match confidence score
 - **person_id**: PDL's unique identifier for tracking
@@ -152,8 +152,8 @@ if (personData.job_title.includes('sales') ||
 
 **Decision Tree**:
 - Sales role → ICP Scoring
-- Non-sales → Human review
-- No title → Human review
+- Non-sales → Human review (Phase 2C: consider Hunter fallback before review)
+- No title → Human review (Phase 2C: consider Hunter fallback before review)
 - CEO/Founder → Special handling
 
 ### Cost Optimization with PDL
@@ -294,7 +294,7 @@ Quick chat with Davidson? {tracking_link}"
 ### Level 2: External Dependencies (We Monitor)
 | Service | Expected | If Down | Our Response |
 |---------|----------|---------|--------------|
-| **PDL API** | **99% uptime** | **Can't enrich** | **Use cache + queue** |
+| **PDL API** | **99% uptime** | **Can't enrich** | **Use cache + queue; Phase 2C: route to Hunter fallback when available** |
 | Claude API | 95% uptime | Can't score | Domain fallback |
 | SimpleTexting | 99% uptime | Can't SMS | Retry queue |
 | Twilio | 95% uptime | Can't validate | Skip validation |

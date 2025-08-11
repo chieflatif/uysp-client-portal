@@ -10,7 +10,7 @@ Status: IMPLEMENTATION-READY
 **Strategic Value Confirmed** ✅:
 - **Current Pain Point**: ~30% of leads fail PDL enrichment → Human Review Queue
 - **Hunter Solution**: Expected 65%+ success rate on PDL failures = **20% reduction in manual review**
-- **Cost Impact**: +$0.019 per fallback lookup (acceptable within existing $50 daily budget)
+ - **Cost Impact**: +$0.049 per fallback lookup (acceptable within existing $50 daily budget)
 - **ROI**: Significant reduction in manual processing overhead
 
 ---
@@ -89,43 +89,96 @@ Final Flow:   Field Normalization → [Feature Gate] → PDL Person → [PDL Suc
   "nodeType": "n8n-nodes-base.code",
   "parameters": {
     "jsCode": `
-// Process Hunter.io response and normalize to existing schema
-for (const item of $input.all()) {
-  const hunter = item.json.data || {};
-  
-  // Map Hunter fields to existing Airtable schema
+// Process Hunter.io response and normalize to canonical schema
+const items = $input.all();
+for (const item of items) {
+  const hunter = (item.json && item.json.data) || {};
+  const linkedinHandle = hunter.linkedin?.handle || null;
+
   const normalized = {
-    hunter_success: hunter.email ? true : false,
-    email: hunter.email || '',
-    linkedin_url: hunter.linkedin_url || '',
-    job_title: hunter.position || '',
-    enrichment_vendor: 'hunter.io',
-    enrichment_cost: 0.049,
-    hunter_confidence: hunter.confidence || 0
+    // Success if we have at least one meaningful field from Hunter
+    hunter_person_success: !!(linkedinHandle || hunter.employment?.title || hunter.employment?.name),
+
+    // Preserve input values; only fill from Hunter when present
+    email: item.json.email || null,
+    linkedin_url: linkedinHandle ? `https://www.linkedin.com/in/${linkedinHandle}` : (item.json.linkedin_url || null),
+    title_current: hunter.employment?.title || item.json.title_current || null,
+    company_enriched: hunter.employment?.name || item.json.company_enriched || null,
+
+    // Vendor and cost metadata
+    enrichment_vendor: 'hunter',
+    hunter_cost: 0.049,
+    enrichment_confidence: null,
+    enrichment_attempted: true,
+    enrichment_failed: false,
+    last_enriched: new Date().toISOString()
   };
-  
-  $input.item.json = { ...item.json, ...normalized };
+
+  item.json = { ...item.json, ...normalized };
 }
 
-return $input.all();
+return items;
 `
   }
 }
 ```
 
-#### 5. Data Integration Logic (Merge Node)
+#### 5. Data Integration Logic (Code Node - Precedence Merge)
+```javascript
+{
+  "nodeType": "n8n-nodes-base.code",
+  "parameters": {
+    "jsCode": `
+// Person Data Precedence Merge: PDL > Hunter
+const items = $input.all();
+for (const item of items) {
+  const data = item.json || {};
+  const hasPDL = data.pdl_person_success === true;
+  const hasHunter = data.hunter_person_success === true;
+
+  if (hasPDL) {
+    data.enrichment_vendor = 'pdl';
+    data.enrichment_method_primary = 'pdl';
+  } else if (hasHunter) {
+    data.enrichment_vendor = 'hunter';
+    data.enrichment_method_primary = 'hunter';
+    data.enrichment_failed = false;
+  } else {
+    data.enrichment_failed = true;
+    data.routing_decision = 'human_review';
+    data.routing_reason = 'person_enrichment_failed_both_providers';
+  }
+
+  // Ensure LinkedIn URL is full URL when present
+  if (data.linkedin_url && !String(data.linkedin_url).startsWith('http')) {
+    data.linkedin_url = `https://www.linkedin.com/in/${data.linkedin_url}`;
+  }
+
+  item.json = data;
+}
+return items;
+`
+  }
+}
+```
+
+#### 6. Double Failure Router (New IF Node for Final Check)
 ```json
 {
-  "nodeType": "n8n-nodes-base.merge",
+  "nodeType": "n8n-nodes-base.if",
   "parameters": {
-    "mode": "combine",
-    "combineBy": "combineAll",
-    "options": {
-      "includeUnpaired": true
+    "conditions": {
+      "conditions": [{
+        "leftValue": "={{$json.enrichment_failed}}",
+        "rightValue": true,
+        "operator": {"type": "boolean", "operation": "equals"}
+      }]
     }
   }
 }
 ```
+
+**Purpose**: Checks if both PDL and Hunter failed after merger. TRUE → Human Review, FALSE → ICP Scoring.
 
 ---
 
@@ -229,9 +282,11 @@ mcp_n8n_update_partial_workflow({
 ```json
 {
   "fields": {
-    "hunter_api_cost": "={{$json.enrichment_cost}}",
-    "hunter_usage_count": 1,
-    "total_daily_cost": "={{$json.pdl_cost + $json.hunter_cost}}"
+    "date": "={{ new Date().toISOString().split('T')[0] }}",
+    "pdl_person_costs": "={{$json.pdl_person_cost || 0}}",
+    "hunter_costs": "={{$json.hunter_cost || 0}}",
+    "enrichment_costs": "={{($json.pdl_person_cost || 0) + ($json.hunter_cost || 0)}}",
+    "total_costs": "={{$json.total_processing_cost || (($json.pdl_person_cost || 0) + ($json.hunter_cost || 0))}}"
   }
 }
 ```

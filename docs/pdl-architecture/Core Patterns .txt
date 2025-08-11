@@ -47,6 +47,13 @@
 "No authentication data defined on node!"
 → Credential corrupted, needs UI re-selection
 
+### Hunter Fallback Integration (Phase 2C Pointer)
+- After PDL Person failure, call Hunter people/find with `qs: { domain, first_name, last_name }`
+- Authentication: `authentication: "predefinedCredentialType"`, `nodeCredentialType: "httpHeaderAuth"` (no manual headers; do not pass `api_key` in query)
+- Feature flag: IF node checks `={{$env.PERSON_WATERFALL_ENABLED}}` equals `"true"`
+- Routing: PDL success TRUE(index 0) → ICP; FALSE(index 1) → Hunter
+- Merge: Use a Code node for precedence (PDL > Hunter), not a Merge node
+
 ---
 
 ## Pattern: Bootstrap and Initial Setup - PDL Enhanced

@@ -133,3 +133,67 @@ Last Updated: 2025-08-08
 - **Evidence**: Feature gate routes to PDL only
 
 **All tests must include execution IDs and specific evidence collection.**
+
+# Validated 9-Lead Test Set for Routing
+
+## 1. PDL Success (PDL Finds, Skips Others)
+1. **Kinero Tan** (kitan@adobe.com, 3604314662)
+   ```bash
+   curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" -H "Content-Type: application/json" -d '{"email": "kitan@adobe.com", "first_name": "Kinero", "last_name": "Tan", "phone": "3604314662"}'
+   ```
+   - Expected: PDL enriches → People table.
+
+2. **Dara Boland** (dboland@hubspot.com, 877683656)
+   ```bash
+   curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" -H "Content-Type: application/json" -d '{"email": "dboland@hubspot.com", "first_name": "Dara", "last_name": "Boland", "phone": "877683656"}'
+   ```
+   - Expected: PDL enriches → People table.
+
+3. **Jake Turpin** (jacturpi@amazon.com, 4255779762)
+   ```bash
+   curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" -H "Content-Type: application/json" -d '{"email": "jacturpi@amazon.com", "first_name": "Jake", "last_name": "Turpin", "phone": "4255779762"}'
+   ```
+   - Expected: PDL enriches → People table.
+
+## 2. Hunter Waterfall (PDL Misses, Hunter Finds)
+1. **John Sichau** (jsichau@adobe.com, 61427562747)
+   ```bash
+   curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" -H "Content-Type: application/json" -d '{"email": "jsichau@adobe.com", "first_name": "John", "last_name": "Sichau", "phone": "61427562747"}'
+   ```
+   - Expected: PDL fail → Hunter enriches → People table.
+
+2. **Gavin Arredondo** (arregavi@amazon.com, 4844087795)
+   ```bash
+   curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" -H "Content-Type: application/json" -d '{"email": "arregavi@amazon.com", "first_name": "Gavin", "last_name": "Arredondo", "phone": "4844087795"}'
+   ```
+   - Expected: PDL fail → Hunter enriches → People table.
+
+3. **Shane Dempsey** (sdempsey@hubspot.com, 35315187622)
+   ```bash
+   curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" -H "Content-Type: application/json" -d '{"email": "sdempsey@hubspot.com", "first_name": "Shane", "last_name": "Dempsey", "phone": "35315187622"}'
+   ```
+   - Expected: PDL fail → Hunter enriches → People table.
+
+## 3. Human Review (Double Failure - PDL/Hunter Miss, Apollo Would Find)
+1. **Cory Downham** (cdown24@gmail.com, -)
+   ```bash
+   curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" -H "Content-Type: application/json" -d '{"email": "cdown24@gmail.com", "first_name": "Cory", "last_name": "Downham"}'
+   ```
+   - Expected: Double fail → Human Review. (Apollo: Manager / Consulting)
+
+2. **Marty** (martyestrada4646@yahoo.com, 8478331751)
+   ```bash
+   curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" -H "Content-Type: application/json" -d '{"email": "martyestrada4646@yahoo.com", "first_name": "Marty", "last_name": "", "phone": "8478331751"}'
+   ```
+   - Expected: Double fail → Human Review. (Apollo: Sales Rep / Retail)
+
+3. **Jonathan Tomevi** (jtomevi@microsoft.com, 9083282649)
+   ```bash
+   curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" -H "Content-Type: application/json" -d '{"email": "jtomevi@microsoft.com", "first_name": "Jonathan", "last_name": "Tomevi", "phone": "9083282649"}'
+   ```
+   - Expected: Double fail → Human Review. (Apollo: Engineer / Microsoft)
+
+## Notes
+- Mix of personal/corporate, with/without phones for enrichment testing.
+- Apollo notes show potential for future fallback (not current).
+- Use for workflow tests: Trigger and verify paths.

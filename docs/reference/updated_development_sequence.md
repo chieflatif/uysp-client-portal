@@ -119,6 +119,9 @@ Fallback: If MCP fails, generate JSON/manuals via AI.
 - Integrate into Session 1 workflow
 Enhanced: Add international routing to human review if non-US phone detected (e.g., non-+1 prefixes).
 
+Additional enrichment waterfall step:
+- After PDL Person failure, call Hunter people/find with qs `{domain, first_name, last_name}` using `httpHeaderAuth` predefined credentials (no manual headers, no `api_key` in query). Merge results in a Code node with explicit precedence (PDL > Hunter) before ICP.
+
 **Test**: 
 - Process 10 samples covering all routing scenarios
 - Check qualification accuracy and routing decisions

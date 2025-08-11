@@ -101,7 +101,7 @@ Kajabi Form → Zapier → n8n → Field Normalization → Duplicate Check
 
 #### **Hunter.io Fallback (Secondary)**
 2. **Hunter Email Enrichment** ($0.049): Fallback only on PDL failures
-   - Input: Email address  
+   - Inputs (qs): `domain`, `first_name`, `last_name` (from normalized data)  
    - Output: LinkedIn handle, employment title/company, name normalization
    - Success Rate: ~85% on corporate emails
    - Precedence: Lower than PDL, higher than default values
@@ -128,6 +128,13 @@ Kajabi Form → Zapier → n8n → Field Normalization → Duplicate Check
   total_processing_cost: 0.08                   // Cumulative cost for lead
 }
 ```
+
+#### **Implementation Notes (Standardized)**
+- Authentication: `authentication: "predefinedCredentialType"`, `nodeCredentialType: "httpHeaderAuth"` (no manual headers; do not pass `api_key` in query)
+- Hunter Request: `GET https://api.hunter.io/v2/people/find` with `qs: { domain, first_name, last_name }`
+- Feature Flag: IF node checks `={{$env.PERSON_WATERFALL_ENABLED}}` equals `"true"` (enable "Always Output Data" in Settings)
+- PDL Success Router: IF node `={{$json.pdl_person_success}}` equals `true` → TRUE(index 0) to ICP, FALSE(index 1) to Hunter
+- Merge Strategy: Use a Code node for precedence (PDL > Hunter), not a Merge node
 
 ### 🎯 **ICP SCORING ALGORITHM V3.0**
 

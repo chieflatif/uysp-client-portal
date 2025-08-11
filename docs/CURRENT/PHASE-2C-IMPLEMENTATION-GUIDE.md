@@ -15,10 +15,10 @@ NEXT ACTION: Execute Chunk 1 (Foundation Setup)
 ```
 
 ### CRITICAL MEMORY REFERENCES
-- **PDL Routing**: Boolean condition logic requires `operation: "equals"` pattern
-- **Credentials**: MUST use predefinedCredentialType, NEVER manual headers
-- **MCP Tools**: Use proven `mcp_n8n_update_partial_workflow` operations
-- **Cost Tracking**: $50 daily budget, $0.049 per Hunter lookup
+- **PDL Routing**: Boolean condition logic requires `operation: "equals"` pattern (TRUE path index 0 → ICP, FALSE path index 1 → Hunter; enable "Always Output Data" in Settings)
+- **Credentials**: MUST use `authentication: "predefinedCredentialType"`, `nodeCredentialType: "httpHeaderAuth"`, `sendHeaders: false`; NEVER manual headers
+- **MCP Tools**: Use proven `mcp_n8n_update_partial_workflow` operations; credentials may require manual re-select post-edit
+- **Cost Tracking**: $50 daily budget, $0.049 per Hunter lookup; daily fields: `pdl_person_costs`, `hunter_costs`, `enrichment_costs`, `total_costs`
 
 ---
 
@@ -30,7 +30,7 @@ NEXT ACTION: Execute Chunk 1 (Foundation Setup)
 **Current Status**: READY TO START
 
 **Tasks**:
-- [ ] 1. Set environment variable `PERSON_WATERFALL_ENABLED=false`
+- [ ] 1. Set environment variable `PERSON_WATERFALL_ENABLED=false` (use `$env`)
 - [ ] 2. Create Feature Gate IF node after Field Normalization
 - [ ] 3. Connect Feature Gate with proper outputIndex routing
 - [ ] 4. Test feature gate bypass functionality
@@ -70,7 +70,7 @@ mcp_n8n_update_partial_workflow({
 
 ### CHUNK 3: Hunter.io Integration ⏸️
 **Status**: PENDING CHUNK 2 COMPLETION  
-**Critical Pattern**: Predefined credentials, no manual headers
+**Critical Pattern**: Predefined credentials (`httpHeaderAuth`), no manual headers; Hunter `qs` uses `domain`, `first_name`, `last_name` (no `api_key` param)
 
 ### CHUNK 4: Response Processing ⏸️
 **Status**: PENDING CHUNK 3 COMPLETION
@@ -178,6 +178,7 @@ mcp_airtable_describe_table() // ✅ Working
 }
 // TRUE path connects to ICP Scoring (outputIndex: 0)
 // FALSE path connects to Hunter (outputIndex: 1)
+// Ensure "Always Output Data" is enabled in node Settings (UI only)
 ```
 
 ### Credential Configuration

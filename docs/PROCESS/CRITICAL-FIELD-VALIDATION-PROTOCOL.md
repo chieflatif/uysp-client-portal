@@ -32,6 +32,20 @@ Every test MUST verify these specific fields are populated:
 - total_processing_cost: [accumulated costs]
 ```
 
+### **1b. CRITICAL FIELD CHECKLIST (PHASE 2C - HUNTER WATERFALL)**
+Every PDL-failure/Hunter-success test MUST verify these additional fields:
+```markdown
+✅ REQUIRED FOR ENRICHMENT WATERFALL:
+- enrichment_vendor: ['hunter' | 'pdl']
+- hunter_cost: [$0.049 when Hunter used]
+- last_enriched: [timestamp updated]
+- linkedin_url/title_current/company_enriched: [populated when available]
+
+✅ REQUIRED FOR DAILY COSTS:
+- Daily_Costs record shows updated:
+  - hunter_costs, pdl_person_costs, enrichment_costs, total_costs
+```
+
 ### **2. VALIDATION TOOL SEQUENCE (MANDATORY)**
 ```bash
 # Step 1: Get record ID from execution

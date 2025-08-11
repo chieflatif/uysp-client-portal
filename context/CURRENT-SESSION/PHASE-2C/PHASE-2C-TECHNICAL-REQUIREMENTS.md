@@ -49,7 +49,7 @@ Phase 2C implements Hunter.io Email Enrichment as a non-disruptive fallback afte
   "parameters": {
     "conditions": {
       "conditions": [{
-        "leftValue": "={{$vars.PERSON_WATERFALL_ENABLED}}",
+        "leftValue": "={{$env.PERSON_WATERFALL_ENABLED}}",
         "rightValue": "true",
         "operator": {
           "type": "string",
@@ -91,8 +91,9 @@ Phase 2C implements Hunter.io Email Enrichment as a non-disruptive fallback afte
     "nodeCredentialType": "httpHeaderAuth",
     "sendHeaders": false,
     "qs": {
-      "email": "={{$json.email}}",
-      "api_key": "={{$credentials.hunter_api_key}}"
+      "domain": "={{$json.normalized.company_domain}}",
+      "first_name": "={{$json.normalized.first_name}}",
+      "last_name": "={{$json.normalized.last_name}}"
     },
     "options": {
       "timeout": 30000,

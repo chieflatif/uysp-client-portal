@@ -193,6 +193,37 @@ curl -X POST "https://api.airtable.com/v0/appuBf0fTe8tp8ZaF/tbllHCB4MaeBkZYPt" \
 | **PDL Person Routing** | Boolean logic verification | `"operation": "true"` routing confirmed | ✅ **OPERATIONAL** |
 | **Human Review Queue** | Integration testing | Record recCHAUgQeSNrr6bM created | ✅ **OPERATIONAL** |
 
+## 📊 **PHASE 2C: HUNTER WATERFALL (PLANNED VALIDATION)**
+
+### **Validation Plan**
+- 50 PDL-success leads: Confirm Hunter never triggers, PDL path intact
+- 50 PDL-failure leads: Confirm Hunter triggers; success rate ≥65%
+- Cost tracking: Validate `hunter_costs`, `pdl_person_costs`, `enrichment_costs`, `total_costs`
+- Cache logging: `Enrichment_Cache` entries created with correct source
+- Precedence: ICP inputs reflect PDL > Hunter merge
+
+### **Evidence Required**
+- n8n execution IDs for both cohorts
+- Airtable People record IDs showing `enrichment_vendor`, `hunter_cost`, `last_enriched`
+- Daily_Costs record IDs with aggregated `hunter_costs` and `enrichment_costs`
+- Timing metrics (<20s average)
+
+### **Appendix: Canary Test Checklist (50/50 Cohorts)**
+1) Preconditions
+- `$env.PERSON_WATERFALL_ENABLED = true`
+- Hunter credential configured (`predefinedCredentialType` + `httpHeaderAuth`)
+
+2) Cohorts
+- PDL-success (50): prior `pdl_person_success === true`
+- PDL-failure (50): prior `pdl_person_success === false`
+
+3) Assertions
+- PDL-success: NO Hunter calls; ICP path intact; costs exclude `hunter_cost`
+- PDL-failure: Hunter called with `qs {domain, first_name, last_name}`; vendor set to `hunter`; `hunter_cost = 0.049`; linked fields populated when present; Daily_Costs updated (`hunter_costs`, `enrichment_costs`)
+- Cache entries: `source`, `success`, `cost`
+
+4) Rollback
+- Set `$env.PERSON_WATERFALL_ENABLED = false`; rerun 5/5; ensure Hunter bypassed
 ### **⚠️ CRITICAL: PHASE 2 NOT COMPLETE - MISSING COMPONENTS**
 | **Missing Component** | **Status** | **Required For** | **Next Session** |
 |----------------------|------------|------------------|-----------------|
