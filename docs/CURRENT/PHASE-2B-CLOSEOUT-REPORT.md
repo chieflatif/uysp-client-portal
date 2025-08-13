@@ -60,7 +60,7 @@ Last Updated: 2025-08-08
 ### Testing Evidence
 
 - **Test Results Directory**: `tests/results/evidence-2025-08-07T23-40-54/`
-- **Test Payloads**: `tests/payloads/PHASE-2B-TEST-PAYLOADS.json`
+- **Test Payloads**: `tests/data/phase-2D/` and `tests/data/shared/`
 - **Test Log**: `tests/results/phase2b-test-log-2025-08-07T23-40-54.log`
 - **Evidence Files**: Individual test evidence files for each payload
 

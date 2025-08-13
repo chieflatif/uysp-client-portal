@@ -72,7 +72,7 @@ context/
 npm run start-work
 
 # Create new feature branch with automatic backup
-npm run branch new session-3-qualification 'Apollo API integration'
+npm run branch new session-3-qualification 'Dropcontact integration'
 
 # Switch branches safely with checkpoint
 npm run branch switch develop

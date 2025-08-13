@@ -1,0 +1,87 @@
+{
+  "timestamp": "2025-08-13T11:04:38.512Z",
+  "results": {
+    "shared": [
+      {
+        "file": "tests/data/shared/BC001-bool-yes.json",
+        "statusCode": 200,
+        "body": "{\"id\":\"recnigGDICndHTxX3\",\"createdTime\":\"2025-08-12T22:18:29.000Z\",\"fields\":{\"person_email\":\"test-bool-yes@example.com\",\"review_reason\":\"missing_key_data\",\"queued_date\":\"2025-08-13T11:03:49.590Z\",\"pri"
+      },
+      {
+        "file": "tests/data/shared/FV001-standard-kajabi.json",
+        "statusCode": 200,
+        "body": "{\"id\":\"recv8tzqcdB2XiWZW\",\"createdTime\":\"2025-08-12T22:18:31.000Z\",\"fields\":{\"person_email\":\"test-standard@example.com\",\"review_reason\":\"missing_key_data\",\"queued_date\":\"2025-08-13T11:03:52.019Z\",\"pri"
+      },
+      {
+        "file": "tests/data/shared/FV002-all-caps.json",
+        "statusCode": 200,
+        "body": "{\"id\":\"recgt6BD8HE1FbEzH\",\"createdTime\":\"2025-08-12T22:18:34.000Z\",\"fields\":{\"person_email\":\"test-caps@example.com\",\"review_reason\":\"missing_key_data\",\"queued_date\":\"2025-08-13T11:03:54.427Z\",\"priorit"
+      },
+      {
+        "file": "tests/data/shared/Test-matrix.json",
+        "statusCode": 500,
+        "body": "{\"message\":\"Error in workflow\"}"
+      },
+      {
+        "file": "tests/data/shared/high-value-lead.json",
+        "error": "read ETIMEDOUT"
+      }
+    ],
+    "phase-2D": [
+      {
+        "file": "tests/data/phase-2D/PDL001-sales-executive.json",
+        "statusCode": 200,
+        "body": "{\"id\":\"recEwF5FZUvuPPGQL\",\"createdTime\":\"2025-08-12T16:37:21.000Z\",\"fields\":{\"email\":\"sarah.johnson@salesforce.com\",\"linkedin_url\":\"https://www.linkedin.com/in/sarahhardieseismic\",\"first_name\":\"Sarah\""
+      },
+      {
+        "file": "tests/data/phase-2D/PDL002-tech-professional.json",
+        "statusCode": 200,
+        "body": "{\"id\":\"rec5UffNfb59IXEXk\",\"createdTime\":\"2025-08-12T16:37:31.000Z\",\"fields\":{\"email\":\"mchen@microsoft.com\",\"linkedin_url\":\"https://www.linkedin.com/in/linkedin.com/in/menghanchen\",\"first_name\":\"mengha"
+      },
+      {
+        "file": "tests/data/phase-2D/PDL003-non-sales.json",
+        "statusCode": 200,
+        "body": "{\"id\":\"recjyb6sBEQFnNegK\",\"createdTime\":\"2025-08-12T22:18:26.000Z\",\"fields\":{\"person_email\":\"emma.davis@university.edu\",\"review_reason\":\"missing_key_data\",\"queued_date\":\"2025-08-13T11:04:25.466Z\",\"pri"
+      },
+      {
+        "file": "tests/data/phase-2D/test-payloads-2d.json",
+        "statusCode": 500,
+        "body": "{\"message\":\"Error in workflow\"}"
+      },
+      {
+        "file": "tests/data/phase-2D/test-payloads-2d.json",
+        "statusCode": 500,
+        "body": "{\"message\":\"Error in workflow\"}"
+      }
+    ],
+    "phase-2C": [
+      {
+        "file": "tests/data/phase-2C/hunter-pdl-apollo.json",
+        "statusCode": 200,
+        "body": "{\"id\":\"recBczpQHbTeiae4I\",\"createdTime\":\"2025-08-13T10:47:19.000Z\",\"fields\":{\"person_email\":\"hpa@example.com\",\"review_reason\":\"missing_key_data\",\"queued_date\":\"2025-08-13T11:04:31.324Z\",\"priority\":\"Me"
+      },
+      {
+        "file": "tests/data/phase-2C/hunter-success.json",
+        "statusCode": 200,
+        "body": "{\"id\":\"recKaCl9Vu92ruO9Z\",\"createdTime\":\"2025-08-12T16:37:39.000Z\",\"fields\":{\"person_email\":\"hsuccess@example.com\",\"review_reason\":\"missing_key_data\",\"queued_date\":\"2025-08-13T11:04:33.710Z\",\"priority"
+      },
+      {
+        "file": "tests/data/phase-2C/hunter-to-pdl.json",
+        "statusCode": 200,
+        "body": "{\"id\":\"recOZwOKh5ZP1if31\",\"createdTime\":\"2025-08-12T16:37:51.000Z\",\"fields\":{\"person_email\":\"htopdl@example.com\",\"review_reason\":\"missing_key_data\",\"queued_date\":\"2025-08-13T11:04:36.027Z\",\"priority\":"
+      }
+    ],
+    "phase-2E": [
+      {
+        "file": "tests/data/phase-2E/apollo-scenarios.json",
+        "statusCode": 200,
+        "body": "{\"id\":\"recXciw5uMIMeYutz\",\"createdTime\":\"2025-08-13T11:04:39.000Z\",\"fields\":{\"person_email\":\"apollo-first@example.com\",\"review_reason\":\"missing_key_data\",\"queued_date\":\"2025-08-13T11:04:38.426Z\",\"prio"
+      },
+      {
+        "file": "tests/data/phase-2E/apollo-scenarios.json",
+        "statusCode": 200,
+        "body": "{\"id\":\"recEjh4DSoAOCmmJ6\",\"createdTime\":\"2025-08-13T11:04:41.000Z\",\"fields\":{\"person_email\":\"apollo-fallback@example.com\",\"review_reason\":\"missing_key_data\",\"queued_date\":\"2025-08-13T11:04:40.708Z\",\"p"
+      }
+    ]
+  }
+}

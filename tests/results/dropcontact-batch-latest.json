@@ -1,0 +1,1830 @@
+{
+  "submitted": 100,
+  "requestId": "bllzllmprbwpuws",
+  "summary": {
+    "total": 100,
+    "with_linkedin": 71,
+    "with_title": 23,
+    "with_company": 95
+  },
+  "results": [
+    {
+      "first_name": "Anika",
+      "last_name": "Harrell",
+      "full_name": "Anika Harrell",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/anikaharrell",
+      "email": [
+        {
+          "email": "anharrell@paloaltonetworks.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Palo Alto Networks",
+      "website": "www.paloaltonetworks.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/palo-alto-networks",
+      "phone": "+31 20 299 3130",
+      "nb_employees": "10001"
+    },
+    {
+      "first_name": "Nirav",
+      "last_name": "Doshi",
+      "full_name": "Nirav Doshi",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/niravcdp",
+      "email": [
+        {
+          "email": "nirav@securecdp.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "CDP",
+      "website": "www.securecdp.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/securecdp",
+      "phone": "+1 212-378-2086",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Jacob",
+      "last_name": "Karcher",
+      "full_name": "Jacob Karcher",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/jacobkarcher",
+      "email": [
+        {
+          "email": "j.karcher@sana-commerce.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Sana Commerce",
+      "website": "www.sana-commerce.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/sanacommerce",
+      "phone": "+1 332-216-0633",
+      "nb_employees": "501-1000"
+    },
+    {
+      "first_name": "Nate",
+      "last_name": "Morse",
+      "full_name": "Nate Morse",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "nmorse@netskope.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Netskope",
+      "website": "www.netskope.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/netskope",
+      "phone": "+1 800-685-2098",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Andrew",
+      "last_name": "Armstrong",
+      "full_name": "Andrew Armstrong",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "andrew.armstrong@netlify.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Netlify",
+      "website": "www.netlify.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/netlify",
+      "phone": "+1 415-691-1573",
+      "nb_employees": "201-500"
+    },
+    {
+      "first_name": "Tom",
+      "last_name": "Jensen",
+      "full_name": "Tom Jensen",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "tom.jensen@hexagon.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Hexagon Ab",
+      "website": "www.hexagon.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/hexagon-ab",
+      "phone": "+1 303-799-6838",
+      "nb_employees": "10001"
+    },
+    {
+      "first_name": "Phil",
+      "last_name": "Desantis",
+      "full_name": "Phil Desantis",
+      "civility": "Monsieur",
+      "company": "Infoblox",
+      "website": "www.infoblox.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/infoblox",
+      "phone": "+1 408-986-4000",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Brett",
+      "last_name": "Davidson",
+      "full_name": "Brett Davidson",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/brett-davidson01",
+      "job": "Business Development Manager",
+      "email": [
+        {
+          "email": "bdavidson@informatica.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Informatica",
+      "website": "www.informatica.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/informatica",
+      "phone": "+1 800-653-3871",
+      "nb_employees": "5001-10000"
+    },
+    {
+      "first_name": "Matt",
+      "last_name": "O'Grady",
+      "full_name": "Matt O'Grady",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/matt-o-grady-50056812",
+      "email": [
+        {
+          "email": "matt.ogrady@docusign.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Docusign",
+      "website": "www.docusign.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/docusign",
+      "phone": "+1 877-720-2040",
+      "nb_employees": "5001-10000"
+    },
+    {
+      "first_name": "David",
+      "last_name": "Houser",
+      "full_name": "David Houser",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "dhouser9@verizon.net",
+          "qualification": "catch-all@perso"
+        }
+      ],
+      "company": "Verizon",
+      "website": "www.verizon.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/verizon",
+      "phone": "+1 833-837-4966",
+      "nb_employees": "10001"
+    },
+    {
+      "first_name": "Astrid",
+      "last_name": "Farber",
+      "full_name": "Astrid Farber",
+      "civility": "Madame",
+      "email": [
+        {
+          "email": "astrid.farber@docusign.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Docusign",
+      "website": "www.docusign.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/docusign",
+      "phone": "+1 877-720-2040",
+      "nb_employees": "5001-10000"
+    },
+    {
+      "first_name": "Mike",
+      "last_name": "Townsend",
+      "full_name": "Mike Townsend",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "mike.townsend@email.zoominfo.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "website": "email.zoominfo.com",
+      "country": "États-Unis"
+    },
+    {
+      "first_name": "Lauren",
+      "last_name": "Barnes",
+      "full_name": "Lauren Barnes",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/laurenbarnes1",
+      "email": [
+        {
+          "email": "labarnes@teksystems.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Teksystems",
+      "website": "www.teksystems.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/teksystems",
+      "phone": "+1 316-448-4500",
+      "nb_employees": "10001"
+    },
+    {
+      "first_name": "Gavin",
+      "last_name": "Arredondo",
+      "full_name": "Gavin Arredondo",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "arregavi@amazon.com",
+          "qualification": "catch-all@pro"
+        }
+      ],
+      "website": "www.amazon.com",
+      "country": "États-Unis"
+    },
+    {
+      "first_name": "Max",
+      "last_name": "Ferat",
+      "full_name": "Max Ferat",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/max-ferat-05230560",
+      "email": [
+        {
+          "email": "mferat@hubspot.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Hubspot",
+      "website": "www.hubspot.com",
+      "country": "France",
+      "company_linkedin": "https://www.linkedin.com/company/hubspot",
+      "phone": "+1 857-829-5060",
+      "nb_employees": "5001-10000"
+    },
+    {
+      "first_name": "Alexander",
+      "last_name": "Craig",
+      "full_name": "Alexander Craig",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/alexander-c-25542525",
+      "job": "Customer Relations Manager",
+      "company": "Cortec Gmbh",
+      "website": "www.cortec-neuro.com",
+      "country": "Allemagne",
+      "company_linkedin": "https://www.linkedin.com/company/cortec-gmbh",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Taylor",
+      "last_name": "Johnson",
+      "full_name": "Taylor Johnson",
+      "linkedin": "www.linkedin.com/in/taylorjohnsonperformance",
+      "job": "Founder Leadership & Process Development Consultant",
+      "email": [
+        {
+          "email": "taylor@taylorjohnsonperformance.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Taylor Johnson Performance",
+      "website": "www.taylorjohnsonperformance.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/taylor-johnson-performance-llc",
+      "nb_employees": "1"
+    },
+    {
+      "first_name": "Jeremy",
+      "last_name": "Kemper",
+      "full_name": "Jeremy Kemper",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/jeremy-kemper",
+      "email": [
+        {
+          "email": "jeremy.kemper@vexcelgroup.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Vexcel Data Program",
+      "website": "www.vexceldata.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/vexcel",
+      "nb_employees": "201-500"
+    },
+    {
+      "first_name": "Prince",
+      "last_name": "Soba",
+      "full_name": "Prince Soba",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "psoba@salesforce.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "website": "www.salesforce.com",
+      "country": "États-Unis"
+    },
+    {
+      "first_name": "Ali",
+      "last_name": "Kenney",
+      "full_name": "Ali Kenney",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/alison-kenney-a54068120",
+      "email": [
+        {
+          "email": "ake@templafy.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Templafy",
+      "website": "www.templafy.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/templafy",
+      "nb_employees": "201-500"
+    },
+    {
+      "first_name": "Aubrey",
+      "last_name": "Ibele",
+      "full_name": "Aubrey Ibele",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/aibele",
+      "email": [
+        {
+          "email": "aubrey@sagemedstudio.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Reportingmd",
+      "website": "www.reportingmd.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/reportingmd",
+      "phone": "+1 888-783-5280",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Jess",
+      "last_name": "Lancaster",
+      "full_name": "Jess Lancaster",
+      "civility": "Madame",
+      "email": [
+        {
+          "email": "jess.lancaster@teifi.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Teifi Digital",
+      "website": "www.teifi.ca",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/teifidigital",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "William",
+      "last_name": "Smith",
+      "full_name": "William Smith",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/smith-will",
+      "email": [
+        {
+          "email": "william.smith@enterbridge.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Enterbridge",
+      "website": "www.enterbridge.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/enterbridge-technologies",
+      "phone": "+1 804-290-0546",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Donald",
+      "last_name": "Hasler",
+      "full_name": "Donald Hasler",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "dj@dragonflyenergy.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Dragonfly Energy Corporation",
+      "website": "www.dragonflyenergy.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/dragonfly-energy-corporation",
+      "phone": "+1 775-622-3448",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Brad",
+      "last_name": "Doherty",
+      "full_name": "Brad Doherty",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/braddohertyvelocityehs",
+      "job": "Mid-Market Account Manager",
+      "email": [
+        {
+          "email": "bdoherty@ehs.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Velocityehs",
+      "website": "www.ehs.com",
+      "country": "Canada",
+      "company_linkedin": "https://www.linkedin.com/company/velocityehs",
+      "phone": "+1 866-919-7922",
+      "nb_employees": "501-1000"
+    },
+    {
+      "first_name": "Daniel",
+      "last_name": "Palacios",
+      "full_name": "Daniel Palacios",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/danielpalaciossales",
+      "job": "Co-Founder & CRO",
+      "email": [
+        {
+          "email": "daniel@sytrex.io",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Sytrex",
+      "website": "www.sytrex.io",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/sytrex",
+      "nb_employees": "2-10"
+    },
+    {
+      "first_name": "Erica",
+      "last_name": "Hinson",
+      "full_name": "Erica Hinson",
+      "civility": "Madame",
+      "email": [
+        {
+          "email": "erica.hinson@ringcentral.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Ringcentral",
+      "website": "www.ringcentral.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/ringcentral",
+      "phone": "+1 800-574-5290",
+      "nb_employees": "5001-10000"
+    },
+    {
+      "first_name": "Kareem",
+      "last_name": "Hassan",
+      "full_name": "Kareem Hassan",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/kareemhassan017",
+      "job": "Account Executive Growth",
+      "email": [
+        {
+          "email": "kareem.hassan@oracle.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Oracle",
+      "website": "www.oracle.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/oracle",
+      "phone": "+1 914-524-1600",
+      "nb_employees": "10001"
+    },
+    {
+      "first_name": "Trenton",
+      "last_name": "Davis",
+      "full_name": "Trenton Davis",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "trenton.davis@salesforce.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "website": "www.salesforce.com",
+      "country": "États-Unis"
+    },
+    {
+      "first_name": "Mark",
+      "last_name": "Ogden",
+      "full_name": "Mark Ogden",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/mark-ogden",
+      "email": [
+        {
+          "email": "mark@theogdengroup.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Linxon",
+      "website": "www.linxon.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/linxon",
+      "phone": "+34 666 56 12 01",
+      "nb_employees": "501-1000"
+    },
+    {
+      "first_name": "David",
+      "last_name": "Abraham",
+      "full_name": "David Abraham",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/davidabrahamiii",
+      "job": "Director Enterprise Sales",
+      "email": [
+        {
+          "email": "david@altimate.ai",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Altimate Ai",
+      "website": "www.altimate.ai",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/altimate-ai",
+      "nb_employees": "2-10"
+    },
+    {
+      "first_name": "Lesley",
+      "last_name": "Bennett",
+      "full_name": "Lesley Bennett",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/lesley-bennett-sales",
+      "company": "Drivewyze",
+      "website": "www.drivewyze.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/drivewyze",
+      "phone": "+1 888-988-1590",
+      "nb_employees": "201-500"
+    },
+    {
+      "first_name": "Ryan",
+      "last_name": "Leonard",
+      "full_name": "Ryan Leonard",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/ryanleonard1987",
+      "email": [
+        {
+          "email": "ryan.leonard@franklincovey.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Untap Your Sales Potential",
+      "website": "www.untapyoursalespotential.com",
+      "country": "États-Unis",
+      "company_linkedin": "www.linkedin.com/company/untapyoursalespotential",
+      "phone": "90245-3060",
+      "nb_employees": "2-10",
+      "company_change": "Cette personne a quitté FranklinCovey pour aller chez Untap Your Sales Potential"
+    },
+    {
+      "first_name": "Kevin",
+      "last_name": "Duffy",
+      "full_name": "Kevin Duffy",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/kevin-duffy-38b95231",
+      "email": [
+        {
+          "email": "kevin.duffy@datagalaxy.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Datagalaxy",
+      "website": "www.datagalaxy.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/datagalaxy",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Brent",
+      "last_name": "Grunander",
+      "full_name": "Brent Grunander",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/brent-grunander",
+      "email": [
+        {
+          "email": "brent.grunander@forter.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Forter",
+      "website": "www.forter.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/forter",
+      "phone": "+1 800-537-0601",
+      "nb_employees": "501-1000"
+    },
+    {
+      "first_name": "Chua",
+      "last_name": "Cheery",
+      "full_name": "Chua Cheery",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/chua-cheery",
+      "email": [
+        {
+          "email": "cheery.chua@mongodb.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Mongodb",
+      "website": "www.mongodb.com",
+      "country": "Singapour",
+      "company_linkedin": "https://www.linkedin.com/company/mongodbinc",
+      "phone": "+1 844-666-4632",
+      "nb_employees": "5001-10000"
+    },
+    {
+      "first_name": "Joseph",
+      "last_name": "Shunia",
+      "full_name": "Joseph Shunia",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "jshunia@salesforce.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "website": "www.salesforce.com",
+      "country": "États-Unis"
+    },
+    {
+      "first_name": "Brian",
+      "last_name": "Hughes",
+      "full_name": "Brian Hughes",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/brian-c-hughes",
+      "job": "Managing Director Life Sciences",
+      "email": [
+        {
+          "email": "brianhughes@comcast.net",
+          "qualification": "catch-all@perso"
+        }
+      ],
+      "company": "Videra Health",
+      "website": "www.viderahealth.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/viderahealth",
+      "phone": "+1 833-401-2231",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Lindsey",
+      "last_name": "Zelhart",
+      "full_name": "Lindsey Zelhart",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/lindsey-zelhart-b6832457",
+      "email": [
+        {
+          "email": "lindsey.zelhart@sprinklr.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Sprinklr",
+      "website": "www.sprinklr.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/sprinklr",
+      "phone": "+1 917-933-7800",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Andrea",
+      "last_name": "Brigham",
+      "full_name": "Andrea Brigham",
+      "linkedin": "www.linkedin.com/in/andreabrigham",
+      "email": [
+        {
+          "email": "andrea.brigham@datagrail.io",
+          "qualification": "nominatif@pro"
+        },
+        {
+          "email": "andrea.brigham@formstack.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Datagrail",
+      "website": "www.datagrail.io",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/datagrail",
+      "phone": "+1 650-781-3680",
+      "nb_employees": "51-200",
+      "company_change": "Cette personne a quitté Intellistack pour aller chez DataGrail"
+    },
+    {
+      "first_name": "Mark",
+      "last_name": "Maimone",
+      "full_name": "Mark Maimone",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/maimonemark",
+      "email": [
+        {
+          "email": "mmaimone@citrine.io",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Citrine Informatics",
+      "website": "www.citrine.io",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/citrine-informatics",
+      "phone": "+1 650-276-7318",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Jesse",
+      "last_name": "Mayor",
+      "full_name": "Jesse Mayor",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/jlmayor",
+      "job": "Senior Account Executive",
+      "email": [
+        {
+          "email": "jmayor@versium.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Versium",
+      "website": "www.versium.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/versium-inc",
+      "phone": "+1 800-395-0164",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Juan",
+      "last_name": "Valdovinos",
+      "full_name": "Juan Valdovinos",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/juanvaldovinos",
+      "email": [
+        {
+          "email": "juan@aytm.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Aytm",
+      "website": "www.aytm.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/aytm",
+      "phone": "+1 415-364-8601",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "George",
+      "last_name": "Henderson",
+      "full_name": "George Henderson",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "ghenderson@databridgesites.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Databridge Sites",
+      "website": "www.databridgesites.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/databridgesites",
+      "phone": "+1 855-495-0098",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Damian",
+      "last_name": "Fox",
+      "full_name": "Damian Fox",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/damian-fox-a2210218",
+      "email": [
+        {
+          "email": "damian.fox@rfsmart.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Rf-Smart",
+      "website": "www.rfsmart.com",
+      "country": "Royaume-Uni",
+      "company_linkedin": "https://www.linkedin.com/company/rfsmart-com",
+      "phone": "+1 970-422-5022",
+      "nb_employees": "201-500"
+    },
+    {
+      "first_name": "Melissa",
+      "last_name": "Singleton",
+      "full_name": "Melissa Singleton",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/melmcgeesingleton",
+      "email": [
+        {
+          "email": "melissa.singleton@docusign.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Docusign",
+      "website": "www.docusign.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/docusign",
+      "phone": "+1 877-720-2040",
+      "nb_employees": "5001-10000"
+    },
+    {
+      "first_name": "John",
+      "last_name": "Tucci",
+      "full_name": "John Tucci",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/johntucci2024",
+      "job": "Account Executive",
+      "email": [
+        {
+          "email": "jtucci@alpha-sense.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Alphasense",
+      "website": "www.alpha-sense.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/alphasense",
+      "phone": "+1 646-609-8055",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Lia",
+      "last_name": "Llamas",
+      "full_name": "Lia Llamas",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/lia-llamas-44613b12a",
+      "email": [
+        {
+          "email": "lia.llamas@verkada.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Verkada",
+      "website": "www.verkada.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/verkada",
+      "phone": "+1 650-514-2500",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Will",
+      "last_name": "Fox",
+      "full_name": "Will Fox",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "wfox@revinova.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Raven360",
+      "website": "www.revinova.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/raven360",
+      "phone": "+1 508-786-0500",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Manny",
+      "last_name": "C.",
+      "full_name": "Manny C.",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "manny@onramp.us",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Onramp",
+      "website": "www.onramp.us",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/team-onramp",
+      "phone": "+1 617-329-5011",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Max",
+      "last_name": "Presuttu",
+      "full_name": "Max Presuttu",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "max.presutti@blackbaud.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Blackbaud",
+      "website": "www.blackbaud.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/blackbaud",
+      "phone": "+1 651-313-6000",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Gareth",
+      "last_name": "Whitehead",
+      "full_name": "Gareth Whitehead",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/gareth-whitehead-b04285211",
+      "job": "Business Development Representative",
+      "email": [
+        {
+          "email": "g.whitehead@athenaag.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Athena Ag",
+      "website": "www.athenaag.com",
+      "country": "Espagne",
+      "company_linkedin": "https://www.linkedin.com/company/athenaag",
+      "phone": "+1 0102030405",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Kristiana",
+      "last_name": "Osborne",
+      "full_name": "Kristiana Osborne",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/kristiana-osborne",
+      "job": "Business Development Team Manager",
+      "email": [
+        {
+          "email": "kristiana.osborne@rethinkfirst.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Rethinkfirst",
+      "website": "www.rethinkfirst.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/rethink-first",
+      "phone": "+44 20 3870 3376",
+      "nb_employees": "201-500"
+    },
+    {
+      "first_name": "Corey",
+      "last_name": "Woinarowicz",
+      "full_name": "Corey Woinarowicz",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/coreywoinarowicz",
+      "email": [
+        {
+          "email": "corey.woinarowicz@fleetworthy.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Fleetworthy",
+      "website": "www.fleetworthy.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/fleetworthy",
+      "phone": "+1 608-230-8200",
+      "nb_employees": "501-1000"
+    },
+    {
+      "first_name": "Drew",
+      "last_name": "Patrick",
+      "full_name": "Drew Patrick",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/drew-patrick-131231108",
+      "job": "Enterprise Account Executive",
+      "email": [
+        {
+          "email": "drewp@possiblenow.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Possiblenow",
+      "website": "www.possiblenow.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/possiblenow",
+      "phone": "+1 770-685-6998",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Joseph",
+      "last_name": "Maggiore",
+      "full_name": "Joseph Maggiore",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "joseph.maggiore@continuant.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Continuant",
+      "website": "www.continuant.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/continuant",
+      "phone": "+1 800-652-9920",
+      "nb_employees": "201-500"
+    },
+    {
+      "first_name": "Meghan",
+      "last_name": "Walls",
+      "full_name": "Meghan Walls",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/meghan-walls-01206929",
+      "email": [
+        {
+          "email": "m.walls@ixopay.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Ixopay",
+      "website": "www.ixopay.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/ixopay",
+      "phone": "+44 20 8092 4555",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Shameer",
+      "last_name": "Syed",
+      "full_name": "Shameer Syed",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "shameer@klaarhq.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Klaar",
+      "website": "www.klaarhq.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/klaarhrtech",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Kyle",
+      "last_name": "Newton",
+      "full_name": "Kyle Newton",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/kylecnewton",
+      "email": [
+        {
+          "email": "k.newton@ixopay.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Ixopay",
+      "website": "www.ixopay.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/ixopay",
+      "phone": "+44 20 8092 4555",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Kevin",
+      "last_name": "Bandemer",
+      "full_name": "Kevin Bandemer",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/kevin-bandemer-25b3317",
+      "email": [
+        {
+          "email": "kevin.bandemer@workday.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Workday",
+      "website": "www.workday.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/workday",
+      "phone": "+1 877-967-5329",
+      "nb_employees": "10001"
+    },
+    {
+      "first_name": "Troy",
+      "last_name": "Morrison",
+      "full_name": "Troy Morrison",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/troylinked",
+      "job": "Major Account Executive",
+      "email": [
+        {
+          "email": "tmorrison@cusa.canon.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Canon Usa",
+      "website": "usa.canon.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/canonusa",
+      "nb_employees": "5001-10000"
+    },
+    {
+      "first_name": "Kristin",
+      "last_name": "Santistevan",
+      "full_name": "Kristin Santistevan",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/kristin-santistevan-1373377b",
+      "job": "Major Account Manager",
+      "email": [
+        {
+          "email": "ksantistevan@flexera.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Flexera",
+      "website": "www.flexera.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/flexera",
+      "phone": "+1 800-374-4353",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Ryan",
+      "last_name": "Nardi",
+      "full_name": "Ryan Nardi",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/ryanmnardi",
+      "email": [
+        {
+          "email": "ryan.nardi@iterable.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Iterable",
+      "website": "www.iterable.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/iterable",
+      "phone": "+1 650-683-1194",
+      "nb_employees": "501-1000"
+    },
+    {
+      "first_name": "Nathan",
+      "last_name": "Bluhm",
+      "full_name": "Nathan Bluhm",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "nathan.bluhm@us.contec.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "DTX",
+      "website": "www.dtx.com",
+      "country": "États-Unis"
+    },
+    {
+      "first_name": "Devin",
+      "last_name": "Gonzalez",
+      "full_name": "Devin Gonzalez",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/gonzalezdevin",
+      "job": "Sales Development Representative 1",
+      "email": [
+        {
+          "email": "deving@qualtrics.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Qualtrics",
+      "website": "www.qualtrics.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/qualtrics",
+      "phone": "+1 800-340-9194",
+      "nb_employees": "5001-10000"
+    },
+    {
+      "first_name": "Maxwell",
+      "last_name": "List",
+      "full_name": "Maxwell List",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "mlist@choicelogistics.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Choice Logistics",
+      "website": "www.choicelogistics.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/choice-logistics",
+      "phone": "+91 73444000",
+      "nb_employees": "201-500"
+    },
+    {
+      "first_name": "Darin",
+      "last_name": "Janda",
+      "full_name": "Darin Janda",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "darin@darinjanda.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "EZO",
+      "website": "www.ezo.io",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/ezosolutions",
+      "phone": "+1 888-623-8654",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Reiko",
+      "last_name": "Gallo",
+      "full_name": "Reiko Gallo",
+      "civility": "Madame",
+      "email": [
+        {
+          "email": "reiko.gallo@usablenet.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Usablenet",
+      "website": "www.usablenet.com",
+      "country": "États-Unis",
+      "phone": "+1 212-965-5388"
+    },
+    {
+      "first_name": "Trent",
+      "last_name": "Polanco",
+      "full_name": "Trent Polanco",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "tpolanco@goformz.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Goformz",
+      "website": "www.goformz.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/goformz",
+      "phone": "+1 877-244-4886",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Megan",
+      "last_name": "Wipff",
+      "full_name": "Megan Wipff",
+      "civility": "Madame",
+      "company": "Demandbase",
+      "website": "www.demandbase.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/demandbase",
+      "phone": "+1 415-683-2660",
+      "nb_employees": "501-1000"
+    },
+    {
+      "first_name": "Ilan",
+      "last_name": "Fehler",
+      "full_name": "Ilan Fehler",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/fehler",
+      "email": [
+        {
+          "email": "ilan.fehler@covertswarm.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Covertswarm",
+      "website": "www.covertswarm.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/covertswarm",
+      "phone": "+44 330 330 5156",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Scott",
+      "last_name": "Torney",
+      "full_name": "Scott Torney",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/scott-torney",
+      "email": [
+        {
+          "email": "scott.torney@sailpoint.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Sailpoint",
+      "website": "www.sailpoint.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/sailpoint-technologies",
+      "phone": "+61 2 8330 6640",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Bill",
+      "last_name": "Robinson",
+      "full_name": "Bill Robinson",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/brobinson132",
+      "email": [
+        {
+          "email": "bill.robinson@databricks.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Databricks",
+      "website": "www.databricks.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/databricks",
+      "phone": "+1 833-338-0670",
+      "nb_employees": "5001-10000"
+    },
+    {
+      "first_name": "Viraj",
+      "last_name": "Mandania",
+      "full_name": "Viraj Mandania",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/viraj-mandania",
+      "email": [
+        {
+          "email": "viraj.mandania@smartsheet.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Smartsheet",
+      "website": "www.smartsheet.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/smartsheet-com",
+      "phone": "+1 844-324-2360",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Ryan",
+      "last_name": "Colosky",
+      "full_name": "Ryan Colosky",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/ryan-colosky",
+      "company": "Rain Partners",
+      "website": "www.rainpartners.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/rain-partners-llc",
+      "phone": "+1 307-203-2772",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Bennett",
+      "last_name": "Chiongbian",
+      "full_name": "Bennett Chiongbian",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/bennett-chiongbian-🔆-510a17227",
+      "job": "Team Lead & sr Business Development Representative",
+      "email": [
+        {
+          "email": "bchiongbian@workwithopal.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Opal",
+      "website": "www.workwithopal.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/opal-software",
+      "phone": "+1 800-823-4973",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Alex",
+      "last_name": "Ruiz",
+      "full_name": "Alex Ruiz",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/alex-ruiz-csfs®-759a56b5",
+      "job": "Senior Client Success Executive",
+      "company": "Vālenz®",
+      "website": "www.valenzhealth.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/valenz",
+      "phone": "+1 866-762-4455",
+      "nb_employees": "501-1000"
+    },
+    {
+      "first_name": "Eric",
+      "last_name": "Frazier",
+      "full_name": "Eric Frazier",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/eric-frazier-aa641a88",
+      "email": [
+        {
+          "email": "efrazier@facilityig.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Real Leaders",
+      "website": "www.real-leaders.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/real-leaders",
+      "phone": "+1 785-230-6388",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Ahmed",
+      "last_name": "Mirza",
+      "full_name": "Ahmed Mirza",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/mrahmedmirza",
+      "email": [
+        {
+          "email": "ahmed.mirza@energyby5.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "5",
+      "website": "www.energyby5.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/energyby5",
+      "phone": "+1 972-445-9584",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Hunter",
+      "last_name": "Haake",
+      "full_name": "Hunter Haake",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/hunter-haake-7132aa12b",
+      "email": [
+        {
+          "email": "hunter.haake@tempo.io",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Tempo Software",
+      "website": "www.tempo.io",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/tempohq",
+      "nb_employees": "201-500"
+    },
+    {
+      "first_name": "Taylor",
+      "last_name": "Welch",
+      "full_name": "Taylor Welch",
+      "linkedin": "www.linkedin.com/in/taylor-welch-1900871a6",
+      "email": [
+        {
+          "email": "taylor.welch@page-vault.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Page Vault",
+      "website": "www.page-vault.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/page-vault",
+      "phone": "+1 312-561-4113",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Sean",
+      "last_name": "Blaney",
+      "full_name": "Sean Blaney",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/seanblaney4",
+      "job": "Public Sector Account Director-Department of Defense",
+      "email": [
+        {
+          "email": "sean.blaney@uipath.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Uipath",
+      "website": "www.uipath.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/uipath",
+      "phone": "+1 844-432-0455",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Arthur",
+      "last_name": "Slade",
+      "full_name": "Arthur Slade",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/arthur-slade-614290b",
+      "email": [
+        {
+          "email": "arthur.slade@wellsky.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Wellsky",
+      "website": "www.wellsky.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/wellsky",
+      "phone": "+1 855-935-5759",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Michael",
+      "last_name": "Bolivar",
+      "full_name": "Michael Bolivar",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "michael.bolivar@evenuplaw.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Litty",
+      "website": "www.litty.ai",
+      "country": "États-Unis"
+    },
+    {
+      "first_name": "Matt",
+      "last_name": "Riemen",
+      "full_name": "Matt Riemen",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/mattriemen",
+      "email": [
+        {
+          "email": "matt.riemen@avalara.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Avalara",
+      "website": "www.avalara.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/avalara",
+      "phone": "+1 877-780-4848",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Todd",
+      "last_name": "Meek",
+      "full_name": "Todd Meek",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "tmeek@a2mac1.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "A2mac1 - Decode The Future",
+      "website": "www.a2mac1.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/a2mac1",
+      "phone": "+33 1 40 84 98 64",
+      "nb_employees": "501-1000"
+    },
+    {
+      "first_name": "Chris",
+      "last_name": "Geaslen",
+      "full_name": "Chris Geaslen",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/cgeaslen",
+      "email": [
+        {
+          "email": "chris.geaslen@audioeye.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Audioeye",
+      "website": "www.audioeye.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/audioeye-inc",
+      "phone": "+1 866-331-5324",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Ivan",
+      "last_name": "Jurisic",
+      "full_name": "Ivan Jurisic",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/ivan-jurisic-3b2872a",
+      "job": "Senior Sales Executive",
+      "email": [
+        {
+          "email": "ivanj@solutionstack.ca",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Solutionstack",
+      "website": "www.solutionstack.ca",
+      "country": "Canada",
+      "company_linkedin": "https://www.linkedin.com/company/solutionstack",
+      "phone": "+1 647-693-9222",
+      "nb_employees": "11-50"
+    },
+    {
+      "first_name": "Andrew",
+      "last_name": "Dvirnyk",
+      "full_name": "Andrew Dvirnyk",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/andrewdvirnyk",
+      "email": [
+        {
+          "email": "a.dvirnyk@ibagroupit.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Iba Group",
+      "website": "www.ibagroupit.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/iba-group",
+      "phone": "+420 251 116 206",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "George",
+      "last_name": "Knowles",
+      "full_name": "George Knowles",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/georgeknowlesuk",
+      "email": [
+        {
+          "email": "george.knowles@tnp.net.uk",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "The Networking People",
+      "website": "www.tnp.net.uk",
+      "country": "Royaume-Uni",
+      "company_linkedin": "https://www.linkedin.com/company/tnpltd",
+      "phone": "+44 345 680 0659",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Ryan",
+      "last_name": "Lovelace",
+      "full_name": "Ryan Lovelace",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/lovelaceryan",
+      "email": [
+        {
+          "email": "rlovelace@goformz.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Goformz",
+      "website": "www.goformz.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/goformz",
+      "phone": "+1 877-244-4886",
+      "nb_employees": "51-200"
+    },
+    {
+      "first_name": "Brock",
+      "last_name": "Burton",
+      "full_name": "Brock Burton",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/brock-burton-365931153",
+      "job": "Co-Founder",
+      "email": [
+        {
+          "email": "brock@snappt.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Calvary Capital",
+      "website": "www.calvary-capital.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/calvary-capital",
+      "nb_employees": "2-10"
+    },
+    {
+      "first_name": "Pete",
+      "last_name": "Carlson",
+      "full_name": "Pete Carlson",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/pete-carlson-056090a3",
+      "job": "Enterprise Account Director",
+      "email": [
+        {
+          "email": "pete.carlson@pendo.io",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Pendo.io",
+      "website": "www.pendo.io",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/pendo-io",
+      "phone": "+44 303 123 1113",
+      "nb_employees": "501-1000"
+    },
+    {
+      "first_name": "Dalton",
+      "last_name": "Turay",
+      "full_name": "Dalton Turay",
+      "civility": "Monsieur",
+      "email": [
+        {
+          "email": "dalton.turay@grafana.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Good Lead Spoke With Him",
+      "website": "www.grafana.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/grafana-labs",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Ron",
+      "last_name": "Masi",
+      "full_name": "Ron Masi",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/ronmasi",
+      "email": [
+        {
+          "email": "rmasi@seismic.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Seismic",
+      "website": "www.seismic.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/seismic",
+      "phone": "+1 855-466-8748",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Gaurav",
+      "last_name": "Sharma",
+      "full_name": "Gaurav Sharma",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/gaurav-sharma-32a83b28",
+      "email": [
+        {
+          "email": "gaurav.sharma@irisbusiness.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Iris Business Services Limited",
+      "website": "www.irisbusiness.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/iris-business-services-limited",
+      "nb_employees": "501-1000"
+    },
+    {
+      "first_name": "Devon",
+      "last_name": "Banks",
+      "full_name": "Devon Banks",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/devonbanks",
+      "email": [
+        {
+          "email": "devon@zips.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Zip'S Aw Direct",
+      "website": "www.zips.com",
+      "country": "Canada",
+      "company_linkedin": "https://www.linkedin.com/company/zip's-truck-equipment",
+      "phone": "+1 800-222-6047",
+      "nb_employees": "201-500"
+    },
+    {
+      "first_name": "Karl",
+      "last_name": "Federmann",
+      "full_name": "Karl Federmann",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/karl-federmann-4608643",
+      "email": [
+        {
+          "email": "karl@scandere.io",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Scandere Associates",
+      "website": "www.scandere.io",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/scandere-associates",
+      "nb_employees": "2-10"
+    },
+    {
+      "first_name": "Kendall",
+      "last_name": "Marques",
+      "full_name": "Kendall Marques",
+      "civility": "Madame",
+      "linkedin": "www.linkedin.com/in/kendallmarques",
+      "job": "Program Manager",
+      "email": [
+        {
+          "email": "k.marques@carta.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Carta",
+      "website": "www.carta.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/carta--",
+      "phone": "+1 650-669-8381",
+      "nb_employees": "1001-5000"
+    },
+    {
+      "first_name": "Ken",
+      "last_name": "Schmidt",
+      "full_name": "Ken Schmidt",
+      "civility": "Monsieur",
+      "linkedin": "www.linkedin.com/in/thoughtfulleader",
+      "email": [
+        {
+          "email": "kschmidt@babelstreet.com",
+          "qualification": "nominatif@pro"
+        }
+      ],
+      "company": "Babel Street",
+      "website": "www.babelstreet.com",
+      "country": "États-Unis",
+      "company_linkedin": "https://www.linkedin.com/company/babelstreet",
+      "phone": "+1 703-956-3572",
+      "nb_employees": "201-500"
+    }
+  ]
+}

@@ -1,0 +1,558 @@
+{
+  "counts": {
+    "apollo_pass": 0,
+    "triple_fail": 17
+  },
+  "target": {
+    "apollo_pass": 10
+  },
+  "results": {
+    "apollo_pass": [],
+    "triple_fail": [
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "paloaltonetworks.com",
+          "User Name": "Anika Harrell",
+          "Email Address": "anharrell@paloaltonetworks.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "10001+",
+          "Email": "anharrell@paloaltonetworks.com",
+          "New Column (2)": "linkedin.com/in/anikaharrell",
+          "Mobile Phone (2)": "+1 682-247-1250",
+          "New Column": "account manager | sled west, south central",
+          "Location": "united states",
+          "Job Start Date": "2024-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "securecdp.com",
+          "User Name": "Nirav Doshi",
+          "Email Address": "Nirav@securecdp.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "11-50",
+          "Email": "Nirav@securecdp.com",
+          "New Column (2)": "linkedin.com/in/niravcdp",
+          "Mobile Phone (2)": "+12487661899",
+          "New Column": "chief executive officer",
+          "Location": "united states",
+          "Job Start Date": "2012-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Jacob Karcher",
+          "Email Address": "J.karcher@sana-commerce.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "J.karcher@sana-commerce.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "netskope.com",
+          "User Name": "Nate Morse",
+          "Email Address": "nmorse@netskope.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "nmorse@netskope.com",
+          "New Column (2)": "linkedin.com/in/nate-morse",
+          "Mobile Phone (2)": "+1 503-984-8388",
+          "New Column": "account executive - pacific northwest",
+          "Location": "united states",
+          "Job Start Date": "2024-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Andrew Armstrong",
+          "Email Address": "andrew.armstrong@netlify.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "andrew.armstrong@netlify.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Rebekka Weckherlin",
+          "Email Address": "Rebekka.weckherlin@gmx.de",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Rebekka.weckherlin@gmx.de",
+          "New Column (2)": "https://www.linkedin.com/in/rebekka-weckherlin",
+          "Mobile Phone (2)": "+4915161826962",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Tom Jensen",
+          "Email Address": "Tom.jensen@hexagon.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "4",
+          "Job Company Size": "",
+          "Email": "Tom.jensen@hexagon.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "infoblox.com",
+          "User Name": "Phil DeSantis",
+          "Email Address": "pdesantis@infoblox.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "pdesantis@infoblox.com",
+          "New Column (2)": "linkedin.com/in/philipdesantisjr",
+          "Mobile Phone (2)": "+1 978-443-8167",
+          "New Column": "sales trainer",
+          "Location": "united states",
+          "Job Start Date": "2024-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Brett Davidson",
+          "Email Address": "Bdavidson@informatica.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Bdavidson@informatica.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Matt O’Grady",
+          "Email Address": "Matt.ogrady@docusign.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Matt.ogrady@docusign.com",
+          "New Column (2)": "https://www.linkedin.com/in/matt-o-grady-50056812",
+          "Mobile Phone (2)": "+17082624181",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "David Houser",
+          "Email Address": "dhouser9@verizon.net",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "In between jobs right now",
+          "Email": "dhouser9@verizon.net",
+          "New Column (2)": "https://www.linkedin.com/in/dhouser9",
+          "Mobile Phone (2)": "+18137871933",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Astrid Farber",
+          "Email Address": "astrid.farber@docusign.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "Accepted my request",
+          "Email": "astrid.farber@docusign.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Mike Townsend",
+          "Email Address": "mike.townsend@email.zoominfo.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "mike.townsend@email.zoominfo.com",
+          "New Column (2)": "https://www.linkedin.com/in/mike-townsend-3185b7160",
+          "Mobile Phone (2)": "+15088318687",
+          "New Column": "Strategic Sales Development Representative",
+          "Location": "United States",
+          "Job Start Date": "2025-06-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Lauren Barnes",
+          "Email Address": "labarnes@teksystems.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "2 tp",
+          "Email": "labarnes@teksystems.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Gavin Arredondo",
+          "Email Address": "arregavi@amazon.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "arregavi@amazon.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Max Ferat",
+          "Email Address": "mferat@hubspot.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "mferat@hubspot.com",
+          "New Column (2)": "https://www.linkedin.com/in/max-ferat-05230560",
+          "Mobile Phone (2)": "+33649574444",
+          "New Column": "Account Executive - Mid Market",
+          "Location": "France",
+          "Job Start Date": "2025-07-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Alexander Craig",
+          "Email Address": "sales@cortec-neuro.co",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "sales@cortec-neuro.co",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "apollo": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 403,
+              "id": null,
+              "body": {
+                "error": "api/v1/people/match is not accessible with this api_key on a free plan. Please upgrade your plan from https://app.apollo.io/.",
+                "error_code": "API_INACCESSIBLE"
+              }
+            }
+          }
+        },
+        "reason": "Apollo not found"
+      }
+    ]
+  }
+}

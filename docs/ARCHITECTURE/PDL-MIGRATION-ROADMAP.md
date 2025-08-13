@@ -169,7 +169,7 @@ Kajabi → n8n → Field Normalization → PDL Person API → ICP Scoring → Ai
 - ✅ Field mapping compatibility verified (PDL ↔ Hunter)
 - ✅ Cost structure validated and budgeted
 - ✅ Branch created: `feature/pdl-first-hunter-fallback`
-- ✅ Apollo contamination removed from all documentation
+- ✅ Legacy provider contamination removed from all documentation
 - ✅ Architecture updated to reflect Hunter strategy
 
 #### **Phase 2C Implementation - ❌ PENDING**
@@ -186,7 +186,7 @@ Kajabi → n8n → Field Normalization → PDL Person API → ICP Scoring → Ai
 
 **Roadmap Status**: ✅ **PHASE 2C READY FOR IMPLEMENTATION**  
 **Last Updated**: 2025-01-27  
-**Apollo References**: ✅ **REMOVED**  
+- Legacy Provider References: ✅ **REMOVED**  
 **Next Action**: Begin Hunter waterfall node implementation
 
-This roadmap reflects the current **PDL-first Hunter waterfall strategy** with complete Apollo migration and accurate Phase 2B completion status.
+This roadmap reflects the current **PDL → Dropcontact → Hunter strategy** with complete legacy provider migration and accurate Phase 2B completion status.

@@ -1,0 +1,865 @@
+{
+  "summary": {
+    "total": 95,
+    "title_rate": 0,
+    "company_rate": 0,
+    "linkedin_rate": 0
+  },
+  "results": [
+    {
+      "email": "anharrell@paloaltonetworks.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "nirav@securecdp.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "j.karcher@sana-commerce.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "nmorse@netskope.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "andrew.armstrong@netlify.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "tom.jensen@hexagon.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "bdavidson@informatica.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "matt.ogrady@docusign.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "dhouser9@verizon.net",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "astrid.farber@docusign.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "mike.townsend@email.zoominfo.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "labarnes@teksystems.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "arregavi@amazon.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "mferat@hubspot.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "taylor@taylorjohnsonperformance.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "jeremy.kemper@vexcelgroup.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "psoba@salesforce.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "ake@templafy.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "aubrey@sagemedstudio.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "jess.lancaster@teifi.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "william.smith@enterbridge.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "dj@dragonflyenergy.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "bdoherty@ehs.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "daniel@sytrex.io",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "erica.hinson@ringcentral.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "kareem.hassan@oracle.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "trenton.davis@salesforce.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "mark@theogdengroup.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "david@altimate.ai",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "ryan.leonard@franklincovey.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "kevin.duffy@datagalaxy.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "brent.grunander@forter.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "cheery.chua@mongodb.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "jshunia@salesforce.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "brianhughes@comcast.net",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "lindsey.zelhart@sprinklr.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "andrea.brigham@datagrail.io",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "andrea.brigham@formstack.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "mmaimone@citrine.io",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "jmayor@versium.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "juan@aytm.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "ghenderson@databridgesites.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "damian.fox@rfsmart.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "melissa.singleton@docusign.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "jtucci@alpha-sense.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "lia.llamas@verkada.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "wfox@revinova.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "manny@onramp.us",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "max.presutti@blackbaud.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "g.whitehead@athenaag.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "kristiana.osborne@rethinkfirst.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "corey.woinarowicz@fleetworthy.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "drewp@possiblenow.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "joseph.maggiore@continuant.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "m.walls@ixopay.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "shameer@klaarhq.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "k.newton@ixopay.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "kevin.bandemer@workday.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "tmorrison@cusa.canon.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "ksantistevan@flexera.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "ryan.nardi@iterable.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "nathan.bluhm@us.contec.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "deving@qualtrics.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "mlist@choicelogistics.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "darin@darinjanda.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "reiko.gallo@usablenet.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "tpolanco@goformz.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "ilan.fehler@covertswarm.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "scott.torney@sailpoint.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "bill.robinson@databricks.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "viraj.mandania@smartsheet.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "bchiongbian@workwithopal.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "efrazier@facilityig.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "ahmed.mirza@energyby5.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "hunter.haake@tempo.io",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "taylor.welch@page-vault.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "sean.blaney@uipath.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "arthur.slade@wellsky.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "michael.bolivar@evenuplaw.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "matt.riemen@avalara.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "tmeek@a2mac1.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "chris.geaslen@audioeye.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "ivanj@solutionstack.ca",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "a.dvirnyk@ibagroupit.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "george.knowles@tnp.net.uk",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "rlovelace@goformz.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "brock@snappt.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "pete.carlson@pendo.io",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "dalton.turay@grafana.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "rmasi@seismic.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "gaurav.sharma@irisbusiness.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "devon@zips.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "karl@scandere.io",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "k.marques@carta.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    },
+    {
+      "email": "kschmidt@babelstreet.com",
+      "status": 404,
+      "fields": {
+        "title": false,
+        "company": false,
+        "linkedin": false
+      }
+    }
+  ]
+}

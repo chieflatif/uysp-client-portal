@@ -109,7 +109,7 @@ GROK and PRE COMPLIANCE have **IDENTICAL Smart Field Mapper v4.6** - No migratio
 #### **Airtable Integration** (OPERATIONAL):
 - **Duplicate Handler**: Advanced duplicate detection with count management
 - **Create/Update Logic**: Conditional upsert based on duplicate status
-- **Cost Tracking Fields**: apollo_org_cost, apollo_person_cost, claude_cost, total_processing_cost
+- **Cost Tracking Fields**: dropcontact_person_cost, hunter_cost, claude_cost, total_processing_cost
 
 #### **Error Handling & Retry** (ROBUST):
 - **Retry Error Handler**: Node ID: f2752aaf-feb8-49b8-b173-b898deb79971
@@ -136,7 +136,7 @@ GROK and PRE COMPLIANCE have **IDENTICAL Smart Field Mapper v4.6** - No migratio
 ### **Testing Framework**:
 - **`tests/README.md`** - Comprehensive testing suite documentation
 - **`tests/reality-based-tests-v3.json`** - Test payload specifications
-- **`tests/payloads/`** - Test data for various scenarios
+- **`tests/data/`** - Test data for various scenarios (phase-2C/2D/2E, shared)
 
 ---
 

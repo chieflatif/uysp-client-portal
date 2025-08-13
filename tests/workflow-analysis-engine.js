@@ -418,7 +418,7 @@ class WorkflowAnalysisEngine {
           webhook_trigger: {
             tool: 'mcp_n8n_n8n_trigger_webhook_workflow',
             params: {
-              webhookUrl: 'https://rebelhq.app.n8n.cloud/webhook/kajabi-leads',
+              webhookUrl: 'https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean',
               data: test.payload,
               httpMethod: 'POST'
             }
@@ -508,6 +508,21 @@ class WorkflowAnalysisEngine {
       }
     });
     
+    // Additional V3.2 checks for location scoring if specified
+    if (test.expected_affordability_tier) {
+      if (!record.fields.affordability_tier || record.fields.affordability_tier !== test.expected_affordability_tier) {
+        return false;
+      }
+    }
+    if (test.expected_location_confidence_min !== undefined) {
+      const lc = Number(record.fields.location_confidence || 0);
+      if (!(lc >= test.expected_location_confidence_min)) return false;
+    }
+    if (test.expected_tier_d_gated === true) {
+      const hr = !!record.fields.human_review_needed;
+      if (!hr) return false;
+    }
+
     // Success if at least 80% of expected fields are present
     return fieldsFound >= (expectedFields.length * 0.8);
   }

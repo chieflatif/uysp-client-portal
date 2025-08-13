@@ -1,0 +1,76 @@
+{
+  "requestId": "bllzllmprbwpuws",
+  "submitted": 100,
+  "summary": {
+    "overall": {
+      "count": 100,
+      "rates": {
+        "linkedin": 71,
+        "title": 23,
+        "company": 95,
+        "domain_consistent": 82
+      },
+      "emails": {
+        "nominatif_pro": 91,
+        "generic_pro": 0,
+        "other": 9
+      }
+    },
+    "pdl_pass": {
+      "count": 6,
+      "rates": {
+        "linkedin": 83.3,
+        "title": 66.7,
+        "company": 83.3,
+        "domain_consistent": 100
+      },
+      "emails": {
+        "nominatif_pro": 6,
+        "generic_pro": 0,
+        "other": 0
+      }
+    },
+    "pdl_fail_hunter_pass": {
+      "count": 9,
+      "rates": {
+        "linkedin": 66.7,
+        "title": 22.2,
+        "company": 88.9,
+        "domain_consistent": 66.7
+      },
+      "emails": {
+        "nominatif_pro": 9,
+        "generic_pro": 0,
+        "other": 0
+      }
+    },
+    "double_fail": {
+      "count": 14,
+      "rates": {
+        "linkedin": 50,
+        "title": 7.1,
+        "company": 85.7,
+        "domain_consistent": 92.9
+      },
+      "emails": {
+        "nominatif_pro": 12,
+        "generic_pro": 0,
+        "other": 2
+      }
+    },
+    "unknown": {
+      "count": 71,
+      "rates": {
+        "linkedin": 74.6,
+        "title": 22.5,
+        "company": 98.6,
+        "domain_consistent": 80.3
+      },
+      "emails": {
+        "nominatif_pro": 64,
+        "generic_pro": 0,
+        "other": 7
+      }
+    }
+  }
+}

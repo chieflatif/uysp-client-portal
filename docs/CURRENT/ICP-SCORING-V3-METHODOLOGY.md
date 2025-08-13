@@ -1,24 +1,25 @@
 [AUTHORITATIVE]
-Last Updated: 2025-08-08
+Last Updated: 2025-08-13
 
-# ICP Scoring V3.0 Methodology - Enhanced AI-Driven Framework
+# ICP Scoring V3.2 Methodology – Person-Location Hybrid (Authoritative)
 
 ## Executive Summary
 
-This framework integrates customer data insights with the V3.0 methodology for an AI-optimized scoring system:
+This framework integrates customer data insights with the V3.2 hybrid methodology for an AI-optimized scoring system:
 - **Primary Target**: Account Executives (60%+ of high-value customers) with 1-5 years experience
-- **AI-First Approach**: OpenAI GPT-4 primary scoring with domain-based fallback
-- **Company Size**: Minimal weight (25% max) - B2B SaaS focus, no size discrimination
-- **Engagement**: Key driver (35%) - touchpoints, webinars, coaching interest
-- **Outreach Threshold**: Score ≥70 triggers calls/SMS with upgrade potential assumption
-- **Tech/SaaS Boost**: +15 points for tech domains, -10 for generic domains
+- **AI-First Approach**: OpenAI scoring with domain-based fallback
+- **Weights (100 total)**: Company 15, Role 40, Engagement 30, Person Location/Affordability 15 (post-enrichment only)
+- **Person Location Policy**: PERSON-only (LinkedIn/PDL Person). Company HQ is excluded
+- **Gating**: Tier D with confidence ≥0.7 routes to human review (no auto-SMS/calls); unknown location is neutral (0 points)
+- **Outreach Threshold**: Final score ≥70 with affordability not Tier D (or low confidence) → outreach potential
+- **Tech/SaaS Boost**: +15 points for tech domains, -10 for generic domains (within Company cap)
 
 ---
 
 ## ICP Scoring Framework (0-100 Points)
 
-### COMPANY FACTORS (25 points max)
-*Further reduced from 30 points - company factors are marginal*
+### COMPANY FACTORS (15 points max)
+*Reduced - company factors are marginal*
 
 | Category | Criteria | Points | Weight | Notes |
 |----------|----------|--------|--------|--------|
@@ -52,8 +53,8 @@ This framework integrates customer data insights with the V3.0 methodology for a
 | **Recent Role Change** | | | | |
 | | <90 days in new role | +10 | Bonus | "Huge tell" per client |
 
-### ENGAGEMENT FACTORS (35 points max)
-*Increased from 25 - "One of the most important things"*
+### ENGAGEMENT FACTORS (30 points max)
+*High impact - recency and depth of engagement*
 
 | Category | Criteria | Points | Weight | Notes |
 |----------|----------|--------|--------|--------|
@@ -73,40 +74,45 @@ This framework integrates customer data insights with the V3.0 methodology for a
 
 ---
 
+### PERSON LOCATION / AFFORDABILITY (15 points max) – post-enrichment only
+
+- PERSON location only (LinkedIn/PDL Person). Company HQ excluded
+- Confidence-weighted application (0.0–1.0). If unknown → 0 points (neutral)
+- Initial tiers (tunable with internal conversion data):
+  - Tier A: +15 (>$60k PPP) — US, IE, CH, DE, GB, CA, SG, AE
+  - Tier B: +10 ($45–60k PPP) — AU, NL, FR, SE, NZ, BE, NO
+  - Tier C: +4 ($30–45k PPP) — IT, ES, PT, PL, CZ
+  - Tier D: −15 (<$30k PPP) — MX, BR, AR, IN, PH, ZA, TR (borderline; validate)
+- Gating: Tier D with confidence ≥0.7 → human_review_needed true; no auto-SMS/calls
+- Tier C proceeds normally; if total ≥70 → SMS priority
+
+---
+
 ## Updated Scoring Examples
 
 ### Ultra High Score (90-100)
-**Example**: AE at Any B2B SaaS, Course Purchaser, Recent Role Change, Said Yes to Coaching
-- B2B SaaS Company: 15 points
-- Known Brand: 8 points
-- Account Executive: 20 points
-- Sales Department: 10 points
-- Recent Role Change: 10 points
-- Course Purchaser: 10 points
-- Multiple Touchpoints: 15 points
-- Said Yes to Coaching: 10 points
-- **Total: 98 points**
+**Example**: AE at B2B SaaS, Course Purchaser, Recent Role Change, Coaching Yes, Tier A (conf 0.9)
+- Company: 15 points (tech + brand within cap)
+- Role: 25 points (AE + senior)
+- Engagement: 25 points (touchpoints, webinar, purchaser)
+- Person Location: +14 (Tier A +15 × 0.9)
+- **Total: ~79 base + 14 = ~93 points**
 
 ### High Score (75-89)
-**Example**: AE at Startup, Webinar Attendee, High Engagement
-- B2B SaaS Company: 15 points
-- Startup (no brand bonus): 0 points
-- Account Executive: 20 points
-- Sales Department: 10 points
-- Webinar Attendee: 8 points
-- Multiple Touchpoints: 12 points
-- Recent Engagement: 8 points
-- **Total: 73-83 points**
+**Example**: AE at Startup, Webinar Attendee, High Engagement, Tier B (conf 0.8)
+- Company: 12 points
+- Role: 20 points
+- Engagement: 28 points
+- Person Location: +8 (Tier B +10 × 0.8)
+- **Total: ~68 base + 8 = ~76 points**
 
 ### Qualified (70-74)
-**Example**: Sales Manager, Recent Engagement Only
-- B2B Company: 15 points
-- Sales Manager: 10 points
-- Sales Department: 10 points
-- Recent Engagement: 8 points
-- Single Touchpoint: 5 points
-- Webinar: 8 points
-- **Total: 56-70 points** (needs multiple signals)
+**Example**: Sales Manager, Recent Engagement, Tier C (conf 0.7)
+- Company: 10 points
+- Role: 10 points
+- Engagement: 25 points
+- Person Location: +3 (Tier C +4 × 0.7)
+- **Total: ~45 base + 3 = ~48 (needs more signals to reach ≥70)**
 
 ---
 
@@ -210,6 +216,19 @@ This framework integrates customer data insights with the V3.0 methodology for a
 
 ---
 
+## V3.2 Prompt and Required Output Fields
+
+- Prompt must state weights: Company 15, Role 40, Engagement 30, Person Location 15 (post-enrichment only)
+- Person-only location; company HQ excluded; unknown = neutral (0); Tier D conf ≥0.7 → human review (no auto-outreach)
+- Required JSON fields to return:
+  - `icp_score`, `icp_tier`, `score_reasoning`
+  - `company_score`, `role_score`, `engagement_score`
+  - `outreach_potential`, `human_review_needed`
+  - `person_location_country`, `location_confidence`, `affordability_tier`
+  - `location_points_applied`, `location_source`, `location_from_linkedin`
+
+---
+
 ## 🤖 **AI-ENHANCED IMPLEMENTATION SPECIFICATIONS**
 
 ### **Updated OpenAI GPT-4 Prompt Template**
@@ -230,7 +249,7 @@ This framework integrates customer data insights with the V3.0 methodology for a
 
 ---
 
-**Document Status**: ✅ **ENHANCED WITH AI INTEGRATION**  
-**Last Updated**: 2025-01-27  
-**Source**: Customer data analysis + V3.0 methodology + AI optimization  
-**Implementation Priority**: Phase 2B - AI-driven scoring system ready
+**Document Status**: ✅ Updated to V3.2 Hybrid (person-only, post-enrichment location)  
+**Last Updated**: 2025-08-13  
+**Source**: Customer data analysis + V3.2 hybrid methodology  
+**Implementation Priority**: Phase 2D - Documentation aligned for implementation

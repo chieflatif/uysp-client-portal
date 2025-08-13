@@ -35,14 +35,14 @@ Kajabi Form → Zapier → n8n → Field Normalization → Duplicate Check
                         │    └─ Failure? → Human Review  │
                         └─────────────────────────────────┘
                                      ↓
-                        ┌───── Claude AI ICP Scoring ────┐
+                         ┌───── OpenAI ICP Scoring ────┐
                         │ Score 0-100 with Routing:      │
-                        │ • 95-100 (Ultra): SMS Immed.   │
+                         │ • 95-100 (Ultra): SMS Immed.   │
                         │ • 85-94 (High): SMS 5min       │
                         │ • 70-84 (Medium): SMS 15min    │
                         │ • 50-69 (Low): Archive         │
                         │ • 0-49 (Archive): Archive      │
-                        └─────────────────────────────────┘
+                         └─────────────────────────────────┘
                                      ↓
                         ┌──── SMS Eligibility Check ─────┐
                         │ ALL CRITERIA REQUIRED:          │
@@ -239,7 +239,7 @@ return Math.max(0, Math.min(100, score));
 #### **Phase 2C: Hunter Waterfall Implementation (Current)**
 - ✅ Branch: `feature/pdl-first-hunter-fallback` created
 - ✅ Architecture: Updated to reflect Hunter strategy
-- ✅ Documentation: Apollo contamination removed
+- ✅ Documentation: legacy provider contamination removed
 - ❌ **TO IMPLEMENT**: Hunter API integration nodes
 - ❌ **TO IMPLEMENT**: PDL→Hunter fallback logic
 - ❌ **TO IMPLEMENT**: Field precedence merger
@@ -272,7 +272,7 @@ return Math.max(0, Math.min(100, score));
 #### **Pre-Implementation Complete**
 - ✅ Hunter waterfall development plan documented
 - ✅ Branch created: `feature/pdl-first-hunter-fallback`
-- ✅ Apollo contamination removed from documentation
+- ✅ Legacy provider contamination removed from documentation
 - ✅ Architecture updated to reflect PDL-first strategy
 - ✅ Cost structure validated and documented
 
@@ -287,7 +287,7 @@ return Math.max(0, Math.min(100, score));
 
 **Document Status**: ✅ **HUNTER WATERFALL READY**  
 **Last Updated**: 2025-01-27  
-**Apollo Contamination**: ✅ **REMOVED**  
+**Legacy Provider Contamination**: ✅ **REMOVED**  
 **Ready for Implementation**: ✅ **YES**
 
-This architecture serves as the **single source of truth** for all UYSP enrichment decisions, reflecting the current PDL-first Hunter waterfall strategy with zero Apollo contamination.
+This architecture serves as the **single source of truth** for all UYSP enrichment decisions, reflecting the current PDL → Dropcontact → Hunter strategy with zero legacy provider contamination.

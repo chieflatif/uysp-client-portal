@@ -446,6 +446,14 @@ mcp_n8n_n8n_update_partial_workflow({
 
 [Updated per Phase 2C learnings]
 
+### Gotcha 6: Person Location Scoring (V3.2)
+**PERSON location only; company HQ excluded.**
+- Apply location affordability (A/B/C/D) only post-enrichment (LinkedIn/PDL Person)
+- Unknown location = neutral (0); never gate in first pass
+- Tier D with confidence ≥0.7: do not auto-SMS/call; set `human_review_needed = true`
+- Early hints (phone/TLD/timezone) are provisional only; do not gate on them
+- Persist fields: `person_location_country`, `location_confidence`, `affordability_tier`, `location_points_applied`, `location_source`, `location_from_linkedin`
+
 ## 🚨 CONTEXT ENGINEERING UPGRADE GOTCHAS
 
 ### Anti-Hallucination Protocol Gotcha

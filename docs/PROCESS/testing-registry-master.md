@@ -243,7 +243,7 @@ curl -X POST "https://api.airtable.com/v0/appuBf0fTe8tp8ZaF/tbllHCB4MaeBkZYPt" \
 ```bash
 # To revalidate Phase 2 PDL Integration:
 # 1. Execute testing webhook with PDL failure scenario
-curl -X POST https://rebelhq.app.n8n.cloud/webhook/kajabi-leads \
+curl -X POST https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean \
   -H "Content-Type: application/json" \
   -d '{"email": "test-pdl-routing-failure@example.com", "name": "Test PDL Route"}'
 
@@ -291,7 +291,7 @@ python session-0-real-data-validator.py
 ### **NEXT PHASE PREREQUISITES MET**
 ✅ **Phase 2 Enrichment**: All foundation components validated and ready  
 ✅ **ICP Scoring Implementation**: Phone strategy ready for US-only validation  
-✅ **Apollo API Integration**: Cost tracking and qualification logic prepared  
+✅ **Dropcontact Integration**: Cost tracking and qualification logic prepared  
 ✅ **SMS Campaign Functionality**: 3-field phone validation architecture ready  
 
 ---
@@ -377,8 +377,7 @@ When completing each development phase:
 
 ### **Phase 2: Lead Enrichment & Qualification**
 **Planned Testing Categories**:
-- Apollo Org API integration testing
-- Apollo People API integration testing
+- Dropcontact HTTP (sync `/v1/enrich/all`; batch+poll with `requestId`) testing
 - ICP scoring algorithm validation
 - Cost tracking and circuit breaker testing
 - US-only phone validation testing

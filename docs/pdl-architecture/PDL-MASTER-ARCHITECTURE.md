@@ -64,7 +64,7 @@ Routing: Pass → ICP scoring | Fail → Human review queue
 #### **Phase 3: ICP Scoring**
 ```
 Input: Combined company + person qualification data
-Service: Claude AI integration
+Service: OpenAI GPT-4 chat completions (Message a model node)
 Scoring: 0-100 scale based on ICP criteria
 Threshold: ≥70 required for SMS campaign eligibility
 Routing: ≥70 → SMS | 50-69 → Archive | <50 → Archive

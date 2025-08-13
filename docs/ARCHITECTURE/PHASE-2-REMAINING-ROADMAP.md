@@ -11,7 +11,7 @@ Last Updated: 2025-08-08
 **🚧 CURRENT FOCUS**: Phase 2C - Hunter Waterfall Implementation (Documentation updated, ready for dev)  
 **⏳ FUTURE**: Phase 2D - Company Qualification & Enhanced Features  
 
-**STATUS CONFIRMATION**: Phase 2B is fully operational with PDL Person enrichment and ICP Scoring V3.0 writing to Airtable. Hunter waterfall documentation has been systematically updated with zero Apollo contamination. Phase 2C is ready for immediate implementation.
+**STATUS CONFIRMATION**: Phase 2B is fully operational with PDL Person enrichment and ICP Scoring V3.0 writing to Airtable. Hunter waterfall documentation has been systematically updated with zero legacy provider contamination. Phase 2C is ready for immediate implementation.
 
 ---
 
@@ -114,7 +114,7 @@ Last Updated: 2025-08-08
 ### **Phase 2C Hunter Waterfall - ✅ READY FOR DEVELOPMENT**
 - ✅ **Architecture Documentation**: Complete Hunter waterfall development plan available
 - ✅ **Branch Strategy**: `feature/pdl-first-hunter-fallback` created and ready
-- ✅ **Apollo Cleanup**: All documentation updated with zero Apollo contamination
+- ✅ **Cleanup**: All documentation updated with zero legacy provider contamination
 - ✅ **Field Mapping**: PDL ↔ Hunter compatibility verified and documented
 - ✅ **Cost Structure**: Hunter pricing validated and budgeted ($0.049/lookup)
 - ✅ **Technical Specifications**: Node-by-node implementation guide complete
@@ -165,7 +165,7 @@ Last Updated: 2025-08-08
 
 **Roadmap Status**: ✅ **PHASE 2C HUNTER WATERFALL READY FOR IMMEDIATE IMPLEMENTATION**  
 **Last Updated**: 2025-01-27  
-**Apollo Contamination**: ✅ **COMPLETELY REMOVED**  
+**Legacy Provider Contamination**: ✅ **COMPLETELY REMOVED**  
 **Development Ready**: ✅ **YES - All prerequisites satisfied**
 
-This roadmap provides the accurate implementation sequence for **PDL-first Hunter waterfall strategy** with complete Apollo migration and verified Phase 2B completion status.
+This roadmap provides the accurate implementation sequence for **PDL → Dropcontact → Hunter strategy** with complete legacy provider migration and verified Phase 2B completion status.

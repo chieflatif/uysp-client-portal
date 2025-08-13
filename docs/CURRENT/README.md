@@ -27,7 +27,7 @@ Last Updated: 2025-08-08
 - `documentation-control-system.md` - Documentation standards
 
 ### **Technical Guides**
-- `complete-enrichment-architecture-summary.md` - Apollo API integration
+- `complete-enrichment-architecture-summary.md` - Enrichment architecture (PDL → Dropcontact → Hunter)
 - `phase-2-enrichment-blueprint.md` - Data enrichment strategy
 - `phone-number-lifecycle-strategy.md` - Phone handling patterns
 - `critical-platform-gotchas.md` - Known issues and prevention

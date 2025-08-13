@@ -1,0 +1,1250 @@
+{
+  "summary": {
+    "total": 95,
+    "pdl": {
+      "title_rate": 71.6,
+      "company_rate": 35.8,
+      "linkedin_rate": 71.6
+    },
+    "hunter": {
+      "deliverable_rate": 73.7
+    }
+  },
+  "results": [
+    {
+      "email": "anharrell@paloaltonetworks.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "nirav@securecdp.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "j.karcher@sana-commerce.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "nmorse@netskope.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 202,
+        "result": null
+      }
+    },
+    {
+      "email": "andrew.armstrong@netlify.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "undeliverable"
+      }
+    },
+    {
+      "email": "tom.jensen@hexagon.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "bdavidson@informatica.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "matt.ogrady@docusign.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "dhouser9@verizon.net",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "astrid.farber@docusign.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "mike.townsend@email.zoominfo.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "labarnes@teksystems.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "arregavi@amazon.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "mferat@hubspot.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "taylor@taylorjohnsonperformance.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "jeremy.kemper@vexcelgroup.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "psoba@salesforce.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "ake@templafy.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "aubrey@sagemedstudio.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "jess.lancaster@teifi.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "william.smith@enterbridge.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "dj@dragonflyenergy.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "bdoherty@ehs.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "daniel@sytrex.io",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "erica.hinson@ringcentral.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "kareem.hassan@oracle.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "trenton.davis@salesforce.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "mark@theogdengroup.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "david@altimate.ai",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "ryan.leonard@franklincovey.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "kevin.duffy@datagalaxy.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "brent.grunander@forter.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "cheery.chua@mongodb.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "jshunia@salesforce.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 202,
+        "result": null
+      }
+    },
+    {
+      "email": "brianhughes@comcast.net",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "lindsey.zelhart@sprinklr.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "andrea.brigham@datagrail.io",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "andrea.brigham@formstack.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "undeliverable"
+      }
+    },
+    {
+      "email": "mmaimone@citrine.io",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "jmayor@versium.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "juan@aytm.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "ghenderson@databridgesites.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "damian.fox@rfsmart.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "melissa.singleton@docusign.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "jtucci@alpha-sense.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "lia.llamas@verkada.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "wfox@revinova.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "manny@onramp.us",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "max.presutti@blackbaud.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "g.whitehead@athenaag.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "kristiana.osborne@rethinkfirst.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "corey.woinarowicz@fleetworthy.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "drewp@possiblenow.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "joseph.maggiore@continuant.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "m.walls@ixopay.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "shameer@klaarhq.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "k.newton@ixopay.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "kevin.bandemer@workday.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "tmorrison@cusa.canon.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "ksantistevan@flexera.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "ryan.nardi@iterable.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "nathan.bluhm@us.contec.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "deving@qualtrics.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "mlist@choicelogistics.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "darin@darinjanda.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "reiko.gallo@usablenet.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "tpolanco@goformz.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "ilan.fehler@covertswarm.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "scott.torney@sailpoint.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "bill.robinson@databricks.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "viraj.mandania@smartsheet.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "bchiongbian@workwithopal.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "efrazier@facilityig.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "ahmed.mirza@energyby5.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "hunter.haake@tempo.io",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "taylor.welch@page-vault.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "sean.blaney@uipath.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "arthur.slade@wellsky.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "michael.bolivar@evenuplaw.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "matt.riemen@avalara.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "risky"
+      }
+    },
+    {
+      "email": "tmeek@a2mac1.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "chris.geaslen@audioeye.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "ivanj@solutionstack.ca",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "a.dvirnyk@ibagroupit.com",
+      "pdl": {
+        "status": 404,
+        "title": false,
+        "company": false,
+        "linkedin": false
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "george.knowles@tnp.net.uk",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "rlovelace@goformz.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "brock@snappt.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "pete.carlson@pendo.io",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "dalton.turay@grafana.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "rmasi@seismic.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "gaurav.sharma@irisbusiness.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "devon@zips.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "karl@scandere.io",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": false,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "k.marques@carta.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    },
+    {
+      "email": "kschmidt@babelstreet.com",
+      "pdl": {
+        "status": 200,
+        "title": true,
+        "company": true,
+        "linkedin": true
+      },
+      "hunter": {
+        "status": 200,
+        "result": "deliverable"
+      }
+    }
+  ]
+}

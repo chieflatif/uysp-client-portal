@@ -20,7 +20,7 @@ load_dotenv()
 
 class UYSPFieldValidator:
     def __init__(self):
-        self.webhook_url = "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads"
+        self.webhook_url = "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean"
         self.test_results = []
         self.field_mapping_stats = {}
         self.unknown_fields = set()
