@@ -1,0 +1,333 @@
+{
+  "createdAt": "2025-08-07T11:08:49.000Z",
+  "updatedAt": "2025-08-07T15:24:50.000Z",
+  "id": "2Mi5eyogQMULhWuh",
+  "name": "UYSP PHASE 2B - CLEAN REBUILD",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kajabi-leads-clean",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "kajabi-webhook-clean",
+      "name": "Kajabi Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1480,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validation removed - webhook auth now handled at webhook level\nreturn $json;"
+      },
+      "id": "validate-api-key-clean",
+      "name": "Validate API Key (Dynamic)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1300,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Smart Field Mapper v4.6 - CORRECTED BOOLEAN NULL FIX\n// CRITICAL FIX: Boolean false → null for Airtable checkbox fields\nconst webhookData = $input.first().json;\n\n// CRITICAL FIX: Extract actual form data from webhook structure\nlet inputData;\nif (webhookData.body && typeof webhookData.body === 'object') {\n  // n8n webhook format: data is in .body\n  inputData = webhookData.body;\n} else if (webhookData.data && typeof webhookData.data === 'object') {\n  // Alternative webhook format: data is in .data\n  inputData = webhookData.data;\n} else {\n  // Direct format: webhook data is the payload itself\n  inputData = webhookData;\n}\n\nconst fieldMappings = {\n  email: ['email', 'Email', 'EMAIL', 'email_address', 'emailAddress', 'e-mail', 'e_mail', 'contact_email', 'Email_Address', 'EMAIL_ADDRESS'],\n  phone: ['phone', 'Phone', 'PHONE', 'phone_number', 'phoneNumber', 'mobile', 'cellphone', 'telephone', 'phone_intl', 'mobile_intl'],\n  name: ['name', 'Name', 'NAME', 'full_name', 'fullName', 'contact_name', 'display_name'],\n  first_name: ['first_name', 'firstName', 'fname', 'given_name', 'forename'],\n  last_name: ['last_name', 'lastName', 'lname', 'surname', 'family_name'],\n  company: ['company', 'Company', 'COMPANY', 'company_name', 'companyName', 'organization', 'org', 'business'],\n  title: ['title', 'Title', 'job_title', 'jobTitle', 'position', 'role'],\n  source_form: ['source_form', 'form_name', 'formName', 'source', 'form_id'],\n  interested_in_coaching: ['interested_in_coaching', 'coaching_interest', 'wants_coaching'],\n  qualified_lead: ['qualified_lead', 'is_qualified', 'qualified', 'lead_qualified'],\n  contacted: ['contacted', 'was_contacted', 'contact_attempted', 'reached_out'],\n  linkedin_url: ['linkedin_url', 'linkedin', 'linkedinUrl', 'linkedin_profile'],\n  request_id: ['request_id', 'requestId', 'request', 'id', 'tracking_id']\n};\n\nconst normalized = {};\nconst mappedFields = new Set();\n\n// Case-insensitive field finder\nfunction findField(aliases) {\n  for (const key of Object.keys(inputData)) {\n    if (aliases.some(alias => alias.toLowerCase() === key.toLowerCase())) {\n      mappedFields.add(key);\n      return inputData[key];\n    }\n  }\n  return null;\n}\n\n// Map all fields\nObject.entries(fieldMappings).forEach(([normalizedName, aliases]) => {\n  const value = findField(aliases);\n  if (value !== null && value !== undefined && value !== '') {\n    normalized[normalizedName] = value;\n  }\n});\n\n// Auto-split full name if needed\nif (normalized.name && !normalized.first_name) {\n  const parts = normalized.name.trim().split(/\\s+/);\n  normalized.first_name = parts[0] || '';\n  normalized.last_name = parts.slice(1).join(' ') || '';\n}\n\n// CORRECTED: 3-Field Phone Strategy Implementation\nif (normalized.phone) {\n  normalized.phone_recent = normalized.phone;  // Always update to latest received\n  normalized.phone_original = normalized.phone; // Will be handled by duplicate logic to preserve on updates\n}\n\n// CRITICAL FIX: Boolean conversion for Airtable - null instead of false\n['interested_in_coaching', 'qualified_lead', 'contacted'].forEach(field => {\n  if (normalized[field] !== undefined) {\n    const val = String(normalized[field]).toLowerCase();\n    const isTruthy = ['true', 'yes', '1', 'on', 'y', 'checked', 'enabled'].includes(val);\n    normalized[field] = isTruthy ? true : null;  // CRITICAL FIX: null instead of false\n  }\n});\n\n// Track unknown fields\nconst unknownFields = Object.keys(inputData).filter(k => !mappedFields.has(k));\n\n// Add metadata\nnormalized.webhook_field_count = Object.keys(inputData).length;\nnormalized.mapped_field_count = Object.keys(normalized).length;\nnormalized.unknown_field_list = unknownFields.join(', ');\nnormalized.field_mapping_success_rate = Math.round((Object.keys(normalized).length / Object.keys(inputData).length) * 100);\nnormalized.normalization_version = 'v4.6-boolean-null-fix';\nnormalized.raw_webhook_data = JSON.stringify(webhookData);\n\nreturn {\n  normalized,\n  original: inputData,\n  unknownFields,\n  mappingSuccess: Object.keys(normalized).length > 0,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "smart-field-mapper-clean",
+      "name": "Smart Field Mapper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1120,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.peopledatalabs.com/v5/person/enrich",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": false,
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{$node['Smart Field Mapper'].json.normalized.email}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {}
+        }
+      },
+      "id": "pdl-person-enrichment-clean",
+      "name": "PDL Person Enrichment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -840,
+        260
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// PDL Person API Response Processor v1.0\n// Extracts person data and maps to Airtable fields\n\nconst pdlResponse = $json;\nconst smartFieldData = $node['Smart Field Mapper'].json.normalized;\n\n// Initialize processed data with existing Smart Field Mapper data\nconst processedData = {\n  ...smartFieldData,\n  // PDL Person API Processing\n  pdl_person_processed: new Date().toISOString(),\n  pdl_person_cost: 0.03 // $0.03 per call\n};\n\n// Process PDL Person Response\nif (pdlResponse && pdlResponse.data) {\n  const person = pdlResponse.data;\n  \n  // Extract person profile data\n  if (person.full_name) {\n    processedData.pdl_full_name = person.full_name;\n  }\n  \n  if (person.first_name) {\n    processedData.pdl_first_name = person.first_name;\n  }\n  \n  if (person.last_name) {\n    processedData.pdl_last_name = person.last_name;\n  }\n  \n  // Extract job information\n  if (person.job_title) {\n    processedData.pdl_job_title = person.job_title;\n  }\n  \n  if (person.job_title_role) {\n    processedData.pdl_job_role = person.job_title_role;\n  }\n  \n  if (person.job_company_name) {\n    processedData.pdl_company_name = person.job_company_name;\n  }\n  \n  // Extract LinkedIn profile\n  if (person.linkedin_url) {\n    processedData.pdl_linkedin_url = person.linkedin_url;\n  }\n  \n  // Extract location data\n  if (person.location_name) {\n    processedData.pdl_location = person.location_name;\n  }\n  \n  if (person.location_country) {\n    processedData.pdl_country = person.location_country;\n  }\n  \n  // Extract seniority level\n  if (person.job_title_levels && person.job_title_levels.length > 0) {\n    processedData.pdl_seniority = person.job_title_levels[0];\n  }\n  \n  // Determine if person is in sales role\n  const salesRoles = ['sales', 'business development', 'account manager', 'revenue', 'growth'];\n  const jobTitle = (person.job_title || '').toLowerCase();\n  const jobRole = (person.job_title_role || '').toLowerCase();\n  \n  processedData.pdl_is_sales_role = salesRoles.some(role => \n    jobTitle.includes(role) || jobRole.includes(role)\n  );\n  \n  // Extract industry information\n  if (person.industry) {\n    processedData.pdl_industry = person.industry;\n  }\n  \n  // Process phone numbers from PDL\n  if (person.phone_numbers && person.phone_numbers.length > 0) {\n    const primaryPhone = person.phone_numbers[0];\n    if (primaryPhone) {\n      processedData.pdl_phone = primaryPhone;\n    }\n  }\n  \n  // Extract experience information\n  if (person.experience && person.experience.length > 0) {\n    const currentJob = person.experience[0]; // Most recent job\n    if (currentJob) {\n      if (currentJob.company && currentJob.company.name) {\n        processedData.pdl_current_company = currentJob.company.name;\n      }\n      if (currentJob.title) {\n        processedData.pdl_current_title = currentJob.title;\n      }\n    }\n  }\n  \n  // Calculate person qualification score (0-100)\n  let personScore = 0;\n  \n  // Has LinkedIn profile (+25 points)\n  if (person.linkedin_url) personScore += 25;\n  \n  // Has job title (+20 points)\n  if (person.job_title) personScore += 20;\n  \n  // Is in sales role (+30 points)\n  if (processedData.pdl_is_sales_role) personScore += 30;\n  \n  // Has company information (+15 points)\n  if (person.job_company_name) personScore += 15;\n  \n  // Has location data (+10 points)\n  if (person.location_country) personScore += 10;\n  \n  processedData.pdl_person_score = personScore;\n  \n  // Determine qualification status\n  processedData.pdl_person_qualified = personScore >= 70;\n  \n  // Extract additional contact methods\n  if (person.emails && person.emails.length > 0) {\n    const workEmail = person.emails.find(email => email.type === 'work');\n    if (workEmail) {\n      processedData.pdl_work_email = workEmail.address;\n    }\n  }\n  \n  // Success status\n  processedData.pdl_person_success = true;\n  processedData.pdl_person_error = null;\n  \n} else {\n  // Handle API error or no data\n  processedData.pdl_person_success = false;\n  processedData.pdl_person_error = pdlResponse.error || 'No person data found';\n  processedData.pdl_person_score = 0;\n  processedData.pdl_person_qualified = false;\n}\n\n// Return processed data for next node\nreturn { normalized: processedData };"
+      },
+      "id": "pdl-person-processor-clean",
+      "name": "PDL Person Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -680,
+        260
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "pdl-success-check",
+              "leftValue": "={{$json.normalized.pdl_person_success}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "looseTypeValidation": true
+        }
+      },
+      "id": "pdl-person-routing-clean",
+      "name": "PDL Person Routing",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -500,
+        260
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": false,
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an ICP (Ideal Customer Profile) scoring system for Phase 2B engagement-focused evaluation. Analyze the lead data and return a JSON response with scores.\\n\\nScoring Criteria (Phase 2B - Engagement Focus):\\n1. Company Score (0-50): Company size, industry fit, revenue potential\\n2. Role Score (0-30): Title relevance, decision-making authority, seniority\\n3. Engagement Score (0-20): Response time, interaction quality, intent signals\\n\\nReturn ONLY valid JSON in this exact format:\\n{\\n  \\\"company_score\\\": 0-50,\\n  \\\"role_score\\\": 0-30,\\n  \\\"engagement_score\\\": 0-20,\\n  \\\"total_score\\\": 0-100,\\n  \\\"recommendation\\\": \\\"high_priority\\\" | \\\"medium_priority\\\" | \\\"low_priority\\\",\\n  \\\"reasoning\\\": \\\"Brief explanation of scoring\\\"\\n}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"={{ JSON.stringify($json.normalized, null, 2) }}\"\n    }\n  ],\n  \"temperature\": 0.2,\n  \"max_tokens\": 500,\n  \"top_p\": 0.9\n}",
+        "options": {}
+      },
+      "id": "openai-icp-scoring-clean",
+      "name": "OpenAI ICP Scoring V3.0",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -280,
+        -60
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tbljmIuoX3Qi28WIq"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "person_email": "={{$node['Smart Field Mapper'].json.normalized.email}}",
+            "review_reason": "missing_key_data",
+            "priority": "Medium",
+            "queued_date": "={{DateTime.now().toISO()}}",
+            "review_notes": "PDL Person API failed - requires manual review"
+          }
+        },
+        "options": {}
+      },
+      "id": "add-to-human-review-clean",
+      "name": "Add to Human Review Queue",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -220,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Kajabi Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate API Key (Dynamic)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate API Key (Dynamic)": {
+      "main": [
+        [
+          {
+            "node": "Smart Field Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Smart Field Mapper": {
+      "main": [
+        [
+          {
+            "node": "PDL Person Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Enrichment": {
+      "main": [
+        [
+          {
+            "node": "PDL Person Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Processor": {
+      "main": [
+        [
+          {
+            "node": "PDL Person Routing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Routing": {
+      "main": [
+        [
+          {
+            "node": "OpenAI ICP Scoring V3.0",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add to Human Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "5ef1ce24-3c3b-4f44-b21e-c37ad5de7568",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-07T11:08:49.003Z",
+      "updatedAt": "2025-08-07T11:08:49.003Z",
+      "role": "workflow:owner",
+      "workflowId": "2Mi5eyogQMULhWuh",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-07-20T18:25:33.186Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
