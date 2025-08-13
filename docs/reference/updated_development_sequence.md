@@ -119,6 +119,9 @@ Fallback: If MCP fails, generate JSON/manuals via AI.
 - Integrate into Session 1 workflow
 Enhanced: Add international routing to human review if non-US phone detected (e.g., non-+1 prefixes).
 
+Additional enrichment waterfall step (finalized):
+- After PDL Person failure, call Dropcontact (sync `POST https://api.dropcontact.com/v1/enrich/all`; alt: batch submit/poll with `requestId`). Merge results with explicit precedence (PDL > Dropcontact > Hunter). Hunter remains deliverability verifier only.
+
 **Test**: 
 - Process 10 samples covering all routing scenarios
 - Check qualification accuracy and routing decisions
@@ -247,13 +250,13 @@ Enhanced: Add international routing to human review if non-US phone detected (e.
 - **Campaign Integration**: Only use `phone_validated` for SMS
 - **Human Review**: Route failed validations to manual queue
 
-### 2.2 Apollo.io Org API Integration ✅ READY
+### 2.2 Dropcontact Integration (HTTP) ✅ READY
 - Organization scoring based on company name/domain
 - Required: Domain or company name from lead
 - Cost: $0.01 per lookup (tracked in daily_costs)
 - Output: ICP score, company details, qualification status
 
-### 2.3 Apollo.io People API Integration ✅ READY  
+### 2.3 Hunter Deliverability Verification ✅ READY  
 - Person enrichment for qualified organizations
 - Required: Successful org qualification (score ≥70)
 - Cost: $0.025 per lookup (tracked in daily_costs)

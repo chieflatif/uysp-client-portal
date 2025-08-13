@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-09
+
 # PM MASTER GUIDE - COMPLETE SYSTEM
 ## **SINGLE SOURCE OF TRUTH FOR ALL PM OPERATIONS**
 
@@ -25,6 +28,24 @@
 - ✅ User confirmation requirements
 - ✅ MANDATORY CONFIDENCE SCORING [0-100%] requirements
 - ✅ Ready to copy/paste without modification
+
+### ✅ Context Engineering Compliance (MANDATORY)
+- Enforce `.cursorrules/CONTEXT-ENGINEERING-STANDARD.md` in all PM outputs.
+- Every PM message must end with the Evidence and Confidence blocks.
+- Treat `docs/CURRENT/critical-platform-gotchas.md` as an annex; keep mediation role‑first.
+
+PM Footer Template:
+```markdown
+EVIDENCE COLLECTED
+- Tool: <tool_name> → Result: <id/output> (timestamp)
+- Missing/Blocked: <reason>
+
+CONFIDENCE
+- Honesty: <x%>
+- Evidence Coverage: <y%>
+- Key Facts: <low/med/high>
+Assumptions: <list> | Risks: <list>
+```
 
 **PM CONFIDENCE PROTOCOLS**:
 - ✅ All PM responses include confidence assessment
@@ -113,10 +134,41 @@ HONESTY CHECK: [100% evidence-based / Assumptions: list]. No manipulations.
 - **web_search**: External verification and solutions research
 - **update_memory**: Project context maintenance and learning storage
 
-### **Enhanced MCP Tool Suite:**
+## 🚨 **MANDATORY PRE-SESSION VALIDATION PROTOCOL**
+
+### **PHASE 0: SYSTEM STATE VERIFICATION (REQUIRED BEFORE PM OPERATIONS)**
+
+#### **Tool Access Verification**:
+1. **N8N MCP Tools**: Test `mcp_n8n_list_workflows` - confirm project workspace access
+2. **Airtable MCP Tools**: Test `mcp_airtable_list_bases` - confirm UYSP base access  
+3. **Context7 Access**: Test documentation retrieval capabilities
+4. **System Tools**: Verify terminal, memory bank, and backup tool access
+
+#### **Current Project State Validation**:
+1. **Active Context**: Read `memory_bank/active_context.md` for current status
+2. **Testing Registry**: Check `docs/PROCESS/testing-registry-master.md` for system state
+3. **Documentation Currency**: Verify all CURRENT docs are up-to-date
+4. **Agent Coordination**: Confirm Developer/Testing agent contexts if multi-agent session
+
+#### **Documentation Systematic Review (MANDATORY)**:
+1. **Current Phase**: Review `docs/CURRENT/` for latest requirements and status
+2. **Architecture**: Review `docs/ARCHITECTURE/` for system overview
+3. **Platform Gotchas**: Ensure awareness of `docs/CURRENT/critical-platform-gotchas.md`
+4. **Project Context**: Understand project phase and immediate objectives
+
+### **MANDATORY STOP GATE**: Cannot proceed to agent mediation without completing ALL validation items above.
+
+#### **Context Package Creation Integration**:
+When creating development context packages, PM Agent MUST:
+1. **Apply Two-Tier Strategy**: Structure all context packages using the mandatory two-tier development sequence
+2. **Strategic Analysis Focus**: Ensure Phase 0 and Phase 1 require comprehensive strategic analysis and planning
+3. **Implementation Separation**: Clearly separate strategic planning from implementation execution
+4. **Cost Optimization**: Design packages to maximize expensive model value while minimizing implementation costs
+
+### **Enhanced Research & Validation Tools:**
 - **DocFork**: npx docfork@latest for daily-updated n8n documentation
-- **Exa Search**: exa tool with API key for implementation research
-- **Claude Code Server MCP**: Fallback tools when N8N MCP tools insufficient
+- **Exa Search**: Research tool with API key for implementation patterns
+- **Context7**: Primary documentation accuracy tool for n8n operations
 
 ### **Evidence Standards (EXISTING PROVEN FORMATS):**
 - **Workflow Claims**: Workflow IDs + Execution IDs + Node IDs + n8n API responses
@@ -164,6 +216,62 @@ CONTEXT7 ROLE: Primary documentation accuracy tool (NOT workflow validator)
 - **Pattern 06 Testing**: Use tests/reality-based-tests-v3.json + Context7-validated n8n operations
 - **Workflow Management**: npm run start-work, npm run branch, npm run real-backup
 - **Evidence Collection**: N8N MCP execution IDs + Airtable record IDs + git commits
+
+---
+
+## 📋 **DEVELOPMENT CONTEXT PACKAGE CREATION STANDARD**
+### **TWO-TIER STRATEGY FOR COST-OPTIMIZED DEVELOPMENT**
+
+**PM Agent MUST follow this standard when creating development context packages for all future phases:**
+
+#### **Context Package Structure Requirements (MANDATORY)**:
+
+**1. PHASE 0: STRATEGIC ANALYSIS & VALIDATION PROTOCOL**
+- **Purpose**: Heavy-lifting deep research & analysis (expensive thinking model)
+- **Required Elements**:
+  - Tool Access Verification (N8N MCP, Airtable MCP, Context7, Exa Search)
+  - Current System State Validation (workflow analysis, schema validation, performance review)
+  - Documentation Review (Architecture docs, Platform Gotchas, Testing Requirements)
+  - Historical Context Validation (Memory Bank, Previous Issues, contamination verification)
+- **Deliverable**: Complete strategic analysis with tool evidence
+
+**2. PHASE 1: DEEP PLANNING & TECHNICAL FINALIZATION**
+- **Purpose**: Comprehensive strategic planning with final technical details (expensive thinking model)
+- **Required Elements**:
+  - Strategic Requirements Analysis (complete system analysis with alternatives)
+  - Final Technical Architecture (exhaustive Context7 validation and integration analysis)
+  - Strategic Chunking & Implementation Planning (optimal chunk strategy ≤5 operations)
+  - Advanced Risk Mitigation Strategy (comprehensive strategy with predictive controls)
+- **Deliverable**: Complete strategic plan with final technical details and chunking strategy
+
+**3. IMPLEMENTATION HANDOFF PROTOCOL**
+- **Purpose**: Transition to cost-efficient implementation execution
+- **Required Elements**:
+  - Implementation Execution Requirements (execute validated plan exactly)
+  - Implementation Success Criteria (plan adherence, evidence collection, quality assurance)
+  - Clear handoff instructions (no strategic decisions required for implementation agent)
+
+#### **Implementation Sequence Template (MANDATORY)**:
+```markdown
+TWO-TIER DEVELOPMENT SEQUENCE:
+
+STRATEGIC ANALYSIS PHASE (Expensive Model):
+PHASE 0: Deep research & system validation → Present evidence
+PHASE 1: Comprehensive planning & technical finalization → Present complete plan
+
+USER APPROVAL GATE: Authorize final strategic plan
+
+IMPLEMENTATION EXECUTION PHASE (Efficient Model):
+Execute validated plan with chunked implementation (≤5 operations per chunk)
+```
+
+#### **Context Package Conversion Protocol**:
+- **Reference Specifications**: Convert direct implementation specifications to "Reference Requirements for Planning"
+- **Validation Requirements**: All specifications must include "Context7 Validation Required" and "Tool Planning Required"
+- **Strategic Guidance**: Emphasize strategic direction over direct implementation instructions
+- **Evidence-Based Protocols**: All testing and validation must follow evidence-based protocols with tool verification
+
+### **CRITICAL**: All future development phase context packages (Phase 3, Phase 4, etc.) MUST follow this two-tier strategy standard to optimize cost efficiency while maintaining development quality.
 
 ---
 

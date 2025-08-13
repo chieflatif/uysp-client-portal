@@ -1,266 +1,238 @@
-# PHASE 2C CONTEXT PACKAGE - PDL COMPANY QUALIFICATION
-## **TOOL-VALIDATED DEVELOPER CONTEXT - READY FOR IMPLEMENTATION**
+[AUTHORITATIVE]
+Last Updated: 2025-08-09
+
+# PHASE 2C CONTEXT PACKAGE - HUNTER WATERFALL IMPLEMENTATION
+## **DEVELOPER CONTEXT - FOUNDATION-FIRST IMPLEMENTATION**
 
 ### 🎯 **PHASE 2C OBJECTIVE**
-**Extend active Phase 2B workflow (Q2ReTnOliUTuuVpl) with PDL Company API integration for enhanced B2B tech qualification and complete 3-field phone normalization**
+**Implement Hunter.io Email Enrichment as a non-disruptive fallback after PDL Person API failures, maintaining PDL as primary enrichment source while capturing LinkedIn profiles, job titles, and company data from Hunter when PDL provides insufficient data.**
 
-### 🚨 **CRITICAL CONTEXT - EVIDENCE-BASED**
+## 🚨 **PHASE 0: STRATEGIC ANALYSIS & VALIDATION PROTOCOL**
+### **HEAVY-LIFTING DEEP RESEARCH & ANALYSIS PHASE**
 
-**ACTIVE BASELINE**: Phase 2B workflow Q2ReTnOliUTuuVpl (15 nodes, 85% success rate, 12s avg runtime)  
-**VALIDATED STATUS**: MCP tools confirmed operational, no errors, 3 warnings documented  
-**CURRENT BRANCH**: development.phase.2c  
-**NEXT IMPLEMENTATION**: Phase 2C - Company enrichment layer + enhanced ICP + phone strategy completion  
+**Strategic Analysis Agent MUST complete comprehensive foundation validation and initial planning:**
 
----
+#### **Tool Access Verification (MANDATORY)**:
+1. **N8N MCP Tools**: Test `mcp_n8n_list_workflows` - confirm project workspace H4VRaaZhd8VKQANf access
+2. **Airtable MCP Tools**: Test `mcp_airtable_list_bases` - confirm UYSP base appuBf0fTe8tp8ZaF access
+3. **Context7 Access**: Test documentation retrieval for n8n HTTP Request and Code nodes
+4. **Hunter.io Research**: Use Exa Search to validate current Hunter.io API documentation and pricing
 
-## 📋 **EXACT REQUIREMENTS FOR PHASE 2C - PDL COMPANY INTEGRATION**
+#### **Current System State Validation (MANDATORY)**:
+1. **Phase 2B Status**: Use `mcp_n8n_list_workflows` to identify current active Phase 2B workflow
+2. **Workflow Structure**: Use `mcp_n8n_get_workflow` to understand current PDL Person + ICP Scoring implementation
+3. **Airtable Schema**: Use `mcp_airtable_describe_table` on People table to validate current person enrichment fields
+4. **PDL Performance**: Review recent execution logs to understand current PDL Person success/failure patterns
 
-### **Tool-Validated Node Implementation Specifications:**
+#### **Documentation Review (MANDATORY)**:
+1. **Architecture Documents**: Review `docs/ARCHITECTURE/hunter-waterfall-development-plan.md` for technical specifications
+2. **Platform Gotchas**: Review `docs/CURRENT/critical-platform-gotchas.md` for Hunter.io and HTTP Request node configurations
+3. **Testing Requirements**: Review `docs/PROCESS/testing-registry-master.md` for Phase 2C testing protocols
+4. **Cost Management**: Review existing cost tracking implementation and daily limits system
 
-#### **Node 1: Company Identifier Extraction (Code Node)**
-- **Purpose**: Extract company name/website for PDL Company API calls
-- **Insertion Point**: After Smart Field Mapper (Node 8) → Before PDL Person (Node 9)
-- **Input Sources**: Multiple fallbacks - normalized.company, raw.company, lead.company
-- **Output**: pdl_identifiers object with name (required), website (optional), validation flags
-- **Validation**: `mcp_n8n_validate_node_operation()` → Zero errors required
+#### **Historical Context Validation (MANDATORY)**:
+1. **Memory Bank**: Read `memory_bank/active_context.md` for current project status and recent developments
+2. **Previous Issues**: Review any Phase 2B issues or platform gotchas that might impact Hunter integration
+3. **Apollo Removal**: Verify all Apollo contamination has been fully removed from documentation and implementation
 
-#### **Node 2: PDL Company API (HTTP Request - Tool-Validated)**
-- **Type**: HTTP Request (GET method - corrected from original POST)
-- **Endpoint**: `https://api.peopledatalabs.com/v5/company/enrich`
-- **Authentication**: httpHeaderAuth with X-Api-Key header (sendHeaders: true)
-- **Parameters**: name (required), website (optional), min_likelihood=5
-- **Resilience**: timeout=60000ms, retryOnFail=true, maxTries=3, waitBetweenTries=1000ms
-- **Cost**: $0.01 per call (PDL Company API)
-
-#### **Node 3: Company Data Processing & B2B Tech Classification (Code Node)**
-- **Purpose**: Parse PDL response, classify B2B tech status, extract enrichment data
-- **Classification Logic**: Industry keywords, tech stack analysis, tags evaluation
-- **Output Fields**: is_b2b_tech, company_data object, processing metadata
-- **Error Handling**: Graceful failures, null response handling, likelihood thresholds
-
-#### **Node 4: B2B Tech Router (IF Node)**
-- **Condition**: `{{$json.is_b2b_tech === true}}`
-- **Configuration**: alwaysOutputData=true (critical setting)
-- **True Path**: Continue to existing PDL Person API
-- **False Path**: Route to merge node, skip Person enrichment
-
-#### **Node 5: Enhanced ICP Scoring (Code Node Update)**
-- **Purpose**: Extend existing ICP scoring with company intelligence
-- **Company Boosts**: B2B tech (+15), company size ranges (+5-10), tech stack (+5-8), industry (+12)
-- **Regression Safety**: Preserve existing scoring logic, additive boosts only
-- **Output**: enhanced_score, original_score, company_boost breakdown
-
-#### **Node 6: 3-Field Phone Normalization (Code Node)**
-- **Purpose**: Verify and complete phone-number-lifecycle-strategy.md implementation (if missing)
-- **Fields**: phone_original, phone_recent, phone_validated
-- **Validation**: US E.164 format detection, international handling, SMS eligibility flags
-- **Integration**: Before final Airtable update, all phone fields included
+### **PHASE 0 DELIVERABLE**: Complete strategic analysis with tool evidence for ALL validation items above.
 
 ---
 
-## 🔧 **TECHNICAL IMPLEMENTATION GUIDELINES**
+## 🧠 **PHASE 1: DEEP PLANNING & TECHNICAL FINALIZATION**
+### **COMPREHENSIVE STRATEGIC PLANNING WITH FINAL TECHNICAL DETAILS**
 
-### **1. MANDATORY MCP TOOL VALIDATION PROTOCOL**
+#### **Strategic Requirements Analysis (DEEP THINKING)**:
+1. **Complete System Analysis**: Comprehensive breakdown of Hunter waterfall integration with existing architecture
+2. **Integration Strategy Finalization**: Detailed analysis of non-disruptive integration with Phase 2B workflow
+3. **Context7 Deep Validation**: Exhaustive validation of ALL planned n8n node configurations with alternatives analysis
+4. **Cost-Benefit Strategic Analysis**: Complete cost impact analysis with ROI projections and budget optimization
 
-**ZERO TOLERANCE**: Every implementation step MUST be tool-validated with evidence
+#### **Final Technical Architecture (COMPREHENSIVE)**:
+1. **Context7 Complete Validation**: Full validation of Hunter.io HTTP Request, Code, and IF node configurations
+2. **System Integration Analysis**: Complete understanding of current workflow patterns and optimal insertion points
+3. **Data Architecture Finalization**: Complete Airtable schema compatibility analysis and field mapping strategy
+4. **Performance Impact Modeling**: Detailed analysis of processing time, cost, and performance implications
 
-**Required MCP Tool Sequence** (Execute in order for each chunk):
-1. **Pre-Implementation**: `mcp_n8n_n8n_health_check()` → Confirm connectivity
-2. **Node Creation**: `mcp_n8n_validate_node_operation()` → Zero errors allowed
-3. **Connections**: `mcp_n8n_validate_workflow_connections()` → After each connection change
-4. **Expressions**: `mcp_n8n_validate_workflow_expressions()` → All {{}} syntax verified
-5. **Full Workflow**: `mcp_n8n_validate_workflow()` strict mode → Final validation
-6. **Test Execution**: Capture execution IDs → Evidence of functionality
+#### **Strategic Chunking & Implementation Planning (FINAL)**:
+1. **Optimal Chunk Strategy**: Strategic breakdown into ≤5 operations per chunk with efficiency optimization
+2. **Evidence Framework Design**: Complete framework for execution ID, record ID, and performance evidence collection
+3. **Risk-Optimized Stop Gates**: Strategic approval points with maximum development velocity and minimum risk
+4. **Comprehensive Rollback Architecture**: Complete rollback procedures with system state preservation
 
-**Evidence Documentation Format**:
-```
-TOOL VALIDATION:
-- Command: mcp_n8n_validate_node_operation({ nodeType: "...", config: {...} })
-- Result: [PASS/FAIL with specific errors]
-- Node ID: [specific_node_identifier] 
-- Execution ID: [test_execution_reference]
-- Performance: [runtime_vs_baseline]
-```
+#### **Advanced Risk Mitigation Strategy (COMPREHENSIVE)**:
+1. **Zero-Risk PDL Preservation**: Complete strategy ensuring zero impact on existing PDL success paths
+2. **Advanced Cost Control**: Sophisticated Hunter cost monitoring with predictive circuit breakers
+3. **Performance Optimization**: Advanced monitoring for processing time with optimization recommendations
+4. **Data Quality Assurance**: Complete field mapping validation with corruption prevention protocols
 
-**Anti-Hallucination Enforcement**:
-- Any claim without MCP tool evidence is INVALID
-- If tool validation fails, STOP implementation immediately
-- No "it should work" assumptions - everything must be verified
-- Document every discovery as evidence for future reference
-
-### **2. PLATFORM GOTCHAS (CRITICAL)**
-
-**AUTHORITATIVE SOURCE**: `docs/CURRENT/critical-platform-gotchas.md`
-
-**VALIDATED GOTCHAS FOR PHASE 2C** (From Tool Analysis):
-- **HTTP Request Method**: PDL Company API uses GET, not POST (corrected from original docs)
-- **sendHeaders Required**: Must be true for X-Api-Key header (sendHeaders: false = auth failure)
-- **Timeout Issues**: Current 30s timeout causes 15% failures → Increase to 60s minimum
-- **Retry Logic Missing**: No retryOnFail in current workflow → Add maxTries=3, waitBetweenTries=1000ms
-- **Expression Complexity**: Nested paths like `{{$json.pdl_identifiers.name}}` → Validate each level exists
-- **IF Node alwaysOutputData**: Must be enabled or false path drops data completely
-- **Rate Limits**: PDL free=100/min, premium=2/min → Add delays if scaling
-- **Airtable API Limits**: 5 requests/second → Monitor and throttle for volume increases
-
-**Workflow-Specific Gotchas** (From Q2ReTnOliUTuuVpl Analysis):
-- **Phone Normalization Incomplete**: Only 2/3 fields implemented → phone_validated missing
-- **ICP Scoring Extension**: Must preserve existing logic → Additive boosts only
-- **Connection Insertion**: Between nodes 8-9 requires careful routing → Validate connections
-- **Performance Impact**: 12s baseline → New nodes must keep <20s total runtime
-
-### **3. IMPLEMENTATION SEQUENCE**
-
-**STEP 1: Analysis & Planning**
-- Map complete workflow structure with `mcp_n8n_n8n_get_workflow_structure`
-- Identify insertion points after Smart Field Mapper
-- Create detailed node-by-node implementation plan
-- Document all dependencies and integration points
-
-**STEP 2: PDL Company API Integration**
-- Create HTTP Request node with proper authentication
-- Configure request parameters and headers
-- Implement error handling for API failures
-- Test with sample company names
-
-**STEP 3: Company Data Processing**
-- Extract relevant fields from PDL response
-- Normalize industry classifications
-- Map company size to standardized ranges
-- Identify tech stack indicators
-
-**STEP 4: Qualification Logic**
-- Implement B2B tech qualification criteria
-- Configure IF node with proper routing
-- Ensure "Always Output Data" is enabled
-- Test both qualification paths
-
-**STEP 5: Cost Tracking**
-- Extend existing cost tracking system
-- Add PDL Company API cost ($0.01/call)
-- Integrate with daily budget monitoring
-- Test cost accumulation logic
-
-**STEP 6: Testing & Validation**
-- Create comprehensive test suite
-- Verify all paths with real data
-- Document evidence with specific IDs
-- Validate cost tracking accuracy
+### **PHASE 1 DELIVERABLE**: Complete strategic plan with final technical details, chunking strategy, and comprehensive tool usage specifications.
 
 ---
 
-## 🔍 **REFERENCE ARCHITECTURE**
+## ⚡ **IMPLEMENTATION HANDOFF PROTOCOL**
+### **TRANSITION TO IMPLEMENTATION EXECUTION**
 
-### **PDL Migration Roadmap - Phase 2C Implementation**
+**Upon completion of strategic planning, the implementation phase begins with:**
 
-**FOUNDATION**: Phase 2B - PDL Person Enrichment and ICP Scoring V3.0
-- **Workflow ID**: `Q2ReTnOliUTuuVpl` - "UYSP PHASE 2B - COMPLETE CLEAN REBUILD"
-- **Current Status**: Person enrichment operational, ICP scoring functional
-- **Integration Point**: Add Company API between field normalization and Person API
+#### **Implementation Execution Requirements**:
+1. **Execute Validated Plan**: Implement the strategically planned and technically validated approach
+2. **Follow Chunked Strategy**: Execute ≤5 operations per chunk as strategically planned
+3. **Collect Planned Evidence**: Gather execution IDs, record IDs, and metrics as specified in plan
+4. **Adhere to Stop Gates**: Pause at strategically planned approval points for validation
 
-**PHASE 2C ARCHITECTURE**:
-1. **Preserve Existing**: All Phase 2B functionality must remain intact
-2. **Add Company API**: New nodes for company qualification
-3. **Enhance Routing**: Only call Person API for qualified companies
-4. **Update Costs**: Track combined Company + Person API usage
-
-### **Integration Diagram**
-
-```
-WEBHOOK INPUT
-    │
-    ▼
-FIELD NORMALIZATION (Smart Field Mapper v4.6)
-    │
-    ▼
-[NEW] PDL COMPANY API ──────┐
-    │                       │
-    ▼                       │
-[NEW] COMPANY QUALIFIED?    │
-    │           │           │
-    │ (YES)     │ (NO)      │
-    ▼           └───────────┘
-PDL PERSON API              │
-    │                       │
-    ▼                       │
-ICP SCORING                 │
-    │                       │
-    ▼                       ▼
-AIRTABLE RECORD CREATION
-```
+#### **Implementation Success Criteria**:
+1. **Plan Adherence**: Execute exactly as strategically planned and technically validated
+2. **Evidence Collection**: Gather all evidence as specified in planning phase
+3. **Quality Assurance**: Maintain data quality and system integrity as planned
+4. **Performance Targets**: Achieve performance metrics as strategically projected
 
 ---
 
-## 📊 **SUCCESS CRITERIA**
+### 🚨 **CRITICAL CONTEXT - EVIDENCE-BASED BASELINE**
 
-### **Functional Requirements**
-
-1. **Company API Integration**: 95%+ success rate for API calls
-2. **Data Extraction**: Accurate extraction of industry, size, tech indicators
-3. **Qualification Logic**: Proper routing based on B2B tech criteria
-4. **Cost Tracking**: Accurate monitoring of $0.01/call usage
-5. **Performance**: No degradation of existing functionality
-
-### **Testing Requirements**
-
-1. **Test Cases**: Minimum 10 diverse company scenarios
-2. **Evidence Collection**: API responses, qualification decisions, costs
-3. **Path Verification**: Both qualified and non-qualified paths tested
-4. **Integration Testing**: End-to-end workflow execution
-5. **Documentation**: All test results with specific IDs and timestamps
+**Implementation Context** (To be validated in Phase 0):  
+- **Expected Baseline**: Phase 2B PDL Person + ICP Scoring workflow (ID to be confirmed via MCP tools)
+- **Expected Status**: PDL Person enrichment operational (success rate to be verified)
+- **Expected Branch**: Hunter waterfall feature branch (to be confirmed)
+- **Implementation Focus**: Non-breaking fallback enhancement (integration strategy to be planned)
 
 ---
 
-## 🛠️ **TOOLS & RESOURCES**
+## 📋 **REFERENCE REQUIREMENTS FOR PHASE 2C PLANNING**
+### **STRATEGIC GUIDANCE FOR DEVELOPER PLANNING (NOT DIRECT IMPLEMENTATION)**
 
-### **Required Tools**
+**These specifications provide strategic direction for the Developer Agent's planning phase. Developer MUST use Context7 validation and tool-based planning before implementing any nodes.**
 
-1. **Context7 Documentation**: For PDL API reference and examples
-2. **n8n Workflow Tools**: For workflow structure analysis and updates
-3. **Airtable MCP Tools**: For verifying record creation and updates
-4. **PDL API Documentation**: For endpoint specifications and parameters
+### **Implementation Strategy Principles:**
+1. **PDL-First Preservation**: Zero changes to existing PDL logic or workflow
+2. **Feature-Gated Architecture**: Environment toggle for complete enable/disable  
+3. **Non-Breaking Integration**: Zero impact on current Phase 2B success paths
+4. **Cost-Controlled Implementation**: Pay-per-hit tracking with daily circuit breakers
+5. **Schema Compatibility**: Leverage existing Airtable person enrichment fields
 
-### **Reference Materials**
+### **Node Architecture Guidance (FOR PLANNING PHASE):**
 
-1. **PDL Migration Roadmap**: `docs/ARCHITECTURE/PDL-MIGRATION-ROADMAP.md` (AUTHORITATIVE)
-2. **Platform Gotchas**: `docs/CURRENT/critical-platform-gotchas.md` (AUTHORITATIVE)
-3. **ICP Scoring Methodology**: `docs/CURRENT/ICP-SCORING-V3-METHODOLOGY.md` (AUTHORITATIVE)  
-4. **Smart Field Mapper**: `patterns/exported/smart-field-mapper-v4.6-grok.js` (WORKING CODE)
-5. **Phase 2B Closeout**: `docs/CURRENT/PHASE-2B-CLOSEOUT-REPORT.md` (BASELINE)
+**The following node specifications require Context7 validation and tool-based configuration planning:**
+
+#### **Concept 1: Feature Gate Control**
+- **Strategic Purpose**: Environment-based toggle for Hunter waterfall enable/disable
+- **Integration Strategy**: Insert after field normalization, before existing PDL Person logic
+- **Context7 Validation Required**: IF Node configuration patterns and environment variable handling
+- **Tool Planning Required**: Determine exact insertion point via current workflow analysis
+
+#### **Concept 2: PDL Success Detection**
+- **Strategic Purpose**: Detect PDL Person API failures and route to Hunter fallback path
+- **Integration Strategy**: Insert after existing PDL Person Enrichment without disrupting success path
+- **Context7 Validation Required**: Boolean condition handling and IF node routing patterns
+- **Tool Planning Required**: Validate current PDL Person success field structure
+
+#### **Concept 3: Hunter API Integration**
+- **Strategic Purpose**: Fallback enrichment for PDL failure scenarios
+- **API Endpoint**: https://api.hunter.io/v2/people/find (verify current documentation)
+- **Context7 Validation Required**: HTTP Request node authentication patterns and error handling
+- **Tool Planning Required**: Research current Hunter.io API rate limits and response structure
+
+#### **Concept 4: Hunter Response Processing**
+- **Strategic Purpose**: Normalize Hunter response to match existing person data structure
+- **Context7 Validation Required**: Code node field mapping patterns and data transformation
+- **Tool Planning Required**: Validate field compatibility with existing Airtable person schema
+
+#### **Concept 5: Data Integration Logic**
+- **Strategic Purpose**: Merge PDL success and Hunter fallback data with PDL precedence
+- **Context7 Validation Required**: Data merging patterns and metadata tracking approaches
+- **Tool Planning Required**: Plan enrichment vendor tracking and cost attribution methods
+
+#### **Concept 6: Enhanced Cost Monitoring**
+- **Strategic Purpose**: Extend existing cost tracking to include Hunter usage
+- **Context7 Validation Required**: Cost tracking patterns and daily aggregation approaches
+- **Tool Planning Required**: Integrate with existing Daily_Costs table and circuit breaker logic
+
+### **CRITICAL**: All concepts above require Context7 validation, current system analysis, and evidence-based planning before implementation.
 
 ---
 
-## 🚨 **CRITICAL WARNINGS**
+## 💰 **COST STRUCTURE & TRACKING**
 
-1. **NEVER update workflows via MCP** (causes credential corruption)
-2. **ALWAYS verify node configuration** with tool evidence
-3. **USE predefinedCredentialType** for all API authentication
-4. **FOLLOW anti-hallucination protocol** for all implementation claims
-5. **DOCUMENT all platform gotchas** discovered during implementation
-6. **PRESERVE existing functionality** while adding new capabilities
-7. **VERIFY all connections** after implementation
-8. **TEST both success and failure paths** thoroughly
+### **Cost Breakdown:**
+- **PDL Person API**: $0.03 per successful lookup (primary, ~70% success rate)
+- **Hunter Email Enrichment**: $0.049 per lookup (fallback, ~30% usage rate)
+- **Expected Average**: ~$0.065 per lead (blended cost)
+- **Daily Budget**: $50 limit accommodates ~750 leads with Hunter fallback
 
 ---
 
-## 📝 **DEVELOPER AGENT INSTRUCTIONS**
+## 🧪 **TESTING & VALIDATION STRATEGY REQUIREMENTS**
 
-1. **Begin with comprehensive workflow analysis** and detailed planning
-2. **Document your implementation plan** with specific node configurations
-3. **Follow the implementation sequence** step by step
-4. **Verify each step** with tool evidence before proceeding
-5. **Test thoroughly** with diverse company scenarios
-6. **Document all test results** with specific IDs and timestamps
-7. **Update platform gotchas** with any new discoveries
-8. **Provide a complete implementation report** with evidence
+### **Developer Planning Requirements for Testing:**
+**Developer Agent MUST plan testing strategy using tool validation and evidence collection protocols**
 
-**HONESTY CHECK REQUIREMENT**: End every implementation response with:
-```
-HONESTY CHECK: [percentage]% evidence-based. Assumptions: [list]
+#### **Phase 0 Testing Validation (MANDATORY BEFORE PLANNING):**
+1. **Current Testing Infrastructure**: Use MCP tools to validate existing Phase 2B testing protocols
+2. **Test Data Requirements**: Plan test data isolation and cleanup procedures
+3. **Evidence Collection**: Plan execution ID, record ID, and performance metric collection
+4. **Testing Tool Access**: Verify ability to trigger workflows and collect testing evidence
+
+#### **Regression Testing Planning (CRITICAL):**
+- **Tool-Based Sample Selection**: Use Airtable MCP to identify 50 leads with PDL success history
+- **Evidence Requirements**: Plan collection of execution IDs, success rates, and processing times
+- **Validation Protocol**: Plan verification that PDL enrichment maintains baseline performance
+- **Failure Detection**: Plan automated detection if Hunter fallback incorrectly triggers for PDL successes
+
+#### **Fallback Effectiveness Planning:**
+- **Tool-Based Sample Selection**: Use Airtable MCP to identify 50 leads with PDL failure history
+- **Success Metrics Planning**: Plan measurement of Hunter success rate with evidence collection
+- **Data Quality Validation**: Plan verification of LinkedIn URL formatting and job title capture accuracy
+- **Cost Tracking Validation**: Plan verification of accurate Hunter cost attribution and daily limits
+
+#### **Testing Evidence Requirements (MANDATORY):**
+1. **Execution Evidence**: Workflow execution IDs for all test scenarios
+2. **Data Evidence**: Airtable record IDs showing before/after states
+3. **Performance Evidence**: Processing time measurements and cost tracking accuracy
+4. **Quality Evidence**: Field mapping accuracy verification with specific examples
+
+### **CRITICAL**: All testing must follow evidence-based protocols with tool verification, not assumption-based validation.
+
+---
+
+## 🚨 **ROLLBACK & SAFETY PROCEDURES**
+
+### **Feature Flag Rollback:**
+1. **Set Environment Variable**: PERSON_WATERFALL_ENABLED=false
+2. **Verify Bypass**: Test with sample lead to confirm Hunter nodes skipped
+3. **Monitor Metrics**: Confirm PDL success path restored to baseline
+
+---
+
+## 🎯 **SUCCESS CRITERIA**
+
+### **Primary Metrics (Must Achieve):**
+- **No PDL Regression**: 95%+ success rate maintained on PDL path
+- **Hunter Value Add**: 65%+ success rate on PDL failures  
+- **Cost Efficiency**: <$0.05 average cost increase per lead
+- **Performance Stability**: <20 second average processing time
+- **Data Quality**: 100% field mapping accuracy (no corruption)
+
+---
+
+## ✅ **PHASE 2C FOUNDATION-FIRST IMPLEMENTATION STATUS**
+
+**Context Package Status**: ✅ **FOUNDATION-FIRST PLANNING READY**  
+**Last Updated**: 2025-08-09  
+**Implementation Approach**: ✅ **FOUNDATION-FIRST - Validation and Planning Required**  
+**Apollo Contamination**: ✅ **REMOVED**  
+**Context Engineering**: ✅ **ALIGNED WITH REFACTORED STANDARDS**
+
+### **TWO-TIER DEVELOPMENT SEQUENCE:**
+```markdown
+STRATEGIC ANALYSIS PHASE:
+PHASE 0: Deep research & system validation → Present evidence
+PHASE 1: Comprehensive planning & technical finalization → Present complete plan
+
+USER APPROVAL GATE: Authorize final strategic plan
+
+IMPLEMENTATION EXECUTION PHASE:
+Execute validated plan with chunked implementation (≤5 operations per chunk)
 ```
 
----
-
-**DOCUMENT STATUS**: ✅ **CURRENT - PHASE 2C CONTEXT PACKAGE**  
-**LAST UPDATED**: August 7, 2025  
-**CREATED BY**: PM Agent  
-**APPROVED BY**: User
+This context package provides **strategic guidance** for implementing the PDL-first Hunter waterfall strategy using **foundation-first development principles** with mandatory validation, planning, and evidence-based protocols.

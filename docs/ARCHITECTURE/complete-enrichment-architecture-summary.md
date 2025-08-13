@@ -1,42 +1,48 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # Complete UYSP Enrichment Architecture Summary
-## ALL Critical Decisions for Phase 2 Development
+## PDL-First Hunter Waterfall Strategy - ALL Critical Decisions for Phase 2C Development
 
 ### 🎯 **EXECUTIVE SUMMARY**
 
-This document consolidates ALL architectural decisions made for the UYSP lead qualification and enrichment system. Every element has been systematically designed and documented to ensure Phase 2 development includes all business logic, cost controls, routing rules, and technical requirements.
+This document consolidates ALL architectural decisions for the UYSP lead qualification and enrichment system using the **PDL-First Hunter Waterfall Strategy**. Every element has been systematically designed to ensure Phase 2C development includes the correct business logic, cost controls, routing rules, and technical requirements.
 
-**IMPLEMENTATION STATUS**: Session 1 comprehensive testing COMPLETE (July 24, 2025) with high success rates:
-- **Phone Versioning Strategy**: Fully operational with evidence in `tests/results/phone-versioning-v3-report-2025-07-24-15-08-23.json`
-- **Field Conflict Resolution**: 100% success rate documented in `tests/results/field-conflict-report-2025-07-24-15-14-09.json`
-- **Upsert Functionality**: Email-based duplicate prevention working, verified in `tests/results/upsert-testing-report-2025-07-24-14-49-19.json`
-- **Real Data Processing**: CSV validation successful, documented in `tests/results/csv-validation-report-2025-07-24-14-35-10.json`
+**IMPLEMENTATION STATUS**: Phase 2B COMPLETE (August 2025) with PDL Person enrichment and ICP scoring operational:
+- **PDL Person Enrichment**: Fully operational with proper authentication and data extraction
+- **ICP Scoring V3.0**: 0-100 scoring system operational and writing to Airtable  
+- **Lead Processing Pipeline**: Individual lead qualification working end-to-end
+- **Hunter Waterfall**: Ready for implementation as non-disruptive fallback
 
-### 🏗️ **COMPLETE SYSTEM ARCHITECTURE**
+### 🏗️ **COMPLETE SYSTEM ARCHITECTURE (UPDATED FOR HUNTER WATERFALL)**
 
-#### **Lead Processing Pipeline (COMPLETE FLOW)**
+#### **Lead Processing Pipeline (PDL-FIRST HUNTER FALLBACK FLOW)**
 ```
 Kajabi Form → Zapier → n8n → Field Normalization → Duplicate Check
                                      ↓
                         ┌─── Two-Phase Qualification ────┐
-                        │ 1. Apollo Org API ($0.01)      │
+                        │ 1. PDL Company API ($0.03)     │
                         │    ├─ B2B Tech? → Continue     │
                         │    ├─ Not B2B? → Archive       │
                         │    └─ Unclear? → Human Review  │
                         │                                 │
-                        │ 2. Apollo People API ($0.025)  │
-                        │    ├─ Sales Role? → ICP Score  │
-                        │    ├─ Non-Sales? → Human Review│
-                        │    └─ No Data? → Human Review  │
+                        │ 2. PDL Person API ($0.03)      │
+                        │    ├─ Success? → ICP Score     │
+                        │    └─ Failure? → Hunter Fall.  │
+                        │                                 │
+                        │ 3. Hunter Email Enrich ($0.049)│
+                        │    ├─ Success? → ICP Score     │
+                        │    └─ Failure? → Human Review  │
                         └─────────────────────────────────┘
                                      ↓
-                        ┌───── Claude AI ICP Scoring ────┐
+                         ┌───── OpenAI ICP Scoring ────┐
                         │ Score 0-100 with Routing:      │
-                        │ • 95-100 (Ultra): SMS Immed.   │
+                         │ • 95-100 (Ultra): SMS Immed.   │
                         │ • 85-94 (High): SMS 5min       │
                         │ • 70-84 (Medium): SMS 15min    │
                         │ • 50-69 (Low): Archive         │
                         │ • 0-49 (Archive): Archive      │
-                        └─────────────────────────────────┘
+                         └─────────────────────────────────┘
                                      ↓
                         ┌──── SMS Eligibility Check ─────┐
                         │ ALL CRITERIA REQUIRED:          │
@@ -48,281 +54,240 @@ Kajabi Form → Zapier → n8n → Field Normalization → Duplicate Check
                         │ ✅ 10DLC Registered            │
                         │                                 │
                         │ IF NOT QUALIFIED:               │
-                        │ • International → Human Review │
-                        │ • Low Score → Archive          │
-                        │ • Cost Limit → Human Review    │
+                        │ → Human Review Queue            │
                         └─────────────────────────────────┘
                                      ↓
-                        ┌─── 3-Field Phone Validation ───┐
-                        │ ONLY FOR QUALIFIED US LEADS:   │
-                        │ 1. Validate phone_recent       │
-                        │ 2. Validate phone_original     │
-                        │ 3. Enrich new phone (High tier)│
-                        │ → Set phone_validated           │
-                        └─────────────────────────────────┘
-                                     ↓
-                        ┌────── SMS Campaign Delivery ───┐
-                        │ • Compliance Checks (DND/TCPA) │
-                        │ • Personalized SMS Template    │
-                        │ • Click Tracking & Attribution │
-                        │ • Meeting Booking Pipeline     │
+                        ┌────── SMS Campaign Logic ──────┐
+                        │ Score-Based Timing:             │
+                        │ • Ultra (95-100): Immediate     │
+                        │ • High (85-94): 5 minutes       │
+                        │ • Medium (70-84): 15 minutes    │
+                        │                                 │
+                        │ Business Hours: EST 9am-5pm     │
+                        │ Non-hours: Queue for next day   │
                         └─────────────────────────────────┘
 ```
 
-### 🚨 **CRITICAL QUALIFYING CRITERIA**
+### 💰 **COST STRUCTURE (UPDATED FOR HUNTER WATERFALL)**
 
-#### **Phone Validation Triggers (ALL REQUIRED)**
-Phone number validation and SMS delivery ONLY occurs when ALL criteria are met:
+#### **Per-Lead Cost Breakdown**
+- **PDL Company API**: $0.03 per successful lookup (primary qualification)
+- **PDL Person API**: $0.03 per successful lookup (primary enrichment)
+- **Hunter Email Enrichment**: $0.049 per lookup (fallback only on PDL failures)
+- **Claude AI ICP Scoring**: $0.02 per lead (all qualified leads)
+- **SMS Delivery**: $0.015 per message (score ≥70 only)
 
-1. ✅ **ICP Score ≥ 70**: Lead must score Medium tier or higher
-2. ✅ **US Phone Number**: Must have phone_country_code = "+1" 
-3. ✅ **B2B Tech Company**: Must pass Apollo Organization API check
-4. ✅ **Sales Role**: Must pass Apollo People API sales role verification
-5. ✅ **Cost Budget**: Must be under DAILY_COST_LIMIT
-6. ✅ **10DLC Registration**: TEN_DLC_REGISTERED must be true
+#### **Expected Cost Impact**
+- **Primary Path (PDL Success)**: $0.08 per lead (Company + Person + ICP + SMS)
+- **Fallback Path (Hunter)**: $0.129 per lead (Company + PDL fail + Hunter + ICP + SMS)
+- **Average Cost**: ~$0.095 per lead (assuming 70% PDL success, 30% Hunter fallback)
+- **Daily Budget**: $50 limit accommodates ~500 leads with Hunter fallback
 
-#### **Routing Decision Matrix**
+#### **Cost Optimization Features**
+- ✅ **Feature-Gated**: Hunter waterfall can be disabled without code changes
+- ✅ **Pay-per-hit**: Only charged for successful API responses
+- ✅ **Daily Limits**: Circuit breaker at $50 daily spend
+- ✅ **Cost Tracking**: Real-time monitoring in Daily_Costs table
+- ✅ **ROI Justified**: SMS conversion rates justify enrichment costs
 
-| **Criteria Met** | **ICP Score** | **Phone Type** | **Action** | **Reason** |
-|------------------|---------------|----------------|------------|------------|
-| All Qualified | 95-100 | US (+1) | SMS Immediate | Ultra tier, highest value |
-| All Qualified | 85-94 | US (+1) | SMS 5min | High tier, quick follow-up |
-| All Qualified | 70-84 | US (+1) | SMS 15min | Medium tier, standard timing |
-| Qualified | 70+ | International | Human Review | High value, manual outreach |
-| B2B + Sales | 50-69 | Any | Archive | Low tier, not worth SMS cost |
-| B2B + Sales | 0-49 | Any | Archive | Very low tier |
-| Not B2B | Any | Any | Archive | Wrong company type |
-| B2B, No Sales | Any | Any | Human Review | Possible decision maker |
+### 🏗️ **ENRICHMENT WATERFALL STRATEGY**
 
-### 📊 **COST STRUCTURE & OPTIMIZATION**
+#### **PDL-First Approach (Primary)**
+1. **PDL Person API** ($0.03): Primary enrichment source
+   - Input: Email address
+   - Output: LinkedIn URL, job title, company, name normalization
+   - Success Rate: ~70% on corporate emails
+   - Precedence: Highest priority for all fields
 
-#### **Phase 2 API Costs (Per Lead)**
-- **Apollo Org API**: $0.01 per company lookup
-- **Apollo People API**: $0.025 per person enrichment
-- **Phone Validation**: $0.005 per phone number validation
-- **Phone Enrichment**: $0.02 per phone number enrichment
-- **Claude ICP Scoring**: $0.001 per scoring request
-- **SMS Delivery**: $0.02 per SMS sent
+#### **Hunter.io Fallback (Secondary)**
+2. **Hunter Email Enrichment** ($0.049): Fallback only on PDL failures
+   - Inputs (qs): `domain`, `first_name`, `last_name` (from normalized data)  
+   - Output: LinkedIn handle, employment title/company, name normalization
+   - Success Rate: ~85% on corporate emails
+   - Precedence: Lower than PDL, higher than default values
 
-#### **Cost Optimization Strategy**
-- **Phase 1 Filtering**: ~72% of leads filtered at company level (saves $0.025/lead)
-- **Score-Based Routing**: Only 30% of qualified leads get SMS (saves $0.02/lead)
-- **US-Only SMS**: Eliminates international SMS compliance costs
-- **Phone Enrichment Limits**: Only High/Ultra tier (score ≥85) get phone enrichment
+#### **Field Mapping Precedence Logic**
+| **Canonical Field** | **PDL Source** | **Hunter Source** | **Precedence** |
+|-------------------|---------------|------------------|----------------|
+| `linkedin_url` | `linkedin_url` or `profiles.linkedin_url` | `linkedin.handle` → full URL | PDL > Hunter > null |
+| `title_current` | `job_title` | `employment.title` | PDL > Hunter > null |
+| `company_enriched` | `employment.name` | `employment.name` | PDL > Hunter > null |
+| `first_name` | `name.first` | `name.givenName` | Smart Mapper v4.6 |
+| `last_name` | `name.last` | `name.familyName` | Smart Mapper v4.6 |
 
-#### **Daily Cost Tracking**
+#### **Enrichment Metadata Tracking**
 ```javascript
-// Real-time cost monitoring per lead
-const leadCostTracking = {
-  apollo_org_cost: 0.01,
-  apollo_people_cost: qualification_passed ? 0.025 : 0,
-  phone_validation_cost: us_phone_validated ? 0.005 : 0,
-  phone_enrichment_cost: (score >= 85 && no_phone) ? 0.02 : 0,
-  icp_scoring_cost: 0.001,
-  sms_cost: sms_sent ? 0.02 : 0,
-  total_lead_cost: sum_of_above
-};
-```
-
-### 🔍 **3-FIELD PHONE NUMBER STRATEGY**
-
-#### **Phone Field Lifecycle (COMPREHENSIVE)**
-- **phone_original**: First phone number ever received for this email
-  - ❌ **NEVER CHANGES** after initial creation
-  - 🎯 **Purpose**: Data recovery, audit trail, manual outreach backup
-  - 🔍 **Validation**: Second priority (if phone_recent fails)
-
-- **phone_recent**: Most recent phone number received
-  - ✅ **ALWAYS UPDATES** with latest incoming phone
-  - 🎯 **Purpose**: User's current preference, latest contact method
-  - 🔍 **Validation**: First priority (user's latest input)
-
-- **phone_validated**: Final validated phone for campaigns
-  - 🤖 **ENRICHMENT ONLY** (never set by webhook processing)
-  - 🎯 **Purpose**: Single source of truth for SMS campaigns
-  - 🔍 **Source**: Best of phone_recent, phone_original, or enriched
-
-#### **Validation Priority Algorithm**
-```javascript
-// ONLY for leads that meet ALL qualifying criteria
-async function validateQualifiedUSLead(lead) {
-  // Step 1: Validate phone_recent (user's latest preference)
-  if (lead.phone_recent) {
-    const result = await validateUSMobilePhone(lead.phone_recent);
-    if (result.isValid && result.isMobile) {
-      return setPhoneValidated(lead.phone_recent, 'recent', result.confidence);
-    }
-  }
-  
-  // Step 2: Validate phone_original (fallback)
-  if (lead.phone_original && lead.phone_original !== lead.phone_recent) {
-    const result = await validateUSMobilePhone(lead.phone_original);
-    if (result.isValid && result.isMobile) {
-      return setPhoneValidated(lead.phone_original, 'original', result.confidence);
-    }
-  }
-  
-  // Step 3: Enrich new phone (HIGH VALUE ONLY)
-  if (lead.icp_score >= 85) {
-    const enriched = await enrichUSMobilePhone(lead);
-    if (enriched.phone && enriched.confidence > 0.8) {
-      return setPhoneValidated(enriched.phone, 'enriched', enriched.confidence);
-    }
-    // High-value leads without phones → human review
-    return routeToHumanReview('high_value_no_phone');
-  }
-  
-  // Step 4: Medium-value leads without phones → archive
-  return archiveLead('no_valid_phone');
+// Added to every lead record
+{
+  enrichment_vendor: 'pdl' | 'hunter',           // Which provider succeeded
+  enrichment_attempted: true,                     // Enrichment was attempted
+  enrichment_failed: false,                      // Both providers failed
+  last_enriched: '2025-08-27T10:00:00.000Z',    // Timestamp
+  pdl_person_cost: 0.03,                        // PDL cost (if used)
+  hunter_cost: 0.049,                           // Hunter cost (if used)
+  total_processing_cost: 0.08                   // Cumulative cost for lead
 }
 ```
 
-### 🌍 **INTERNATIONAL VS US LEAD HANDLING**
+#### **Implementation Notes (Standardized)**
+- Authentication: `authentication: "predefinedCredentialType"`, `nodeCredentialType: "httpHeaderAuth"` (no manual headers; do not pass `api_key` in query)
+- Hunter Request: `GET https://api.hunter.io/v2/people/find` with `qs: { domain, first_name, last_name }`
+- Feature Flag: IF node checks `={{$env.PERSON_WATERFALL_ENABLED}}` equals `"true"` (enable "Always Output Data" in Settings)
+- PDL Success Router: IF node `={{$json.pdl_person_success}}` equals `true` → TRUE(index 0) to ICP, FALSE(index 1) to Hunter
+- Merge Strategy: Use a Code node for precedence (PDL > Hunter), not a Merge node
 
-#### **US Leads (phone_country_code = "+1")**
-- ✅ **Full Pipeline**: Two-phase qualification → ICP scoring → Phone validation → SMS
-- ✅ **Phone Validation**: 3-field validation strategy
-- ✅ **SMS Delivery**: Automated SMS campaigns for score ≥70
-- ✅ **Cost Optimization**: Full API enrichment justified by SMS ROI
+### 🎯 **ICP SCORING ALGORITHM V3.0**
 
-#### **International Leads (phone_country_code ≠ "+1")**
-- ✅ **Qualification**: Two-phase qualification → ICP scoring (same as US)
-- ❌ **No Phone Validation**: Skip phone validation entirely
-- ❌ **No SMS**: Route to human review regardless of ICP score
-- 🎯 **Business Logic**: Manual outreach for international high-value leads
-- 💰 **Cost Savings**: Avoid phone validation costs for non-SMS leads
-
-### 🎯 **ICP SCORING & ROUTING LOGIC**
-
-#### **Claude AI Scoring Criteria (0-100)**
+#### **Scoring Inputs (Enhanced with Hunter Data)**
 ```javascript
-const icpScoringPrompt = `
-Score this sales professional 0-100 based on:
-- Title: ${data.title}
-- Company: ${data.company}
-- Company Size: ${data.company_size}
-- Industry: ${data.industry}
-- Technologies: ${data.technologies}
-
-Scoring Guidelines:
-95-100: Enterprise AE at Tier 1 B2B SaaS (Salesforce, HubSpot, Microsoft)
-85-94: Strategic/Enterprise AE at established B2B tech companies
-70-84: Mid-Market AE, Senior SDR, or Sales Manager at B2B companies
-50-69: SMB AE, Junior SDR, or unclear sales roles
-30-49: Very junior roles, non-sales with revenue responsibility
-0-29: Non-sales roles, irrelevant companies
-
-Return only the numeric score.
-`;
-```
-
-#### **Domain Fallback Scoring (API Failure)**
-```javascript
-const domainScoring = {
-  // Tier 1 B2B SaaS (95-100)
-  'salesforce.com': 95, 'hubspot.com': 90, 'microsoft.com': 90,
-  
-  // Established B2B Tech (85-94)
-  'zoom.us': 88, 'slack.com': 87, 'atlassian.com': 86,
-  
-  // Mid-Market B2B (70-84)
-  'pipedrive.com': 75, 'zendesk.com': 73, 'freshworks.com': 72,
-  
-  // Default/Unknown (60)
-  'unknown': 60
+// Primary Data Sources (PDL or Hunter)
+const scoringInputs = {
+  jobTitle: lead.title_current,           // From PDL or Hunter
+  company: lead.company_enriched,         // From PDL or Hunter  
+  linkedinUrl: lead.linkedin_url,         // From PDL or Hunter
+  firstName: lead.first_name,             // Normalized
+  lastName: lead.last_name,               // Normalized
+  email: lead.email,                      // Original input
+  phone: lead.phone,                      // 3-field strategy
+  companySize: lead.company_size,         // From PDL Company API
+  industry: lead.industry,                // From PDL Company API
+  techStack: lead.technology_stack        // From PDL Company API
 };
 ```
 
-### 📋 **IMPLEMENTATION REQUIREMENTS**
-
-#### **Environment Variables (Phase 2 Additions)**
+#### **Scoring Algorithm**
 ```javascript
-// Existing variables (Phase 1)
-AIRTABLE_BASE_ID=appuBf0fTe8tp8ZaF
-TEST_MODE=true
-DAILY_COST_LIMIT=50
-TEN_DLC_REGISTERED=false
+let score = 50; // Base score
 
-// New variables (Phase 2)
-ICP_SCORE_THRESHOLD=70          // Minimum score for SMS
-PHONE_ENRICHMENT_THRESHOLD=85   // Minimum score for phone enrichment
-US_ONLY_SMS=true               // Restrict SMS to US numbers
-INTERNATIONAL_TO_REVIEW=true    // Route international to human review
+// Job Title Analysis (+30 to -20 points)
+if (isSalesExecutive(jobTitle)) score += 30;
+else if (isSalesRole(jobTitle)) score += 20;
+else if (isBusinessRole(jobTitle)) score += 10;
+else if (isTechRole(jobTitle)) score += 5;
+else if (isGenericRole(jobTitle)) score -= 10;
+else score -= 20;
+
+// Company Analysis (+25 to -15 points)
+if (isB2BTech(industry, techStack)) score += 25;
+else if (isTechAdjacent(industry)) score += 15;
+else if (isB2BNonTech(industry)) score += 5;
+else score -= 15;
+
+// Experience Analysis (+15 points)
+const yearsExp = extractExperience(jobTitle, linkedinUrl);
+if (yearsExp >= 3) score += 15;
+
+// Data Quality Bonus (+10 points)
+if (linkedinUrl && jobTitle && company) score += 10;
+
+// Ensure 0-100 range
+return Math.max(0, Math.min(100, score));
 ```
 
-#### **Airtable Schema Updates (Phase 2)**
+### 📊 **AIRTABLE SCHEMA (HUNTER WATERFALL ADDITIONS)**
+
+#### **People Table - New Fields for Hunter Support**
 ```javascript
-// People table additions
-const phase2Fields = {
-  // Qualification tracking
-  company_qualification_status: 'text',    // 'qualified', 'disqualified', 'unclear'
-  person_qualification_status: 'text',     // 'qualified', 'disqualified', 'unclear'
+// Hunter-specific enrichment fields
+{
+  enrichment_vendor: 'singleSelect',           // 'pdl' | 'hunter'
+  enrichment_confidence: 'number',             // 0-100 confidence score
+  hunter_cost: 'currency',                     // Hunter API cost incurred
+  enrichment_method_primary: 'singleSelect',   // Primary data source
   
-  // ICP scoring
-  icp_score: 'number',                     // 0-100 from Claude AI
-  icp_scoring_method: 'text',              // 'claude_ai', 'domain_fallback'
-  icp_tier: 'text',                       // 'ultra', 'high', 'medium', 'low', 'archive'
-  
-  // Phone validation
-  phone_validation_source: 'text',         // 'recent', 'original', 'enriched', 'none'
-  phone_validation_confidence: 'number',   // 0-100 confidence score
-  phone_validation_date: 'datetime',       // When validation was performed
-  
-  // Routing decisions
-  routing_decision: 'text',                // 'sms_campaign', 'human_review', 'archive'
-  routing_reason: 'text',                  // Specific reason for routing decision
-  
-  // Cost tracking
-  total_enrichment_cost: 'currency',       // Sum of all API costs for this lead
-  enrichment_roi: 'number'                 // Cost per conversion if known
-};
+  // Existing fields reused (no schema churn)
+  linkedin_url: 'url',                         // From PDL or Hunter
+  title_current: 'singleLineText',             // From PDL or Hunter
+  company_enriched: 'singleLineText',          // From PDL or Hunter
+  enrichment_attempted: 'checkbox',            // Set true for both
+  enrichment_failed: 'checkbox',              // True only if both fail
+  last_enriched: 'dateTime',                  // Updated for both
+  total_processing_cost: 'currency'           // Incremented with provider costs
+}
 ```
 
-### 🧪 **COMPREHENSIVE TESTING STRATEGY**
+#### **Daily_Costs Table - Hunter Tracking**
+```javascript
+// Additional cost tracking fields
+{
+  pdl_person_costs: 'currency',               // Daily PDL Person API costs
+  hunter_costs: 'currency',                   // Daily Hunter enrichment costs
+  enrichment_costs: 'currency',               // Combined enrichment costs
+  person_enrichment_attempts: 'number',       // Total enrichment attempts
+  pdl_success_rate: 'percent',               // PDL success percentage
+  hunter_fallback_rate: 'percent'            // Hunter usage percentage
+}
+```
 
-#### **Test Categories (Complete Coverage)**
-1. **Qualification Tests**: B2B vs non-B2B, sales vs non-sales roles
-2. **ICP Scoring Tests**: Various company/title combinations
-3. **US vs International**: Routing logic validation
-4. **Phone Validation Tests**: 3-field validation scenarios
-5. **Cost Limit Tests**: Circuit breaker functionality
-6. **Edge Cases**: Missing data, API failures, enrichment failures
+#### **Enrichment_Cache Table - Performance Optimization**
+```javascript
+// Caching enrichment results for 30 days
+{
+  email: 'email',                             // Primary key
+  source: 'singleSelect',                     // 'pdl' | 'hunter'
+  response_data: 'longText',                  // JSON response
+  cached_date: 'dateTime',                    // Cache timestamp
+  cache_expiry: 'dateTime',                   // Expiration timestamp
+  cost: 'currency',                           // Cost incurred
+  success: 'checkbox',                        // Enrichment success
+  error_message: 'longText'                   // Error details if failed
+}
+```
 
-#### **Success Metrics (Phase 2)**
-- **Qualification Rate**: 25-30% of raw leads pass two-phase qualification
-- **ICP Score Distribution**: ~15% Ultra/High, ~15% Medium, ~70% Low/Archive
-- **US Lead Percentage**: ~85% of qualified leads have US phone numbers
-- **Phone Validation Success**: >85% of US qualified leads get validated phones
-- **Cost Efficiency**: <$0.15 total enrichment cost per SMS-delivered lead
+### 🔧 **IMPLEMENTATION PHASES**
 
-### 📝 **DEVELOPMENT CHECKLIST**
+#### **Phase 2C: Hunter Waterfall Implementation (Current)**
+- ✅ Branch: `feature/pdl-first-hunter-fallback` created
+- ✅ Architecture: Updated to reflect Hunter strategy
+- ✅ Documentation: legacy provider contamination removed
+- ❌ **TO IMPLEMENT**: Hunter API integration nodes
+- ❌ **TO IMPLEMENT**: PDL→Hunter fallback logic
+- ❌ **TO IMPLEMENT**: Field precedence merger
+- ❌ **TO IMPLEMENT**: Cost tracking enhancements
+- ❌ **TO IMPLEMENT**: Enrichment cache system
 
-#### **Pre-Development Verification**
-- [ ] All existing documentation reviewed and incorporated
-- [ ] 3-field phone strategy fully implemented (Phase 1)
-- [ ] Airtable schema includes all Phase 2 fields
-- [ ] Environment variables configured for Phase 2
-- [ ] Apollo API credentials and rate limits confirmed
+#### **Phase 2D: Performance & Monitoring (Future)**
+- Daily cost monitoring and alerting
+- Hunter API rate limit handling
+- Enrichment success rate tracking
+- Performance optimization based on usage patterns
 
-#### **Development Implementation**
-- [ ] Two-phase qualification workflow (Company → Person)
-- [ ] Claude AI ICP scoring with domain fallback
-- [ ] US-only phone validation restriction
-- [ ] International lead routing to human review
-- [ ] 3-field phone validation priority logic
-- [ ] Complete cost tracking and budget controls
-- [ ] Routing decision matrix implementation
+### 🚨 **RISK MITIGATION**
 
-#### **Testing & Validation**
-- [ ] All qualification scenarios tested
-- [ ] ICP scoring accuracy validated
-- [ ] Phone validation logic verified
-- [ ] Cost tracking and limits tested
-- [ ] International vs US routing confirmed
-- [ ] End-to-end workflow performance validated
+#### **Rollback Strategy**
+- **Feature Flag**: `PERSON_WATERFALL_ENABLED=false` disables Hunter instantly
+- **Workflow Backup**: Pre-implementation state preserved
+- **Cost Circuit Breaker**: Daily $50 limit prevents overruns
+- **Monitoring**: Real-time alerts on success rates and costs
 
-**Document Status**: COMPLETE  
-**Version**: 1.0  
-**Date**: 2025-01-24  
-**Incorporates**: ALL previous enrichment architecture decisions  
-**Ready For**: Phase 2 Implementation 
+#### **Success Criteria**
+- **No PDL Regression**: 95%+ success rate maintained on PDL path
+- **Hunter Value Add**: 65%+ success rate on PDL failures
+- **Cost Efficiency**: <$0.05 average cost increase per lead
+- **Performance**: <20 second average processing time
+- **Data Quality**: 100% field mapping accuracy
+
+### 📋 **DEVELOPMENT READINESS CHECKLIST**
+
+#### **Pre-Implementation Complete**
+- ✅ Hunter waterfall development plan documented
+- ✅ Branch created: `feature/pdl-first-hunter-fallback`
+- ✅ Legacy provider contamination removed from documentation
+- ✅ Architecture updated to reflect PDL-first strategy
+- ✅ Cost structure validated and documented
+
+#### **Ready for Development**
+- ✅ Comprehensive node-by-node implementation guide available
+- ✅ Field mapping precedence logic documented
+- ✅ Error handling and rollback procedures defined
+- ✅ Testing strategy and validation criteria established
+- ✅ Development environment specifications complete
+
+---
+
+**Document Status**: ✅ **HUNTER WATERFALL READY**  
+**Last Updated**: 2025-01-27  
+**Legacy Provider Contamination**: ✅ **REMOVED**  
+**Ready for Implementation**: ✅ **YES**
+
+This architecture serves as the **single source of truth** for all UYSP enrichment decisions, reflecting the current PDL → Dropcontact → Hunter strategy with zero legacy provider contamination.

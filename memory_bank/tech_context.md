@@ -4,9 +4,9 @@ memory_bank/tech_context.md
 ## Stack
 - Orchestration: n8n (>=1.0.0).
 - Database: Airtable (Team plan).
-- APIs: Apollo (Pro), Twilio, SimpleTexting (10DLC), Claude (claude-4-opus).
+- APIs: PDL, Hunter (fallback), Twilio, SimpleTexting (10DLC), OpenAI GPT-4.
 - Testing: TestSprite MCP.
-- Development: Cursor with Claude integration as developer; Claude Desktop as manager; MCP servers (n8n-mcp, airtable-mcp, context7, testsprite, claude-code-mcp).
+- Development: Cursor; MCP servers (n8n-mcp, airtable-mcp, context7, testsprite, openai-mcp).
 
 ## Environment Variables
 From config/env-vars.json placeholders:
@@ -22,10 +22,10 @@ Placeholders in config/credentials.json:
 Store in n8n credentials.
 
 ## MCP Setup
-- Install: npm install -g [mcp-packages] including claude-code-mcp.
+- Install: npm install -g [mcp-packages].
 - Config: JSON for each (API keys, timeouts).
 - Test: List workflows/tables, examples, POSTs.
-- Fallback: Diagnose, alternative (JSON), manual steps; use claude-code-mcp for code execution.
+- Fallback: Diagnose, alternative (JSON), manual steps.
 
 ## Patterns Reference
 - Core: Bootstrap, webhook, upsert (01-core-patterns.txt).

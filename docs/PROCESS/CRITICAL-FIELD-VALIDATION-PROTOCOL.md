@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # 🚨 CRITICAL FIELD VALIDATION PROTOCOL
 ## **MANDATORY ENFORCEMENT FOR ALL PHASE 2B+ TESTING**
 
@@ -27,6 +30,20 @@ Every test MUST verify these specific fields are populated:
 ✅ REQUIRED FOR COST TRACKING:
 - claude_cost: [actual cost amount, NOT zero if AI used]
 - total_processing_cost: [accumulated costs]
+```
+
+### **1b. CRITICAL FIELD CHECKLIST (PHASE 2C - HUNTER WATERFALL)**
+Every PDL-failure/Hunter-success test MUST verify these additional fields:
+```markdown
+✅ REQUIRED FOR ENRICHMENT WATERFALL:
+- enrichment_vendor: ['hunter' | 'pdl']
+- hunter_cost: [$0.049 when Hunter used]
+- last_enriched: [timestamp updated]
+- linkedin_url/title_current/company_enriched: [populated when available]
+
+✅ REQUIRED FOR DAILY COSTS:
+- Daily_Costs record shows updated:
+  - hunter_costs, pdl_person_costs, enrichment_costs, total_costs
 ```
 
 ### **2. VALIDATION TOOL SEQUENCE (MANDATORY)**

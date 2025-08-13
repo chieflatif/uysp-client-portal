@@ -1,9 +1,0 @@
-{
-    "email": "test@salesforce.com",
-    "name": "Test User",
-    "phone": "4155551234",
-    "company": "Salesforce",
-    "source_form": "webinar-signup",
-    "interested_in_coaching": "yes",
-    "request_id": "test-004"
-}

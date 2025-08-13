@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # Webhook Testing Guide for UYSP System
 
 ## Overview
@@ -46,9 +49,9 @@ The script will:
 For production testing (no manual steps needed):
 
 ```bash
-curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads" \
+curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOWQwYWM3Ni0xYjBlLTRmMGItYTlkZC1iNzEwZDI0NzZlZmEiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzUyMDYzNTE4LCJleHAiOjE3NTk3ODgwMDB9.IRZEs36NXR6WHcZb1PiC109S70tGKsmzP86zWpun3qg" \
+  -H "X-API-Key: [YOUR_API_KEY]" \
   -d '{"email":"test-'$(date +%s)'@example.com","name":"Test User","phone":"555-0001"}'
 ```
 
@@ -60,9 +63,9 @@ This works because the workflow is ACTIVE and the production webhook is always l
 2. Click "Execute Workflow" button
 3. Within 60 seconds, run:
 ```bash
-curl -X POST "https://rebelhq.app.n8n.cloud/webhook-test/kajabi-leads" \
+curl -X POST "https://rebelhq.app.n8n.cloud/webhook-test/kajabi-leads-complete-clean" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOWQwYWM3Ni0xYjBlLTRmMGItYTlkZC1iNzEwZDI0NzZlZmEiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzUyMDYzNTE4LCJleHAiOjE3NTk3ODgwMDB9.IRZEs36NXR6WHcZb1PiC109S70tGKsmzP86zWpun3qg" \
+  -H "X-API-Key: [YOUR_API_KEY]" \
   -d '{"email":"test@example.com","name":"Test User"}'
 ```
 
@@ -71,19 +74,19 @@ curl -X POST "https://rebelhq.app.n8n.cloud/webhook-test/kajabi-leads" \
 ### Test Field Normalization
 ```bash
 # ALL CAPS fields
-curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads" \
+curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: [YOUR_API_KEY]" \
   -d '{"EMAIL":"CAPS@example.com","NAME":"CAPS TEST"}'
 
 # Mixed case
-curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads" \
+curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: [YOUR_API_KEY]" \
   -d '{"Email":"mixed@example.com","Name":"Mixed Case"}'
 
 # Alternative field names
-curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads" \
+curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: [YOUR_API_KEY]" \
   -d '{"email_address":"alt@example.com","full_name":"Alt Fields"}'
@@ -146,9 +149,9 @@ For immediate testing without reading the whole guide:
 
 ```bash
 # Production webhook (always listening, no manual steps)
-curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads" \
+curl -X POST "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOWQwYWM3Ni0xYjBlLTRmMGItYTlkZC1iNzEwZDI0NzZlZmEiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzUyMDYzNTE4LCJleHAiOjE3NTk3ODgwMDB9.IRZEs36NXR6WHcZb1PiC109S70tGKsmzP86zWpun3qg" \
+  -H "X-API-Key: [YOUR_API_KEY]" \
   -d '{"email":"quick-test-'$(date +%s)'@example.com","name":"Quick Test","phone":"555-0001"}'
 ```
 

@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # HUNTER.IO WATERFALL INTEGRATION - COMPREHENSIVE DEVELOPMENT PLAN
 ## PDL-First Person Enrichment with Hunter Fallback Strategy
 
@@ -37,9 +40,9 @@ Implement Hunter.io Email Enrichment as a **non-disruptive fallback** after PDL 
 
 ### **API Endpoint Specifications**
 **Hunter Email Enrichment**: `GET https://api.hunter.io/v2/people/find`
-- **Authentication**: `X-API-KEY` header (predefined credential pattern)
+- **Authentication**: `httpHeaderAuth` predefined credentials (no manual headers)
 - **Rate Limits**: 15 requests/second, 500 requests/minute
-- **Input**: `email` (required)
+- **Inputs (qs)**: `domain`, `first_name`, `last_name` (from normalized data)
 - **Response Time**: ~2-3 seconds average
 - **Success Rate**: 85%+ on corporate emails (research-validated)
 
@@ -96,7 +99,7 @@ git push -u origin feature/pdl-first-hunter-fallback
   "parameters": {
     "conditions": {
       "conditions": [{
-        "leftValue": "={{$vars.PERSON_WATERFALL_ENABLED}}",
+        "leftValue": "={{$env.PERSON_WATERFALL_ENABLED}}",
         "rightValue": "true",
         "operator": {
           "type": "string",
@@ -150,8 +153,9 @@ git push -u origin feature/pdl-first-hunter-fallback
     "nodeCredentialType": "httpHeaderAuth",
     "sendHeaders": false,
     "qs": {
-      "email": "={{$json.email}}",
-      "api_key": "={{$credentials.hunter_api_key}}"
+      "domain": "={{$json.normalized.company_domain}}",
+      "first_name": "={{$json.normalized.first_name}}",
+      "last_name": "={{$json.normalized.last_name}}"
     },
     "options": {
       "timeout": 30000,

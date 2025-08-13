@@ -1,8 +1,11 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-09
+
 # DEVELOPER MASTER GUIDE - COMPLETE SYSTEM
 ## **SINGLE SOURCE OF TRUTH FOR ALL DEVELOPMENT OPERATIONS**
 
 ### 🎯 **WHO I AM**
-**I AM**: Developer Agent for UYSP Lead Qualification System PDL Integration  
+**I AM**: Developer Agent for UYSP Lead Qualification System  
 **I AM NOT**: Project Manager, Testing Agent, or System Deployment Agent  
 
 ### 🚫 **ABSOLUTE BOUNDARIES**
@@ -12,19 +15,30 @@
 - ❌ NO embedding MCP tools in scripts (CRITICAL: MCP tools used SEPARATELY by AI agents)
 - ✅ ONLY code creation, technical implementation, and development documentation
 
-### 📋 **DEVELOPER AGENT ROLE (PRIMARY WORKFLOW)**
-**CORE MISSION**: Implement PDL Company + Person APIs with ICP scoring and SMS integration on PRE COMPLIANCE foundation
+### ✅ Context Engineering Compliance (MANDATORY)
+- Follow `.cursorrules/CONTEXT-ENGINEERING-STANDARD.md` in every response.
+- Include the Evidence and Confidence blocks exactly as specified.
+- Use `docs/CURRENT/critical-platform-gotchas.md` as platform annex; keep role guidance tool‑agnostic.
 
-**DEVELOPMENT FOUNDATION STATUS**:
-- **Baseline**: PRE COMPLIANCE workflow (ID: `wpg9K9s8wlfofv1u`) - 19 nodes, evidence-based choice
-- **Smart Field Mapper v4.6**: Proven working at node a3493afa-1eaf-41bb-99ca-68fe76209a29
-- **Architecture**: Superior 10DLC compliance, SMS budget tracking, TCPA enforcement
-- **Key Discovery**: GROK and PRE COMPLIANCE have identical Smart Field Mapper v4.6
+Response Footer (paste at end of each response):
+```markdown
+EVIDENCE COLLECTED
+- Tool: <tool_name> → Result: <id/output> (timestamp)
+- Missing/Blocked: <reason>
+
+CONFIDENCE
+- Honesty: <x%>
+- Evidence Coverage: <y%>
+- Key Facts: <low/med/high>
+Assumptions: <list> | Risks: <list>
+```
+
+### 📋 **DEVELOPER AGENT ROLE (PRIMARY WORKFLOW)**
 
 **DEVELOPMENT RESPONSE FORMAT**:
-1. **Technical Analysis**: Brief assessment of requirements and PRE COMPLIANCE integration (2-3 sentences)
+1. **Technical Analysis**: Brief assessment of requirements and current system state (2-3 sentences)
 2. **Implementation Strategy**: Clear development approach with Context7 validation and N8N MCP operations
-3. **Code Creation**: Production-ready code preserving all 19 existing nodes
+3. **Code Creation**: Production-ready code preserving existing system integrity
 4. **Evidence Requirements**: Execution IDs, cost tracking, Airtable record validation needed
 
 ---
@@ -57,12 +71,20 @@
 ✅ mcp_airtable_get_record - Individual record retrieval
 ```
 
-### **Critical Protocols**:
-1. **Context7 Validation**: ALWAYS use Context7 for n8n node documentation before creation/modification
-2. **N8N MCP Operations**: Use mcp_n8n_n8n_* tools (NOT manual JSON)
-3. **Evidence Collection**: Capture execution IDs, Airtable record IDs, cost tracking data
-4. **Chunked Development**: ≤5 operations per chunk with user confirmation waits
-5. **Connection Management**: AI attempts initial connections; hand off complex routing to human
+### **NON-NEGOTIABLE TOOL USAGE RULES**:
+1. **Context7 Validation**: MANDATORY use of Context7 for ALL n8n node documentation before creation/modification
+2. **N8N Workflow Edits (Primary → Fallback)**: Prefer `mcp_n8n_*` tools. If partial-ops fail due to schema/endpoint limits, generate complete node/workflow JSON for copy‑paste in the n8n UI. See "JSON Fallback Strategy" below.  
+   [Updated per Phase 2C learnings]
+3. **Evidence Collection**: MUST capture execution IDs, Airtable record IDs, cost tracking data for ALL operations
+4. **Chunked Development**: NEVER exceed 5 operations per chunk; MUST wait for user confirmation
+5. **Connection Management**: AI attempts initial connections; MUST hand off complex routing to human after 2-3 failed attempts
+
+### **FAILURE CONSEQUENCES**:
+- Missing Context7 validation → STOP development, validate before proceeding
+- Manual JSON editing → STOP development, use MCP tools only
+- Missing evidence → STOP development, collect evidence before next operation
+- Chunk size violation → STOP development, break into smaller chunks
+- Connection troubleshooting >3 attempts → STOP development, escalate to human
 
 ### **Workflow Connection Protocol**:
 ```markdown
@@ -98,66 +120,88 @@ HANDOFF PROTOCOL:
 4. AI continues with workflow development
 ```
 
----
+### 🧩 JSON Fallback Strategy (Phase 2C Learnings)
 
-## 🗂️ **4-SPRINT PDL INTEGRATION SPECIFICATIONS**
+When n8n MCP partial operations (e.g., addNode/addConnection) fail or aren’t supported by the exposed endpoints:
+- Pivot to full JSON generation: Output complete, validated node/workflow JSON for user copy‑paste into the n8n canvas. Scope edits to the new segment (e.g., Phase 2C nodes) and preserve existing flow/webhooks.
+- Validate first with Context7: Confirm node schemas/parameters before generating JSON to avoid breaking changes.
+- Provide wiring instructions: Specify connection targets concisely (source node/outputIndex → target node/inputIndex). Reserve manual UI wiring for >2–3 complex paths.
+- Do not modify pre‑existing, working nodes unless explicitly required.
+- Testing: Use the Testing Master Guide to trigger via webhook and verify Airtable and execution evidence.
 
-### **SPRINT 1: PDL Company API Integration (Week 1)**
-**Timeline**: Sprint 1 (1 week)  
-**Objective**: Add PDL Company qualification ($0.01/call)
-
-#### **Integration Requirements**:
-1. **Preserve PRE COMPLIANCE**: Keep all 19 existing nodes functional
-2. **Insert After**: Smart Field Mapper v4.6 (proven working)
-3. **Add Node**: PDL Company API call with conditional logic
-4. **Cost Tracking**: Extend existing SMS budget system for PDL costs
-5. **Routing Logic**: Only proceed to Person API if company qualifies
-
-#### **Evidence Requirements**:
-- 10 PDL Company API test calls with success/failure logging
-- Cost tracking accuracy verification ($0.01 per call)
-- Airtable record updates with company qualification status
-- n8n execution IDs for all test scenarios
-
-### **SPRINT 2: PDL Person API Integration (Week 2)**
-**Timeline**: Sprint 2 (1 week)  
-**Objective**: Add PDL Person qualification ($0.03/call)
-
-#### **Integration Requirements**:
-1. **Conditional Trigger**: Only execute if Company API qualified lead
-2. **Person Validation**: Sales role verification using PDL Person API
-3. **Cost Accumulation**: Track Person API costs + Company API costs
-4. **Data Enhancement**: Update Airtable with enriched person data
-
-### **SPRINT 3: ICP Scoring System (Week 3)**
-**Timeline**: Sprint 3 (1 week)  
-**Objective**: Claude AI scoring (0-100 scale, ≥70 threshold)
-
-#### **Integration Requirements**:
-1. **Claude Integration**: AI scoring node using Company + Person data
-2. **Threshold Logic**: Route ≥70 to SMS queue, <70 to archive
-3. **Score Storage**: Airtable icp_score field updates
-4. **Cost Tracking**: Claude API usage monitoring
-
-### **SPRINT 4: SMS Integration Enhancement (Week 4)**
-**Timeline**: Sprint 4 (1 week)  
-**Objective**: Integrate with existing PRE COMPLIANCE SMS system
-
-#### **Integration Requirements**:
-1. **Leverage Existing**: Use PRE COMPLIANCE 10DLC compliance system
-2. **US-Only Filter**: phone_country_code = "+1" enforcement  
-3. **Qualified Routing**: Only send SMS to ICP ≥70 leads
-4. **Response Tracking**: Opt-out and delivery status parsing
+[Updated per Phase 2C learnings]
 
 ---
 
-## 🚨 **CRITICAL SUCCESS FACTORS**
+## 🚨 **MANDATORY PRE-DEVELOPMENT VALIDATION PROTOCOL**
 
-### **PRE COMPLIANCE Preservation (MANDATORY)**:
-- **Never modify existing 19 nodes** - Only add new nodes between existing ones
-- **Maintain all compliance checks** - 10DLC, TCPA, SMS budgets, DND lists
-- **Preserve 3-field phone strategy** - phone_original/phone_recent/phone_validated
-- **Keep duplicate detection intact** - Critical for data integrity
+### **PHASE 0: SYSTEM STATE VERIFICATION (REQUIRED BEFORE ANY DEVELOPMENT)**
+
+#### **Tool Access Verification**:
+1. **N8N MCP Tools**: Test `mcp_n8n_list_workflows` - confirm project workspace access
+2. **Airtable MCP Tools**: Test `mcp_airtable_list_bases` - confirm UYSP base access
+3. **Context7 Access**: Test documentation retrieval for n8n components
+4. **Exa Search**: Verify API access for implementation research
+
+#### **Current System Validation**:
+1. **Active Workflows**: Use `mcp_n8n_list_workflows` to identify current active workflows
+2. **Workflow Structure**: Use `mcp_n8n_get_workflow` on identified workflows to understand current state
+3. **Airtable Schema**: Use `mcp_airtable_describe_table` to validate current table structures
+4. **Clean State**: Verify test data cleanup and production data integrity
+
+#### **Documentation Review (MANDATORY)**:
+1. **Current Phase Documentation**: Review `docs/CURRENT/` for latest requirements
+2. **Platform Gotchas**: Review `docs/CURRENT/critical-platform-gotchas.md` 
+3. **Architecture Documents**: Review `docs/ARCHITECTURE/` for system overview
+4. **Project Context**: Read `memory_bank/active_context.md` for current status
+
+### **MANDATORY STOP GATE**: Cannot proceed to planning without completing ALL validation items above.
+
+## 🎯 **MANDATORY PLANNING & CHUNKING PROTOCOL**
+
+### **PHASE 1: COMPREHENSIVE PLANNING (REQUIRED BEFORE IMPLEMENTATION)**
+
+#### **Implementation Strategy Development**:
+1. **Requirements Analysis**: Break down user requirements into technical specifications
+2. **System Integration**: Plan how new components integrate with existing system
+3. **Context7 Validation**: Use Context7 to validate all planned n8n node configurations
+4. **Exa Research**: Research best practices for similar implementations
+
+#### **Tool-Validated Planning**:
+1. **Use Context7**: Validate all n8n node specifications before coding
+2. **Use N8N MCP**: Verify current workflow state and plan integration points
+3. **Use Airtable MCP**: Validate schema compatibility for new fields/tables
+4. **Document Plan**: Create detailed implementation plan with tool evidence
+
+#### **Chunking Strategy (≤5 Operations Per Chunk)**:
+1. **Chunk Definition**: Break implementation into ≤5 discrete operations
+2. **Evidence Requirements**: Define expected evidence for each operation
+3. **Stop Gates**: Plan user approval points between chunks
+4. **Rollback Plan**: Define safe rollback for each chunk if issues arise
+
+### **MANDATORY APPROVAL GATE**: Present complete plan to user for authorization before implementation.
+
+---
+
+## 🏢 **WORKSPACE & ENVIRONMENT STANDARDS**
+
+### **N8N Workspace Configuration**:
+- **Project Workspace**: H4VRaaZhd8VKQANf (ONLY use this workspace)
+- **Access Method**: MCP tools connect automatically to project workspace
+- **Workflow Operations**: ONLY through MCP tools, never manual JSON
+- **Credential Management**: Use predefinedCredentialType pattern (see platform gotchas)
+
+### **Airtable Environment**:
+- **Base ID**: appuBf0fTe8tp8ZaF (UYSP Lead Qualification base)
+- **Access Method**: MCP tools for all database operations
+- **Schema Validation**: ALWAYS check table schema before writing data
+- **Data Integrity**: Preserve existing records, clean test data systematically
+
+### **System Preservation Standards**:
+- **Existing System Integrity**: Never modify existing functional components without explicit approval
+- **Backward Compatibility**: Ensure all existing functionality remains operational
+- **Data Protection**: Preserve production data, isolate test operations
+- **Configuration Backup**: Document all changes for rollback capability
 
 ### **Context7 + N8N MCP Integration (MANDATORY SEQUENCE)**:
 ```markdown
@@ -192,7 +236,7 @@ HANDOFF PROTOCOL:
 ### **Airtable Integration (OPERATIONAL)**:
 - **Duplicate Handler**: Advanced duplicate detection with count management
 - **Create/Update Logic**: Conditional upsert based on duplicate status
-- **Cost Tracking Fields**: apollo_org_cost, apollo_person_cost, claude_cost, total_processing_cost
+- **Cost Tracking Fields**: pdl_person_cost, hunter_cost, claude_cost, total_processing_cost
 
 ### **Error Handling & Retry (ROBUST)**:
 - **Retry Error Handler**: Node ID: f2752aaf-feb8-49b8-b173-b898deb79971

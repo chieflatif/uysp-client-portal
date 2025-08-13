@@ -1,0 +1,9 @@
+{
+  "email": "htopdl@example.com",
+  "name": "Hunter To PDL",
+  "company": "GrowthCo",
+  "title": "Sales Dev Rep",
+  "source_form": "webinar-signup",
+  "hunter_first": true,
+  "note": "Hunter partial; should fall back to PDL person enrichment"
+}

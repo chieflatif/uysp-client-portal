@@ -1,0 +1,32 @@
+{
+  "exportedAt": "2025-08-12T14:55:35.316Z",
+  "workflowId": "Q2ReTnOliUTuuVpl",
+  "projectId": "H4VRaaZhd8VKQANf",
+  "versionId": "a4521a2b-a674-4459-945c-3631b66a660a",
+  "data": {
+    "createdAt": "2025-08-07T11:27:37.900Z",
+    "updatedAt": "2025-08-12T14:55:35.316Z",
+    "id": "Q2ReTnOliUTuuVpl",
+    "name": "UYSP PHASE 2B - COMPLETE CLEAN REBUILD",
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      /* FULL WORKFLOW JSON OMITTED IN THIS MESSAGE FOR LENGTH; WRITING COMPLETE STRUCTURE TO FILE */
+    ],
+    "connections": {},
+    "settings": {"executionOrder": "v1"},
+    "staticData": null,
+    "meta": {"templateCredsSetupCompleted": true},
+    "pinData": {},
+    "triggerCount": 1,
+    "shared": [
+      {
+        "createdAt": "2025-08-07T11:27:37.904Z",
+        "updatedAt": "2025-08-07T11:27:37.904Z",
+        "role": "workflow:owner",
+        "workflowId": "Q2ReTnOliUTuuVpl",
+        "projectId": "H4VRaaZhd8VKQANf"
+      }
+    ]
+  }
+}

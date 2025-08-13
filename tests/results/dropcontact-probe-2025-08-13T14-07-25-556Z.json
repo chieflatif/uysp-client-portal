@@ -1,0 +1,279 @@
+{
+  "requestId": "xujyvwxkhdzfbcb",
+  "attempts": 3,
+  "summary": {
+    "total": 16,
+    "with_linkedin": 7,
+    "with_title": 1,
+    "with_company": 12
+  },
+  "raw": {
+    "data": [
+      {
+        "first_name": "Anika",
+        "last_name": "Harrell",
+        "full_name": "Anika Harrell",
+        "civility": "Madame",
+        "linkedin": "www.linkedin.com/in/anikaharrell",
+        "email": [
+          {
+            "email": "anharrell@paloaltonetworks.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "company": "Palo Alto Networks",
+        "website": "www.paloaltonetworks.com",
+        "country": "États-Unis",
+        "company_linkedin": "https://www.linkedin.com/company/palo-alto-networks",
+        "phone": "+31 20 299 3130",
+        "nb_employees": "10001"
+      },
+      {
+        "first_name": "Nirav",
+        "last_name": "Doshi",
+        "full_name": "Nirav Doshi",
+        "civility": "Monsieur",
+        "linkedin": "www.linkedin.com/in/niravcdp",
+        "email": [
+          {
+            "email": "nirav@securecdp.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "company": "CDP",
+        "website": "www.securecdp.com",
+        "country": "États-Unis",
+        "company_linkedin": "https://www.linkedin.com/company/securecdp",
+        "phone": "+1 248-651-8602",
+        "nb_employees": "11-50"
+      },
+      {
+        "first_name": "Jacob",
+        "last_name": "Karcher",
+        "full_name": "Jacob Karcher",
+        "civility": "Monsieur",
+        "linkedin": "www.linkedin.com/in/jacobkarcher",
+        "email": [
+          {
+            "email": "j.karcher@sana-commerce.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "company": "Sana Commerce",
+        "website": "www.sana-commerce.com",
+        "country": "États-Unis",
+        "company_linkedin": "https://www.linkedin.com/company/sanacommerce",
+        "phone": "+1 929-359-8313",
+        "nb_employees": "501-1000"
+      },
+      {
+        "first_name": "Nate",
+        "last_name": "Morse",
+        "full_name": "Nate Morse",
+        "civility": "Monsieur",
+        "email": [
+          {
+            "email": "nmorse@netskope.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "company": "Netskope",
+        "website": "www.netskope.com",
+        "country": "Espagne",
+        "company_linkedin": "https://www.linkedin.com/company/netskope",
+        "phone": "+1 800-685-2098",
+        "nb_employees": "1001-5000"
+      },
+      {
+        "first_name": "Andrew",
+        "last_name": "Armstrong",
+        "full_name": "Andrew Armstrong",
+        "civility": "Monsieur",
+        "email": [
+          {
+            "email": "andrew.armstrong@netlify.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "company": "Netlify",
+        "website": "www.netlify.com",
+        "country": "Espagne",
+        "company_linkedin": "https://www.linkedin.com/company/netlify",
+        "phone": "+34 941 20 77 75",
+        "nb_employees": "201-500"
+      },
+      {
+        "first_name": "Tom",
+        "last_name": "Jensen",
+        "full_name": "Tom Jensen",
+        "civility": "Monsieur",
+        "email": [
+          {
+            "email": "tom.jensen@hexagon.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "company": "Hexagon Ab",
+        "website": "www.hexagon.com",
+        "country": "Espagne",
+        "company_linkedin": "https://www.linkedin.com/company/hexagon-ab",
+        "phone": "+34 911 38 66 03",
+        "nb_employees": "10001"
+      },
+      {
+        "first_name": "Phil",
+        "last_name": "Desantis",
+        "full_name": "Phil Desantis",
+        "civility": "Monsieur",
+        "company": "Infoblox",
+        "website": "www.infoblox.com",
+        "country": "Espagne",
+        "company_linkedin": "https://www.linkedin.com/company/infoblox",
+        "phone": "+1 408-986-4000",
+        "nb_employees": "1001-5000"
+      },
+      {
+        "first_name": "Brett",
+        "last_name": "Davidson",
+        "full_name": "Brett Davidson",
+        "civility": "Monsieur",
+        "linkedin": "www.linkedin.com/in/brett-davidson01",
+        "job": "Business Development Manager",
+        "email": [
+          {
+            "email": "bdavidson@informatica.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "company": "Informatica",
+        "website": "www.informatica.com",
+        "country": "États-Unis",
+        "company_linkedin": "https://www.linkedin.com/company/informatica",
+        "phone": "+1 800-653-3871",
+        "nb_employees": "5001-10000"
+      },
+      {
+        "first_name": "Matt",
+        "last_name": "O'Grady",
+        "full_name": "Matt O'Grady",
+        "civility": "Monsieur",
+        "linkedin": "www.linkedin.com/in/matt-o-grady-50056812",
+        "email": [
+          {
+            "email": "matt.ogrady@docusign.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "company": "Docusign",
+        "website": "www.docusign.com",
+        "country": "États-Unis",
+        "company_linkedin": "https://www.linkedin.com/company/docusign",
+        "phone": "+1 877-720-2040",
+        "nb_employees": "5001-10000"
+      },
+      {
+        "first_name": "David",
+        "last_name": "Houser",
+        "full_name": "David Houser",
+        "civility": "Monsieur",
+        "email": [
+          {
+            "email": "dhouser9@verizon.net",
+            "qualification": "catch-all@perso"
+          }
+        ],
+        "country": "Espagne"
+      },
+      {
+        "first_name": "Astrid",
+        "last_name": "Farber",
+        "full_name": "Astrid Farber",
+        "civility": "Madame",
+        "email": [
+          {
+            "email": "astrid.farber@docusign.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "company": "Docusign",
+        "website": "www.docusign.com",
+        "country": "Espagne",
+        "company_linkedin": "https://www.linkedin.com/company/docusign",
+        "nb_employees": "5001-10000"
+      },
+      {
+        "first_name": "Mike",
+        "last_name": "Townsend",
+        "full_name": "Mike Townsend",
+        "civility": "Monsieur",
+        "email": [
+          {
+            "email": "mike.townsend@email.zoominfo.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "country": "Espagne"
+      },
+      {
+        "first_name": "Lauren",
+        "last_name": "Barnes",
+        "full_name": "Lauren Barnes",
+        "civility": "Madame",
+        "linkedin": "www.linkedin.com/in/laurenbarnes1",
+        "email": [
+          {
+            "email": "labarnes@teksystems.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "company": "Teksystems",
+        "website": "www.teksystems.com",
+        "country": "États-Unis",
+        "company_linkedin": "https://www.linkedin.com/company/teksystems",
+        "nb_employees": "10001"
+      },
+      {
+        "first_name": "Gavin",
+        "last_name": "Arredondo",
+        "full_name": "Gavin Arredondo",
+        "civility": "Monsieur",
+        "email": [
+          {
+            "email": "arregavi@amazon.com",
+            "qualification": "catch-all@pro"
+          }
+        ],
+        "country": "Espagne"
+      },
+      {
+        "first_name": "Max",
+        "last_name": "Ferat",
+        "full_name": "Max Ferat",
+        "civility": "Monsieur",
+        "linkedin": "www.linkedin.com/in/max-ferat-05230560",
+        "email": [
+          {
+            "email": "mferat@hubspot.com",
+            "qualification": "nominatif@pro"
+          }
+        ],
+        "company": "Hubspot",
+        "website": "www.hubspot.com",
+        "country": "France",
+        "company_linkedin": "https://www.linkedin.com/company/hubspot",
+        "phone": "+1 857-829-5060",
+        "nb_employees": "5001-10000"
+      },
+      {
+        "first_name": "Alexander",
+        "last_name": "Craig",
+        "full_name": "Alexander Craig",
+        "civility": "Monsieur",
+        "country": "Espagne"
+      }
+    ],
+    "credits_left": 34,
+    "error": false,
+    "success": true
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-08-12T13:33:11.977Z",
+  "phase": "unknown",
+  "scriptOutput": "{\n  \"tests\": [\n    {\n      \"name\": \"webhook_send\",\n      \"payload\": {\n        \"email\": \"kitan@adobe.com\",\n        \"first_name\": \"Test\",\n        \"last_name\": \"User\",\n        \"company\": \"Salesforce\",\n        \"title\": \"Account Executive\",\n        \"touchpoint_count\": 3,\n        \"interested_in_coaching\": true\n      },\n      \"response\": {\n        \"statusCode\": 200,\n        \"body\": \"{\\\"id\\\":\\\"rec14LxyPyACUqrLc\\\",\\\"createdTime\\\":\\\"2025-08-12T13:33:19.000Z\\\",\\\"fields\\\":{\\\"email\\\":\\\"kitan@adobe.com\\\",\\\"first_name\\\":\\\"kinero\\\",\\\"last_name\\\":\\\"tan\\\",\\\"icp_score\\\":68,\\\"icp_tier\\\":\\\"Low\\\",\\\"created_date\\\":\\\"2025-08-12\\\",\\\"score_breakdown\\\":\\\"Tech domain +15; Known brand +10; Account mgmt +18; Coaching yes +10; 3+ touchpoints +15\\\",\\\"scoring_date\\\":\\\"2025-08-12\\\",\\\"scoring_method\\\":\\\"domain\\\",\\\"reengagement_count\\\":0,\\\"duplicate_count\\\":0,\\\"processing_status\\\":\\\"Archived\\\",\\\"field_mapping_success_rate\\\":0,\\\"webhook_field_count\\\":0,\\\"mapped_field_count\\\":0,\\\"apollo_org_cost\\\":0,\\\"apollo_person_cost\\\":0,\\\"twilio_cost\\\":0,\\\"claude_cost\\\":0,\\\"total_processing_cost\\\":0}}\"\n      },\n      \"httpStatus\": 200\n    },\n    {\n      \"name\": \"simulate_429\",\n      \"payload\": {\n        \"email\": \"kitan@adobe.com\",\n        \"first_name\": \"Test\",\n        \"last_name\": \"User\",\n        \"company\": \"Salesforce\",\n        \"title\": \"Account Executive\",\n        \"touchpoint_count\": 3,\n        \"interested_in_coaching\": true\n      },\n      \"response\": {\n        \"statusCode\": 429,\n        \"body\": \"Rate limit exceeded (simulated)\"\n      },\n      \"httpStatus\": 429\n    },\n    {\n      \"name\": \"anomaly_junk\",\n      \"payload\": {\n        \"email\": \"junk@invalid\",\n        \"company\": null,\n        \"title\": \"undefined\"\n      },\n      \"response\": {\n        \"statusCode\": 200,\n        \"body\": \"{\\\"id\\\":\\\"recIeEGHEbQA24fef\\\",\\\"createdTime\\\":\\\"2025-08-12T13:33:21.000Z\\\",\\\"fields\\\":{\\\"person_email\\\":\\\"junk@invalid\\\",\\\"review_reason\\\":\\\"missing_key_data\\\",\\\"queued_date\\\":\\\"2025-08-12T13:33:20.280Z\\\",\\\"priority\\\":\\\"Medium\\\",\\\"review_notes\\\":\\\"person_enrichment_failed_both_providers\\\"}}\"\n      },\n      \"httpStatus\": 200\n    }\n  ],\n  \"timestamp\": \"2025-08-12T13:33:11.981Z\"\n}",
+  "validationInstructions": [
+    "BEFORE PROCEING: Use n8n API to verify workflows are active (curl -H \"Authorization: Bearer $N8N_API_KEY\" https://rebelhq.app.n8n.cloud/api/v1/workflows)",
+    "BEFORE PROCEEDING: Use Airtable API to count current People records (curl -H \"Authorization: Bearer $AIRTABLE_API_KEY\" \"https://api.airtable.com/v0/$BASE_ID/People?maxRecords=1\")",
+    "NOW: Search Airtable for any test records created via API",
+    "NOW: Get the latest n8n execution with full data via API",
+    "NOW: Analyze each node input/output for failures",
+    "NOW: Verify business outcomes actually occurred",
+    "HANDLE RATE LIMITS: If 429, wait 60s + retry"
+  ],
+  "analysisRequirements": [
+    "Extract exact error messages from failed nodes",
+    "Compare expected vs actual field mappings",
+    "Trace data flow through entire workflow",
+    "Identify root cause, not symptoms",
+    "Provide specific fix recommendations"
+  ]
+}

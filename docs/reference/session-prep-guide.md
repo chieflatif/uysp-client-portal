@@ -247,7 +247,7 @@ HUMAN TASK: [What human must do in UI]
 
 **Key Extracts Needed**:
 1. Two-phase qualification logic
-2. Apollo API integration
+2. Dropcontact integration (HTTP sync `/v1/enrich/all`; batch+poll with `requestId`)
 3. ICP scoring algorithm
 4. Human review routing
 

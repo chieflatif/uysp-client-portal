@@ -93,6 +93,7 @@ Updated MCP tool configuration for UYSP Lead Qualification System development. *
 - **Evidence Collection**: All operations must capture execution IDs and validation results
 - **NO MANUAL JSON**: All workflow operations through N8N MCP tools only
 - **Baseline Preservation**: PRE COMPLIANCE workflow (wpg9K9s8wlfofv1u) must remain functional
+ - **Credential Pattern**: For HTTP Request nodes use `authentication: "predefinedCredentialType"` + `nodeCredentialType: "httpHeaderAuth"`. Do not add manual headers, and do not pass `api_key` in query when credentials are configured.
 
 **PROJECT-SPECIFIC USAGE**:
 - **PDL Integration**: Add Company API and Person API nodes to PRE COMPLIANCE baseline

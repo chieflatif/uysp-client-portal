@@ -1,0 +1,32 @@
+{
+  "test_cases": [
+    {
+      "id": "2D-JUNK-1",
+      "description": "Generic email with no data - should auto-archive",
+      "payload": {
+        "email": "test@gmail.com",
+        "company": "",
+        "title": "",
+        "touchpoint_count": 0
+      },
+      "expected": {
+        "route": "archive",
+        "junk_score": 100,
+        "archived_reason": "insufficient_signal"
+      }
+    },
+    {
+      "id": "2D-SALVAGE-1",
+      "description": "Tech domain with engagement - should salvage",
+      "payload": {
+        "email": "john@salesforce.com",
+        "touchpoint_count": 2,
+        "interested_in_coaching": true
+      },
+      "expected": {
+        "salvage_pre_score": ">=20",
+        "route": "salvage_scoring"
+      }
+    }
+  ]
+}

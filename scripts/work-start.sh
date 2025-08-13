@@ -13,7 +13,11 @@ echo "🔸 Step 1: Backup Protection Check"
 ./scripts/auto-backup.sh
 
 echo ""
-echo "🔸 Step 2: System Status Check"
+echo "🔸 Step 2: Documentation Guard (fast check)"
+bash "UYSP Lead Qualification V1/scripts/docs-guard.sh" || echo "  ⚠️ Docs need attention (see messages above). You can continue working and fix later."
+
+echo ""
+echo "🔸 Step 3: System Status Check"
 
 # Check Git status
 echo "📊 Git Status:"
@@ -31,8 +35,8 @@ fi
 # Check n8n workflow count
 echo ""
 echo "📊 Available Commands:"
-echo "  - npm run real-backup      → Force fresh backup"
-echo "  - npm run auto-backup      → Smart backup (4h interval)"
+echo "  - npm run real-backup      → Force fresh backup (runs docs guard first)"
+echo "  - npm run auto-backup      → Smart backup (4h interval) (runs docs guard first)"
 echo "  - npm run schema-backup    → Airtable schemas only"
 echo "  - npm run position-main    → Position main workflow"
 echo "  - npm run test-all         → Run comprehensive tests"

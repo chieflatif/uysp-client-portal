@@ -1,3 +1,18 @@
+# Documentation Guardrails
+
+Run validation checks before merging or at CI:
+
+```bash
+bash scripts/validate-docs.sh
+```
+
+This will:
+- Report exact-duplicate markdown files (by md5)
+- List any docs missing classification tags ([AUTHORITATIVE]/[HISTORICAL]/[DEPRECATED])
+- List any docs missing a "Last Updated:" header
+
+Backups are excluded by default.
+
 # 🚀 UYSP Phase 00 Infrastructure Scripts
 
 **CRITICAL**: Execute these scripts in order to set up complete infrastructure for Session 1+

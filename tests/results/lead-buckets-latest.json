@@ -1,0 +1,3850 @@
+{
+  "buckets": {
+    "ultra": [
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "sytrex.io",
+          "User Name": "Daniel Palacios",
+          "Email Address": "daniel@sytrex.io",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1-10",
+          "Email": "daniel@sytrex.io",
+          "New Column (2)": "linkedin.com/in/danielpalaciossales",
+          "Mobile Phone (2)": "+573196850654",
+          "New Column": "co-founder & vice president of sales",
+          "Location": "",
+          "Job Start Date": "2024-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 95,
+        "reasoning": "Role: VP Sales 40 = 40; Company: likely B2B tech TLD (sytrex.io) = 20; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 95"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "servicenow.com",
+          "User Name": "Nase Reid",
+          "Email Address": "nasereid22@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "10001+",
+          "Email": "nasereid22@gmail.com",
+          "New Column (2)": "linkedin.com/in/nase-reid-235b76159",
+          "Mobile Phone (2)": "+1 732-406-8618",
+          "New Column": "senior account executive healthcare / finance",
+          "Location": "united states",
+          "Job Start Date": "2024-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 95,
+        "reasoning": "Role: AE base 30, +Senior +5 = 35; Company: Tier1 B2B tech (servicenow.com) = 25; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 95"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "ringcentral.com",
+          "User Name": "Erica Hinson",
+          "Email Address": "erica.hinson@ringcentral.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "She joined Silver",
+          "Email": "erica.hinson@ringcentral.com",
+          "New Column (2)": "linkedin.com/in/erica-hinson",
+          "Mobile Phone (2)": "+1 404-387-6305",
+          "New Column": "senior account executive - majors",
+          "Location": "united states",
+          "Job Start Date": "2022-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 100,
+        "reasoning": "Role: AE base 30, +Senior +5, +Enterprise/Strategic +5 = 40; Company: Tier1 B2B tech (ringcentral.com) = 25; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 100"
+      }
+    ],
+    "high": [
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "oracle.com",
+          "User Name": "Kareem Hassan",
+          "Email Address": "kareem.hassan@oracle.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "10001+",
+          "Email": "kareem.hassan@oracle.com",
+          "New Column (2)": "linkedin.com/in/kareemhassan017",
+          "Mobile Phone (2)": "+1 707-386-1730",
+          "New Column": "account executive, growth",
+          "Location": "united states",
+          "Job Start Date": "2024-06-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 90,
+        "reasoning": "Role: AE base 30 = 30; Company: Tier1 B2B tech (oracle.com) = 25; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 90"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "salesforce.com",
+          "User Name": "Trenton Davis",
+          "Email Address": "trenton.davis@salesforce.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "3",
+          "Email": "trenton.davis@salesforce.com",
+          "New Column (2)": "linkedin.com/in/trentondavisthoughtleader",
+          "Mobile Phone (2)": "+1 330-330-7091",
+          "New Column": "account executive | higher learning | hbcu",
+          "Location": "united states",
+          "Job Start Date": "2023-08-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: AE base 30 = 30; Company: Tier1 B2B tech (salesforce.com) = 25; Engagement: +Coaching yes +10 +NPS 8 → 20 = 30; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "paloaltonetworks.com",
+          "User Name": "Anika Harrell",
+          "Email Address": "anharrell@paloaltonetworks.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "10001+",
+          "Email": "anharrell@paloaltonetworks.com",
+          "New Column (2)": "linkedin.com/in/anikaharrell",
+          "Mobile Phone (2)": "+1 682-247-1250",
+          "New Column": "account manager | sled west, south central",
+          "Location": "united states",
+          "Job Start Date": "2024-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 88,
+        "reasoning": "Role: Account Manager 28 = 28; Company: Tier1 B2B tech (paloaltonetworks.com) = 25; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 88"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "linxon.com",
+          "User Name": "Mark Ogden",
+          "Email Address": "mark@theogdengroup.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "501-1000",
+          "Email": "mark@theogdengroup.com",
+          "New Column (2)": "linkedin.com/in/mark-ogden",
+          "Mobile Phone (2)": "+1 919-610-2120",
+          "New Column": "business development manager, americas",
+          "Location": "switzerland",
+          "Job Start Date": "2024-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "altimate.ai",
+          "User Name": "David Abraham",
+          "Email Address": "david@altimate.ai",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1-10",
+          "Email": "david@altimate.ai",
+          "New Column (2)": "linkedin.com/in/davidabrahamiii",
+          "Mobile Phone (2)": "+1 408-310-2052",
+          "New Column": "director, enterprise sales",
+          "Location": "united states",
+          "Job Start Date": "2025-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 90,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: likely B2B tech TLD (altimate.ai) = 20; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 90"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "prefect.io",
+          "User Name": "Darren P",
+          "Email Address": "drpinder89@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "sent over Li request",
+          "Email": "drpinder89@gmail.com",
+          "New Column (2)": "linkedin.com/in/darren-pinder",
+          "Mobile Phone (2)": "+1 818-731-7107",
+          "New Column": "director of strategic sales",
+          "Location": "united states",
+          "Job Start Date": "2022-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 90,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: likely B2B tech TLD (prefect.io) = 20; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 90"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "drivewyze.com",
+          "User Name": "Lesley Bennett",
+          "Email Address": "lesley.bennett@drivewyze.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "201-500",
+          "Email": "lesley.bennett@drivewyze.com",
+          "New Column (2)": "linkedin.com/in/lesley-bennett-sales",
+          "Mobile Phone (2)": "+1 203-348-1321",
+          "New Column": "director, strategic sales",
+          "Location": "united states",
+          "Job Start Date": "2022-07-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "franklincovey.com",
+          "User Name": "Ryan Leonard",
+          "Email Address": "Ryan.leonard@franklincovey.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "501-1000",
+          "Email": "Ryan.leonard@franklincovey.com",
+          "New Column (2)": "linkedin.com/in/ryanleonard1987",
+          "Mobile Phone (2)": "(805) 886-4512",
+          "New Column": "enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2024-12-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "datagalaxy.com",
+          "User Name": "Kevin Duffy",
+          "Email Address": "Kevin.duffy@datagalaxy.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "Kevin.duffy@datagalaxy.com",
+          "New Column (2)": "linkedin.com/in/kevin-duffy-38b95231",
+          "Mobile Phone (2)": "+1 609-923-1098",
+          "New Column": "enterprise account executive",
+          "Location": "france",
+          "Job Start Date": "2024-12-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 90,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: inferred B2B tech (datagalaxy.com) = 20; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 90"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "forter.com",
+          "User Name": "Brent Grunander",
+          "Email Address": "Brent.grunander@forter.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "501-1000",
+          "Email": "Brent.grunander@forter.com",
+          "New Column (2)": "linkedin.com/in/brent-grunander",
+          "Mobile Phone (2)": "+1 801-913-1703",
+          "New Column": "enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2024-11-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "mongodb.com",
+          "User Name": "Cheery Chua",
+          "Email Address": "cheery.chua@mongodb.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "5001-10000",
+          "Email": "cheery.chua@mongodb.com",
+          "New Column (2)": "linkedin.com/in/chua-cheery",
+          "Mobile Phone (2)": "+65 9746 0381",
+          "New Column": "enterprise account executive, growth",
+          "Location": "united states",
+          "Job Start Date": "2025-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 90,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: Tier1 B2B tech (mongodb.com) = 25; Engagement: +Coaching yes +10 +NPS 8 → 20 = 30; Total = 90"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "",
+          "Job Company Website": "salesforce.com",
+          "User Name": "Joseph Shunia",
+          "Email Address": "jshunia@salesforce.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "10001+",
+          "Email": "jshunia@salesforce.com",
+          "New Column (2)": "linkedin.com/in/joseph-shunia-3b09693b",
+          "Mobile Phone (2)": "+1 614-668-5323",
+          "New Column": "enterprise digital account executive: marketing, commerce, data cloud",
+          "Location": "united states",
+          "Job Start Date": "2023-04-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: Tier1 B2B tech (salesforce.com) = 25; Engagement: +NPS 10 → 25 = 25; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "viderahealth.com",
+          "User Name": "Brian Hughes",
+          "Email Address": "brianhughes@comcast.net",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "Call cannot be completed as dialed",
+          "Email": "brianhughes@comcast.net",
+          "New Column (2)": "linkedin.com/in/brian-c-hughes",
+          "Mobile Phone (2)": "+1 219-306-6727",
+          "New Column": "executive director, business development",
+          "Location": "united states",
+          "Job Start Date": "2024-12-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "sprinklr.com",
+          "User Name": "Lindsey Zelhart",
+          "Email Address": "lindsey.zelhart@sprinklr.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "lindsey.zelhart@sprinklr.com",
+          "New Column (2)": "linkedin.com/in/lindsey-zelhart-b6832457",
+          "Mobile Phone (2)": "+1 706-533-2396",
+          "New Column": "large enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2023-05-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "formstack.com",
+          "User Name": "Andrea Brigham",
+          "Email Address": "Andrea.brigham@formstack.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "201-500",
+          "Email": "Andrea.brigham@formstack.com",
+          "New Column (2)": "linkedin.com/in/andreabrigham",
+          "Mobile Phone (2)": "+1 618-518-9238",
+          "New Column": "sales director",
+          "Location": "united states",
+          "Job Start Date": "2024-06-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "linkedin.com",
+          "User Name": "ANJULIKA Saini",
+          "Email Address": "Ansingh@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "10001+",
+          "Email": "Ansingh@gmail.com",
+          "New Column (2)": "linkedin.com/in/anjulika-saini-557a19",
+          "Mobile Phone (2)": "+1 917-587-4560",
+          "New Column": "sales director, mid market customer relationship management",
+          "Location": "united states",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 88,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: Tier1 B2B tech (linkedin.com) = 25; Engagement: +Coaching yes +10 +NPS 7 → 18 = 28; Total = 88"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "citrine.io",
+          "User Name": "Mark Maimone",
+          "Email Address": "mmaimone@citrine.io",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "mmaimone@citrine.io",
+          "New Column (2)": "linkedin.com/in/maimonemark",
+          "Mobile Phone (2)": "+1 470-819-0038",
+          "New Column": "senior account executive",
+          "Location": "united states",
+          "Job Start Date": "2025-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 90,
+        "reasoning": "Role: AE base 30, +Senior +5 = 35; Company: likely B2B tech TLD (citrine.io) = 20; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 90"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "versium.com",
+          "User Name": "Jesse Mayor",
+          "Email Address": "jmayor@versium.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "jmayor@versium.com",
+          "New Column (2)": "linkedin.com/in/jlmayor",
+          "Mobile Phone (2)": "+1 206-387-8008",
+          "New Column": "senior account executive",
+          "Location": "united states",
+          "Job Start Date": "2022-05-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: AE base 30, +Senior +5 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "aytm.com",
+          "User Name": "Juan Valdovinos",
+          "Email Address": "juan@aytm.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "juan@aytm.com",
+          "New Column (2)": "linkedin.com/in/juanvaldovinos",
+          "Mobile Phone (2)": "+1 323-312-7851",
+          "New Column": "senior account executive",
+          "Location": "united states",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: AE base 30, +Senior +5 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "rafay.co",
+          "User Name": "Kurt Sabacinski",
+          "Email Address": "kurtsabacinski@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "51-200",
+          "Email": "kurtsabacinski@gmail.com",
+          "New Column (2)": "linkedin.com/in/kurtsabacinski",
+          "Mobile Phone (2)": "+1 774-696-4473",
+          "New Column": "senior enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 88,
+        "reasoning": "Role: AE base 30, +Senior +5, +Enterprise/Strategic +5 = 40; Company: present 15; Engagement: +Coaching yes +10 +NPS 9 → 23 = 33; Total = 88"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "databridgesites.com",
+          "User Name": "George Henderson",
+          "Email Address": "ghenderson@databridgesites.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "ghenderson@databridgesites.com",
+          "New Column (2)": "linkedin.com/in/georgehenderson",
+          "Mobile Phone (2)": "+1 443-995-1202",
+          "New Column": "senior sales director",
+          "Location": "united states",
+          "Job Start Date": "2025-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 90,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: inferred B2B tech (databridgesites.com) = 20; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 90"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "rfsmart.com",
+          "User Name": "Damian Fox",
+          "Email Address": "damian.fox@rfsmart.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "201-500",
+          "Email": "damian.fox@rfsmart.com",
+          "New Column (2)": "linkedin.com/in/damian-fox-a2210218",
+          "Mobile Phone (2)": "+44 7800 772025",
+          "New Column": "senior sales director - emea",
+          "Location": "united states",
+          "Job Start Date": "2019-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 85,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 85"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "docusign.com",
+          "User Name": "melissa singleton",
+          "Email Address": "melissa.singleton@docusign.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "5001-10000",
+          "Email": "melissa.singleton@docusign.com",
+          "New Column (2)": "linkedin.com/in/melmcgeesingleton",
+          "Mobile Phone (2)": "+1 214-642-0274",
+          "New Column": "strategic enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2020-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 90,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: Tier1 B2B tech (docusign.com) = 25; Engagement: +Coaching yes +10 +NPS 8 → 20 = 30; Total = 90"
+      }
+    ],
+    "medium": [
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "",
+          "Job Company Website": "johnsnowlabs.com",
+          "User Name": "Steve Burnside",
+          "Email Address": "SteveBurnside237@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "SteveBurnside237@gmail.com",
+          "New Column (2)": "linkedin.com/in/steve-burnside",
+          "Mobile Phone (2)": "+16142884001",
+          "New Column": "account executive",
+          "Location": "united states",
+          "Job Start Date": "2022-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 75,
+        "reasoning": "Role: AE base 30 = 30; Company: inferred B2B tech (johnsnowlabs.com) = 20; Engagement: +NPS 10 → 25 = 25; Total = 75"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "",
+          "Job Company Website": "alpha-sense.com",
+          "User Name": "JOHN TUCCI",
+          "Email Address": "jtucci@alpha-sense.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "jtucci@alpha-sense.com",
+          "New Column (2)": "linkedin.com/in/johntucci2024",
+          "Mobile Phone (2)": "+1 312-925-4440",
+          "New Column": "account executive",
+          "Location": "united states",
+          "Job Start Date": "2024-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: AE base 30 = 30; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 70"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "verkada.com",
+          "User Name": "Lia Llamas",
+          "Email Address": "Lia.llamas@verkada.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "Lia.llamas@verkada.com",
+          "New Column (2)": "linkedin.com/in/lia-llamas-44613b12a",
+          "Mobile Phone (2)": "+1 408-510-8934",
+          "New Column": "account executive",
+          "Location": "united states",
+          "Job Start Date": "2023-05-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 80,
+        "reasoning": "Role: AE base 30 = 30; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 80"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "raven360.com",
+          "User Name": "Will Fox",
+          "Email Address": "Wfox@revinova.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "Wfox@revinova.com",
+          "New Column (2)": "linkedin.com/in/wjfox",
+          "Mobile Phone (2)": "+1 301-233-4983",
+          "New Column": "account executive",
+          "Location": "united states",
+          "Job Start Date": "2024-04-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 80,
+        "reasoning": "Role: AE base 30 = 30; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 80"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "onramp.us",
+          "User Name": "Manny C",
+          "Email Address": "manny@onramp.us",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "11-50",
+          "Email": "manny@onramp.us",
+          "New Column (2)": "linkedin.com/in/mannycumplido",
+          "Mobile Phone (2)": "+1 401-297-2290",
+          "New Column": "account executive",
+          "Location": "united states",
+          "Job Start Date": "2024-06-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 73,
+        "reasoning": "Role: AE base 30 = 30; Company: present 15; Engagement: +Coaching yes +10 +NPS 7 → 18 = 28; Total = 73"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "blackbaud.com",
+          "User Name": "Max Presuttu",
+          "Email Address": "Max.presutti@blackbaud.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "Max.presutti@blackbaud.com",
+          "New Column (2)": "linkedin.com/in/max-presutti",
+          "Mobile Phone (2)": "+1 781-771-6496",
+          "New Column": "account executive: non-profit",
+          "Location": "united states",
+          "Job Start Date": "2023-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: AE base 30 = 30; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 70"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "netskope.com",
+          "User Name": "Nate Morse",
+          "Email Address": "nmorse@netskope.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "nmorse@netskope.com",
+          "New Column (2)": "linkedin.com/in/nate-morse",
+          "Mobile Phone (2)": "+1 503-984-8388",
+          "New Column": "account executive - pacific northwest",
+          "Location": "united states",
+          "Job Start Date": "2024-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 80,
+        "reasoning": "Role: AE base 30 = 30; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 80"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "athenaag.com",
+          "User Name": "Gareth Whitehead",
+          "Email Address": "g.whitehead@athenaag.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "11-50",
+          "Email": "g.whitehead@athenaag.com",
+          "New Column (2)": "linkedin.com/in/gareth-whitehead-b04285211",
+          "Mobile Phone (2)": "+27 71 649 7073",
+          "New Column": "business development representative",
+          "Location": "united states",
+          "Job Start Date": "2025-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: SDR/BDR base 20 = 20; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 70"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "rethinkfirst.com",
+          "User Name": "Kristiana Osborne",
+          "Email Address": "kristiana.osborne@rethinkfirst.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "201-500",
+          "Email": "kristiana.osborne@rethinkfirst.com",
+          "New Column (2)": "linkedin.com/in/kristiana-osborne",
+          "Mobile Phone (2)": "+1 862-579-8749",
+          "New Column": "business development team manager",
+          "Location": "united states",
+          "Job Start Date": "2024-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 80,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 8 → 20 = 30; Total = 80"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "fleetworthy.com",
+          "User Name": "Corey Woinarowicz",
+          "Email Address": "corey.woinarowicz@fleetworthy.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "corey.woinarowicz@fleetworthy.com",
+          "New Column (2)": "linkedin.com/in/coreywoinarowicz",
+          "Mobile Phone (2)": "+1 714-262-9051",
+          "New Column": "compliance account executive",
+          "Location": "united states",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 80,
+        "reasoning": "Role: AE base 30 = 30; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 80"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "possiblenow.com",
+          "User Name": "Drew Patrick",
+          "Email Address": "drewp@possiblenow.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "drewp@possiblenow.com",
+          "New Column (2)": "linkedin.com/in/drew-patrick-131231108",
+          "Mobile Phone (2)": "+1 678-707-3649",
+          "New Column": "enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2024-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 75,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 75"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "continuant.com",
+          "User Name": "joseph.maggiore@continuant.com",
+          "Email Address": "joseph.maggiore@continuant.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "201-500",
+          "Email": "joseph.maggiore@continuant.com",
+          "New Column (2)": "linkedin.com/in/jmaggiore",
+          "Mobile Phone (2)": "+1 860-682-2645",
+          "New Column": "enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2024-07-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: present 15; Engagement: +NPS 8 → 20 = 20; Total = 70"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "ixopay.com",
+          "User Name": "Meghan Walls",
+          "Email Address": "m.walls@ixopay.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "m.walls@ixopay.com",
+          "New Column (2)": "linkedin.com/in/meghan-walls-01206929",
+          "Mobile Phone (2)": "+1 678-447-8712",
+          "New Column": "enterprise sales, north & south america",
+          "Location": "austria",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: Generic sales 20 = 20; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 70"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "klaarhq.com",
+          "User Name": "Shameer Syed",
+          "Email Address": "shameer@klaarhq.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "11-50",
+          "Email": "shameer@klaarhq.com",
+          "New Column (2)": "linkedin.com/in/alamshameers",
+          "Mobile Phone (2)": "+1 320-434-0174",
+          "New Column": "founding ae",
+          "Location": "united states",
+          "Job Start Date": "2023-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 80,
+        "reasoning": "Role: AE base 30 = 30; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 80"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "ixopay.com",
+          "User Name": "Kyle Newton",
+          "Email Address": "k.newton@ixopay.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "k.newton@ixopay.com",
+          "New Column (2)": "linkedin.com/in/kylecnewton",
+          "Mobile Phone (2)": "+1 904-315-2498",
+          "New Column": "global sales executive",
+          "Location": "austria",
+          "Job Start Date": "2024-06-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: Generic sales 20 = 20; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 70"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "workday.com",
+          "User Name": "Kevin Bandemer",
+          "Email Address": "kevin.bandemer@workday.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "10001+",
+          "Email": "kevin.bandemer@workday.com",
+          "New Column (2)": "linkedin.com/in/kevin-bandemer-25b3317",
+          "Mobile Phone (2)": "+1 630-740-3073",
+          "New Column": "healthcare account executive",
+          "Location": "united states",
+          "Job Start Date": "2024-04-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 75,
+        "reasoning": "Role: AE base 30 = 30; Company: Tier1 B2B tech (workday.com) = 25; Engagement: +NPS 8 → 20 = 20; Total = 75"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "canon.com",
+          "User Name": "Troy Morrison",
+          "Email Address": "tmorrison@cusa.canon.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "1001-5000",
+          "Email": "tmorrison@cusa.canon.com",
+          "New Column (2)": "linkedin.com/in/troylinked",
+          "Mobile Phone (2)": "+1 720-600-1603",
+          "New Column": "major account executive",
+          "Location": "united states",
+          "Job Start Date": "2022-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 80,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 8 → 20 = 30; Total = 80"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "",
+          "Job Company Website": "flexera.com",
+          "User Name": "Kristin Santistevan",
+          "Email Address": "ksantistevan@flexera.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "ksantistevan@flexera.com",
+          "New Column (2)": "linkedin.com/in/kristin-santistevan-1373377b",
+          "Mobile Phone (2)": "+1 281-394-0154",
+          "New Column": "major account manager",
+          "Location": "united states",
+          "Job Start Date": "2024-07-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": "Busy"
+        },
+        "score": 73,
+        "reasoning": "Role: Account Manager 28, +Enterprise/Strategic +5 = 33; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 73"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "iterable.com",
+          "User Name": "Ryan Nardi",
+          "Email Address": "ryan.nardi@iterable.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "501-1000",
+          "Email": "ryan.nardi@iterable.com",
+          "New Column (2)": "linkedin.com/in/ryanmnardi",
+          "Mobile Phone (2)": "+19176134676",
+          "New Column": "mid-market account executive",
+          "Location": "united states",
+          "Job Start Date": "2023-09-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 80,
+        "reasoning": "Role: AE base 30 = 30; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 80"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "dtx.com",
+          "User Name": "Nathan Bluhm",
+          "Email Address": "nathan.bluhm@us.contec.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "501-1000",
+          "Email": "nathan.bluhm@us.contec.com",
+          "New Column (2)": "linkedin.com/in/nathan-j-bluhm",
+          "Mobile Phone (2)": "+1 262-949-5709",
+          "New Column": "regional sales manager",
+          "Location": "united states",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 83,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 9 → 23 = 33; Total = 83"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "qualtrics.com",
+          "User Name": "Devin Gonzalez",
+          "Email Address": "deving@qualtrics.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "5001-10000",
+          "Email": "deving@qualtrics.com",
+          "New Column (2)": "linkedin.com/in/gonzalezdevin",
+          "Mobile Phone (2)": "+1 630-290-7662",
+          "New Column": "sales development representative 1",
+          "Location": "ireland",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: SDR/BDR base 20 = 20; Company: Tier1 B2B tech (qualtrics.com) = 25; Engagement: +NPS 10 → 25 = 25; Total = 70"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "choicelogistics.com",
+          "User Name": "Maxwell List",
+          "Email Address": "mlist@choicelogistics.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "201-500",
+          "Email": "mlist@choicelogistics.com",
+          "New Column (2)": "linkedin.com/in/maxwell-list",
+          "Mobile Phone (2)": "+1 313-695-4674",
+          "New Column": "sales enablement manager",
+          "Location": "united states",
+          "Job Start Date": "2022-04-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 80,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 8 → 20 = 30; Total = 80"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "ezo.io",
+          "User Name": "Darin Janda",
+          "Email Address": "Darin@darinjanda.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "51-200",
+          "Email": "Darin@darinjanda.com",
+          "New Column (2)": "linkedin.com/in/darin-janda-a698a821",
+          "Mobile Phone (2)": "+1 303-522-5029",
+          "New Column": "sales operations manager",
+          "Location": "united states",
+          "Job Start Date": "2024-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 78,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: likely B2B tech TLD (ezo.io) = 20; Engagement: +NPS 9 → 23 = 23; Total = 78"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "infoblox.com",
+          "User Name": "Phil DeSantis",
+          "Email Address": "pdesantis@infoblox.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "pdesantis@infoblox.com",
+          "New Column (2)": "linkedin.com/in/philipdesantisjr",
+          "Mobile Phone (2)": "+1 978-443-8167",
+          "New Column": "sales trainer",
+          "Location": "united states",
+          "Job Start Date": "2024-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: Generic sales 20 = 20; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 70"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "usablenet.com",
+          "User Name": "Reiko Gallo",
+          "Email Address": "reiko.gallo@usablenet.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "51-200",
+          "Email": "reiko.gallo@usablenet.com",
+          "New Column (2)": "linkedin.com/in/reiko-gallo",
+          "Mobile Phone (2)": "+1 410-610-5096",
+          "New Column": "senior account manager",
+          "Location": "united states",
+          "Job Start Date": "2023-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 78,
+        "reasoning": "Role: Account Manager 28, +Senior +5 = 33; Company: present 15; Engagement: +Coaching yes +10 +NPS 8 → 20 = 30; Total = 78"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "goformz.com",
+          "User Name": "Trent Polanco",
+          "Email Address": "tpolanco@goformz.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "tpolanco@goformz.com",
+          "New Column (2)": "linkedin.com/in/trenton-polanco",
+          "Mobile Phone (2)": "+1 808-214-2724",
+          "New Column": "senior account manager - enteprise sales",
+          "Location": "united states",
+          "Job Start Date": "2019-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 83,
+        "reasoning": "Role: Account Manager 28, +Senior +5 = 33; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 83"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "pix4d.com",
+          "User Name": "Angelo Feltrin",
+          "Email Address": "Angelo.e.Feltrin@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "201-500",
+          "Email": "Angelo.e.Feltrin@gmail.com",
+          "New Column (2)": "linkedin.com/in/angelofeltrin",
+          "Mobile Phone (2)": "+61 415 625 103",
+          "New Column": "senior regional sales manager",
+          "Location": "switzerland",
+          "Job Start Date": "2024-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 75,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 75"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "demandbase.com",
+          "User Name": "Megan Wipff",
+          "Email Address": "mwipff@demandbase.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "501-1000",
+          "Email": "mwipff@demandbase.com",
+          "New Column (2)": "linkedin.com/in/meganwipff",
+          "Mobile Phone (2)": "+1 951-755-9246",
+          "New Column": "senior sales development manager",
+          "Location": "united states",
+          "Job Start Date": "2024-12-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: Sales leadership 35 = 35; Company: present 15; Engagement: +NPS 8 → 20 = 20; Total = 70"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "covertswarm.com",
+          "User Name": "Ilan Fehler",
+          "Email Address": "Ilan.fehler@covertswarm.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "51-200",
+          "Email": "Ilan.fehler@covertswarm.com",
+          "New Column (2)": "linkedin.com/in/fehler",
+          "Mobile Phone (2)": "+1 818-585-4711",
+          "New Column": "strategic account executive",
+          "Location": "united kingdom",
+          "Job Start Date": "2023-11-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: present 15; Engagement: +NPS 8 → 20 = 20; Total = 70"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "workspeed.com",
+          "User Name": "Kevin McCarthy",
+          "Email Address": "kjames.mccarthy@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "kjames.mccarthy@gmail.com",
+          "New Column (2)": "linkedin.com/in/kevin-mccarthy1",
+          "Mobile Phone (2)": "+1 708-207-1047",
+          "New Column": "strategic account executive",
+          "Location": "united states",
+          "Job Start Date": "2024-09-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 75,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 75"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "sailpoint.com",
+          "User Name": "Scott Torney",
+          "Email Address": "scott.torney@sailpoint.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "scott.torney@sailpoint.com",
+          "New Column (2)": "linkedin.com/in/scott-torney",
+          "Mobile Phone (2)": "+17143354544",
+          "New Column": "strategic enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2023-12-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 75,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 75"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "udemy.com",
+          "User Name": "Stacey Schramm",
+          "Email Address": "Staceyschramm@outlook.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "1001-5000",
+          "Email": "Staceyschramm@outlook.com",
+          "New Column (2)": "linkedin.com/in/staceyschramm",
+          "Mobile Phone (2)": "(858) 922-0810",
+          "New Column": "strategic enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2022-07-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 80,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: present 15; Engagement: +Coaching yes +10 +NPS 8 → 20 = 30; Total = 80"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "databricks.com",
+          "User Name": "Bill Robinson",
+          "Email Address": "Bill.robinson@databricks.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "He booked after webinar",
+          "Job Company Size": "5001-10000",
+          "Email": "Bill.robinson@databricks.com",
+          "New Column (2)": "linkedin.com/in/brobinson132",
+          "Mobile Phone (2)": "+1 860-916-0789",
+          "New Column": "strategic enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2022-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: Tier1 B2B tech (databricks.com) = 25; Engagement: +Coaching yes +10 = 10; Total = 70"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "",
+          "Job Company Website": "smartsheet.com",
+          "User Name": "Viraj Mandania",
+          "Email Address": "Viraj.mandania@smartsheet.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "He claims hes not in a strat role enough for this",
+          "Email": "Viraj.mandania@smartsheet.com",
+          "New Column (2)": "linkedin.com/in/viraj-mandania",
+          "Mobile Phone (2)": "+1 619-316-5203",
+          "New Column": "strategic enterprise account manager",
+          "Location": "united states",
+          "Job Start Date": "2025-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 83,
+        "reasoning": "Role: Account Manager 28, +Enterprise/Strategic +5 = 33; Company: Tier1 B2B tech (smartsheet.com) = 25; Engagement: +NPS 10 → 25 = 25; Total = 83"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "rainpartners.com",
+          "User Name": "Ryan Colosky",
+          "Email Address": "rcolosky@sbcglobal.net",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "11-50",
+          "Email": "rcolosky@sbcglobal.net",
+          "New Column (2)": "linkedin.com/in/ryan-colosky",
+          "Mobile Phone (2)": "+1 269-903-9023",
+          "New Column": "vice president - business development",
+          "Location": "united states",
+          "Job Start Date": "2024-11-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 70,
+        "reasoning": "Role: Generic sales 20 = 20; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 70"
+      }
+    ],
+    "low": [
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "isc2-siliconvalley-chapter.org",
+          "User Name": "Evan Stewart",
+          "Email Address": "ecs06c@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1-10",
+          "Email": "ecs06c@gmail.com",
+          "New Column (2)": "linkedin.com/in/evan-stewart-63750612",
+          "Mobile Phone (2)": "+1 908-770-5457",
+          "New Column": "board member - director, membership & sponsorship",
+          "Location": "united states",
+          "Job Start Date": "2024-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 50,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 50"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "workwithopal.com",
+          "User Name": "Bennett Chiongbian",
+          "Email Address": "bchiongbian@workwithopal.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "bchiongbian@workwithopal.com",
+          "New Column (2)": "linkedin.com/in/bennett-chiongbian-510a17227",
+          "Mobile Phone (2)": "+1 541-221-3666",
+          "New Column": "business development",
+          "Location": "united states",
+          "Job Start Date": "2023-12-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 60,
+        "reasoning": "Role: Generic sales 20 = 20; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 60"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "salesforce.com",
+          "User Name": "Prince Soba",
+          "Email Address": "Psoba@salesforce.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "Pretty new so gotta stay on top of it",
+          "Job Company Size": "10001+",
+          "Email": "Psoba@salesforce.com",
+          "New Column (2)": "linkedin.com/in/princesoba",
+          "Mobile Phone (2)": "+1 647-330-2832",
+          "New Column": "business development representative",
+          "Location": "united states",
+          "Job Start Date": "2024-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 55,
+        "reasoning": "Role: SDR/BDR base 20 = 20; Company: Tier1 B2B tech (salesforce.com) = 25; Engagement: +Coaching yes +10 = 10; Total = 55"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "paloaltonetworks.com",
+          "User Name": "Danny Baylis",
+          "Email Address": "dbaylis18@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "10001+",
+          "Email": "dbaylis18@gmail.com",
+          "New Column (2)": "linkedin.com/in/dannybaylis1",
+          "Mobile Phone (2)": "+1 630-550-1583",
+          "New Column": "channel business manager",
+          "Location": "united states",
+          "Job Start Date": "2021-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 50,
+        "reasoning": "Role: not sales; Company: Tier1 B2B tech (paloaltonetworks.com) = 25; Engagement: +NPS 10 → 25 = 25; Total = 50"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "securecdp.com",
+          "User Name": "Nirav Doshi",
+          "Email Address": "Nirav@securecdp.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "11-50",
+          "Email": "Nirav@securecdp.com",
+          "New Column (2)": "linkedin.com/in/niravcdp",
+          "Mobile Phone (2)": "+12487661899",
+          "New Column": "chief executive officer",
+          "Location": "united states",
+          "Job Start Date": "2012-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 50,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 50"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "reportingmd.com",
+          "User Name": "Aubrey Ibele",
+          "Email Address": "Aubrey@sagemedstudio.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "11-50",
+          "Email": "Aubrey@sagemedstudio.com",
+          "New Column (2)": "linkedin.com/in/aibele",
+          "Mobile Phone (2)": "+1 907-227-9727",
+          "New Column": "chief marketing officer",
+          "Location": "united states",
+          "Job Start Date": "2025-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 50,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 50"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "valenzhealth.com",
+          "User Name": "Alex Ruiz",
+          "Email Address": "Aruiz@valenzhealth.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "501-1000",
+          "Email": "Aruiz@valenzhealth.com",
+          "New Column (2)": "linkedin.com/in/alex-ruiz-csfs®-759a56b5",
+          "Mobile Phone (2)": "+1 908-361-6589",
+          "New Column": "client services executive",
+          "Location": "united states",
+          "Job Start Date": "2021-08-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 50,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 50"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "facilityinnovationsgroup.com",
+          "User Name": "Eric Frazier",
+          "Email Address": "efrazier@facilityig.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "11-50",
+          "Email": "efrazier@facilityig.com",
+          "New Column (2)": "linkedin.com/in/ericfrazier123",
+          "Mobile Phone (2)": "+1 214-562-7457",
+          "New Column": "director of project development",
+          "Location": "united states",
+          "Job Start Date": "2023-06-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 50,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 50"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "energyby5.com",
+          "User Name": "Ahmed Mirza",
+          "Email Address": "ahmed.mirza@energyby5.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "51-200",
+          "Email": "ahmed.mirza@energyby5.com",
+          "New Column (2)": "linkedin.com/in/mrahmedmirza",
+          "Mobile Phone (2)": "+1 832-343-5387",
+          "New Column": "energy advisor",
+          "Location": "united states",
+          "Job Start Date": "2024-07-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 50,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 50"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "tempo.io",
+          "User Name": "Hunter Haake",
+          "Email Address": "hunter.haake@tempo.io",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "201-500",
+          "Email": "hunter.haake@tempo.io",
+          "New Column (2)": "linkedin.com/in/hunter-haake-7132aa12b",
+          "Mobile Phone (2)": "+1 913-901-7441",
+          "New Column": "enterprise account director",
+          "Location": "united states",
+          "Job Start Date": "2024-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 53,
+        "reasoning": "Role: not sales; Company: likely B2B tech TLD (tempo.io) = 20; Engagement: +Coaching yes +10 +NPS 9 → 23 = 33; Total = 53"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "page-vault.com",
+          "User Name": "Taylor Welch",
+          "Email Address": "Taylor.welch@Page-vault.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "11-50",
+          "Email": "Taylor.welch@Page-vault.com",
+          "New Column (2)": "linkedin.com/in/taylor-welch-1900871a6",
+          "Mobile Phone (2)": "(816) 462-3289",
+          "New Column": "enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2025-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 68,
+        "reasoning": "Role: AE base 30, +Enterprise/Strategic +5 = 35; Company: present 15; Engagement: +NPS 7 → 18 = 18; Total = 68"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "ehs.com",
+          "User Name": "Brad Doherty",
+          "Email Address": "bdoherty@ehs.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "501-1000",
+          "Email": "bdoherty@ehs.com",
+          "New Column (2)": "linkedin.com/in/braddohertyvelocityehs",
+          "Mobile Phone (2)": "+1 905-283-1207",
+          "New Column": "mid-market account manager",
+          "Location": "united states",
+          "Job Start Date": "2022-09-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 68,
+        "reasoning": "Role: Account Manager 28 = 28; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 68"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "uipath.com",
+          "User Name": "Sean Blaney",
+          "Email Address": "Sean.Blaney@uipath.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "Sean.Blaney@uipath.com",
+          "New Column (2)": "linkedin.com/in/seanblaney4",
+          "Mobile Phone (2)": "(202) 365-0516",
+          "New Column": "public sector account director-department of defense",
+          "Location": "united states",
+          "Job Start Date": "2024-08-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 60,
+        "reasoning": "Role: not sales; Company: Tier1 B2B tech (uipath.com) = 25; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 60"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "wellsky.com",
+          "User Name": "Arthur Slade",
+          "Email Address": "arthur.slade@wellsky.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "1001-5000",
+          "Email": "arthur.slade@wellsky.com",
+          "New Column (2)": "linkedin.com/in/arthur-slade-614290b",
+          "Mobile Phone (2)": "+1 803-413-2815",
+          "New Column": "regional account executive",
+          "Location": "united states",
+          "Job Start Date": "2023-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 68,
+        "reasoning": "Role: AE base 30 = 30; Company: present 15; Engagement: +NPS 9 → 23 = 23; Total = 68"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "teladochealth.com",
+          "User Name": "Steven Romanoff",
+          "Email Address": "steven.romanoff@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "5001-10000",
+          "Email": "steven.romanoff@gmail.com",
+          "New Column (2)": "linkedin.com/in/stevenromanoff",
+          "Mobile Phone (2)": "+1 207-272-9782",
+          "New Column": "regional sales executive - hospitals & health systems - west",
+          "Location": "united states",
+          "Job Start Date": "2021-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": "PST"
+        },
+        "score": 68,
+        "reasoning": "Role: Generic sales 20 = 20; Company: present 15; Engagement: +Coaching yes +10 +NPS 9 → 23 = 33; Total = 68"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "",
+          "Job Company Website": "litty.ai",
+          "User Name": "Michael Bolivar",
+          "Email Address": "michael.bolivar@evenuplaw.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "201-500",
+          "Email": "michael.bolivar@evenuplaw.com",
+          "New Column (2)": "linkedin.com/in/michael-bolivar-10093a56",
+          "Mobile Phone (2)": "+1 562-324-9889",
+          "New Column": "sales",
+          "Location": "united states",
+          "Job Start Date": "2023-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 65,
+        "reasoning": "Role: Generic sales 20 = 20; Company: likely B2B tech TLD (litty.ai) = 20; Engagement: +NPS 10 → 25 = 25; Total = 65"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "avalara.com",
+          "User Name": "Matt Riemen",
+          "Email Address": "matt.riemen@avalara.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "1001-5000",
+          "Email": "matt.riemen@avalara.com",
+          "New Column (2)": "linkedin.com/in/mattriemen",
+          "Mobile Phone (2)": "+1 919-906-0839",
+          "New Column": "sales executive | netsuite team",
+          "Location": "united states",
+          "Job Start Date": "2024-04-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 68,
+        "reasoning": "Role: Generic sales 20 = 20; Company: present 15; Engagement: +Coaching yes +10 +NPS 9 → 23 = 33; Total = 68"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "a2mac1.com",
+          "User Name": "Todd Meek",
+          "Email Address": "tmeek@a2mac1.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "5",
+          "Job Company Size": "501-1000",
+          "Email": "tmeek@a2mac1.com",
+          "New Column (2)": "linkedin.com/in/toddmeek",
+          "Mobile Phone (2)": "+1 253-278-9578",
+          "New Column": "senior account executive",
+          "Location": "france",
+          "Job Start Date": "2023-05-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 63,
+        "reasoning": "Role: AE base 30, +Senior +5 = 35; Company: present 15; Engagement: +NPS 5 → 13 = 13; Total = 63"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "audioeye.com",
+          "User Name": "Chris geaslen",
+          "Email Address": "chris.geaslen@audioeye.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "already booked with Tanveer using link",
+          "Job Company Size": "51-200",
+          "Email": "chris.geaslen@audioeye.com",
+          "New Column (2)": "linkedin.com/in/cgeaslen",
+          "Mobile Phone (2)": "+1 919-412-8409",
+          "New Column": "senior account executive",
+          "Location": "united states",
+          "Job Start Date": "2025-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 60,
+        "reasoning": "Role: AE base 30, +Senior +5 = 35; Company: present 15; Engagement: +Coaching yes +10 = 10; Total = 60"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "solutionstack.ca",
+          "User Name": "ivan Jurisic",
+          "Email Address": "ivanj@Solutionstack.ca",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "11-50",
+          "Email": "ivanj@Solutionstack.ca",
+          "New Column (2)": "linkedin.com/in/ivan-jurisic-3b2872a",
+          "Mobile Phone (2)": "+1 647-668-6967",
+          "New Column": "senior sales executive",
+          "Location": "canada",
+          "Job Start Date": "2022-06-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 55,
+        "reasoning": "Role: Generic sales 20 = 20; Company: present 15; Engagement: +NPS 8 → 20 = 20; Total = 55"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "onetrust.com",
+          "User Name": "Jose Oquendo",
+          "Email Address": "jose.o.oquendo@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "1001-5000",
+          "Email": "jose.o.oquendo@gmail.com",
+          "New Column (2)": "linkedin.com/in/joquendo",
+          "Mobile Phone (2)": "+1 850-393-9108",
+          "New Column": "strategic business development representative, north region",
+          "Location": "united states",
+          "Job Start Date": "2024-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 58,
+        "reasoning": "Role: SDR/BDR base 20 = 20; Company: present 15; Engagement: +NPS 9 → 23 = 23; Total = 58"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "ibagroupit.com",
+          "User Name": "Andrew Dvirnyk",
+          "Email Address": "andrew.dvirnyk@ibagroupit.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "andrew.dvirnyk@ibagroupit.com",
+          "New Column (2)": "linkedin.com/in/andrewdvirnyk",
+          "Mobile Phone (2)": "+1 570-561-9026",
+          "New Column": "vice president",
+          "Location": "czechia",
+          "Job Start Date": "2019-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 50,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 +NPS 10 → 25 = 35; Total = 50"
+      }
+    ],
+    "very_low": [
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "tnp.net.uk",
+          "User Name": "George Knowles",
+          "Email Address": "George.knowles@tnp.net.uk",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "51-200",
+          "Email": "George.knowles@tnp.net.uk",
+          "New Column (2)": "linkedin.com/in/georgeknowlesuk",
+          "Mobile Phone (2)": "+44 7884 057648",
+          "New Column": "account director",
+          "Location": "united kingdom",
+          "Job Start Date": "2022-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 45,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 +NPS 8 → 20 = 30; Total = 45"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "goformz.com",
+          "User Name": "Ryan Lovelace",
+          "Email Address": "rlovelace@goformz.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "Unqulaifed still bdr",
+          "Job Company Size": "51-200",
+          "Email": "rlovelace@goformz.com",
+          "New Column (2)": "linkedin.com/in/lovelaceryan",
+          "Mobile Phone (2)": "(619) 823-1848",
+          "New Column": "business development representative",
+          "Location": "united states",
+          "Job Start Date": "2025-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 35,
+        "reasoning": "Role: SDR/BDR base 20 = 20; Company: present 15; Engagement:  = 0; Total = 35"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "calvary-capital.com",
+          "User Name": "Brock Burton",
+          "Email Address": "brock@snappt.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "1-10",
+          "Email": "brock@snappt.com",
+          "New Column (2)": "linkedin.com/in/-brockburton",
+          "Mobile Phone (2)": "+1 480-734-1212",
+          "New Column": "co-founder",
+          "Location": "united states",
+          "Job Start Date": "2023-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 35,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +NPS 8 → 20 = 20; Total = 35"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "pendo.io",
+          "User Name": "Pete Carlson",
+          "Email Address": "Pete.carlson@pendo.io",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "501-1000",
+          "Email": "Pete.carlson@pendo.io",
+          "New Column (2)": "linkedin.com/in/pete-carlson-056090a3",
+          "Mobile Phone (2)": "+1 360-920-0730",
+          "New Column": "enterprise account director",
+          "Location": "united states",
+          "Job Start Date": "2025-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 43,
+        "reasoning": "Role: not sales; Company: likely B2B tech TLD (pendo.io) = 20; Engagement: +NPS 9 → 23 = 23; Total = 43"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "Good lead spoke with him",
+          "User Name": "Dalton Turay",
+          "Email Address": "dalton.turay@grafana.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "",
+          "Email": "dalton.turay@grafana.com",
+          "New Column (2)": "linkedin.com/in/dalton-turay-0839a562",
+          "Mobile Phone (2)": "+1 925-789-7520",
+          "New Column": "founding member, board director",
+          "Location": "",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 33,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +NPS 7 → 18 = 18; Total = 33"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "seismic.com",
+          "User Name": "Ron Masi",
+          "Email Address": "rmasi@seismic.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "rmasi@seismic.com",
+          "New Column (2)": "linkedin.com/in/ronmasi",
+          "Mobile Phone (2)": "+1 760-840-7047",
+          "New Column": "global strategic account director",
+          "Location": "united states",
+          "Job Start Date": "2022-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 40,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 40"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "irisbusiness.com",
+          "User Name": "Gaurav Sharma",
+          "Email Address": "Gaurav.sharma@irisbusiness.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "501-1000",
+          "Email": "Gaurav.sharma@irisbusiness.com",
+          "New Column (2)": "linkedin.com/in/gs6189",
+          "Mobile Phone (2)": "+91 99719 75181",
+          "New Column": "manager, finance transformation - iris carbon",
+          "Location": "india",
+          "Job Start Date": "2025-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 35,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +NPS 8 → 20 = 20; Total = 35"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "zips.com",
+          "User Name": "Devon Banks",
+          "Email Address": "Devon@zips.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "201-500",
+          "Email": "Devon@zips.com",
+          "New Column (2)": "linkedin.com/in/devonbanks",
+          "Mobile Phone (2)": "+1 647-625-2189",
+          "New Column": "national strategic partner | fleet programs",
+          "Location": "united states",
+          "Job Start Date": "2024-11-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 48,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 +NPS 9 → 23 = 33; Total = 48"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "dragonflyenergy.com",
+          "User Name": "Donald Hasler",
+          "Email Address": "DJ@dragonflyenergy.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "51-200",
+          "Email": "DJ@dragonflyenergy.com",
+          "New Column (2)": "linkedin.com/in/dj-hasler-53aa8a11",
+          "Mobile Phone (2)": "+1 314-330-6020",
+          "New Column": "oem product specialist",
+          "Location": "united states",
+          "Job Start Date": "2023-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 48,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 +NPS 9 → 23 = 33; Total = 48"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "scandere.io",
+          "User Name": "Karl Federmann",
+          "Email Address": "Karl@scandere.io",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1-10",
+          "Email": "Karl@scandere.io",
+          "New Column (2)": "linkedin.com/in/karl-federmann-4608643",
+          "Mobile Phone (2)": "+1 216-577-9540",
+          "New Column": "president",
+          "Location": "united states",
+          "Job Start Date": "2022-12-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 45,
+        "reasoning": "Role: not sales; Company: likely B2B tech TLD (scandere.io) = 20; Engagement: +NPS 10 → 25 = 25; Total = 45"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "carta.com",
+          "User Name": "Kendall Marques",
+          "Email Address": "k.marques@carta.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "1001-5000",
+          "Email": "k.marques@carta.com",
+          "New Column (2)": "linkedin.com/in/kendallmarques",
+          "Mobile Phone (2)": "+1 650-464-8285",
+          "New Column": "program manager",
+          "Location": "united states",
+          "Job Start Date": "2024-08-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 33,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +NPS 7 → 18 = 18; Total = 33"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "babelstreet.com",
+          "User Name": "Ken Schmidt",
+          "Email Address": "kschmidt@babelstreet.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "201-500",
+          "Email": "kschmidt@babelstreet.com",
+          "New Column (2)": "linkedin.com/in/thoughtfulleader",
+          "Mobile Phone (2)": "+1 925-200-0201",
+          "New Column": "regional director - identity solutions",
+          "Location": "united states",
+          "Job Start Date": "2023-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 45,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 +NPS 8 → 20 = 30; Total = 45"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "",
+          "Job Company Website": "trinet.com",
+          "User Name": "allison Irwin",
+          "Email Address": "Allison.irwin@trinet.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "1001-5000",
+          "Email": "Allison.irwin@trinet.com",
+          "New Column (2)": "linkedin.com/in/allison-irwin-mba-8384699",
+          "Mobile Phone (2)": "+1 602-292-3250",
+          "New Column": "senior consultant",
+          "Location": "united states",
+          "Job Start Date": "2023-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 38,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +NPS 9 → 23 = 23; Total = 38"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "cadybt.com",
+          "User Name": "amy Robinson",
+          "Email Address": "amy.robinson@cadybt.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "11-50",
+          "Email": "amy.robinson@cadybt.com",
+          "New Column (2)": "linkedin.com/in/amy-robinson-6026b714",
+          "Mobile Phone (2)": "+1 651-788-1473",
+          "New Column": "senior technology advisor",
+          "Location": "united states",
+          "Job Start Date": "2022-07-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 40,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 40"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "lexicoconsulting.com",
+          "User Name": "Lauren Zamorano",
+          "Email Address": "lauren@lexicoconsulting.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "11-50",
+          "Email": "lauren@lexicoconsulting.com",
+          "New Column (2)": "linkedin.com/in/laurenzamorano",
+          "Mobile Phone (2)": "+1 214-316-3138",
+          "New Column": "strategic development lead",
+          "Location": "united states",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 40,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +NPS 10 → 25 = 25; Total = 40"
+      }
+    ],
+    "archive": [
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "merchantgrowth.com",
+          "User Name": "Justin Chen",
+          "Email Address": "jchen@merchantgrowth.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "",
+          "Job Company Size": "51-200",
+          "Email": "jchen@merchantgrowth.com",
+          "New Column (2)": "linkedin.com/in/xycjustin",
+          "Mobile Phone (2)": "+1 778-239-7162",
+          "New Column": "partnerships manager",
+          "Location": "canada",
+          "Job Start Date": "2022-11-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": 25,
+        "reasoning": "Role: not sales; Company: present 15; Engagement: +Coaching yes +10 = 10; Total = 25"
+      }
+    ],
+    "unclear": [
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Taylor Johnson",
+          "Email Address": "Taylor@taylorjohnsonperformance.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "",
+          "Email": "Taylor@taylorjohnsonperformance.com",
+          "New Column (2)": "linkedin.com/in/taylorjohnsonperformance",
+          "Mobile Phone (2)": "+19258954704",
+          "New Column": "venture partner",
+          "Location": "",
+          "Job Start Date": "2022-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "",
+          "Job Company Website": "",
+          "User Name": "Jeremy Kemper",
+          "Email Address": "Jeremy.kemper@vexcelgroup.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Jeremy.kemper@vexcelgroup.com",
+          "New Column (2)": "https://www.linkedin.com/in/jeremy-kemper",
+          "Mobile Phone (2)": "+19253304992",
+          "New Column": "Regional Sales Director, Enterprise",
+          "Location": "United States",
+          "Job Start Date": "2023-11-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "",
+          "Job Company Website": "",
+          "User Name": "Ali Kenney",
+          "Email Address": "ake@templafy.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "ake@templafy.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Francesca Riehl",
+          "Email Address": "francesca@medshift.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "francesca@medshift.com",
+          "New Column (2)": "https://www.linkedin.com/in/francescariehl",
+          "Mobile Phone (2)": "+12693633762",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Jacob Karcher",
+          "Email Address": "J.karcher@sana-commerce.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "J.karcher@sana-commerce.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "jess lancaster",
+          "Email Address": "jess.lancaster@teifi.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "jess.lancaster@teifi.com",
+          "New Column (2)": "https://www.linkedin.com/in/jessicalancaster",
+          "Mobile Phone (2)": "+14168783589",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Andrew Armstrong",
+          "Email Address": "andrew.armstrong@netlify.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "andrew.armstrong@netlify.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "William Smith",
+          "Email Address": "william.smith@enterbridge.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "william.smith@enterbridge.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Luke Shaw",
+          "Email Address": "Luke@redballoon.work",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "3",
+          "Job Company Size": "",
+          "Email": "Luke@redballoon.work",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Ben Center",
+          "Email Address": "ben.h.center@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "",
+          "Email": "ben.h.center@gmail.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "(301) 801-5761",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "John Mann",
+          "Email Address": "jmann@popicllc.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "Sub not in service",
+          "Email": "jmann@popicllc.com",
+          "New Column (2)": "https://www.linkedin.com/in/johncmann",
+          "Mobile Phone (2)": "(321) 377-4989",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Mike Cornelius",
+          "Email Address": "Mike@flexdoc.ai",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "2",
+          "Job Company Size": "",
+          "Email": "Mike@flexdoc.ai",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Sean Sargent",
+          "Email Address": "ssargent@denodo.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "ssargent@denodo.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Rebekka Weckherlin",
+          "Email Address": "Rebekka.weckherlin@gmx.de",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Rebekka.weckherlin@gmx.de",
+          "New Column (2)": "https://www.linkedin.com/in/rebekka-weckherlin",
+          "Mobile Phone (2)": "+4915161826962",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Erich Wohl",
+          "Email Address": "ewohl@adobe.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "ewohl@adobe.com",
+          "New Column (2)": "https://www.linkedin.com/in/erichwohl",
+          "Mobile Phone (2)": "+13474454143",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Paul Morrissey",
+          "Email Address": "pmorrissey@aealogixsolutions.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "pmorrissey@aealogixsolutions.com",
+          "New Column (2)": "https://www.linkedin.com/in/eucpaulmorrissey",
+          "Mobile Phone (2)": "+19253608400",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Andres Roche Chavez",
+          "Email Address": "andres.roche@pleo.io",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "andres.roche@pleo.io",
+          "New Column (2)": "linkedin.com/in/andresroche",
+          "Mobile Phone (2)": "+447851917495",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Aaron Shaw",
+          "Email Address": "shawaaronp@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "",
+          "Email": "shawaaronp@gmail.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Robert Freeborn",
+          "Email Address": "robfreeborn@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "robfreeborn@gmail.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "+1 817-791-8438",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Kevin Daly",
+          "Email Address": "Kevin.Daly@sap.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Kevin.Daly@sap.com",
+          "New Column (2)": "linkedin.com/in/dalynews",
+          "Mobile Phone (2)": "+1 610-291-0591",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Alexander Shorthose",
+          "Email Address": "alex@cognism.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "5",
+          "Job Company Size": "",
+          "Email": "alex@cognism.com",
+          "New Column (2)": "linkedin.com/in/alexander-shorthose-b0045777",
+          "Mobile Phone (2)": "+44 20 3955 7490",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Tom Jensen",
+          "Email Address": "Tom.jensen@hexagon.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "4",
+          "Job Company Size": "",
+          "Email": "Tom.jensen@hexagon.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Bjarne D",
+          "Email Address": "bjarne.degen@netlight.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "bjarne.degen@netlight.com",
+          "New Column (2)": "linkedin.com/in/bjarne-degen-917a55177",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Irina Ramashka",
+          "Email Address": "irina.ramashka@markt-pilot.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "",
+          "Email": "irina.ramashka@markt-pilot.com",
+          "New Column (2)": "https://www.linkedin.com/in/irina-ramashka-378284163",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Brett Davidson",
+          "Email Address": "Bdavidson@informatica.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Bdavidson@informatica.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Patricio Briceno",
+          "Email Address": "Briceno.patricio@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Briceno.patricio@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/patricio-briceno",
+          "Mobile Phone (2)": "+56 9 7767 1748",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Pouya Marvasti",
+          "Email Address": "pouya.marvasti@fieldagent.net",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "pouya.marvasti@fieldagent.net",
+          "New Column (2)": "https://www.linkedin.com/in/pouya-marvasti",
+          "Mobile Phone (2)": "+19496809280",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "John Buchalo",
+          "Email Address": "jbuchalo@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "jbuchalo@gmail.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "+1 630-251-0699",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Margie Schroder",
+          "Email Address": "marjorie.a.schroder@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "marjorie.a.schroder@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/margieschroder",
+          "Mobile Phone (2)": "+61298174885",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "bob ahearn",
+          "Email Address": "robertahearn@moengage.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "robertahearn@moengage.com",
+          "New Column (2)": "linkedin.com/in/bob-ahearn-5807ab80",
+          "Mobile Phone (2)": "+1 781-608-6293",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Ali Chaudhary",
+          "Email Address": "ali.chaudhary@submittable.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "",
+          "Email": "ali.chaudhary@submittable.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Greg Watts",
+          "Email Address": "greg_a_watts@hotmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "greg_a_watts@hotmail.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "Matt O’Grady",
+          "Email Address": "Matt.ogrady@docusign.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Matt.ogrady@docusign.com",
+          "New Column (2)": "https://www.linkedin.com/in/matt-o-grady-50056812",
+          "Mobile Phone (2)": "+17082624181",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "TEST TESTING",
+          "Email Address": "brooke+test@brookeestin.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "brooke+test@brookeestin.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "",
+          "User Name": "David Houser",
+          "Email Address": "dhouser9@verizon.net",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "In between jobs right now",
+          "Email": "dhouser9@verizon.net",
+          "New Column (2)": "https://www.linkedin.com/in/dhouser9",
+          "Mobile Phone (2)": "+18137871933",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Ryan Spurlock",
+          "Email Address": "Rspurlock56@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Rspurlock56@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/ryan-spurlock-10b80218/",
+          "Mobile Phone (2)": "(724) 456-5364",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Juan Pablo Garcia",
+          "Email Address": "jpgarcia@kapturall.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "jpgarcia@kapturall.com",
+          "New Column (2)": "https://www.linkedin.com/in/juanpablogarciabcn",
+          "Mobile Phone (2)": "+34683457400",
+          "New Column": "Member",
+          "Location": "Spain",
+          "Job Start Date": "2022-04-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Tove Larsen",
+          "Email Address": "tove.larsen@me.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "tove.larsen@me.com",
+          "New Column (2)": "https://www.linkedin.com/in/tovelarsen",
+          "Mobile Phone (2)": "+1 503-888-4104",
+          "New Column": "Director Strategic Solutions",
+          "Location": "United States",
+          "Job Start Date": "2024-12-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Edwin Aristor",
+          "Email Address": "Edwin.aristor@icloud.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Edwin.aristor@icloud.com",
+          "New Column (2)": "https://www.linkedin.com/in/edwinaristor",
+          "Mobile Phone (2)": "+15164913986",
+          "New Column": "Enterprise Account Manager",
+          "Location": "United States",
+          "Job Start Date": "2025-06-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Naomi Waterhouse",
+          "Email Address": "Naomi.waterhouse@smarsh.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "Based in the UK",
+          "Email": "Naomi.waterhouse@smarsh.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Katlego Mothibi",
+          "Email Address": "katlegomothibi@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "katlegomothibi@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/katlegomothibi",
+          "Mobile Phone (2)": "+27 83 521 4484",
+          "New Column": "Business Development Manager - GBS, LE",
+          "Location": "South Africa",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "tom kiersey",
+          "Email Address": "tomkiersey10@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "tomkiersey10@gmail.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "Still a BDR too early",
+          "User Name": "Nico Maggio",
+          "Email Address": "nmaggio@salesforce.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "nmaggio@salesforce.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Matthew Oliver",
+          "Email Address": "matthew.oliver@shippeo.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "2 tps LInkedin",
+          "Email": "matthew.oliver@shippeo.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "William Sullivan",
+          "Email Address": "sullyb6823@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "sullyb6823@gmail.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Spencer Smith",
+          "Email Address": "ssm@templafy.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "ssm@templafy.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Devin De La Cruz",
+          "Email Address": "d.delacruz@smartcat.ai",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "Busy signal",
+          "Email": "d.delacruz@smartcat.ai",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Nick Barbo",
+          "Email Address": "nick.barbo@tryloop.ai",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "still a bdr",
+          "Email": "nick.barbo@tryloop.ai",
+          "New Column (2)": "https://www.linkedin.com/in/nick-barbo-2a797513a",
+          "Mobile Phone (2)": "+12014386282",
+          "New Column": "Enterprise Sales Development Representative",
+          "Location": "United States",
+          "Job Start Date": "2025-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "carter pinson",
+          "Email Address": "carterpinson2@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "carterpinson2@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/carter-pinson-497214132",
+          "Mobile Phone (2)": "(770) 539-3492",
+          "New Column": "Strategic Client Director - Insurance Solutions",
+          "Location": "United States",
+          "Job Start Date": "2023-09-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Serge Roux",
+          "Email Address": "sroux@structuraltec.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "sroux@structuraltec.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Adam Niles",
+          "Email Address": "aniles@soundhound.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "aniles@soundhound.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "SAm Cilento",
+          "Email Address": "scilento@lakotasoftware.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "He said hes down ot catch up",
+          "Email": "scilento@lakotasoftware.com",
+          "New Column (2)": "https://www.linkedin.com/in/sam-cilento",
+          "Mobile Phone (2)": "+13046417211",
+          "New Column": "Business Development Manager",
+          "Location": "United States",
+          "Job Start Date": "2020-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Astrid Farber",
+          "Email Address": "astrid.farber@docusign.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "Accepted my request",
+          "Email": "astrid.farber@docusign.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Jason Huedepohl",
+          "Email Address": "jasonh@advancedintra.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "jasonh@advancedintra.com",
+          "New Column (2)": "https://www.linkedin.com/in/jasonhuedepohl",
+          "Mobile Phone (2)": "+19529136545",
+          "New Column": "General Manager, Advanced Intralogistics",
+          "Location": "United States",
+          "Job Start Date": "2024-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Mary Claire Gillespie",
+          "Email Address": "mc.mccahill@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "mc.mccahill@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/mary-claire-gillespie-794a47b",
+          "Mobile Phone (2)": "+17326162723",
+          "New Column": "Account Executive",
+          "Location": "United States",
+          "Job Start Date": "2022-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Mike Townsend",
+          "Email Address": "mike.townsend@email.zoominfo.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "mike.townsend@email.zoominfo.com",
+          "New Column (2)": "https://www.linkedin.com/in/mike-townsend-3185b7160",
+          "Mobile Phone (2)": "+15088318687",
+          "New Column": "Strategic Sales Development Representative",
+          "Location": "United States",
+          "Job Start Date": "2025-06-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Mitchell Schwartz",
+          "Email Address": "mitchellschwartz@asana.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "already a client",
+          "Email": "mitchellschwartz@asana.com",
+          "New Column (2)": "https://www.linkedin.com/in/schwartz-mitchell",
+          "Mobile Phone (2)": "+12489335576",
+          "New Column": "Account Executive",
+          "Location": "United States",
+          "Job Start Date": "2022-09-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Elena Gusmini",
+          "Email Address": "elena.gusmini97@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "elena.gusmini97@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/elena-gusmini-69a113216",
+          "Mobile Phone (2)": "",
+          "New Column": "Digital Advisor",
+          "Location": "Italy",
+          "Job Start Date": "2022-05-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Gabe Ramirez",
+          "Email Address": "gabe.ramirez131@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "gabe.ramirez131@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/gabe-ramirez-54879613",
+          "Mobile Phone (2)": "(469) 261-2382",
+          "New Column": "Director of Client Solutions, Digital Enablement",
+          "Location": "United States",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Daniel Toman",
+          "Email Address": "danjtoman@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "spoke w him in the past in a new role now",
+          "Email": "danjtoman@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/danjtoman",
+          "Mobile Phone (2)": "+15197293145",
+          "New Column": "Growth Account Executive, MidMarket/Enterprise",
+          "Location": "Canada",
+          "Job Start Date": "2025-05-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": "First 10 sign up Private AI Group Session"
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Chris McBoyle",
+          "Email Address": "chris.mcboyle@rollerdigital.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "chris.mcboyle@rollerdigital.com",
+          "New Column (2)": "linkedin.com/in/chris-mcboyle-8b368b57",
+          "Mobile Phone (2)": "+44 7797 743488",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": "Bonus"
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Soa Cho",
+          "Email Address": "soa.cho@salesforce.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "Booked",
+          "Email": "soa.cho@salesforce.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Everett Ackerman",
+          "Email Address": "eackerman@newbreedrevenue.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "eackerman@newbreedrevenue.com",
+          "New Column (2)": "https://www.linkedin.com/in/everettackerman",
+          "Mobile Phone (2)": "+15186418379",
+          "New Column": "Adjunct Professor",
+          "Location": "United States",
+          "Job Start Date": "2022-09-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "chase hackner",
+          "Email Address": "chase.hackner@intactsoftware.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "Spoek with him he was in the middle of something",
+          "Email": "chase.hackner@intactsoftware.com",
+          "New Column (2)": "https://www.linkedin.com/in/chase-hackner-cjh",
+          "Mobile Phone (2)": "+16082892362",
+          "New Column": "Account Executive",
+          "Location": "United States",
+          "Job Start Date": "2025-04-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Kevin Kieda",
+          "Email Address": "kevin.kieda@sentinelone.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "already booked",
+          "Email": "kevin.kieda@sentinelone.com",
+          "New Column (2)": "https://www.linkedin.com/in/kevin-kieda-656b47275",
+          "Mobile Phone (2)": "978-877-8333",
+          "New Column": "",
+          "Location": "Argentina",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Alejandro Winsor",
+          "Email Address": "alejandro.winsor@pega.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "alejandro.winsor@pega.com",
+          "New Column (2)": "https://www.linkedin.com/in/alejandro-winsor",
+          "Mobile Phone (2)": "+16178809823",
+          "New Column": "Sales Associate",
+          "Location": "United States",
+          "Job Start Date": "2025-04-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Dylan Sheridan",
+          "Email Address": "dsheridan@cathxocean.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "still a bdr",
+          "Email": "dsheridan@cathxocean.com",
+          "New Column (2)": "https://www.linkedin.com/in/dylan-sheridan-9b5205260",
+          "Mobile Phone (2)": "",
+          "New Column": "Business Development Representative",
+          "Location": "Ireland",
+          "Job Start Date": "2025-05-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Dan Hill",
+          "Email Address": "dan.patrick.hill@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "He booked Time with Tanveer",
+          "Email": "dan.patrick.hill@gmail.com",
+          "New Column (2)": "linkedin.com/in/dan-hill-266782a",
+          "Mobile Phone (2)": "+1 706-750-5512",
+          "New Column": "Sr. Account Director, Customer Growth",
+          "Location": "United States",
+          "Job Start Date": "2025-06-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Brian Mayfield",
+          "Email Address": "brian.mayfield@pointerra.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "Not the right phone #",
+          "Email": "brian.mayfield@pointerra.com",
+          "New Column (2)": "https://www.linkedin.com/in/brian-mayfield-cp-gisp-sp-gis-14658312",
+          "Mobile Phone (2)": "(256) 542-8462",
+          "New Column": "Chief Executive Officer, US",
+          "Location": "United States",
+          "Job Start Date": "2024-11-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Deni Letts",
+          "Email Address": "deni.letts@strivacity.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "already booked with jred",
+          "Email": "deni.letts@strivacity.com",
+          "New Column (2)": "https://www.linkedin.com/in/deniletts",
+          "Mobile Phone (2)": "+17202026424",
+          "New Column": "Senior Account Executive",
+          "Location": "United States",
+          "Job Start Date": "2025-05-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Lauren Barnes",
+          "Email Address": "labarnes@teksystems.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "2 tp",
+          "Email": "labarnes@teksystems.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Isaac McCauley",
+          "Email Address": "mccauleyisaac@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "",
+          "Email": "mccauleyisaac@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/isaac-mccauley",
+          "Mobile Phone (2)": "+16044421888",
+          "New Column": "Head of Client Success",
+          "Location": "United Kingdom",
+          "Job Start Date": "2024-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Taylor Stone",
+          "Email Address": "taylorhstone@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "7",
+          "Job Company Size": "on vacation call her when she gets back",
+          "Email": "taylorhstone@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/taylor-stone-592792149",
+          "Mobile Phone (2)": "+15712418519",
+          "New Column": "Account Executive, Strategic Accounts",
+          "Location": "United States",
+          "Job Start Date": "2024-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Nick Benoit",
+          "Email Address": "nbenoit15@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "nbenoit15@gmail.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Alex Bujold",
+          "Email Address": "alex.bujold@reddit.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "Call cannot be completed as dialed",
+          "Email": "alex.bujold@reddit.com",
+          "New Column (2)": "https://www.linkedin.com/in/alex-bujold-a3895085",
+          "Mobile Phone (2)": "+12126057885",
+          "New Column": "Senior Client Partner, Mid-Market",
+          "Location": "United States",
+          "Job Start Date": "2025-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Michael Junior",
+          "Email Address": "Mjunior@ordr.net",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Mjunior@ordr.net",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "ann marie fisher",
+          "Email Address": "annmfisher529@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "annmfisher529@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/akozlowski1",
+          "Mobile Phone (2)": "+12165332250",
+          "New Column": "Owner",
+          "Location": "United States",
+          "Job Start Date": "2024-08-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Gavin Arredondo",
+          "Email Address": "arregavi@amazon.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "arregavi@amazon.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Nick Grome",
+          "Email Address": "Nick@ruedata.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "He accepted my invite on Li",
+          "Email": "Nick@ruedata.com",
+          "New Column (2)": "https://www.linkedin.com/in/nickgrome",
+          "Mobile Phone (2)": "+15134606878",
+          "New Column": "Head of North American Sales",
+          "Location": "United States",
+          "Job Start Date": "2025-05-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Kevin Jacobs",
+          "Email Address": "kjacobs@supermove.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "kjacobs@supermove.com",
+          "New Column (2)": "https://www.linkedin.com/in/kevintedjacobs",
+          "Mobile Phone (2)": "+1 416-458-1179",
+          "New Column": "Upmarket Account Executive",
+          "Location": "Canada",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Max Ferat",
+          "Email Address": "mferat@hubspot.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "mferat@hubspot.com",
+          "New Column (2)": "https://www.linkedin.com/in/max-ferat-05230560",
+          "Mobile Phone (2)": "+33649574444",
+          "New Column": "Account Executive - Mid Market",
+          "Location": "France",
+          "Job Start Date": "2025-07-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "ANTOINE PETIGNY",
+          "Email Address": "antoine_petigny@hotmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "antoine_petigny@hotmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/antoine-pétigny-7530bb137",
+          "Mobile Phone (2)": "+33643675819",
+          "New Column": "Account Manager ERP",
+          "Location": "France",
+          "Job Start Date": "2023-09-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Alexander Craig",
+          "Email Address": "sales@cortec-neuro.co",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "",
+          "Email": "sales@cortec-neuro.co",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Cameron MacNicol",
+          "Email Address": "cameron.macnicol@d2l.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "We are connected on LI",
+          "Email": "cameron.macnicol@d2l.com",
+          "New Column (2)": "https://www.linkedin.com/in/cameronmacnicol",
+          "Mobile Phone (2)": "+14166163743",
+          "New Column": "Senior Enterprise Account Executive",
+          "Location": "Canada",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Nicholas Burton",
+          "Email Address": "nicholas.burton4@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "nicholas.burton4@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/nicholasrburton1",
+          "Mobile Phone (2)": "+13139958955",
+          "New Column": "Manager, Social Impact Practice",
+          "Location": "United States",
+          "Job Start Date": "2021-08-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Tom West",
+          "Email Address": "tbwii@yahoo.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "already met with",
+          "Email": "tbwii@yahoo.com",
+          "New Column (2)": "https://www.linkedin.com/in/tomwest1996",
+          "Mobile Phone (2)": "+15102059072",
+          "New Column": "Strategic Account Executive",
+          "Location": "United States",
+          "Job Start Date": "2024-09-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Matt Ryan",
+          "Email Address": "mattryan@storyteq.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "",
+          "Email": "mattryan@storyteq.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Van Pilapil",
+          "Email Address": "van@n.rich",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "van@n.rich",
+          "New Column (2)": "https://www.linkedin.com/in/van-pilapil-376b9a1ba",
+          "Mobile Phone (2)": "",
+          "New Column": "Global Marketing (ABM Go-To-Market Manager Advocate)",
+          "Location": "Philippines",
+          "Job Start Date": "2021-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Oliver Miller",
+          "Email Address": "Oliver@kohoconsulting.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "Oliver@kohoconsulting.com",
+          "New Column (2)": "https://www.linkedin.com/in/oliver-m-4144b9153",
+          "Mobile Phone (2)": "+18017073352",
+          "New Column": "Manager of Business Development",
+          "Location": "United States",
+          "Job Start Date": "2025-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Amber Kearn",
+          "Email Address": "Amberkearn1@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "Spoke w. her sent VSL as well",
+          "Email": "Amberkearn1@gmail.com",
+          "New Column (2)": "https://www.linkedin.com/in/amberkearn",
+          "Mobile Phone (2)": "+12817313979",
+          "New Column": "Enterprise Technical Sales",
+          "Location": "United States",
+          "Job Start Date": "2022-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Greg Wozniak",
+          "Email Address": "gwozniakusn@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "gwozniakusn@gmail.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "",
+          "User Name": "Dillon Smith",
+          "Email Address": "dillon.j.smith@workiva.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "",
+          "Email": "dillon.j.smith@workiva.com",
+          "New Column (2)": "",
+          "Mobile Phone (2)": "",
+          "New Column": "",
+          "Location": "",
+          "Job Start Date": "",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "score": null,
+        "reasoning": "Missing title; Missing company"
+      }
+    ]
+  },
+  "summary": {
+    "total_leads": 191,
+    "bucket_counts": {
+      "ultra": 3,
+      "high": 23,
+      "medium": 35,
+      "low": 22,
+      "very_low": 15,
+      "archive": 1,
+      "unclear": 92
+    }
+  }
+}

@@ -54,8 +54,8 @@ Type: Switch
 Error Handling: Track cache performance.
 // Post-test: Clean cache via Airtable delete for test emails.
 
-Pattern: ICP Scoring with AI
-Purpose: Calculate ICP score (0-100) using Claude AI with domain fallback
+Pattern: ICP Scoring with AI (V3.2 Hybrid)
+Purpose: Calculate ICP base score (Company 15, Role 40, Engagement 30) and apply PERSON location (15) post-enrichment
 Required Nodes: Code (prepare data), HTTP (Claude), Code (parse), Switch, Code (fallback), Airtable (update)
 Configuration:
 // Node 1: Prepare Scoring Data
@@ -64,7 +64,7 @@ Type: Code
 Type: HTTP Request
 // Node 3: Parse Claude Score
 Type: Code
-// Node 5: Domain Fallback Scoring
+// Node 4: Domain Fallback Scoring (base only)
 Type: Code
 // GOTCHA: Boolean inputs to scoring: Map false to null before API.
 Error Handling: Log fallbacks.
@@ -117,11 +117,11 @@ Configuration:
 // This is a manual process - check daily
 Error Handling: None - manual process
 
-Pattern: AI-Enhanced ICP Scoring V3.0 with Customer Data Integration
-Purpose: Score leads 0-100 using AI-optimized methodology with domain analysis and upgrade potential detection
-Required Nodes: HTTP (Claude AI), Code (Hybrid Fallback), Code (Outreach Router), HTTP (Slack), Airtable (Update)
+Pattern: AI-Enhanced ICP Scoring V3.2 with Person Location
+Purpose: Score leads 0-100 using V3.2 hybrid methodology; PERSON location only; post-enrichment gating
+Required Nodes: HTTP (Claude AI), Code (Hybrid Fallback Base), Code (Apply Person Location), Code (Outreach Router), HTTP (Slack), Airtable (Update)
 Configuration:
-// Node 1: Claude AI Enhanced ICP Scoring
+// Node 1: Claude AI Enhanced ICP Base Scoring
 Type: HTTP Request (Anthropic API)
 URL: https://api.anthropic.com/v1/messages
 Headers: {"x-api-key": "${ANTHROPIC_API_KEY}", "anthropic-version": "2023-06-01"}
@@ -129,20 +129,22 @@ Body: {
   "model": "claude-3-5-sonnet-20241022",
   "max_tokens": 1000,
   "temperature": 0.1,
-  "messages": [{"role": "user", "content": "You are an expert ICP scoring system for UYSP. Score 0-100 using: Company (25% max, +15 tech domains, -10 generic), Role (40% max, AE=20pts, 3+yrs=+10), Engagement (35% max, coaching interest=+10, 3+ touchpoints=+15). Return JSON: {score, tier, reason, outreach_potential: >=70, human_review_needed, domain_boost_applied}. Data: {{$json.normalized}}"}]
+  "messages": [{"role": "user", "content": "You are an expert ICP scoring system for UYSP. Score 0-100 using V3.2 Hybrid. Base only: Company (15 max, +15 tech, -10 generic), Role (40 max), Engagement (30 max). Person Location (15) is applied post-enrichment (not in this step). Return JSON with base fields. Data: {{$json.normalized}}"}]
 }
 // Node 2: Domain Fallback Scoring (if Claude fails)
 Type: Code
-// Node 3: Score-Based Routing
+// Node 3: Apply Person Location (post-enrichment)
+Type: Code
+// Node 4: Score-Based Routing
 Type: IF Node
 Conditions: 
-- "={{$json.total_score >= 90}}" → Ultra High Path
-- "={{$json.total_score >= 75}}" → High Priority Path  
-- "={{$json.total_score >= 70}}" → Qualified Path
+- "={{$json.icp_score >= 90}}" → Ultra High Path
+- "={{$json.icp_score >= 75}}" → High Priority Path  
+- "={{$json.icp_score >= 70}}" → Qualified Path
 - Default → Archive Path
 // Node 4: Slack Alert (75+ scores)
 Type: HTTP Request (Slack Webhook)
 // Node 5: Update Airtable with Scores
 Type: Airtable Update
-Fields: icp_score, icp_tier, score_breakdown, scoring_method
-Error Handling: Claude timeout → Domain fallback, log all scoring decisions
+Fields: icp_score, icp_tier, score_breakdown, scoring_method, person_location_country, location_confidence, affordability_tier, location_points_applied, location_source, location_from_linkedin
+Error Handling: Claude timeout → Domain fallback (base), apply location when available

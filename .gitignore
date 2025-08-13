@@ -97,6 +97,7 @@ memory_bank/private/
 # Backup exclusions
 backups/encrypted/
 backups/production/
+../BACKUP-BEFORE-CLEANUP-20250808_165339/**
 
 # macOS specific
 .AppleDouble

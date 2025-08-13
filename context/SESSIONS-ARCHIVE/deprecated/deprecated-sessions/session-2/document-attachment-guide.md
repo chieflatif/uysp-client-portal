@@ -1,3 +1,6 @@
+[HISTORICAL]
+Last Updated: 2025-08-08
+
 # Session 2: Document Attachment Guide
 *Optimal Context Engineering for Compliance & Safety Development*
 

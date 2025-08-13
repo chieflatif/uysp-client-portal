@@ -1,0 +1,658 @@
+{
+  "results": {
+    "pdl_pass": [
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "sytrex.io",
+          "User Name": "Daniel Palacios",
+          "Email Address": "daniel@sytrex.io",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1-10",
+          "Email": "daniel@sytrex.io",
+          "New Column (2)": "linkedin.com/in/danielpalaciossales",
+          "Mobile Phone (2)": "+573196850654",
+          "New Column": "co-founder & vice president of sales",
+          "Location": "",
+          "Job Start Date": "2024-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "id": 4
+            }
+          }
+        },
+        "reason": "PDL pass"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "servicenow.com",
+          "User Name": "Nase Reid",
+          "Email Address": "nasereid22@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "10001+",
+          "Email": "nasereid22@gmail.com",
+          "New Column (2)": "linkedin.com/in/nase-reid-235b76159",
+          "Mobile Phone (2)": "+1 732-406-8618",
+          "New Column": "senior account executive healthcare / finance",
+          "Location": "united states",
+          "Job Start Date": "2024-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "id": 6
+            }
+          }
+        },
+        "reason": "PDL pass"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "ringcentral.com",
+          "User Name": "Erica Hinson",
+          "Email Address": "erica.hinson@ringcentral.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "She joined Silver",
+          "Email": "erica.hinson@ringcentral.com",
+          "New Column (2)": "linkedin.com/in/erica-hinson",
+          "Mobile Phone (2)": "+1 404-387-6305",
+          "New Column": "senior account executive - majors",
+          "Location": "united states",
+          "Job Start Date": "2022-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "id": 9
+            }
+          }
+        },
+        "reason": "PDL pass"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "oracle.com",
+          "User Name": "Kareem Hassan",
+          "Email Address": "kareem.hassan@oracle.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "10001+",
+          "Email": "kareem.hassan@oracle.com",
+          "New Column (2)": "linkedin.com/in/kareemhassan017",
+          "Mobile Phone (2)": "+1 707-386-1730",
+          "New Column": "account executive, growth",
+          "Location": "united states",
+          "Job Start Date": "2024-06-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "id": 9
+            }
+          }
+        },
+        "reason": "PDL pass"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "salesforce.com",
+          "User Name": "Trenton Davis",
+          "Email Address": "trenton.davis@salesforce.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "3",
+          "Email": "trenton.davis@salesforce.com",
+          "New Column (2)": "linkedin.com/in/trentondavisthoughtleader",
+          "Mobile Phone (2)": "+1 330-330-7091",
+          "New Column": "account executive | higher learning | hbcu",
+          "Location": "united states",
+          "Job Start Date": "2023-08-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "id": 9
+            }
+          }
+        },
+        "reason": "PDL pass"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "linxon.com",
+          "User Name": "Mark Ogden",
+          "Email Address": "mark@theogdengroup.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "501-1000",
+          "Email": "mark@theogdengroup.com",
+          "New Column (2)": "linkedin.com/in/mark-ogden",
+          "Mobile Phone (2)": "+1 919-610-2120",
+          "New Column": "business development manager, americas",
+          "Location": "switzerland",
+          "Job Start Date": "2024-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "id": 6
+            }
+          }
+        },
+        "reason": "PDL pass"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "altimate.ai",
+          "User Name": "David Abraham",
+          "Email Address": "david@altimate.ai",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1-10",
+          "Email": "david@altimate.ai",
+          "New Column (2)": "linkedin.com/in/davidabrahamiii",
+          "Mobile Phone (2)": "+1 408-310-2052",
+          "New Column": "director, enterprise sales",
+          "Location": "united states",
+          "Job Start Date": "2025-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "id": 4
+            }
+          }
+        },
+        "reason": "PDL pass"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "prefect.io",
+          "User Name": "Darren P",
+          "Email Address": "drpinder89@gmail.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "sent over Li request",
+          "Email": "drpinder89@gmail.com",
+          "New Column (2)": "linkedin.com/in/darren-pinder",
+          "Mobile Phone (2)": "+1 818-731-7107",
+          "New Column": "director of strategic sales",
+          "Location": "united states",
+          "Job Start Date": "2022-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "id": 6
+            }
+          }
+        },
+        "reason": "PDL pass"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "drivewyze.com",
+          "User Name": "Lesley Bennett",
+          "Email Address": "lesley.bennett@drivewyze.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "201-500",
+          "Email": "lesley.bennett@drivewyze.com",
+          "New Column (2)": "linkedin.com/in/lesley-bennett-sales",
+          "Mobile Phone (2)": "+1 203-348-1321",
+          "New Column": "director, strategic sales",
+          "Location": "united states",
+          "Job Start Date": "2022-07-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "id": 9
+            }
+          }
+        },
+        "reason": "PDL pass"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "franklincovey.com",
+          "User Name": "Ryan Leonard",
+          "Email Address": "Ryan.leonard@franklincovey.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "501-1000",
+          "Email": "Ryan.leonard@franklincovey.com",
+          "New Column (2)": "linkedin.com/in/ryanleonard1987",
+          "Mobile Phone (2)": "(805) 886-4512",
+          "New Column": "enterprise account executive",
+          "Location": "united states",
+          "Job Start Date": "2024-12-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "id": 6
+            }
+          }
+        },
+        "reason": "PDL pass"
+      }
+    ],
+    "pdl_fail_hunter_pass": [
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "canon.com",
+          "User Name": "Troy Morrison",
+          "Email Address": "tmorrison@cusa.canon.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "8",
+          "Job Company Size": "1001-5000",
+          "Email": "tmorrison@cusa.canon.com",
+          "New Column (2)": "linkedin.com/in/troylinked",
+          "Mobile Phone (2)": "+1 720-600-1603",
+          "New Column": "major account executive",
+          "Location": "united states",
+          "Job Start Date": "2022-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 404,
+              "status": 404
+            }
+          },
+          "hunter": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "result": "deliverable",
+              "score": 90
+            }
+          }
+        },
+        "reason": "PDL fail, Hunter deliverable"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "",
+          "Job Company Website": "flexera.com",
+          "User Name": "Kristin Santistevan",
+          "Email Address": "ksantistevan@flexera.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "ksantistevan@flexera.com",
+          "New Column (2)": "linkedin.com/in/kristin-santistevan-1373377b",
+          "Mobile Phone (2)": "+1 281-394-0154",
+          "New Column": "major account manager",
+          "Location": "united states",
+          "Job Start Date": "2024-07-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": "Busy"
+        },
+        "provider": {
+          "pdl": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 404,
+              "status": 404
+            }
+          },
+          "hunter": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "result": "deliverable",
+              "score": 90
+            }
+          }
+        },
+        "reason": "PDL fail, Hunter deliverable"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "salesforce.com",
+          "User Name": "Prince Soba",
+          "Email Address": "Psoba@salesforce.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "Pretty new so gotta stay on top of it",
+          "Job Company Size": "10001+",
+          "Email": "Psoba@salesforce.com",
+          "New Column (2)": "linkedin.com/in/princesoba",
+          "Mobile Phone (2)": "+1 647-330-2832",
+          "New Column": "business development representative",
+          "Location": "united states",
+          "Job Start Date": "2024-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 404,
+              "status": 404
+            }
+          },
+          "hunter": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "result": "deliverable",
+              "score": 90
+            }
+          }
+        },
+        "reason": "PDL fail, Hunter deliverable"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "reportingmd.com",
+          "User Name": "Aubrey Ibele",
+          "Email Address": "Aubrey@sagemedstudio.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "11-50",
+          "Email": "Aubrey@sagemedstudio.com",
+          "New Column (2)": "linkedin.com/in/aibele",
+          "Mobile Phone (2)": "+1 907-227-9727",
+          "New Column": "chief marketing officer",
+          "Location": "united states",
+          "Job Start Date": "2025-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 404,
+              "status": 404
+            }
+          },
+          "hunter": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "result": "deliverable",
+              "score": 91
+            }
+          }
+        },
+        "reason": "PDL fail, Hunter deliverable"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "No",
+          "Job Company Website": "ehs.com",
+          "User Name": "Brad Doherty",
+          "Email Address": "bdoherty@ehs.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "501-1000",
+          "Email": "bdoherty@ehs.com",
+          "New Column (2)": "linkedin.com/in/braddohertyvelocityehs",
+          "Mobile Phone (2)": "+1 905-283-1207",
+          "New Column": "mid-market account manager",
+          "Location": "united states",
+          "Job Start Date": "2022-09-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 404,
+              "status": 404
+            }
+          },
+          "hunter": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "result": "deliverable",
+              "score": 88
+            }
+          }
+        },
+        "reason": "PDL fail, Hunter deliverable"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "dragonflyenergy.com",
+          "User Name": "Donald Hasler",
+          "Email Address": "DJ@dragonflyenergy.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "9",
+          "Job Company Size": "51-200",
+          "Email": "DJ@dragonflyenergy.com",
+          "New Column (2)": "linkedin.com/in/dj-hasler-53aa8a11",
+          "Mobile Phone (2)": "+1 314-330-6020",
+          "New Column": "oem product specialist",
+          "Location": "united states",
+          "Job Start Date": "2023-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 404,
+              "status": 404
+            }
+          },
+          "hunter": {
+            "pass": true,
+            "evidence": {
+              "statusCode": 200,
+              "result": "deliverable",
+              "score": 55
+            }
+          }
+        },
+        "reason": "PDL fail, Hunter deliverable"
+      }
+    ],
+    "double_fail": [
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "paloaltonetworks.com",
+          "User Name": "Anika Harrell",
+          "Email Address": "anharrell@paloaltonetworks.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "10001+",
+          "Email": "anharrell@paloaltonetworks.com",
+          "New Column (2)": "linkedin.com/in/anikaharrell",
+          "Mobile Phone (2)": "+1 682-247-1250",
+          "New Column": "account manager | sled west, south central",
+          "Location": "united states",
+          "Job Start Date": "2024-10-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 404,
+              "status": 404
+            }
+          },
+          "hunter": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 200,
+              "result": "risky",
+              "score": 73
+            }
+          }
+        },
+        "reason": "PDL fail, Hunter fail"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "netskope.com",
+          "User Name": "Nate Morse",
+          "Email Address": "nmorse@netskope.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "nmorse@netskope.com",
+          "New Column (2)": "linkedin.com/in/nate-morse",
+          "Mobile Phone (2)": "+1 503-984-8388",
+          "New Column": "account executive - pacific northwest",
+          "Location": "united states",
+          "Job Start Date": "2024-03-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 404,
+              "status": 404
+            }
+          },
+          "hunter": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 202
+            }
+          }
+        },
+        "reason": "PDL fail, Hunter fail"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "infoblox.com",
+          "User Name": "Phil DeSantis",
+          "Email Address": "pdesantis@infoblox.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "1001-5000",
+          "Email": "pdesantis@infoblox.com",
+          "New Column (2)": "linkedin.com/in/philipdesantisjr",
+          "Mobile Phone (2)": "+1 978-443-8167",
+          "New Column": "sales trainer",
+          "Location": "united states",
+          "Job Start Date": "2024-02-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 404,
+              "status": 404
+            }
+          },
+          "hunter": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 200,
+              "result": "risky",
+              "score": 71
+            }
+          }
+        },
+        "reason": "PDL fail, Hunter fail"
+      },
+      {
+        "lead": {
+          "A-Are you open to working with a coach to help you close more deals and reach your goals faster?": "Yes",
+          "Job Company Website": "securecdp.com",
+          "User Name": "Nirav Doshi",
+          "Email Address": "Nirav@securecdp.com",
+          "A-On a scale of 0–10, how likely are you to recommend this event to a friend or colleague?": "10",
+          "Job Company Size": "11-50",
+          "Email": "Nirav@securecdp.com",
+          "New Column (2)": "linkedin.com/in/niravcdp",
+          "Mobile Phone (2)": "+12487661899",
+          "New Column": "chief executive officer",
+          "Location": "united states",
+          "Job Start Date": "2012-01-01T00:00:00.000Z",
+          "Email Domain Domain": "",
+          "col_13": ""
+        },
+        "provider": {
+          "pdl": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 404,
+              "status": 404
+            }
+          },
+          "hunter": {
+            "pass": false,
+            "evidence": {
+              "statusCode": 200,
+              "result": "risky",
+              "score": 74
+            }
+          }
+        },
+        "reason": "PDL fail, Hunter fail"
+      }
+    ]
+  },
+  "target": {
+    "pdl_pass": 10,
+    "pdl_fail_hunter_pass": 10,
+    "double_fail": 20
+  },
+  "counts": {
+    "pdl_pass": 10,
+    "pdl_fail_hunter_pass": 6,
+    "double_fail": 4
+  }
+}

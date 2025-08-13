@@ -302,6 +302,79 @@ if ($json.length > 0) {
 
 ---
 
+## Pattern: Enrichment Cache Logging (Hunter/PDL)
+**Purpose**: Persist enrichment attempts for performance and cost analysis
+**Required Nodes**: Code (prepare), HTTP (Airtable upsert to Enrichment_Cache)
+
+**Configuration**:
+```javascript
+// Prepare cache payload
+const item = $input.first().json;
+return {
+  email: item.email,
+  source: item.enrichment_vendor,
+  response_data: JSON.stringify(item),
+  cached_date: new Date().toISOString(),
+  cache_expiry: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+  cost: item.enrichment_vendor === 'hunter' ? (item.hunter_cost || 0.049) : (item.pdl_person_cost || 0),
+  success: !item.enrichment_failed,
+  error_message: item.enrichment_failed ? 'Both PDL and Hunter failed' : null
+};
+
+// HTTP Request (Airtable) - predefinedCredentialType/airtableTokenApi
+{
+  "parameters": {
+    "method": "POST",
+    "url": "https://api.airtable.com/v0/{{$vars.AIRTABLE_BASE_ID}}/Enrichment_Cache",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "airtableTokenApi",
+    "sendHeaders": false,
+    "sendBody": true,
+    "bodyParameters": { "fields": {
+      "email": "={{$json.email}}",
+      "source": "={{$json.source}}",
+      "response_data": "={{$json.response_data}}",
+      "cached_date": "={{$json.cached_date}}",
+      "cache_expiry": "={{$json.cache_expiry}}",
+      "cost": "={{$json.cost}}",
+      "success": "={{$json.success}}",
+      "error_message": "={{$json.error_message}}"
+    }}
+  }
+}
+```
+
+---
+
+## Pattern: Person Data Precedence Merge (PDL > Hunter)
+**Purpose**: Deterministically merge person data with provider precedence
+**Required Nodes**: Code
+
+**Implementation**:
+```javascript
+const items = $input.all();
+for (const item of items) {
+  const d = item.json || {};
+  if (d.pdl_person_success === true) {
+    d.enrichment_vendor = 'pdl';
+    d.enrichment_method_primary = 'pdl';
+  } else if (d.hunter_person_success === true) {
+    d.enrichment_vendor = 'hunter';
+    d.enrichment_method_primary = 'hunter';
+    d.enrichment_failed = false;
+  } else {
+    d.enrichment_failed = true;
+    d.routing_decision = 'human_review';
+    d.routing_reason = 'person_enrichment_failed_both_providers';
+  }
+  if (d.linkedin_url && !String(d.linkedin_url).startsWith('http')) {
+    d.linkedin_url = `https://www.linkedin.com/in/${d.linkedin_url}`;
+  }
+  item.json = d;
+}
+return items;
+```
+
 ## Pattern: Centralized Error Handler - PDL Enhanced
 **Purpose**: Standardized error handling across all workflows with PDL-specific handling
 **Required Nodes**: Code (error handler)

@@ -1,3 +1,6 @@
+[AUTHORITATIVE]
+Last Updated: 2025-08-08
+
 # Phone Number Lifecycle Strategy
 ## 3-Field Phone Versioning & Validation Framework
 
@@ -77,7 +80,7 @@ Validation Priority Order:
 - Duplicate detection maintains separate field values
 
 #### **⏳ PENDING - Phase 3 Enrichment Logic**
-- Validation API integration (Apollo, ZeroBounce, etc.)
+- Validation API integration (ZeroBounce, NeverBounce, etc.)
 - Enrichment workflow development
 - Campaign integration with `phone_validated` field
 - Human review queue for unvalidated numbers
