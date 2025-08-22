@@ -137,6 +137,12 @@ Next Steps: [User-actionable list]
 
 **For multi-issue tasks, number issues 1-3 max, fix sequentially.**
 
+## 11b. BUSINESS LOGIC CHANGE CONTROL (NON-NEGOTIABLE)
+- Do NOT alter business logic, routing thresholds, or outcome semantics without explicit user approval.
+- Before any change: present justification, impact analysis, and the full code block to be replaced. No diffs-only proposals.
+- All edits must preserve existing business KPIs and data contracts unless an approved change request states otherwise.
+- Evidence requirements for approval: input→output examples, affected nodes list, rollback steps.
+
 ### **🚨 CHUNK EXECUTION PROTOCOL (EMERGENCY UPDATE):**
 ```
 CHUNK FORMAT (MANDATORY):

@@ -4,6 +4,8 @@
  * Minimal fast check using Test-matrix first email
  */
 const https = require('https');
+const fs = require('fs');
+const path = require('path');
 const testMatrix = require('../data/shared/Test-matrix.json');
 
 function sendWebhook(payload) {
@@ -29,7 +31,25 @@ function sendWebhook(payload) {
 }
 
 (async () => {
-  const email = (testMatrix && testMatrix.buckets && testMatrix.buckets.pdl_success && testMatrix.buckets.pdl_success[0] && testMatrix.buckets.pdl_success[0].email) || 'test@example.com';
+  // Optional deterministic selection via selected-emails.json or CLI args
+  const args = process.argv.slice(2);
+  const cli = { bucket: 'pdl_success', offset: 0 };
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--bucket') cli.bucket = args[++i] || cli.bucket;
+    else if (args[i] === '--offset') cli.offset = parseInt(args[++i] || '0', 10) || 0;
+  }
+  const selPath = path.join(__dirname, '..', 'data', 'selected-emails.json');
+  let email = null;
+  if (fs.existsSync(selPath)) {
+    try {
+      const sel = JSON.parse(fs.readFileSync(selPath, 'utf8'));
+      email = (sel.emails && sel.emails[0] && sel.emails[0].email) || null;
+    } catch {}
+  }
+  if (!email) {
+    const list = (((testMatrix||{}).buckets||{})[cli.bucket]) || [];
+    email = (list[cli.offset] && list[cli.offset].email) || 'test@example.com';
+  }
   const payload = { email, first_name: 'Smoke', last_name: 'Test' };
   try {
     const res = await sendWebhook(payload);

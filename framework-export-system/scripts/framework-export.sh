@@ -24,7 +24,7 @@ echo "🔸 Step 1: Exporting Core Framework Components"
 
 # Copy CRITICAL COMPONENTS (Must Export)
 echo "📦 Exporting Universal Workflow System..."
-cp "$PROJECT_ROOT/docs/PROCESS/UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md" "$EXPORT_DIR/docs/PROCESS/" 2>/dev/null || true
+cp "$PROJECT_ROOT/docs/system-overview/PROCESS/UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md" "$EXPORT_DIR/docs/PROCESS/" 2>/dev/null || true
 
 echo "📦 Exporting Anti-Hallucination Core..."
 cp -r "$PROJECT_ROOT/.cursorrules"/* "$EXPORT_DIR/cursorrules/" 2>/dev/null || true
@@ -84,8 +84,8 @@ echo "📦 Exporting Documentation Management System..."
 mkdir -p "$EXPORT_DIR/docs"/{CURRENT,PROCESS,ARCHITECTURE,ARCHIVE}
 
 # Core documentation control
-cp "$PROJECT_ROOT/docs/PROCESS/documentation-control-system.md" "$EXPORT_DIR/docs/PROCESS/"
-cp "$PROJECT_ROOT/docs/PROCESS/UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md" "$EXPORT_DIR/docs/PROCESS/"
+cp "$PROJECT_ROOT/docs/system-overview/PROCESS/documentation-control-system.md" "$EXPORT_DIR/docs/PROCESS/"
+cp "$PROJECT_ROOT/docs/system-overview/PROCESS/UNIVERSAL-CURSOR-WORKFLOW-SYSTEM.md" "$EXPORT_DIR/docs/PROCESS/"
 
 # Current active documentation
 if [ -f "$PROJECT_ROOT/docs/CURRENT/MASTER-WORKFLOW-GUIDE.md" ]; then

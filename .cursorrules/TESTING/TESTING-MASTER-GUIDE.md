@@ -139,10 +139,13 @@ HONESTY CHECK: [100% evidence-based / Assumptions: list]. No automation claims b
 #### **Testing Execution Sequence (MANDATORY)**
 ```markdown
 1. **Workflow Verification**: Use mcp_n8n_n8n_get_workflow for current status
-2. **Test Payload Execution**: Use run_terminal_cmd for webhook triggers
-3. **Evidence Collection**: Use mcp_n8n_n8n_get_execution for execution verification
-4. **Record Verification**: Use mcp_airtable_search_records for record validation
-5. **Field Analysis**: Use mcp_airtable_get_record for detailed field verification
+2. **Lead Selection (Deterministic)**:
+   - node scripts/generate-canonical-triage-matrix.js
+   - node scripts/select-test-emails.js --bucket <bucket> --count <n>
+3. **Test Payload Execution**: Use run_terminal_cmd for webhook triggers (scripts auto-read selected-emails.json; no randomness)
+4. **Evidence Collection**: Use mcp_n8n_n8n_get_execution for execution verification
+5. **Record Verification**: Use mcp_airtable_search_records for record validation
+6. **Field Analysis**: Use mcp_airtable_get_record for detailed field verification
 ```
 
 #### **Testing Tool Precedence Hierarchy**

@@ -24,7 +24,7 @@
 ### **PDL INTEGRATION POINTS**
 1. **Company Qualification**: PDL Company API ($0.01/call) after field normalization
 2. **Person Enrichment**: PDL Person API ($0.03/call) after company passes  
-3. **ICP Scoring**: Claude AI (0-100 scale) combining company + person data
+3. **ICP Scoring**: Claude AI (0-100 scale) combining company + person data — see `docs/CURRENT/ICP-SCORING-V4-METHODOLOGY.md` (Company 25, Role 45, Person Location 20, Dynamic 10, +5 prime-fit; SMS eligibility separate)
 4. **SMS Campaign**: SimpleTexting direct for qualified leads (ICP ≥70, US only)
 
 ---
@@ -66,7 +66,7 @@ Routing: Pass → ICP scoring | Fail → Human review queue
 Input: Combined company + person qualification data
 Service: OpenAI GPT-4 chat completions (Message a model node)
 Scoring: 0-100 scale based on ICP criteria
-Threshold: ≥70 required for SMS campaign eligibility
+Threshold: ≥70 required for SMS campaign eligibility (independent of SMS eligibility gate)
 Routing: ≥70 → SMS | 50-69 → Archive | <50 → Archive
 ```
 

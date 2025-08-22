@@ -8,6 +8,26 @@
   - `npm run test:comprehensive` → runs all JSON payloads via `tests/comprehensive/full-suite.js`
   - `npm run test:wrapper` → runs `tests/comprehensive/test-runner-wrapper.js quick`
 
+## Deterministic lead selection (no randomness)
+
+Always refresh and select from the canonical email-only matrix:
+
+```bash
+# 1) Regenerate canonical buckets from latest triage
+node scripts/generate-canonical-triage-matrix.js
+
+# 2) Select leads deterministically (updates offset to avoid reuse)
+node scripts/select-test-emails.js --bucket pdl_success --count 5
+
+# 3) Run tests (smoke/quick read selected-emails.json automatically)
+npm run test:smoke
+npm run test:quick
+
+# Optional: override via CLI
+npm run test:smoke -- --bucket double_fail --offset 5
+npm run test:quick -- --bucket hunter_fallback --offset 10
+```
+
 ## Webhook endpoint
 - Production: `https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean`
 
