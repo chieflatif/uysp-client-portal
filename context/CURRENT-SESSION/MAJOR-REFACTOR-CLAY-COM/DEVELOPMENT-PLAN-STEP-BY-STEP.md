@@ -357,8 +357,8 @@ NODE 9: Send Daily Report
 
 1) Realtime ingestion minimal flow verified (3 nodes) – keep active
 2) Backlog ingestion workflow configured – ready for manual run when list arrives
-3) Normalize adds `Company Domain` in both workflows (done 2025-08-21)
-4) Implement and activate SMS Trigger workflow
+3) Ingress Normalization Standard adopted (Realtime + Backlog) — light sanitizers, header synonyms, safe domain derivation
+4) Implement and activate SMS Trigger workflow (HTTP uses `$json.fields['Phone']`; post-send writeback enabled)
 5) Implement and activate Health Monitor + Daily Slack report
 6) Configure credentials: Airtable PAT ok; add SimpleTexting + Slack
 7) Update docs with evidence after each step (IDs, executions, records)

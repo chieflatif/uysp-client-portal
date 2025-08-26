@@ -38,7 +38,7 @@ Body example (single send):
 - Authentication: Generic Credential Type → Header Auth → select your "SimpleTexting API (Prod)"
 - URL: Base + endpoint (see above)
 - Send: JSON; Content-Type: application/json
-- Body (single send): `{ "mode": "SINGLE", "accountPhone": "<digits>", "contactPhone": "<digits>", "text": "..." }`
+- Body (single send): `{ "mode": "SINGLE", "accountPhone": "<digits>", "contactPhone": "={{$json.fields['Phone'].replace(/\D/g, '')}}", "text": "..." }`
 
 ### Post-send Writeback Node
 - Operation: Upsert

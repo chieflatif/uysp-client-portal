@@ -9,7 +9,8 @@
     "test:validate-scoring": "node tests/quick/validate-v4-scoring.js",
     "test:phase2d": "node tests/data/phase-2D/test-runner.js",
     "test:comprehensive": "node tests/comprehensive/full-suite.js",
-    "test:wrapper": "node tests/comprehensive/test-runner-wrapper.js quick"
+    "test:wrapper": "node tests/comprehensive/test-runner-wrapper.js quick",
+    "test:e2e-sms": "node tests/real-data-testing/seed-sms-e2e.js"
   },
   "keywords": [],
   "author": "",

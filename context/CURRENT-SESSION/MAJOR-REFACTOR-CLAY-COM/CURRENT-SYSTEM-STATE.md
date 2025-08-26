@@ -18,13 +18,13 @@ The system utilizes four distinct, minimal workflows, each with a specific purpo
 | :--- | :--- | :--- | :--- | :--- |
 | **UYSP-Realtime-Ingestion** | `2cdgp1qr9tXlONVL` | ✅ **Active** | Webhook | Handles new leads from sources like Kajabi in real-time. |
 | **UYSP Backlog Ingestion** | `qMXmmw4NUCh1qu8r` | ✅ **Ready** | Manual | Processes bulk leads from a CSV file. |
-| **UYSP-SMS-Trigger** | `D10qtcjjf2Vmmp5j` | 🟡 **Configured** | Airtable Trigger | Initiates SMS campaigns for qualified leads. (Trigger disabled pending final checks). |
+| **UYSP-SMS-Trigger** | `D10qtcjjf2Vmmp5j` | ✅ **Configured & Trigger Enabled** | Airtable Trigger | Initiates SMS campaigns for qualified leads. Trigger: Base `app6cU9HecxLpgT0P`, Table `tblYUvhGADerbD8EO`, View `SMS Pipeline`, Field `Last Updated`. |
 | **UYSP-Health-Monitor** | `wNvsJojWTr0U2ypz` | 🟡 **Configured** | Cron (Schedule) | Performs periodic health checks and sends daily reports. (Inactive pending final checks). |
 
 ### Key Workflow Details:
 - **Realtime Ingestion:** A 3-node flow (`Webhook` -> `Normalize` -> `Airtable Upsert`). It's stable and has been successfully tested.
 - **Backlog Ingestion:** A 5-node flow (`Manual Trigger` -> `Fetch CSV` -> `Parse CSV` -> `Normalize` -> `Airtable Upsert`). It's been tested and is ready for use.
-- **SMS Trigger:** The core logic is in place to call the SimpleTexting API. The Airtable Trigger mechanism is configured but currently disabled.
+- **SMS Trigger:** Core logic calls SimpleTexting API. Airtable Trigger is enabled; final validation pending two‑lead test.
 - **Health Monitor:** All nodes for system checks and Slack reporting are configured. The workflow is ready to be activated.
 
 ---
@@ -61,6 +61,6 @@ The system utilizes four distinct, minimal workflows, each with a specific purpo
 ## 5. Risks & Gaps (Live System)
 
 The following points were identified during the analysis of the live system and development history:
-- **Airtable Update (post-SMS) is disabled:** In the `UYSP-SMS-Trigger` workflow, the final node that updates the lead's status in Airtable after an SMS is sent is currently disabled. This will need to be enabled for full functionality.
+- **Airtable Update (post-SMS) is disabled:** In `UYSP-SMS-Trigger`, the writeback node remains disabled; enable to persist SMS results (status/campaign/cost).
 - **Health Monitor is inactive:** The `UYSP-Health-Monitor` workflow is fully configured but not yet activated.
-- **Airtable Trigger is disabled:** The Airtable Trigger in the `UYSP-SMS-Trigger` workflow is disabled. The system currently relies on manual testing paths. This needs to be enabled for the full, automated SMS outreach process to function.
+- **Ingress Normalization Standard adoption:** Implement light sanitizers in Realtime and Backlog per `INGRESS-NORMALIZATION-STANDARD.md`.

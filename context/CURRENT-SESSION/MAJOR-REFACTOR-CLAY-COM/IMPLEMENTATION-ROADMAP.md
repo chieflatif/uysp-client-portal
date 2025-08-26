@@ -20,8 +20,10 @@ This track focuses on activating the remaining components of the live system.
 
 | Task ID | Task Description | Dependencies | Status |
 | :--- | :--- | :--- | :--- |
+| **SYS-00** | **Ingress Normalization Standard (n8n light)** | None | ✅ **Defined** |
+| | Adopt `INGRESS-NORMALIZATION-STANDARD.md` for Realtime and Backlog ingress. Implement light sanitizers (email/phone), header synonyms, safe domain derivation, and idempotent upsert by Email. | | |
 | **SYS-01** | **Configure & Enable SMS Workflow** | SimpleTexting API Key | 🟡 **Pending** |
-| | 1. Add the SimpleTexting API Key to the `UYSP-SMS-Trigger` workflow in n8n (using Bearer Token authentication).<br>2. Re-enable the `Parse SMS Response` and `Airtable Update` nodes.<br>3. Conduct a single, end-to-end test to verify an SMS is sent and the Airtable record is updated. | | |
+| | 1. Add the SimpleTexting API Key to the `UYSP-SMS-Trigger` workflow in n8n (Bearer Token).<br>2. Ensure HTTP node pulls `contactPhone` from `$json.fields['Phone']` after Airtable Get.<br>3. Enable the `Parse SMS Response` and `Airtable Update` nodes to persist status/campaign/cost.<br>4. Conduct a single, end-to-end test to verify send and Airtable update. | | |
 | **SYS-02** | **Activate Automated Triggers** | SYS-01 | 🟡 **Pending** |
 | | 1. Enable the Airtable Trigger in the `UYSP-SMS-Trigger` workflow.<br>2. Activate the `UYSP-Health-Monitor` workflow in n8n. | | |
 
