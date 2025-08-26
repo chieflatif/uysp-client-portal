@@ -1,18 +1,20 @@
 # Active Context: UYSP Lead Qualification - Post-Recovery
 
 **Session Status**: ✅ **ACTIVE**
-**Branch**: `major-refactor-clay-com`
+**Branch**: `feature/clay-sms-integration`
 **Date**: 2025-08-26
 
 ---
 
-## 🎯 **Current Objective: Execute Implementation Roadmap**
+## 🎯 **Current Objective: Implement SMS + Clay Phase 1 (single-message, tracked)**
 
-The project has successfully recovered from a catastrophic documentation loss. All critical development history has been analyzed, and the project's documentation has been fully reconstructed.
-
-The **single authoritative guide** for all future work is the new Master Architecture & Development Plan.
-
--   **`context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/MAJOR-REFACTOR-CLAY-COM-PLAN.md`**
+- Follow the MAIN Development Plan and Sessions Plan:
+  - `docs/architecture/MAIN-DEVELOPMENT-PLAN.md`
+  - `docs/architecture/SMS-CLAY-ENRICHMENT-SESSIONS-PLAN.md`
+- Architecture and wireframe finalized:
+  - `docs/architecture/SMS-CLAY-ENRICHMENT-WIREFRAME.md`
+  - `docs/architecture/SMS-SEQUENCE-REALISTIC-ARCHITECTURE.md`
+  - Decisions approved: `docs/architecture/SMS-DECISIONS-AND-OPEN-QUESTIONS.md`
 
 ---
 
@@ -25,15 +27,27 @@ The **single authoritative guide** for all future work is the new Master Archite
 -   **Airtable Base:** `app6cU9HecxLpgT0P` is configured with the correct `Leads` and `Companies` schemas.
 
 ### 🟡 **PENDING FINAL CONFIGURATION**
--   **SMS Trigger Workflow:** (`D10qtcjjf2Vmmp5j`) is configured but requires the SimpleTexting API key to be set and the Airtable Trigger to be activated.
--   **Health Monitor Workflow:** (`wNvsJojWTr0U2ypz`) is configured but needs to be activated to begin scheduled monitoring.
+-   **SMS Phase 1 Build (this branch):** Implement Clay enrichment, single SMS sender (5×100 hourly from 10am ET), click redirect, delivery/unsub webhooks, business hours + holidays.
+-   **Credentials:** Confirm Clay and SimpleTexting tokens in n8n.
+-   **Health Monitor Workflow:** (`wNvsJojWTr0U2ypz`) can be activated post Phase 1.
+
+---
+
+## ✅ **Key Decisions Snapshot**
+- One global Calendly link; campaign attribution via `lead_source` (Name – Type) + `campaign_batch_id`.
+- Eligibility: Enriched=true, ICP≥70, US E.164 mobile, not opted out.
+- Clay failure: skip send, retry up to 3x, route to Enrichment Review.
+- Sends: 500/day via 5 hourly runs of 100 (start 10am ET); enforce 9–5 ET; no weekends/US holidays.
+- Templates: Airtable-managed; per campaign choose 1 or 2; if 2 → 50/50.
+- Clicks: First‑party redirect `/webhook/c/:token`; tokens retained indefinitely.
+- Payloads: Store only if zero-hassle (config‑toggled).
 
 ---
 
 ## 🚀 **Next Steps**
 
-The project is now ready to proceed with the final implementation steps as outlined in the new roadmap.
-
--   **`context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/IMPLEMENTATION-ROADMAP.md`**
-
-This involves finalizing the SimpleTexting integration, activating the automated workflows, and executing the bulk company enrichment process in Clay.
+- Start Session 1 on `feature/clay-sms-integration`:
+  - Add Airtable fields and `SMS_Templates` table; add `Holidays` table; set business-hours vars
+  - Validate Clay + SimpleTexting credentials in n8n
+  - Commit after each milestone
+- Then proceed with Sessions 2–5 per `docs/architecture/SMS-CLAY-ENRICHMENT-SESSIONS-PLAN.md`.
