@@ -1,0 +1,719 @@
+{
+  "name": "UYSP Backlog Ingestion",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "mt",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $json || {};\nif (!(item.email || item.Email || item.email_address)) return;\nconst output = {\n  'Email': item.email || item.Email || item.email_address || '',\n  'Phone': item.phone || item.Phone || item.phone_number || '',\n  'First Name': item.first_name || item.firstName || '',\n  'Last Name': item.last_name || item.lastName || '',\n  'Company': item.company || item.Company || '',\n  'Title': item.title || item.job_title || '',\n  'Source': 'Backlog',\n  'Processing Status': 'Queued'\n};\nlet domain = '';\nif (output['Email']) {\n  const parts = String(output['Email']).split('@');\n  domain = parts[1] || '';\n} else if (output['Company']) {\n  domain = String(output['Company']).toLowerCase().replace(/[^a-z0-9-]/g, '') + '.com';\n}\noutput['Company Domain'] = domain;\nreturn output;"
+      },
+      "id": "norm",
+      "name": "Normalize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/app6cU9HecxLpgT0P/tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{$json.Email}}",
+            "Phone": "={{$json.Phone}}",
+            "First Name": "={{$json['First Name']}}",
+            "Last Name": "={{$json['Last Name']}}",
+            "Company Domain": "={{$json['Company Domain']}}",
+            "Processing Status": "={{$json['Processing Status']}}",
+            "Source": "={{$json.Source}}",
+            "Location Confidence": 0,
+            "ICP Score": 0,
+            "Company Score Component": 0,
+            "Role Score Component": 0,
+            "Location Score Component": 0,
+            "Dynamic Signals Score": 0,
+            "SMS Sequence Position": 0,
+            "SMS Sent Count": 0,
+            "SMS Cost": 0,
+            "Data Quality Score": 0,
+            "Total Processing Cost": 0,
+            "Processing Duration": 0
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Lead",
+              "displayName": "Lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Processing Status",
+              "displayName": "Processing Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Backlog",
+                  "value": "Backlog"
+                },
+                {
+                  "name": "Queued",
+                  "value": "Queued"
+                },
+                {
+                  "name": "Processing",
+                  "value": "Processing"
+                },
+                {
+                  "name": "Ready for SMS",
+                  "value": "Ready for SMS"
+                },
+                {
+                  "name": "Complete",
+                  "value": "Complete"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Backlog",
+                  "value": "Backlog"
+                },
+                {
+                  "name": "Webhook",
+                  "value": "Webhook"
+                },
+                {
+                  "name": "Manual",
+                  "value": "Manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company Domain",
+              "displayName": "Company Domain",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Person Industry",
+              "displayName": "Person Industry",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Job Level",
+              "displayName": "Job Level",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Entry",
+                  "value": "Entry"
+                },
+                {
+                  "name": "Mid",
+                  "value": "Mid"
+                },
+                {
+                  "name": "Senior",
+                  "value": "Senior"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "C-Level",
+                  "value": "C-Level"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Location Country",
+              "displayName": "Location Country",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Location Confidence",
+              "displayName": "Location Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Enrichment Provider Used",
+              "displayName": "Enrichment Provider Used",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Enrichment Timestamp",
+              "displayName": "Enrichment Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Raw Enrichment Data",
+              "displayName": "Raw Enrichment Data",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ICP Score",
+              "displayName": "ICP Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company Score Component",
+              "displayName": "Company Score Component",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role Score Component",
+              "displayName": "Role Score Component",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Location Score Component",
+              "displayName": "Location Score Component",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Dynamic Signals Score",
+              "displayName": "Dynamic Signals Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Prime Fit Bonus",
+              "displayName": "Prime Fit Bonus",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Score Reasoning",
+              "displayName": "Score Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Eligible",
+              "displayName": "SMS Eligible",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Status",
+              "displayName": "SMS Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Not Sent",
+                  "value": "Not Sent"
+                },
+                {
+                  "name": "Queued",
+                  "value": "Queued"
+                },
+                {
+                  "name": "Sent",
+                  "value": "Sent"
+                },
+                {
+                  "name": "Delivered",
+                  "value": "Delivered"
+                },
+                {
+                  "name": "Clicked",
+                  "value": "Clicked"
+                },
+                {
+                  "name": "Replied",
+                  "value": "Replied"
+                },
+                {
+                  "name": "Meeting Booked",
+                  "value": "Meeting Booked"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Campaign ID",
+              "displayName": "SMS Campaign ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Sequence Position",
+              "displayName": "SMS Sequence Position",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Sent Count",
+              "displayName": "SMS Sent Count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Cost",
+              "displayName": "SMS Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last SMS Sent",
+              "displayName": "Last SMS Sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "HRQ Status",
+              "displayName": "HRQ Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "None",
+                  "value": "None"
+                },
+                {
+                  "name": "Archive",
+                  "value": "Archive"
+                },
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                },
+                {
+                  "name": "Manual Process",
+                  "value": "Manual Process"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "HRQ Reason",
+              "displayName": "HRQ Reason",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Data Quality Score",
+              "displayName": "Data Quality Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Validation Errors",
+              "displayName": "Validation Errors",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Total Processing Cost",
+              "displayName": "Total Processing Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Error Log",
+              "displayName": "Error Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Processing Duration",
+              "displayName": "Processing Duration",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last Updated",
+              "displayName": "Last Updated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true,
+          "updateAllMatches": false
+        }
+      },
+      "id": "air",
+      "name": "Airtable Upsert Leads",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        272,
+        -192
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://docs.google.com/spreadsheets/d/13zn4hMDC4wUSmSY12g-_tU74N3wlsBLX1fhjQrQpxik/export?format=csv&gid=0",
+        "options": {}
+      },
+      "id": "af3b6a71-88c2-412a-a0d3-6d9c02d31685",
+      "name": "Fetch CSV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = String($input.first().json?.data ?? '').replace(/\\r\\n/g, '\\n').trim();\nif (!text) return [];\nconst lines = text.split('\\n').filter(l => l.trim().length > 0);\nconst headerLine = lines.shift();\nconst headers = headerLine.split(',').map(h => h.trim());\nfunction toRow(line) {\n  const cols = line.split(',').map(c => c.trim());\n  const obj = {};\n  headers.forEach((h, i) => (obj[h] = cols[i] ?? ''));\n  const name = obj.Name || '';\n  const [first, ...rest] = name.split(' ').filter(Boolean);\n  return {\n    json: {\n      email: obj.email || obj.Email || obj['email'] || obj['email '],\n      phone: obj.phone || obj.Phone || '',\n      first_name: obj.first_name || obj.firstName || first || '',\n      last_name: obj.last_name || obj.lastName || (rest.join(' ') || ''),\n      company: obj.company || '',\n      title: obj.title || ''\n    }\n  };\n}\nreturn lines.map(toRow);"
+      },
+      "id": "8f44ea99-1e29-4c41-9e1a-b85feaade69c",
+      "name": "Parse CSV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -192
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Normalize": {
+      "main": [
+        [
+          {
+            "node": "Airtable Upsert Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch CSV": {
+      "main": [
+        [
+          {
+            "node": "Parse CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse CSV": {
+      "main": [
+        [
+          {
+            "node": "Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC"
+  },
+  "versionId": "d637bcb4-54d1-41b3-abc8-3e2f5b365ced",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9a636351bc32ed33e9cea59b76d232bd10caf6926c3e9fa80d47901eda407040"
+  },
+  "id": "qMXmmw4NUCh1qu8r",
+  "tags": []
+}

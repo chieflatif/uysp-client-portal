@@ -1,0 +1,66 @@
+I understand. Sorry. I’ll ignore all local docs and report only what I can prove from n8n and Airtable right now.
+
+### Current system state (verified live)
+- Realtime ingestion (active)
+  - Workflow: UYSP-Realtime-Ingestion (`2cdgp1qr9tXlONVL`) active
+  - Webhook: POST `/webhook/leads-intake`
+  - Flow: Webhook → Code Normalize → Airtable Upsert (Base `app6cU9HecxLpgT0P`, Table `tblYUvhGADerbD8EO`)
+  - Mapping: Email/Phone/First/Last/Company Domain; sets Source="Webhook", Processing Status="Queued"
+- Backlog ingestion (manual)
+  - Workflow: UYSP Backlog Ingestion (`qMXmmw4NUCh1qu8r`) manual trigger
+  - Fetches CSV via HTTP (Google Sheet export URL set), parses, normalizes, upserts to same base/table; dedupes on Email; writes many numeric defaults (0) for scoring/SMS counters
+- SMS trigger (enabled)
+  - Workflow: UYSP-SMS-Trigger (`D10qtcjjf2Vmmp5j`) enabled Airtable Trigger
+  - Trigger: Airtable Trigger on Base `app6cU9HecxLpgT0P`, Table `tblYUvhGADerbD8EO`, Trigger Field "Last Updated", View "SMS Pipeline"
+  - Path: Trigger → Delay(2s) → Airtable Get Record(id) → SimpleTexting HTTP → Parse → (Airtable Update node present but disabled) → Slack notify to channel `C097CHUHNTG`
+  - SMS message template is present in the HTTP node
+- Health monitor (present, inactive)
+  - Workflow: UYSP-Health-Monitor (`wNvsJojWTr0U2ypz`) has 15m cron alert + daily report to Slack; not active
+- Airtable (verified)
+  - Base: `app6cU9HecxLpgT0P` (“UYSP Lead Qualification (Option C)”)
+  - Table: `Leads` (`tblYUvhGADerbD8EO`)
+  - View: “SMS Pipeline” exists
+  - Fields include: Email, Phone, First/Last Name, Company Domain, Processing Status (Backlog/Queued/Processing/Ready for SMS/Complete/Failed), SMS Eligible (checkbox), SMS Status (Not Sent → Meeting Booked), and “Last Updated” (the trigger field)
+
+### Execution history (recent)
+- Realtime: multiple recent webhook runs (e.g., 2678, 2676, 2675,…)
+- Backlog: multiple recent manual runs (e.g., 2677, 2674, 2673,…)
+- SMS Trigger: multiple recent manual runs (e.g., 2737, 2736, 2735,…)
+
+### Risks and gaps discovered (need validation)
+- Field path mismatch risk in SMS path:
+  - Slack node references `$json.fields['Email']`, `$json.fields['Phone']`
+  - SimpleTexting node references `={{$json.Phone}}`
+  - After “Airtable Get Record,” fields often live at `$json.fields.*`. If `$json.Phone` is undefined, SMS could fail unless the node returns flattened fields. Action: validate with a test record.
+- Airtable Update (post-SMS) is currently disabled. If you want to persist SMS results (status/campaign_id/cost), enabling and mapping would be needed.
+- Health Monitor is not active; if you rely on alerts/reports, enable and validate thresholds.
+
+### What’s working (evidence-backed)
+- Ingestion pipelines exist, are wired to the target base/table, and have run recently.
+- Airtable Trigger is enabled and correctly pointed at “SMS Pipeline” using “Last Updated”.
+- Slack notifications are configured for SMS and health/reporting.
+
+### Immediate test plan to re-validate end-to-end
+- Seed 5 leads via Backlog or Realtime:
+  - Backlog: paste CSV in a Google Sheet, repoint “Fetch CSV,” run once; or
+  - Realtime: POST to `/webhook/leads-intake` with the 5 leads
+- Ensure leads appear in view “SMS Pipeline” (set filters/fields as needed: SMS Eligible=true, valid Phone, Processing Status=Ready for SMS if your view requires it)
+- Edit a field to bump “Last Updated” → confirm SMS flow runs, and Slack message arrives
+- Capture execution IDs and (optionally) re-enable the Airtable Update to persist SMS results
+
+### Paste‑ready CSV (5 documented test leads)
+```csv
+email,phone,first_name,last_name
+kitan@adobe.com,3604314662,Kinero,Tan
+jacturpi@amazon.com,4255779762,Jake,Turpin
+jsichau@adobe.com,61427562747,John,Sichau
+arregavi@amazon.com,4844087795,Gavin,Arredondo
+sdempsey@hubspot.com,35315187622,Shane,Dempsey
+```
+
+Want me to:
+- Update Backlog “Fetch CSV” to your sheet URL and run once, or
+- Trigger Realtime with these 5 via webhook, then confirm the SMS trigger fires and report execution IDs?
+
+Status update
+I rebuilt your current state strictly from n8n and Airtable: workflows, triggers, mappings, and recent executions verified; produced a risk list and a test plan to reconfirm SMS. Ready to execute whichever seeding path you prefer.

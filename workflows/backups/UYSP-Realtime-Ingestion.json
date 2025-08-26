@@ -1,0 +1,121 @@
+{
+  "name": "UYSP-Realtime-Ingestion",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "leads-intake",
+        "options": {}
+      },
+      "id": "585e6072-155c-4be3-a15f-88adbdc8bece",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -48
+      ],
+      "webhookId": "9a0b595d-f358-46c5-beb2-c5b5f3e3db3c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const first = $input.first();\nconst root = first.json && first.json.body ? first.json.body : first.json;\nconst out = {\n  'Email': root.email || root.Email || root.email_address || '',\n  'Phone': root.phone || root.Phone || root.phone_number || '',\n  'First Name': root.first_name || root.firstName || '',\n  'Last Name': root.last_name || root.lastName || '',\n  'Company': root.company || root.Company || '',\n  'Title': root.title || root.job_title || '',\n  'Source': 'Webhook',\n  'Processing Status': 'Queued'\n};\nlet domain = '';\nif (out['Email']) {\n  const parts = String(out['Email']).split('@');\n  domain = parts[1] || '';\n} else if (out['Company']) {\n  domain = String(out['Company']).toLowerCase().replace(/[^a-z0-9-]/g, '') + '.com';\n}\nout['Company Domain'] = domain;\nreturn [{ json: out }];"
+      },
+      "id": "2b9715be-f6ac-4a4c-a47c-cbd8e8a01b18",
+      "name": "Normalize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/app6cU9HecxLpgT0P/tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{$json.Email}}",
+            "Phone": "={{$json.Phone}}",
+            "First Name": "={{$json['First Name']}}",
+            "Last Name": "={{$json['Last Name']}}",
+            "Company Domain": "={{$json['Company Domain']}}",
+            "Processing Status": "={{$json['Processing Status']}}",
+            "Source": "={{$json.Source}}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true,
+          "updateAllMatches": false
+        }
+      },
+      "id": "aca5c821-9132-4d7e-a206-685227c09f6e",
+      "name": "Airtable Upsert Leads",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        432,
+        -48
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize": {
+      "main": [
+        [
+          {
+            "node": "Airtable Upsert Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f4d64c85-852a-4f79-8fe1-c9557a668360",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9a636351bc32ed33e9cea59b76d232bd10caf6926c3e9fa80d47901eda407040"
+  },
+  "id": "2cdgp1qr9tXlONVL",
+  "tags": []
+}
