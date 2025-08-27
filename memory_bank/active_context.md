@@ -67,3 +67,10 @@ Pending:
 - SMS Eligible (calc) field usage in view; optional automation to mirror into checkbox
 - n8n: Personal Email Filter (optional), Batch Monitor (Option A), later Batch Orchestrator (Option B)
 - A/B testing fields in Airtable (Template Variant, Campaign) if not yet created
+
+Planned (new todos):
+- SMS Sent Count auto-update via SimpleTexting webhooks
+- Clay per-row Enrichment Cost writeback + batch rollups by Batch ID
+- Kajabi schema (member status, purchases, newsletter/learning engagement), bulk import + webhooks
+- Pre-production cleanup workflow: split work/personal, reverse lookup to resolve work email, merge identities, reintegrate
+- LinkedIn engagement roadmap (fields + fetch)

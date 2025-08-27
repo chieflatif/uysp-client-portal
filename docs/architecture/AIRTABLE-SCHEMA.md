@@ -87,3 +87,23 @@ Observability:
 - Error Log – Long text
 - Processing Duration – Number (seconds)
 - Last Updated – Date/time
+
+
+Kajabi (customer data):
+- Kajabi Contact ID – Text
+- Member Status – Single select: [Active, Trial, Churned, Prospect]
+- Purchase Count – Number
+- Last Purchase Date – Date/time
+- Newsletter Engagement Score – Number (0–100)
+- Learning Engagement Score – Number (0–100)
+- Most Recent Campaign ID – Text
+- Campaign History – Long text (or link to Campaigns table)
+
+Costs & Observability (per lead):
+- Enrichment Cost – Currency (Clay per-row cost)
+- Provider – Single select: [Apollo, Clay GPT, Mixed]
+- Batch ID – Text (already defined) – used for grouping costs by batch
+
+Notes:
+- SMS Sent Count is updated via SimpleTexting webhooks (Messages delivered/sent). If not automated yet, keep manual until webhook is live.
+- Cost rollups: group by `Batch ID` in Airtable to sum `Enrichment Cost`; optional rollup field if using a `Batches` table later.

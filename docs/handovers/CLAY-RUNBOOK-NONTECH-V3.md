@@ -183,6 +183,12 @@ description_final: [10-15 words about what they do]
    - Match on: Domain
    - Map all company fields
 
+### Step 7.1: Capture Enrichment Cost
+- If your provider columns expose `totalCostToAIProvider` or similar in the JSON:
+  1) Click a response cell → Cell Details → hover `totalCostToAIProvider` (or `enrichment_cost`) → Add as column (name `enrichment_cost`).
+  2) Map `enrichment_cost` → Leads `Enrichment Cost` (Currency).
+- Batch totals: use Airtable grouped view by `Batch ID` and show summary = SUM of `Enrichment Cost`.
+
 ## 5. Handling Retries & Errors
 
 ### GPT "No Response" Errors

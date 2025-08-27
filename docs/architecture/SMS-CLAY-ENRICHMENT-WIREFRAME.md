@@ -423,3 +423,14 @@ Flow:
 - View filters by `SMS Eligible (calc) = true` and `Template Variant = A/B`.
 - n8n selects variant-specific template when sending.
 - Metrics captured per template via existing delivery/click webhooks.
+
+## SMS Counts (Webhook-driven)
+- Source: SimpleTexting delivery/status webhooks
+- Update: `SMS Status`, `SMS Sent Count` (+1 on successful send), `Last SMS Sent` (timestamp)
+- Store per-send cost if exposed, else compute via plan rate
+
+## Kajabi Integration Overview
+- Data paths:
+  - Bulk import (CSV) → n8n normalize → Airtable `Leads`/`Purchases`
+  - Webhooks (member status, purchases, email events) → n8n → Airtable updates
+- Core fields used by scoring/routing: Member Status, Purchase Count, Last Purchase, Engagement Scores
