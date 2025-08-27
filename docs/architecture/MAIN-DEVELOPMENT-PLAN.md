@@ -5,6 +5,7 @@ Deliver Phase 1 (single-message, tracked SMS) on top of Clay enrichment with rob
 
 ## Scope (Phase 1)
 - Clay enrichment workflow and ICP gating
+- Mirror Companies to Airtable `Companies` table (upsert by `Domain`)
 - Single SMS daily program (5 hourly runs of 100 from 10am ET)
 - First-party click tracking redirect
 - Delivery and unsubscribe webhooks
@@ -14,12 +15,12 @@ Deliver Phase 1 (single-message, tracked SMS) on top of Clay enrichment with rob
 
 ## Deliverables
 - n8n workflows: Clay Enrichment, SMS Single Sender, Click Redirect, Delivery Webhook, Unsubscribe Webhook, (Calendly Webhook when ready)
-- Airtable schema updates and views
+- Airtable schema updates and views (including `Companies` authoritative cache)
 - Docs: Architecture, Decisions, Sessions, Ops instructions
 
 ## Sessions Overview
 - Session 1: Foundation (schema, templates, holidays, credentials, branch)
-- Session 2: Clay Integration (enrichment + ICP)
+- Session 2: Clay Integration (enrichment + ICP + Companies mirror upsert)
 - Session 3: SMS Infrastructure (redirect, sender, webhooks, hours)
 - Session 4: Testing (internal numbers, metrics validation)
 - Session 5: Production Prep (views, alerts, pilot)

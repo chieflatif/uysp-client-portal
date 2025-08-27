@@ -1,15 +1,21 @@
 # Airtable Schema – Companies & Leads
 
-## Companies (Authoritative)
-- Domain (Primary) – Single line text
+## Companies (Authoritative cache mirrored from Clay)
+- Domain (Primary) – Single line text (unique key; equals `company_domain`)
 - Company Name – Single line text
-- Industry – Single select
 - Company Type – Single select: [B2B SaaS, B2B Tech Services, Other B2B, B2C/Unknown]
+- Company Score Component – Number (25, 18, 10, or 2 based on type)
+- Industry Final – Single line text (2-3 words, improved from Apollo)
+- Industry (Apollo) – Single line text (raw from Apollo)
+- Description Final – Long text (10-15 word summary from GPT)
+- Description (Apollo) – Long text (raw from Apollo)
+- Company LinkedIn URL – URL
 - Employee Count – Number
-- Company Score Component – Number (0–25)
-- Last Enriched – Date
-- Enrichment Provider – Single select: [Apollo, Clearbit, PDL]
+- Last Enriched – Date/time
+- Enrichment Provider – Single select: [Apollo, Clay GPT, Mixed]
+- Enrichment Timestamp – Date/time
 - Enrichment Cost – Currency
+- Used Website – Checkbox (if GPT visited site)
 
 Views:
 - All Companies (sorted by Domain)
@@ -26,9 +32,13 @@ Core:
 - Last Name – Text
 - Job Title – Text
 - Company Domain – Text
-- Company – Link to Companies
- - Company Industry – Text
- - Company Description – Long text
+- Company – Link to Companies (by Domain)
+- Company Name – Text (from enrichment)
+- Company Type – Single select: [B2B SaaS, B2B Tech Services, Other B2B, B2C/Unknown]
+- Company Industry – Text (Industry Final from Clay)
+- Company Description – Long text (Description Final from Clay)
+- Company LinkedIn URL – URL
+- Person LinkedIn URL – URL
 
 Enrichment:
 - Person Industry – Text
