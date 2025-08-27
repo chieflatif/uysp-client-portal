@@ -256,6 +256,11 @@ Clay → Airtable:
 - Source: Clay “Identify Email Type…” enrichment
 - Rule: If `IsLikelyPersonalEmail = true` → set `HRQ Status = Archive`, `HRQ Reason = Personal email`, skip enrichment/writeback except HRQ fields.
 
+### HRQ Prefilter Linkage
+- Bulk Import now uses the single-path HRQ prefilter (no IF nodes) per `INGRESS-NORMALIZATION-STANDARD.md`.
+- Clay intake view must be: `Processing Status = Queued AND HRQ Status != "Archive"`.
+- Optional: midstream catcher moves any stragglers to HRQ.
+
 ## Status Checklist
 
 Done:

@@ -50,3 +50,45 @@ References
 - See `SIMPLETEXTING-INTEGRATION.md` for SMS node field sourcing and writeback.
 
 
+## HRQ Prefilter (Single-Path, No IF Nodes)
+
+Purpose
+- Route personal emails to HRQ before Clay; avoid fragile IF nodes by computing all values in one Code step and doing a single Airtable upsert.
+
+Placement
+- In the Bulk Import workflow: after CSV Parse → Normalize, before any Clay-facing steps.
+
+n8n Code node (classify + prepare fields)
+```javascript
+const personalDomains = [
+  'gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com','aol.com',
+  'proton.me','protonmail.com','msn.com','live.com','me.com','mac.com',
+  'yandex.com','gmx.com','zoho.com','mail.com','fastmail.com','pm.me'
+];
+
+const email = String($json.email || '').toLowerCase().trim();
+const domain = email.includes('@') ? email.split('@')[1] : '';
+const isPersonal = personalDomains.some(pd => domain === pd || domain.endsWith('.' + pd));
+
+return {
+  ...$json,
+  email,
+  company_domain: domain,
+  hrq_status: isPersonal ? 'Archive' : 'None',
+  hrq_reason: isPersonal ? 'Personal email' : '',
+  processing_status: isPersonal ? 'Complete' : 'Queued',
+  skip_enrichment: isPersonal
+};
+```
+
+Airtable Upsert (single node)
+- Match on Email
+- Map: `company_domain`, `processing_status`, `hrq_status`, `hrq_reason`, and other normalized fields
+
+Clay intake view (required)
+- Filter: `Processing Status = Queued AND HRQ Status != "Archive"`
+
+Optional midstream catcher
+- Scheduled n8n workflow that re-checks domain list (or Clay `IsLikelyPersonalEmail`) and updates HRQ fields, moving records out of the queue.
+
+
