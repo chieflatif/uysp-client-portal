@@ -51,3 +51,19 @@
   - Validate Clay + SimpleTexting credentials in n8n
   - Commit after each milestone
 - Then proceed with Sessions 2–5 per `docs/architecture/SMS-CLAY-ENRICHMENT-SESSIONS-PLAN.md`.
+
+---
+
+## Progress Snapshot (Today)
+
+Done:
+- Clay: company enrichment (Apollo + GPT), join-back, field extraction
+- Airtable writeback: company fields, Job Title, phone normalization (Significant → Phone, Successfully Parsed → Phone Valid)
+- Scoring: Company Score (from Clay), Role Score (AI from Job Title), Location Score (US tiers), ICP formula (+5 Prime Fit Bonus)
+- Docs: runbook HRQ routing, schema updates, batching plan status, A/B testing note
+
+Pending:
+- HRQ routing enforcement in Clay mapping (exclude personal emails rows in downstream steps)
+- SMS Eligible (calc) field usage in view; optional automation to mirror into checkbox
+- n8n: Personal Email Filter (optional), Batch Monitor (Option A), later Batch Orchestrator (Option B)
+- A/B testing fields in Airtable (Template Variant, Campaign) if not yet created

@@ -51,3 +51,19 @@ This session is guided by the suite of documents reconstructed after the data lo
 2.  The system is processing new leads in real-time without manual intervention.
 3.  The Health Monitor is active and sending regular reports.
 4.  The automated backup system is operational.
+
+---
+
+## ✅ Done vs Pending (Session Tracker)
+
+Done:
+- Clay enrichment pipeline configured; company/person fields mapped
+- Company Type/Score, Role Score (from Job Title AI), Location Score (US-only), ICP formula (+5 Prime Fit Bonus)
+- Phone normalization mapped; Phone Valid checkbox in Airtable
+- Documentation updated: runbook HRQ routing, schema, batching plan, A/B testing note
+
+Pending:
+- Enforce HRQ routing for personal emails (exclude from enrichment/writeback except HRQ fields)
+- Create `SMS Eligible (calc)` formula and set SMS Eligible view filter to it
+- Optional: automation to mirror calc → checkbox if needed by n8n
+- Optional: n8n monitoring (Option A); later Option B batch orchestrator
