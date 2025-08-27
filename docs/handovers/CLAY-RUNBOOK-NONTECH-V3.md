@@ -51,6 +51,13 @@ This runbook provides field-tested, step-by-step instructions for Clay enrichmen
    - IsLikelyCompanyEmail
    - IsLikelyPersonalEmail
 
+### Step 2.5: HRQ Routing for Personal Emails (Skip Enrichment)
+1. Goal: avoid spending credits on personal emails.
+2. When `IsLikelyPersonalEmail = true`, set fields for Airtable mapping:
+   - `HRQ Status` → "Archive"
+   - `HRQ Reason` → "Personal email"
+3. Exclude these rows from company/person enrichments (or only write the HRQ fields back).
+
 ### Step 3: Create Companies List with Unique Domains
 1. **Method: Write to Other Table**
    - Raw Leads → Add column → Add enrichment
@@ -162,8 +169,11 @@ description_final: [10-15 words about what they do]
      - industry_final → Company Industry
      - description_final → Company Description
      - linkedin_url → Company LinkedIn
+     - Normalize Phone → Number → Significant → Phone
+     - Normalize Phone → Successfully Parsed → Phone Valid (checkbox)
      - job_title → Job Title (if enriched)
      - location → Location Country (if enriched)
+     - phone → Phone Number (if enriched)
 
 #### 7B: Mirror to Companies Table
 1. Companies to Enrich → Add column → Add enrichment

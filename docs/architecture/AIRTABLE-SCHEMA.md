@@ -39,6 +39,7 @@ Core:
 - Company Description – Long text (Description Final from Clay)
 - Company LinkedIn URL – URL
 - Person LinkedIn URL – URL
+- Batch ID – Text (batch orchestration)
 
 Enrichment:
 - Person Industry – Text
@@ -50,14 +51,21 @@ Enrichment:
 - Raw Enrichment Data – Long text
 
 Scoring:
-- ICP Score – Number
-- Company Score Component – Number (0–25)
+- ICP Score – Number (Formula: sum of components + Prime Fit Bonus)
+- Company Score Component – Number (0–25; from Clay or formula)
 - Role Score Component – Number (0–45)
 - Location Score Component – Number (0–20)
 - Dynamic Signals Score – Number (0–10)
 - Prime Fit Bonus – Checkbox
 - Score Reasoning – Long text
-- SMS Eligible – Checkbox
+- SMS Eligible (calc) – Formula (Boolean):
+  AND(
+    {Phone Valid},
+    {ICP Score} >= 70,
+    LOWER({Location Country}) = "united states",
+    OR({SMS Status}="Not Sent", {SMS Status}=""),
+    {HRQ Status} != "Archive"
+  )
 
 SMS & Outreach:
 - SMS Status – Single select: [Not Sent, Queued, Sent, Delivered, Clicked, Replied, Meeting Booked]
@@ -69,7 +77,8 @@ SMS & Outreach:
 
 HRQ & Quality:
 - HRQ Status – Single select: [None, Archive, Qualified, Manual Process]
-- HRQ Reason – Text
+- HRQ Reason – Text (e.g., "Personal email")
+- Phone Valid – Checkbox (from Clay normalization)
 - Data Quality Score – Number (1–5)
 - Validation Errors – Long text
 

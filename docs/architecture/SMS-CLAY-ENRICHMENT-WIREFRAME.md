@@ -412,3 +412,14 @@ git checkout -b feature/clay-sms-integration
 ```
 
 Ready to proceed with Session 1?
+
+## SMS A/B Testing (Lightweight)
+
+Fields (Airtable → Leads):
+- Template Variant – Single select: [A, B]
+- Campaign – Single line text (or link to Campaigns table)
+
+Flow:
+- View filters by `SMS Eligible (calc) = true` and `Template Variant = A/B`.
+- n8n selects variant-specific template when sending.
+- Metrics captured per template via existing delivery/click webhooks.
