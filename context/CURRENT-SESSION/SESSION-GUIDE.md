@@ -61,6 +61,7 @@ Done:
 - Company Type/Score, Role Score (from Job Title AI), Location Score (US-only), ICP formula (+5 Prime Fit Bonus)
 - Phone normalization mapped; Phone Valid checkbox in Airtable
 - Documentation updated: runbook HRQ routing, schema, batching plan, A/B testing note
+ - Bulk Upload SOP created; Parse CSV fix documented; Manual Trigger added to SOP
 
 Pending:
 - Enforce HRQ routing for personal emails (exclude from enrichment/writeback except HRQ fields)

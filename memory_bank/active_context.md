@@ -74,3 +74,17 @@ Planned (new todos):
 - Kajabi schema (member status, purchases, newsletter/learning engagement), bulk import + webhooks
 - Pre-production cleanup workflow: split work/personal, reverse lookup to resolve work email, merge identities, reintegrate
 - LinkedIn engagement roadmap (fields + fetch)
+
+---
+
+## 📦 Bulk Upload SOP (10 steps)
+1. Prepare Google Sheet with headers: Email, First Name, Last Name, Phone, Company, Title.
+2. Build CSV export URL: `https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/export?format=csv&gid=GID`.
+3. n8n `UYSP Backlog Ingestion`: set `Fetch CSV` URL to the export link.
+4. Ensure `Parse CSV` reads `$json.data` or `$json.body` (fallback `data ?? body`).
+5. Run `Manual Trigger` to execute the workflow.
+6. `Normalize` node emits sanitized fields + HRQ routing (`HRQ Status`, `HRQ Reason`, `Processing Status`).
+7. `Airtable Upsert Leads`: match on `Email`, map normalized fields.
+8. In Airtable, the `Clay Queue` view filters: `Processing Status = Queued AND HRQ Status != "Archive"`.
+9. In Clay, run enrichment on the `Clay Queue` view; use "Run rows that haven’t run or have errors" for retries.
+10. Validate updates in Airtable `Leads` and optionally mirror to `Companies`.

@@ -35,6 +35,11 @@ Backlog ingress (Manual → Fetch CSV → Parse CSV → Normalize → Upsert)
 - Emit sanitized fields and apply the same derivations.
 - Set Source = "Backlog", Processing Status = "Queued".
 
+Google Sheets CSV export (required for HTTP fetch)
+- Build URL: `https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/export?format=csv&gid=GID` (from the sheet/tab URL)
+- Ensure sharing: Anyone with the link → Viewer.
+- HTTP node may return content in `$json.data` or `$json.body`; parsers must accept both.
+
 Out-of-scope (handled by Clay)
 - Semantic domain correction beyond simple slug+.com
 - Identity resolution, dedupe/merge beyond Email
@@ -48,6 +53,9 @@ References
 - See `IMPLEMENTATION-ROADMAP.md` Track 1 (SYS-00) for rollout tasks.
 - See `DEVELOPMENT-PLAN-STEP-BY-STEP.md` checklist updates.
 - See `SIMPLETEXTING-INTEGRATION.md` for SMS node field sourcing and writeback.
+
+Parser fallback note
+- When parsing CSV in a Code node, prefer: `const text = String($input.first().json?.data ?? $input.first().json?.body ?? '').trim(); if (!text) return [];`
 
 
 ## HRQ Prefilter (Single-Path, No IF Nodes)

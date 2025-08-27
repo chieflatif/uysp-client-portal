@@ -12,6 +12,7 @@
 2. **Personal email pre-filter** in n8n (30 min setup)
 3. **Simple monitoring** via Slack notifications
 4. **Phone normalization** in Clay (see below)
+5. **Backlog Import is started via n8n Manual Trigger** (activate per run)
 
 ### Phone Number Handling
 **SimpleTexting Requirements**: 10-digit format (e.g., `3051234567`)

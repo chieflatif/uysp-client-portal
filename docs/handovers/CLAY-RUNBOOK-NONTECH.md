@@ -4,6 +4,8 @@
 **Date**: 2025-08-26
 **Status**: Authoritative Guide
 
+Related: For step-by-step bulk uploads from Google Sheets via n8n → Airtable → Clay, see `docs/handovers/BULK-UPLOAD-SOP.md`.
+
 ---
 
 ## 1. Goal
