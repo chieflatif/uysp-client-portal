@@ -4,6 +4,8 @@
 **Date**: 2025-01-27
 **Status**: Production-Ready with Actual Clay UI Steps
 
+⚠️ **CRITICAL**: Read [CLAY-PLATFORM-GOTCHAS-COMPLETE.md](../platform-gotchas/CLAY-PLATFORM-GOTCHAS-COMPLETE.md) FIRST to understand Clay's broken features and workarounds.
+
 ---
 
 ## 1. Goal
