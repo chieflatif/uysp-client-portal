@@ -57,10 +57,13 @@
 ## Progress Snapshot (Today)
 
 Done:
-- Clay: company enrichment (Apollo + GPT), join-back, field extraction
-- Airtable writeback: company fields, Job Title, phone normalization (Significant → Phone, Successfully Parsed → Phone Valid)
-- Scoring: Company Score (from Clay), Role Score (AI from Job Title), Location Score (US tiers), ICP formula (+5 Prime Fit Bonus)
-- Docs: runbook HRQ routing, schema updates, batching plan status, A/B testing note
+- Clay: company enrichment (Apollo + GPT), join-back, field extraction ✅
+- Airtable writeback: company fields, Job Title, phone normalization (Significant → Phone, Successfully Parsed → Phone Valid) ✅
+- Scoring: Company Score (from Clay), Role Score (AI from Job Title), Location Score (US tiers), ICP formula (+5 Prime Fit Bonus) ✅
+- SMS Eligible field working correctly (78, 85, 90 ICP scores → SMS Eligible = true) ✅
+- SimpleTexting integration active (UYSP-SMS-Trigger workflow D10qtcjjf2Vmmp5j running successfully) ✅
+- Clay → Airtable pipeline fully operational with real leads processed ✅
+- Docs: runbook HRQ routing, schema updates, batching plan status, A/B testing note ✅
 
 Pending:
 - HRQ routing enforcement in Clay mapping (exclude personal emails rows in downstream steps)
