@@ -16,3 +16,9 @@ Prefer MCP tools and searches over guessing: use Claude Code Server, Context7 do
 
 ### Option Justification Policy [ID: 7535979]
 Do not present option lists without analysis. Provide one recommended path with rationale; include alternatives only when listing clear pros/cons and implications. Avoid speculative option dumps.
+
+### Documentation-First, Always-In-Sync [ID: 7537767]
+Follow Plan → Document → Execute → Update Docs. Use .cursorrules/CONTEXT-ENGINEERING-STANDARD.md as SSOT. After any action, update `memory_bank/active_context.md` and `context/CURRENT-SESSION/SESSION-GUIDE.md`; log evidence in `memory_bank/evidence_log.md` and progress in `memory_bank/progress.md`. Placement: session docs → `context/CURRENT-SESSION/`; system/long‑lived docs → `docs/architecture/` or `docs/handovers/` (prefer updating existing files; never create ad‑hoc paths).
+
+### File Placement Guardrail [ID: 7539311]
+Never create ad‑hoc files or folders. Use only the allowed locations above. Prefer updating existing files. If uncertain, ask before writing. Include a done‑when check for correct placement.

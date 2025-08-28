@@ -329,3 +329,16 @@ After EVERY component:
 - [✅] Workflow backup created
 - [✅] Memory bank updated
 - [✅] Ready for Session 0
+
+## 16. CREDENTIAL & HTTP NODE SAFETY PROTOCOL (MANDATORY)
+- Never update or overwrite node `credentials` via bulk/API edits. Re‑select in UI (especially OAuth) to avoid silent detachment.
+- Never replace whole `parameters` objects on credentialed nodes (Airtable, HTTP, Slack). Update only the specific keys required (e.g., `jsonBody.text`), leaving auth/URL untouched.
+- HTTP nodes: keep `method=POST` and the full `url` explicitly set; bulk edits can clear the URL field. Verify visually after each change.
+- Airtable v2 (Cloud): use Resource=Record + Operation=Search for lists; do not toggle resource/operation through code on existing nodes or credentials may drop [[memory:7536884]].
+- CRITICAL GOTCHA (n8n Cloud): Bulk/API updates to credentialed nodes (HTTP/Airtable/Slack) can clear credentials and URLs if entire parameter blocks are replaced. Only update specific keys (e.g., `jsonBody.text`). Never modify `credentials`, `resource`, `operation`, or `url` via API on existing nodes.
+- After ANY workflow update: immediately verify these nodes still show credentials in UI:
+  - `SimpleTexting HTTP` (httpHeaderAuth)
+  - `Airtable Update` and any Airtable searches (airtableTokenApi)
+  - `SMS Test Notify` (Slack OAuth)
+- If any auth/URL is missing, STOP. Rebind creds in UI, re‑run Manual Trigger, then commit a snapshot.
+- Evidence gate: include workflow ID, execution ID, and a screenshot/JSON confirming auth+URL fields before declaring success.

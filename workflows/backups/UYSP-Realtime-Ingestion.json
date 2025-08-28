@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const first = $input.first();\nconst root = first.json && first.json.body ? first.json.body : first.json;\nconst out = {\n  'Email': root.email || root.Email || root.email_address || '',\n  'Phone': root.phone || root.Phone || root.phone_number || '',\n  'First Name': root.first_name || root.firstName || '',\n  'Last Name': root.last_name || root.lastName || '',\n  'Company': root.company || root.Company || '',\n  'Title': root.title || root.job_title || '',\n  'Source': 'Webhook',\n  'Processing Status': 'Queued'\n};\nlet domain = '';\nif (out['Email']) {\n  const parts = String(out['Email']).split('@');\n  domain = parts[1] || '';\n} else if (out['Company']) {\n  domain = String(out['Company']).toLowerCase().replace(/[^a-z0-9-]/g, '') + '.com';\n}\nout['Company Domain'] = domain;\nreturn [{ json: out }];"
+        "jsCode": "const first = $input.first();\nconst root = first.json && first.json.body ? first.json.body : first.json;\nfunction sanitizeEmail(v){ if(!v) return ''; const s=String(v).trim().toLowerCase(); return s.replace(/[\\s]+/g,'').replace(/[\\.,;:]+$/, ''); }\nfunction normalizePhone(v){ if(!v) return ''; let s=String(v).trim(); if (s.startsWith('+')) s = '+'+s.slice(1).replace(/[^0-9]/g,''); else s=s.replace(/[^0-9]/g,''); if (s.startsWith('+')) return s; if (s.length===11 && s.startsWith('1')) return '+1'+s.slice(1); if (s.length===10) return '+1'+s; return s; }\nfunction deriveDomain(email, company){ if(email){ const at=email.split('@')[1]; if(at) return at; } if(company){ return String(company).toLowerCase().replace(/[^a-z0-9-]/g,'') + '.com'; } return ''; }\nconst email = sanitizeEmail(root.email || root.Email || root.email_address || '');\nconst phone = normalizePhone(root.phone || root.Phone || root.phone_number || '');\nconst firstName = root.first_name || root.firstName || root.first || '';\nconst lastName = root.last_name || root.lastName || root.last || '';\nconst company = root.company || root.Company || '';\nconst title = root.title || root.job_title || '';\nconst domain = deriveDomain(email, company);\nconst out = {\n  'Email': email,\n  'Phone': phone,\n  'First Name': firstName,\n  'Last Name': lastName,\n  'Company': company,\n  'Title': title,\n  'Company Domain': domain,\n  'Source': 'Webhook',\n  'Processing Status': 'Queued'\n};\nreturn [{ json: out }];"
       },
       "id": "2b9715be-f6ac-4a4c-a47c-cbd8e8a01b18",
       "name": "Normalize",
@@ -111,7 +111,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "f4d64c85-852a-4f79-8fe1-c9557a668360",
+  "versionId": "81361b63-cfb2-4b8b-8859-8ad479dc82f7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "9a636351bc32ed33e9cea59b76d232bd10caf6926c3e9fa80d47901eda407040"
