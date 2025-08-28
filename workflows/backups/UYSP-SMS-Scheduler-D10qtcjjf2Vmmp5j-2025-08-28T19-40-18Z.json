@@ -1,0 +1,23 @@
+{
+  "createdAt": "2025-08-21T21:38:43.620Z",
+  "updatedAt": "2025-08-28T19:40:18.168Z",
+  "id": "D10qtcjjf2Vmmp5j",
+  "name": "UYSP-SMS-Scheduler",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    { "id": "get", "name": "Airtable Get Record", "type": "n8n-nodes-base.airtable" },
+    { "id": "sms", "name": "SimpleTexting HTTP", "type": "n8n-nodes-base.httpRequest" },
+    { "id": "parse", "name": "Parse SMS Response", "type": "n8n-nodes-base.code" },
+    { "id": "update", "name": "Airtable Update", "type": "n8n-nodes-base.airtable" },
+    { "id": "sms-slack", "name": "SMS Test Notify", "type": "n8n-nodes-base.slack" },
+    { "id": "9327efec-dc0b-43d3-92f6-477b6dafe7a8", "name": "Get Settings", "type": "n8n-nodes-base.airtable" },
+    { "id": "97d8392a-9471-4e25-8424-425ec18304ab", "name": "List Templates", "type": "n8n-nodes-base.airtable" },
+    { "id": "d1f7e09f-53b0-4931-aa23-0694e164fcec", "name": "Prepare Text (A/B)", "type": "n8n-nodes-base.code" },
+    { "id": "cron", "name": "Schedule", "type": "n8n-nodes-base.cron" },
+    { "id": "list-due", "name": "List Due Leads", "type": "n8n-nodes-base.airtable" },
+    { "id": "manual", "name": "Manual Trigger", "type": "n8n-nodes-base.manualTrigger" }
+  ],
+  "settings": { "executionOrder": "v1" },
+  "note": "Snapshot of live workflow after server-side Search + filterByFormula + limit, A/B templating, and safe Airtable Update mappings."
+}
