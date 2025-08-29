@@ -1,0 +1,1212 @@
+{
+  "createdAt": "2025-08-16T05:06:17.572Z",
+  "updatedAt": "2025-08-16T21:48:02.000Z",
+  "id": "A8GmUxbXpON0yB3i",
+  "name": "UYSP Phase 2D+2E Working",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kajabi-leads-complete-clean",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "5cba698f-ff53-498b-9bc8-4ac6219e0240",
+      "name": "Kajabi Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -4340,
+        140
+      ],
+      "webhookId": "658a1d1c-30a0-484d-b3cd-87578ff5e668"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validation removed - webhook auth now handled at webhook level\nreturn $json;"
+      },
+      "id": "605c6ee8-30a9-4de4-b930-69011670aa21",
+      "name": "Validate API Key (Dynamic)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4120,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Smart Field Mapper v4.7 - add engagement/experience fields + boolean null fix\n// CRITICAL FIX: Boolean false → null for Airtable checkbox fields\nconst webhookData = $input.first().json;\n\n// Extract payload\nlet inputData;\nif (webhookData.body && typeof webhookData.body === 'object') {\n  inputData = webhookData.body;\n} else if (webhookData.data && typeof webhookData.data === 'object') {\n  inputData = webhookData.data;\n} else {\n  inputData = webhookData;\n}\n\nconst fieldMappings = {\n  email: ['email', 'Email', 'EMAIL', 'email_address', 'emailAddress', 'e-mail', 'e_mail', 'contact_email', 'Email_Address', 'EMAIL_ADDRESS'],\n  phone: ['phone', 'Phone', 'PHONE', 'phone_number', 'phoneNumber', 'mobile', 'cellphone', 'telephone', 'phone_intl', 'mobile_intl'],\n  name: ['name', 'Name', 'NAME', 'full_name', 'fullName', 'contact_name', 'display_name'],\n  first_name: ['first_name', 'firstName', 'fname', 'given_name', 'forename'],\n  last_name: ['last_name', 'lastName', 'lname', 'surname', 'family_name'],\n  company: ['company', 'Company', 'COMPANY', 'company_name', 'companyName', 'organization', 'org', 'business'],\n  title: ['title', 'Title', 'job_title', 'jobTitle', 'position', 'role'],\n  source_form: ['source_form', 'form_name', 'formName', 'source', 'form_id'],\n  interested_in_coaching: ['interested_in_coaching', 'coaching_interest', 'wants_coaching'],\n  qualified_lead: ['qualified_lead', 'is_qualified', 'qualified', 'lead_qualified'],\n  contacted: ['contacted', 'was_contacted', 'contact_attempted', 'reached_out'],\n  linkedin_url: ['linkedin_url', 'linkedin', 'linkedinUrl', 'linkedin_profile'],\n  request_id: ['request_id', 'requestId', 'request', 'id', 'tracking_id'],\n  // New fields for ICP fallback/engagement\n  touchpoint_count: ['touchpoint_count','touchpoints','engagement_count'],\n  course_purchaser: ['course_purchaser','purchased_course','customer'],\n  experience_years: ['experience_years','years_experience','years_in_role','yir'],\n  recent_role_change: ['recent_role_change','recent_promotion','recent_change','role_change','job_change'],\n  sales_focused_motivation: ['sales_focused_motivation','motivation_sales','sales_motivation']\n};\n\nconst normalized = {};\nconst mappedFields = new Set();\n\nfunction findField(aliases) {\n  for (const key of Object.keys(inputData)) {\n    if (aliases.some(alias => alias.toLowerCase() === key.toLowerCase())) {\n      mappedFields.add(key);\n      return inputData[key];\n    }\n  }\n  return null;\n}\n\nObject.entries(fieldMappings).forEach(([normalizedName, aliases]) => {\n  const value = findField(aliases);\n  if (value !== null && value !== undefined && value !== '') {\n    normalized[normalizedName] = value;\n  }\n});\n\n// Auto-split full name if needed\nif (normalized.name && !normalized.first_name) {\n  const parts = normalized.name.trim().split(/\\s+/);\n  normalized.first_name = parts[0] || '';\n  normalized.last_name = parts.slice(1).join(' ') || '';\n}\n\n// 3-Field Phone Strategy\nif (normalized.phone) {\n  normalized.phone_recent = normalized.phone;\n  normalized.phone_original = normalized.phone;\n}\n\n// Boolean conversion for Airtable - null instead of false\n['interested_in_coaching', 'qualified_lead', 'contacted', 'course_purchaser', 'recent_role_change', 'sales_focused_motivation'].forEach(field => {\n  if (normalized[field] !== undefined) {\n    const val = String(normalized[field]).toLowerCase();\n    const isTruthy = ['true', 'yes', '1', 'on', 'y', 'checked', 'enabled'].includes(val);\n    normalized[field] = isTruthy ? true : null;\n  }\n});\n\n// Track unknown fields\nconst unknownFields = Object.keys(inputData).filter(k => !mappedFields.has(k));\n\n// Metadata\nnormalized.webhook_field_count = Object.keys(inputData).length;\nnormalized.mapped_field_count = Object.keys(normalized).length;\nnormalized.unknown_field_list = unknownFields.join(', ');\nnormalized.field_mapping_success_rate = Math.round((Object.keys(normalized).length / Object.keys(inputData).length) * 100);\nnormalized.normalization_version = 'v4.7-engagement-mapping';\nnormalized.raw_webhook_data = JSON.stringify(webhookData);\n\n// Return proper n8n item shape\nreturn [{ json: { normalized, original: inputData, unknownFields, mappingSuccess: Object.keys(normalized).length > 0, timestamp: new Date().toISOString() } }];"
+      },
+      "id": "3437ed3f-7cbf-47f7-8cb7-25d34fd8502d",
+      "name": "Smart Field Mapper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3900,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// PDL Person Processor — costs only on success, last_enriched only on success\nconst resp = $input.first().json || {};\nconst smart = $node['Smart Field Mapper'].json.normalized || {};\n\nconst status = resp.statusCode ?? resp.status ?? null;\nconst body = resp.body ?? resp;\nconst data = body?.data ?? body ?? {};\n\nconst respMs = typeof resp.ms === 'number' ? resp.ms : (typeof resp.elapsedTime === 'number' ? resp.elapsedTime : null);\nconst retries = typeof resp.retryCount === 'number' ? resp.retryCount : (typeof resp.retries === 'number' ? resp.retries : 0);\n\nconst hasPerson = status === 200 && data && Boolean(\n  data.linkedin_url ||\n  data.full_name ||\n  data.job_title ||\n  data.job_company_name\n);\n\nconst first = data.first_name || smart.first_name || null;\nconst last = data.last_name || smart.last_name || null;\nconst title = data.job_title || null;\nconst company = data.job_company_name || null;\nconst linkedin = data.linkedin_url || null;\nconst seniority = data.job_title_seniority || null;\nconst industry = data.job_company_industry || null;\nconst isSales = data.job_title_role === 'sales' || false;\n\nconst normalized = {\n  ...smart,\n  first_name: first,\n  last_name: last,\n  title_current: title || smart.title_current || null,\n  company_enriched: company || smart.company_enriched || smart.company || null,\n  linkedin_url: linkedin || smart.linkedin_url || null,\n\n  pdl_seniority: seniority,\n  pdl_industry: industry,\n  pdl_is_sales_role: isSales,\n  pdl_job_title: title,\n  pdl_company_name: company,\n\n  pdl_person_success: hasPerson,\n  pdl_status_code: status,\n  pdl_response_time_ms: respMs,\n  pdl_retry_count: retries,\n\n  enrichment_vendor: hasPerson ? 'pdl' : (smart.enrichment_vendor || 'pdl'),\n  enrichment_attempted: true\n};\n\nif (hasPerson) {\n  normalized.last_enriched = new Date().toISOString();\n  normalized.pdl_cost = 0.01;\n  normalized.pdl_raw_error = null;\n} else {\n  normalized.pdl_raw_error = body?.error || body?.message || null;\n}\n\nreturn [{ json: normalized }];"
+      },
+      "id": "7ff8ca3d-17a4-48cf-a350-8802555e7470",
+      "name": "PDL Person Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2800,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ ($json.route === 'qualified' || $json.icp_score >= 70) && $json.human_review_needed !== true }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a7f324b4-d09d-48c8-8939-36a004067d1f",
+      "name": "Score-Based Routing V3.0",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1540,
+        120
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Archive Low Scores - FIXED return shape + include identifiers + archived_date fix\nconst base = $json.normalized || $json || {};\nconst email = base.email ?? ($node['Smart Field Mapper'].json.normalized?.email ?? null);\nconst first_name = base.first_name ?? ($node['Smart Field Mapper'].json.normalized?.first_name ?? null);\nconst last_name = base.last_name ?? ($node['Smart Field Mapper'].json.normalized?.last_name ?? null);\nconst archived_date = new Date().toISOString();\nconst archivedLead = {\n  ...base,\n  email,\n  first_name,\n  last_name,\n  archived_date,\n  archived_reason: 'icp_score_below_threshold',\n  routing: 'archive',\n  processing_status: 'Archived',\n  processing_completed: new Date().toISOString()\n};\nreturn [{ json: { normalized: archivedLead } }];"
+      },
+      "id": "c3e26440-7121-49d7-833d-0117207b7e27",
+      "name": "Archive Low Scores",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1320,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hunter Response Normalization — costs only on success, last_enriched only on success\nconst items = $input.all();\nfor (const item of items) {\n  const base = $node['Smart Field Mapper'].json.normalized || {};\n  const resp = item.json || {};\n  const status = resp.statusCode ?? resp.status ?? null;\n  const body = resp.body ?? resp;\n  const data = body?.data ?? body ?? {};\n\n  const respMs = typeof resp.ms === 'number' ? resp.ms : (typeof resp.elapsedTime === 'number' ? resp.elapsedTime : null);\n  const retries = typeof resp.retryCount === 'number' ? resp.retryCount : (typeof resp.retries === 'number' ? resp.retries : 0);\n\n  const linkedinHandle = data?.linkedin?.handle || null;\n  const title = data?.employment?.title || data?.position?.title || data?.job?.title || null;\n  const companyName = data?.employment?.name || data?.company?.name || data?.organization?.name || data?.company || null;\n  const first = data?.name?.givenName || data?.first_name || null;\n  const last = data?.name?.familyName || data?.last_name || null;\n\n  const success = Boolean(linkedinHandle || title || companyName || first || last);\n\n  const normalized = {\n    ...base,\n    first_name: first || base.first_name || null,\n    last_name: last || base.last_name || null,\n    linkedin_url: linkedinHandle ? `https://www.linkedin.com/in/${linkedinHandle}` : (base.linkedin_url || null),\n    title_current: title || base.title_current || base.pdl_current_title || base.pdl_job_title || null,\n    company_enriched: companyName || base.company_enriched || base.pdl_company_name || base.pdl_current_company || null,\n\n    hunter_person_success: success,\n    enrichment_vendor: success ? 'hunter' : (base.enrichment_vendor || 'hunter'),\n    enrichment_attempted: true,\n\n    hunter_status_code: status ?? null,\n    hunter_response_time_ms: respMs,\n    hunter_retry_count: retries\n  };\n\n  if (success) {\n    normalized.hunter_cost = 0.049;\n    normalized.last_enriched = new Date().toISOString();\n    normalized.enrichment_failed = false;\n  }\n\n  item.json = normalized;\n}\nreturn items;"
+      },
+      "name": "Hunter Response Processor (NEW)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2580,
+        460
+      ],
+      "id": "dd0ca428-9f59-4e21-ad6c-7cdb41b291e0"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Person Data Merger (PDL, Hunter, Dropcontact) with existing Airtable merge and robust LinkedIn normalization\nconst items = $input.all();\n\nfunction normalizeLinkedIn(input) {\n\tconst raw = String(input ?? '').trim();\n\tif (!raw) return null;\n\t// If already a full URL, keep as-is\n\tif (/^https?:\\/\\//i.test(raw)) return raw;\n\t// If it contains linkedin.com, prefix https:// and strip leading slashes\n\tif (/linkedin\\.com/i.test(raw)) {\n\t\tlet s = raw;\n\t\twhile (s.startsWith('/')) s = s.slice(1);\n\t\treturn `https://${s}`;\n\t}\n\t// Otherwise treat as handle or slug\n\tlet slug = raw.replace(/^@+/, '');\n\twhile (slug.startsWith('/')) slug = slug.slice(1);\n\treturn `https://www.linkedin.com/in/${slug}`;\n}\n\nfor (const item of items) {\n\tconst d = item.json || {};\n\n\t// If recency gate provided existing Airtable fields, merge them first\n\tif (d.existing_fields && typeof d.existing_fields === 'object') {\n\t\tObject.assign(d, d.existing_fields);\n\t}\n\n\tconst dcSuccess = d.dc_person_success === true;\n\tconst pdlSuccess = d.pdl_person_success === true;\n\tconst hunterSuccess = d.hunter_person_success === true;\n\n\tif (dcSuccess) {\n\t\td.enrichment_vendor = 'dropcontact';\n\t\td.enrichment_method_primary = 'dropcontact';\n\t\td.enrichment_failed = false;\n\t} else if (pdlSuccess) {\n\t\td.enrichment_vendor = 'pdl';\n\t\td.enrichment_method_primary = 'pdl';\n\t\td.enrichment_failed = false;\n\t} else if (hunterSuccess) {\n\t\td.enrichment_vendor = 'hunter';\n\t\td.enrichment_method_primary = 'hunter';\n\t\td.enrichment_failed = false;\n\t} else {\n\t\td.enrichment_failed = true;\n\t\td.routing_decision = d.routing_decision || 'human_review';\n\t\td.routing_reason = d.routing_reason || 'person_enrichment_failed_all_providers';\n\t}\n\n\t// Ensure last_enriched is set when any provider succeeded\n\tif ((dcSuccess || pdlSuccess || hunterSuccess) && !d.last_enriched) {\n\t\td.last_enriched = new Date().toISOString();\n\t}\n\n\t// Normalize LinkedIn URL\n\td.linkedin_url = normalizeLinkedIn(d.linkedin_url ?? d.linkedin ?? null);\n\n\titem.json = d;\n}\n\nreturn items;"
+      },
+      "name": "Person Data Merger (NEW)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1980,
+        120
+      ],
+      "id": "22e34d15-21b7-4cda-9678-6f1fda17d618"
+    },
+    {
+      "parameters": {
+        "url": "https://api.hunter.io/v2/people/find",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{$node['Smart Field Mapper'].json.normalized.email}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "name": "Hunter Email Enrichment (REBUILT)1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2800,
+        460
+      ],
+      "id": "f50018b8-2f4b-4129-9582-e974b3bc99a3",
+      "retryOnFail": false,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "Ico4DKXvc8E4IzLy",
+          "name": "HUNTER API"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.pdl_person_success}}",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "rightValue": true
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "PDL Person Success Router (NEW) [FIX]",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -2580,
+        220
+      ],
+      "id": "46001ff2-e4be-4e3f-a332-0c26047e2413",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{true}}",
+              "rightValue": 1,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "id": "9eff5ca8-d41c-4062-9d95-557f95f6a87a"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9679719b-b4b5-428d-b204-3fa5eec0e30b",
+      "name": "Hunter Waterfall Feature Gate1 [FIX]",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -3020,
+        460
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.peopledatalabs.com/v5/person/enrich",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{$node['Smart Field Mapper'].json.normalized.email}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ba4e8b61-29b3-413e-8071-880291487ac4",
+      "name": "PDL Person Enrichment [FIX]",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3020,
+        220
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yCHjNPpRVrQr5pQj",
+          "name": "PDL AUTH"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "email"
+          ],
+          "value": {
+            "email": "={{$json.email ?? null}}",
+            "first_name": "={{$json.first_name ?? null}}",
+            "last_name": "={{$json.last_name ?? null}}",
+            "title_current": "={{$json.title_current ?? null}}",
+            "company_enriched": "={{$json.company_enriched ?? null}}",
+            "linkedin_url": "={{$json.linkedin_url ?? null}}",
+            "last_enriched": "={{$json.last_enriched && !isNaN(Date.parse($json.last_enriched)) ? new Date($json.last_enriched).toISOString() : null}}",
+            "icp_score": "={{$json.icp_score ?? null}}",
+            "icp_tier": "={{$json.icp_tier ?? null}}",
+            "scoring_method": "={{$json.scoring_method ?? null}}",
+            "scoring_method_used": "={{$json.scoring_method_used ?? null}}",
+            "scoring_model": "={{$json.scoring_model ?? null}}",
+            "scoring_date": "={{$json.scoring_date && !isNaN(Date.parse($json.scoring_date)) ? new Date($json.scoring_date).toISOString() : null}}",
+            "enrichment_path": "={{$json.enrichment_path ?? null}}",
+            "pdl_cost": "={{$json.pdl_cost ?? null}}",
+            "hunter_cost": "={{$json.hunter_cost ?? null}}",
+            "dropcontact_cost": "={{$json.dropcontact_cost ?? null}}",
+            "total_processing_cost": "={{$json.total_processing_cost ?? null}}"
+          }
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "7706d4b7-8b15-4bb3-8783-c7af82e71f09",
+      "name": "Airtable Upsert (Dynamic) [REPLACE]",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "email"
+          ],
+          "value": {
+            "email": "={{$json.normalized.email ?? null}}",
+            "first_name": "={{$json.normalized.first_name ?? null}}",
+            "last_name": "={{$json.normalized.last_name ?? null}}",
+            "icp_score": "={{$json.normalized.icp_score ?? null}}",
+            "icp_tier": "={{$json.normalized.icp_tier ?? null}}",
+            "scoring_method": "={{$json.normalized.scoring_method ?? null}}",
+            "scoring_method_used": "={{$json.normalized.scoring_method_used ?? null}}",
+            "scoring_model": "={{$json.normalized.scoring_model ?? null}}",
+            "scoring_date": "={{$json.normalized.scoring_date && !isNaN(Date.parse($json.normalized.scoring_date)) ? new Date($json.normalized.scoring_date).toISOString() : null}}",
+            "enrichment_path": "={{$json.normalized.enrichment_path ?? null}}",
+            "total_processing_cost": "={{$json.normalized.total_processing_cost ?? null}}",
+            "routing": "={{$json.normalized.routing ?? 'archive'}}",
+            "processing_status": "={{$json.normalized.processing_status ?? 'Archived'}}",
+            "processing_completed": "={{$json.normalized.processing_completed && !isNaN(Date.parse($json.normalized.processing_completed)) ? new Date($json.normalized.processing_completed).toISOString() : null}}",
+            "archived_date": "={{$json.normalized.archived_date && !isNaN(Date.parse($json.normalized.archived_date)) ? new Date($json.normalized.archived_date).toISOString() : null}}",
+            "archived_reason": "={{$json.normalized.archived_reason ?? null}}"
+          }
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "156fd3cc-a560-4197-8896-a23d25f696f3",
+      "name": "Archive to Airtable [FIX]1 [REPLACE]",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1100,
+        220
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lead Qualifier Consolidated V3.2 — cost summation + final enrichment_path\nconst d = $input.first().json || {};\n\nfunction clamp(n,min,max) {\n  const x = Number(n ?? 0);\n  return Math.max(min, Math.min(max, isNaN(x) ? 0 : x));\n}\n\nfunction tier(s) {\n  const n = Number(s || 0);\n  return n >= 90 ? 'Ultra' : n >= 75 ? 'High' : n >= 70 ? 'Qualified' : 'Archive';\n}\n\n// company (0-15)\nlet company_score = 0;\nconst emailDomain = String(d.email || '').split('@')[1] || '';\nconst isGeneric = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com'].includes(emailDomain);\nconst b2bTech = /software|saas|tech|technology|cloud|platform/i.test(String(d.company_enriched || d.pdl_company_name || d.company || ''));\nif (b2bTech) company_score += 15;\nif (isGeneric) company_score = Math.max(0, company_score - 10);\ncompany_score = clamp(company_score, 0, 15);\n\n// role (0-40)\nlet role_score = 0;\nconst title = String(d.title_current || d.pdl_job_title || d.title || '').toLowerCase();\nif (title.includes('account executive') || /\\bae\\b/.test(title)) {\n  role_score += 20;\n  if (/(senior|enterprise|strategic)/.test(title)) role_score += 5;\n} else if (title.includes('account director') || title.includes('account manager')) {\n  role_score += 18;\n} else if (title.includes('sales manager') || title.includes('team lead')) {\n  role_score += 10;\n} else if (/(sdr|bdr|sales development|business development)/.test(title)) {\n  role_score += 3;\n}\nif (Number(d.experience_years || 0) >= 3) role_score += 10;\nif (d.recent_role_change === true) role_score += 10;\nrole_score = clamp(role_score, 0, 40);\n\n// engagement (0-30)\nlet engagement_score = 0;\nif (d.interested_in_coaching === true) engagement_score += 10;\nconst tp = Number(d.touchpoint_count || 0);\nif (tp >= 3) engagement_score += 15; else if (tp >= 1) engagement_score += 8;\nif (String(d.source_form || '').toLowerCase().includes('webinar')) engagement_score += 8;\nif (d.course_purchaser === true) engagement_score += 10;\nif (d.sales_focused_motivation === true) engagement_score += 5;\nengagement_score = clamp(engagement_score, 0, 30);\n\n// provisional location bonus (0-15) — neutral if unknown\nlet location_points_applied = 0;\nlet location_source = null;\nlet location_from_linkedin = false;\nlet location_confidence = clamp(Number(d.location_confidence || 0), 0, 1);\nif (d.person_location_country) {\n  location_points_applied = clamp(Number(d.location_points_applied || 0), 0, 15);\n  location_source = d.location_source || null;\n  location_from_linkedin = d.location_from_linkedin === true;\n}\n\nconst icp_score = clamp(company_score + role_score + engagement_score + location_points_applied, 0, 100);\nconst icp_tier = tier(icp_score);\n\n// Costs: sum what providers set\nconst pdl_cost = Number(d.pdl_cost || 0);\nconst hunter_cost = Number(d.hunter_cost || 0);\nconst dropcontact_cost = Number(d.dropcontact_cost || 0);\nconst total_processing_cost = clamp(pdl_cost + hunter_cost + dropcontact_cost, 0, 999);\n\n// decision & gating\nlet human_review_needed = false;\nlet route = 'archive';\nlet decision_reason = '';\nlet gating_reason = null;\n\nconst hasValueSignals = Boolean(d.linkedin_url || d.title_current || d.company_enriched);\nif (!d.enrichment_failed && (d.pdl_person_success || d.hunter_person_success || d.dc_person_success || hasValueSignals)) {\n  route = icp_score >= 70 ? 'qualified' : 'archive';\n} else {\n  route = 'archive';\n  decision_reason = 'no_enrichment_no_signals';\n}\n\nif (icp_tier === 'Archive' && location_confidence >= 0.7 && icp_score >= 70) {\n  human_review_needed = true;\n  gating_reason = 'tier_d_high_confidence_location';\n}\nif (tp > 5 && icp_score < 50 || d.interested_in_coaching === true && !/sales|account|revenue|bd/.test(title)) {\n  human_review_needed = true;\n  gating_reason = gating_reason || 'anomaly_detected';\n}\nif (human_review_needed) {\n  route = route === 'qualified' ? 'human_review' : route;\n}\n\n// Enrichment path finalization\nconst pathParts = Array.isArray(d.enrichment_path) ? d.enrichment_path : (d.enrichment_path ? String(d.enrichment_path).split(',') : []);\nconst finalPath = Array.from(new Set(pathParts));\nif (d.pdl_person_success === true && !finalPath.includes('pdl_hit')) finalPath.push('pdl_hit');\nif (d.pdl_person_success !== true && !finalPath.includes('pdl_miss')) finalPath.push('pdl_miss');\nif (d.hunter_person_success === true && !finalPath.includes('hunter_hit')) finalPath.push('hunter_hit');\nif (d.hunter_person_success !== true && !finalPath.includes('hunter_miss')) finalPath.push('hunter_miss');\nif (d.dc_person_success === true && !finalPath.includes('dropcontact_hit')) finalPath.push('dropcontact_hit');\nif (d.dc_person_success !== true && !finalPath.includes('dropcontact_miss')) finalPath.push('dropcontact_miss');\n\n// Scoring metadata\nconst scoring_method_used = 'domain_fallback';\nconst scoring_model = 'domain_base_v3_2';\n\nconst out = {\n  ...d,\n  icp_score,\n  icp_tier,\n  company_score,\n  role_score,\n  engagement_score,\n  scoring_method: 'domain_base_v3_2',\n  scoring_method_used,\n  scoring_model,\n  scoring_date: new Date().toISOString(),\n  human_review_needed,\n  route,\n  decision_final: true,\n  decision_reason,\n  gating_reason,\n  location_confidence,\n  location_points_applied,\n  location_source,\n  location_from_linkedin,\n  enrichment_path: finalPath.join(','),\n  pdl_cost,\n  hunter_cost,\n  dropcontact_cost,\n  total_processing_cost,\n  scoring_confidence: 75,\n  score_breakdown: { reasons: [] }\n};\n\nreturn [{ json: out }];"
+      },
+      "id": "9f4ea41c-422d-4dde-9fea-a5fdadc0b659",
+      "name": "Lead Qualifier (Consolidated V3.2)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1760,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ !($json.title_current || $json.company_enriched || $json.linkedin_url) && $vars.DROPCONTACT_ENABLED === 'true' }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "43798d2c-9a8c-4489-a6ae-11c8abc3b088",
+      "name": "Dropcontact Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -2360,
+        460
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dropcontact.io/batch",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dropcontactApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"data\": [{ \"email\": \"{{$node['Smart Field Mapper'].json.normalized.email}}\" }],\n  \"siren\": false,\n  \"language\": \"en\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "b1a3dc83-a053-4472-8ce8-fe2feb852aa6",
+      "name": "Dropcontact Enrich",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3020,
+        740
+      ],
+      "credentials": {
+        "dropcontactApi": {
+          "id": "VOvVbkFbQ2YgkNqn",
+          "name": "Dropcontact account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge Dropcontact poll results into current lead; set observability + costs\nconst poll = $input.first().json || {};\nconst body = poll.body || poll;\nconst statusCode = poll.statusCode || body.statusCode || null;\nconst data = body.data || body || {};\n\n// Base lead\nconst lead = { ...($json || {}) };\n\n// Capture request_id for subsequent polls\nlead.dc_request_id = body.request_id || poll.request_id || lead.dc_request_id || null;\n\n// Parse DC success block (first item if array)\nconst dc = Array.isArray(data.success) ? data.success[0] : (data.success || {});\n\n// Basic observability\nlead.dc_status_code = statusCode;\nlead.dc_person_success = Boolean(dc && Object.keys(dc).length > 0);\nlead.dc_response_time_ms = typeof poll.ms === 'number' ? poll.ms : (typeof poll.elapsedTime === 'number' ? poll.elapsedTime : null);\nlead.dc_retry_count = typeof poll.retryCount === 'number' ? poll.retryCount : (typeof poll.retries === 'number' ? poll.retries : 0);\n\n// Cost tracking (flat rate per call)\nconst dcCost = 0.02;\nif (lead.dc_person_success) {\n\tlead.dropcontact_cost = dcCost;\n\tlead.total_processing_cost = Number(lead.total_processing_cost || 0) + dcCost;\n\tlead.enrichment_attempted = true;\n\tlead.enrichment_vendor = 'dropcontact';\n\tlead.last_enriched = new Date().toISOString();\n}\n\n// Field overlay (only fill if missing)\nif (lead.dc_person_success) {\n\tconst pick = (obj, keys) => keys.map(k => obj?.[k]).find(v => v !== undefined && v !== null && v !== '');\n\tconst title = pick(dc, ['job', 'job_title', 'position']);\n\tconst company = pick(dc, ['company', 'company_name']);\n\tconst linkedin = pick(dc, ['linkedin', 'linkedin_url']);\n\tconst phone = pick(dc, ['phone', 'phone_number', 'phone_pro']);\n\n\tif (!lead.title_current && title) lead.title_current = title;\n\tif (!lead.company_enriched && company) lead.company_enriched = company;\n\tif (!lead.linkedin_url && linkedin) lead.linkedin_url = linkedin;\n\tif (!lead.phone_primary && phone) lead.phone_primary = phone;\n}\n\n// Track enrichment path for visibility\nconst path = Array.isArray(lead.enrichment_path) ? lead.enrichment_path : (lead.enrichment_path ? [lead.enrichment_path] : []);\nif (!path.includes('dropcontact')) path.push('dropcontact');\nlead.enrichment_path = path;\n\nreturn [{ json: lead }];"
+      },
+      "id": "526607b0-3ff2-4c96-a926-e17318e9f231",
+      "name": "Merge to Qualifier Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2140,
+        740
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.dropcontact.io/batch/{{$json.dc_request_id}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dropcontactApi",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "688303a2-2276-421a-a258-e296a0590c39",
+      "name": "Dropcontact Poll",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2360,
+        740
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "dropcontactApi": {
+          "id": "VOvVbkFbQ2YgkNqn",
+          "name": "Dropcontact account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "filterByFormula": "={email}='{{$node[\"Smart Field Mapper\"].json.normalized.email}}'",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "id": "9fef2abd-4933-46c9-957a-80e130375d47",
+      "name": "Airtable Lookup (Email)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -3680,
+        20
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recency Gate (30d): include existing Airtable fields for downstream merge\nconst items=$input.all();\nlet records=[];\nif(items.length&&items[0].json&&items[0].json.records){records=items[0].json.records;}else{records=items.map(i=>i.json);}\nconst lead={...($node['Smart Field Mapper'].json.normalized||{})};\nlet existing=null;\nif(records&&records.length){const r=records[0];const fields=r.fields||r;existing={id:r.id,fields};}\nlet skip_enrichment=false;\nif(existing&&existing.fields&&existing.fields.last_enriched){const last=new Date(existing.fields.last_enriched);const days=(Date.now()-last.getTime())/86400000;skip_enrichment=days<=30;}\nreturn[{json:{...lead,existing_record_id:existing?existing.id:null,existing_fields:existing?existing.fields:null,skip_enrichment}}];"
+      },
+      "id": "bef4b5b4-cec6-4d8d-8a0d-8f49d83da587",
+      "name": "Recency Gate (30d)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3460,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{$json.skip_enrichment}}",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "rightValue": true
+            }
+          ],
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          }
+        },
+        "options": {}
+      },
+      "id": "44fdeb5e-ba0f-4ff2-a77f-b3d5169cb6a1",
+      "name": "Skip Enrichment?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -3240,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "filterByFormula": "={email}='{{$node[\"Smart Field Mapper\"].json.normalized.email}}'",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "id": "d94a42d0-63f3-45d8-9ba8-d73a676c13bb",
+      "name": "Airtable Email Check (End)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1320,
+        20
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ Array.isArray($json.records) && $json.records.length > 0 }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7b3d3c3b-c9f5-4f5c-a6d9-98ef8adb2928",
+      "name": "Email Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1100,
+        20
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "filterByFormula": "={phone_primary}='={{$json.phone_primary || $json.phone_recent || $json.phone_original}}'",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "id": "99457ffd-d906-4218-b075-a60c7b7310eb",
+      "name": "Airtable Phone Check (End)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -880,
+        80
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ Array.isArray($json.records) && $json.records.length === 1 }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "57a56d03-2c7f-4efe-8c4a-43ab33a9a38d",
+      "name": "Phone Match Exactly One?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -660,
+        80
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build minimal payload for update-by-id using phone match record\nconst phoneList = $json.records || [];\nconst rec = phoneList.length === 1 ? phoneList[0] : null;\nconst recId = rec ? rec.id : null;\n\nconst email = ($json.email) || ($json.normalized && $json.normalized.email) || null;\n\nreturn [{ json: { update_record_id: recId, fields: { email }, normalized: $json.normalized || $json } }];"
+      },
+      "id": "6d4eb9e9-0b9b-4747-a2c2-70599a8cddee",
+      "name": "Prepare Update Payload (Set Email)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -440,
+        80
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json.fields.email ?? null}}"
+          }
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "6669fdf8-4906-45b9-9242-7509b57e1337",
+      "name": "Airtable Update by ID (Phone Link)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -220,
+        80
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      },
+      "id": "60750896-f7ac-4043-ab89-f33409cb9625",
+      "name": "Wait 5s (Before DC Poll)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        -2800,
+        740
+      ],
+      "webhookId": "cf590d38-9a99-486a-bfca-615710e368dc"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract Dropcontact request_id from HTTP response\nconst resp = $input.first().json || {};\nconst body = resp.body || resp;\nconst requestId = body.request_id || resp.request_id || null;\nreturn [{ json: { ...resp, dc_request_id: requestId } }];"
+      },
+      "id": "8cf9374b-6cf7-40ed-bd27-83a7505062fe",
+      "name": "Extract DC Request ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2580,
+        740
+      ]
+    }
+  ],
+  "connections": {
+    "Kajabi Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate API Key (Dynamic)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate API Key (Dynamic)": {
+      "main": [
+        [
+          {
+            "node": "Smart Field Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Processor": {
+      "main": [
+        [
+          {
+            "node": "PDL Person Success Router (NEW) [FIX]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score-Based Routing V3.0": {
+      "main": [
+        [
+          {
+            "node": "Archive Low Scores",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable Email Check (End)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archive Low Scores": {
+      "main": [
+        [
+          {
+            "node": "Archive to Airtable [FIX]1 [REPLACE]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Email Enrichment (REBUILT)1": {
+      "main": [
+        [
+          {
+            "node": "Hunter Response Processor (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Waterfall Feature Gate1 [FIX]": {
+      "main": [
+        [
+          {
+            "node": "Hunter Email Enrichment (REBUILT)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Enrichment [FIX]": {
+      "main": [
+        [
+          {
+            "node": "PDL Person Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Qualifier (Consolidated V3.2)": {
+      "main": [
+        [
+          {
+            "node": "Score-Based Routing V3.0",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropcontact Gate": {
+      "main": [
+        [
+          {
+            "node": "Dropcontact Enrich",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Person Data Merger (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge to Qualifier Output": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Response Processor (NEW)": {
+      "main": [
+        [
+          {
+            "node": "Dropcontact Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Person Data Merger (NEW)": {
+      "main": [
+        [
+          {
+            "node": "Lead Qualifier (Consolidated V3.2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Success Router (NEW) [FIX]": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger (NEW)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Hunter Waterfall Feature Gate1 [FIX]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropcontact Poll": {
+      "main": [
+        [
+          {
+            "node": "Merge to Qualifier Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Smart Field Mapper": {
+      "main": [
+        [
+          {
+            "node": "Airtable Lookup (Email)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Recency Gate (30d)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Exists?": {
+      "main": [
+        [
+          {
+            "node": "Airtable Upsert (Dynamic) [REPLACE]",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Airtable Phone Check (End)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Phone Check (End)": {
+      "main": [
+        [
+          {
+            "node": "Phone Match Exactly One?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Phone Match Exactly One?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Update Payload (Set Email)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Update Payload (Set Email)": {
+      "main": [
+        [
+          {
+            "node": "Airtable Update by ID (Phone Link)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Update by ID (Phone Link)": {
+      "main": [
+        [
+          {
+            "node": "Airtable Upsert (Dynamic) [REPLACE]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Email Check (End)": {
+      "main": [
+        [
+          {
+            "node": "Email Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Lookup (Email)": {
+      "main": [
+        [
+          {
+            "node": "Recency Gate (30d)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Enrichment?": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PDL Person Enrichment [FIX]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recency Gate (30d)": {
+      "main": [
+        [
+          {
+            "node": "Skip Enrichment?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropcontact Enrich": {
+      "main": [
+        [
+          {
+            "node": "Wait 5s (Before DC Poll)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 5s (Before DC Poll)": {
+      "main": [
+        [
+          {
+            "node": "Extract DC Request ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract DC Request ID": {
+      "main": [
+        [
+          {
+            "node": "Dropcontact Poll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "9272c04b-8089-4ee1-afde-da58275461fd",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-08-16T21:48:02.038Z",
+      "updatedAt": "2025-08-16T21:48:02.038Z",
+      "role": "workflow:owner",
+      "workflowId": "A8GmUxbXpON0yB3i",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-08-28T22:06:26.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-08-28",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

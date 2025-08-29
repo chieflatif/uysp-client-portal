@@ -1,0 +1,1012 @@
+{
+  "createdAt": "2025-08-18T03:54:47.235Z",
+  "updatedAt": "2025-08-18T04:22:35.000Z",
+  "id": "VSFhIbrB5yk3omsb",
+  "name": "UYSP-Claude-Opus4-Refactor",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kajabi-leads-complete-clean",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "a5f3ac3e-59d4-43b2-8100-fadce1695684",
+      "name": "Kajabi Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -420,
+        -360
+      ],
+      "webhookId": "658a1d1c-30a0-484d-b3cd-87578ff5e668"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Smart Field Mapper v4.9 - Final Production Version\nconst firstItem = $input.first();\nconst webhookData = (firstItem && firstItem.json && typeof firstItem.json === 'object') ? firstItem.json : {};\n\nlet inputData;\nif (webhookData && typeof webhookData === 'object' && webhookData.body && typeof webhookData.body === 'object') {\n  inputData = webhookData.body;\n} else if (webhookData && typeof webhookData === 'object' && webhookData.data && typeof webhookData.data === 'object') {\n  inputData = webhookData.data;\n} else {\n  inputData = webhookData || {};\n}\n\nconst fieldMappings = {\n  email: ['email','Email','EMAIL','email_address','emailAddress','e-mail','e_mail','contact_email'],\n  phone: ['phone','Phone','PHONE','phone_number','phoneNumber','mobile','cellphone','telephone'],\n  name: ['name','Name','NAME','full_name','fullName','contact_name','display_name'],\n  first_name: ['first_name','firstName','fname','given_name','forename'],\n  last_name: ['last_name','lastName','lname','surname','family_name'],\n  company: ['company','Company','COMPANY','company_name','companyName','organization','org','business'],\n  title: ['title','Title','job_title','jobTitle','position','role'],\n  source_form: ['source_form','form_name','formName','source','form_id'],\n  interested_in_coaching: ['interested_in_coaching','coaching_interest','wants_coaching'],\n  linkedin_url: ['linkedin_url','linkedin','linkedinUrl','linkedin_profile'],\n  request_id: ['request_id','requestId','request','id','tracking_id']\n};\n\nconst normalized = {};\nconst mappedFields = new Set();\n\nfunction findField(aliases) {\n  const keys = Object.keys(inputData || {});\n  for (const key of keys) {\n    if (aliases.some(alias => String(alias).toLowerCase() === String(key).toLowerCase())) {\n      mappedFields.add(key);\n      return inputData[key];\n    }\n  }\n  return null;\n}\n\nfor (const [normalizedName, aliases] of Object.entries(fieldMappings)) {\n  const value = findField(aliases);\n  if (value !== null && value !== undefined && value !== '') {\n    normalized[normalizedName] = value;\n  }\n}\n\nif (normalized.name && !normalized.first_name) {\n  const parts = String(normalized.name).trim().split(/\\s+/);\n  normalized.first_name = parts[0] || '';\n  normalized.last_name = parts.slice(1).join(' ') || '';\n}\n\nif (normalized.phone) {\n  normalized.phone_recent = normalized.phone;\n  normalized.phone_original = normalized.phone;\n}\n\n['interested_in_coaching','qualified_lead','contacted'].forEach(field => {\n  if (normalized[field] !== undefined) {\n    const val = String(normalized[field]).toLowerCase();\n    const isTruthy = ['true','yes','1','on','y','checked','enabled'].includes(val);\n    normalized[field] = isTruthy ? true : null;\n  }\n});\n\nconst unknownFields = Object.keys(inputData || {}).filter(k => !mappedFields.has(k));\n\nconst webhook_field_count = Object.keys(inputData || {}).length;\nconst mapped_field_count = Object.keys(normalized).length;\nconst field_mapping_success_rate = webhook_field_count > 0 ? Math.round((mapped_field_count / webhook_field_count) * 100) : 0;\n\nconst output = {\n  normalized,\n  original: inputData || {},\n  unknownFields,\n  mappingSuccess: mapped_field_count > 0,\n  timestamp: new Date().toISOString(),\n  webhook_field_count,\n  mapped_field_count,\n  unknown_field_list: unknownFields.join(', '),\n  field_mapping_success_rate,\n  normalization_version: 'v4.9-production',\n  raw_webhook_data: JSON.stringify(webhookData || {})\n};\n\n// CRITICAL: Return single object, not array\nreturn { json: output };"
+      },
+      "id": "bcc7e96b-cac9-4719-b70e-2c57a383fcf8",
+      "name": "Smart Field Mapper v4.9",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        -360
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "filterByFormula": "={email}='{{$json.normalized.email}}'",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "id": "3cfc4e58-9445-4afe-b659-4742913e2a7a",
+      "name": "Airtable Email Lookup",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        20,
+        -360
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recency Check - Skip enrichment if enriched within 30 days\nconst items = $input.all();\nconst lead = { ...($node['Smart Field Mapper v4.9'].json.normalized || {}) };\n\nlet records = [];\nif (items.length && items[0].json && items[0].json.records) {\n  records = items[0].json.records;\n}\n\nlet existing = null;\nlet skip_enrichment = false;\n\nif (records && records.length) {\n  const r = records[0];\n  const fields = r.fields || r;\n  existing = { id: r.id, fields };\n  \n  if (existing.fields && existing.fields.last_enriched) {\n    const last = new Date(existing.fields.last_enriched);\n    const days = (Date.now() - last.getTime()) / 86400000;\n    skip_enrichment = days <= 30;\n  }\n}\n\nreturn { \n  json: { \n    ...lead, \n    existing_record_id: existing ? existing.id : null, \n    existing_fields: existing ? existing.fields : null, \n    skip_enrichment \n  } \n};"
+      },
+      "id": "5f399778-a84a-44d2-bdfd-f05c6471a4c0",
+      "name": "Recency Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -360
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.skip_enrichment}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d67ada22-5999-43ce-9ca6-3e43110eab33",
+      "name": "Skip Enrichment?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        -360
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.peopledatalabs.com/v5/person/enrich",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{$json.email}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3000
+        }
+      },
+      "id": "cbf32a61-11d8-4655-b44b-3607dc2b3430",
+      "name": "PDL Person Enrichment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        -180
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yCHjNPpRVrQr5pQj",
+          "name": "PDL AUTH"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// PDL Response Processor\nconst resp = $input.first().json || {};\nconst base = $node['Recency Check'].json || {};\n\nconst status = resp.statusCode ?? resp.status ?? null;\nconst body = resp.body ?? resp;\nconst data = body?.data ?? body ?? {};\n\nconst hasPerson = status === 200 && data && Boolean(\n  data.linkedin_url ||\n  data.full_name ||\n  data.job_title ||\n  data.job_company_name\n);\n\nconst normalized = {\n  ...base,\n  first_name: data.first_name || base.first_name || null,\n  last_name: data.last_name || base.last_name || null,\n  title_current: data.job_title || base.title || null,\n  company_enriched: data.job_company_name || base.company || null,\n  linkedin_url: data.linkedin_url || base.linkedin_url || null,\n  \n  pdl_person_success: hasPerson,\n  pdl_status_code: status,\n  enrichment_vendor: hasPerson ? 'pdl' : null,\n  enrichment_attempted: true\n};\n\nif (hasPerson) {\n  normalized.last_enriched = new Date().toISOString();\n  normalized.pdl_cost = 0.01;\n}\n\nreturn { json: normalized };"
+      },
+      "id": "fc675028-ff0e-4dfc-92f4-1d4c4dd67f9d",
+      "name": "PDL Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.pdl_person_success}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "865b527e-4a74-47b4-89c4-802be038b8b6",
+      "name": "PDL Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.hunter.io/v2/people/find",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{$json.email}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3000
+        }
+      },
+      "id": "cfded004-6a63-4041-9912-33aa69d1cd6c",
+      "name": "Hunter Email Enrichment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        60
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "Ico4DKXvc8E4IzLy",
+          "name": "HUNTER API"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hunter Response Processor\nconst base = $input.first().json || {};\nconst resp = base;\nconst status = resp.statusCode ?? resp.status ?? null;\nconst body = resp.body ?? resp;\nconst data = body?.data ?? body ?? {};\n\nconst linkedinHandle = data?.linkedin?.handle || null;\nconst title = data?.employment?.title || null;\nconst companyName = data?.employment?.name || data?.company || null;\nconst first = data?.name?.givenName || data?.first_name || null;\nconst last = data?.name?.familyName || data?.last_name || null;\n\nconst success = Boolean(linkedinHandle || title || companyName || first || last);\n\nconst normalized = {\n  ...base,\n  first_name: first || base.first_name || null,\n  last_name: last || base.last_name || null,\n  linkedin_url: linkedinHandle ? `https://www.linkedin.com/in/${linkedinHandle}` : (base.linkedin_url || null),\n  title_current: title || base.title_current || null,\n  company_enriched: companyName || base.company_enriched || null,\n  \n  hunter_person_success: success,\n  hunter_status_code: status,\n  enrichment_vendor: success ? 'hunter' : (base.enrichment_vendor || null),\n  enrichment_attempted: true\n};\n\nif (success) {\n  normalized.hunter_cost = 0.049;\n  normalized.last_enriched = new Date().toISOString();\n}\n\nreturn { json: normalized };"
+      },
+      "id": "df27eb12-7bd4-4822-a5e7-c70f0efb04b5",
+      "name": "Hunter Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.hunter_person_success}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4a09bd8c-ba2b-40ea-ae93-3dbb906d35ec",
+      "name": "Hunter Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dropcontact.io/batch",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dropcontactApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"data\": [{ \"email\": \"{{$json.email}}\" }],\n  \"siren\": false,\n  \"language\": \"en\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3000
+        }
+      },
+      "id": "38184a34-c3fb-47c1-bc67-2606ca673b56",
+      "name": "Dropcontact Enrichment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        340
+      ],
+      "credentials": {
+        "dropcontactApi": {
+          "id": "VOvVbkFbQ2YgkNqn",
+          "name": "Dropcontact account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      },
+      "id": "cd2268ab-0032-435b-bff3-67229adfc816",
+      "name": "Wait for Dropcontact",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        960,
+        340
+      ],
+      "webhookId": "dc-wait-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract Dropcontact request ID\nconst resp = $input.first().json || {};\nconst body = resp.body || resp;\nconst requestId = body.request_id || resp.request_id || null;\n\nreturn { json: { ...resp, dc_request_id: requestId } };"
+      },
+      "id": "f5f43ef8-ec30-4277-8d7a-c675ea96e30a",
+      "name": "Extract DC Request ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.dropcontact.io/batch/{{$json.dc_request_id}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dropcontactApi",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3000
+        }
+      },
+      "id": "125d129a-1285-4824-8dfe-e6e9544f0582",
+      "name": "Dropcontact Poll",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        340
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "dropcontactApi": {
+          "id": "VOvVbkFbQ2YgkNqn",
+          "name": "Dropcontact account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Dropcontact Response Processor\nconst poll = $input.first().json || {};\nconst base = $json || {};\nconst body = poll.body || poll;\nconst statusCode = poll.statusCode || body.statusCode || null;\nconst data = body.data || body || {};\n\nconst dc = Array.isArray(data.success) ? data.success[0] : (data.success || {});\n\nbase.dc_status_code = statusCode;\nbase.dc_person_success = Boolean(dc && Object.keys(dc).length > 0);\n\nif (base.dc_person_success) {\n  base.dropcontact_cost = 0.02;\n  base.enrichment_vendor = 'dropcontact';\n  base.last_enriched = new Date().toISOString();\n  \n  const title = dc.job || dc.job_title || dc.position || null;\n  const company = dc.company || dc.company_name || null;\n  const linkedin = dc.linkedin || dc.linkedin_url || null;\n  const phone = dc.phone || dc.phone_number || dc.phone_pro || null;\n  \n  if (!base.title_current && title) base.title_current = title;\n  if (!base.company_enriched && company) base.company_enriched = company;\n  if (!base.linkedin_url && linkedin) base.linkedin_url = linkedin;\n  if (!base.phone_primary && phone) base.phone_primary = phone;\n}\n\nbase.enrichment_attempted = true;\n\nreturn { json: base };"
+      },
+      "id": "d21500ae-153d-4888-a429-18205acf2723",
+      "name": "Dropcontact Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Single Person Data Merger - Consolidates all enrichment results\nconst inputs = $input.all().map(i => i.json || {});\nconst base = $node['Smart Field Mapper v4.9'].json.normalized || {};\n\nfunction pickBest(list) {\n  return (\n    list.find(j => j?.pdl_person_success === true) ||\n    list.find(j => j?.hunter_person_success === true) ||\n    list.find(j => j?.dc_person_success === true) ||\n    list.find(j => j && (j.title_current || j.company_enriched)) ||\n    list[list.length - 1] ||\n    {}\n  );\n}\n\nconst best = pickBest(inputs);\n\nconst merged = {\n  ...base,\n  ...best,\n  email: base.email ?? best.email ?? null,\n  first_name: best.first_name ?? base.first_name ?? null,\n  last_name: best.last_name ?? base.last_name ?? null,\n  title_current: best.title_current ?? base.title ?? null,\n  company_enriched: best.company_enriched ?? base.company ?? null,\n  linkedin_url: best.linkedin_url ?? base.linkedin_url ?? null,\n  \n  // Cost tracking\n  pdl_cost: Number(best.pdl_cost ?? 0),\n  hunter_cost: Number(best.hunter_cost ?? 0),\n  dropcontact_cost: Number(best.dropcontact_cost ?? 0),\n  total_processing_cost: Number(best.pdl_cost ?? 0) + Number(best.hunter_cost ?? 0) + Number(best.dropcontact_cost ?? 0),\n  \n  // Enrichment tracking\n  enrichment_vendor: best.enrichment_vendor || null,\n  enrichment_attempted: best.enrichment_attempted || false,\n  last_enriched: best.last_enriched || null\n};\n\nreturn { json: merged };"
+      },
+      "id": "7fbf3655-52d0-4f56-a64f-765ce06120bd",
+      "name": "Person Data Merger",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        -380
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({\n  model: \"gpt-4o-mini\",\n  response_format: { type: \"json_object\" },\n  temperature: 0.0,\n  max_tokens: 500,\n  messages: [\n    { role: \"system\", content: \"You are the ICP scoring system for UYSP. Score prospects 0-100 using V3.2 methodology.\\n\\nCOMPANY (15 max): B2B SaaS/Tech up to 15; known tech brand adds within 15; generic/free email domains -10 within company cap.\\nROLE (40 max): AE 20 (+5 if senior/enterprise/strategic); Account Director/Manager 18; Sales Manager/Team Lead 10; SDR/BDR 3; Non-sales 0; +10 recent role change (<90 days); +10 if 3+ years experience; Sales/Revenue dept +10; RevOps +5.\\nENGAGEMENT (30 max): Coaching interest +10; touchpoints 3+ = 15 (1–2 = 8); webinar +8; course purchaser +10.\\nPERSON LOCATION (15 max): PERSON-only affordability (not company HQ). A=+15, B=+10, C=+4, D=−15; apply confidence weight (0..1). Unknown = 0. If Tier D with confidence ≥0.7 → human review (no outreach).\\n\\nReturn STRICT JSON ONLY with keys: total_score (0–100), company_score, role_score, engagement_score. No extra text.\" },\n    { role: \"user\", content: (\n        'Prospect:\\n' +\n        'Email: ' + ($json.email || '') + '\\n' +\n        'Company: ' + ($json.company_enriched || $json.company || 'Unknown') + '\\n' +\n        'Title: ' + ($json.title_current || $json.title || 'Unknown') + '\\n' +\n        'Domain: ' + (function(){ var e = $json.email || ''; return e.indexOf('@')>0 ? e.split('@')[1] : 'unknown'; })() + '\\n\\n' +\n        'Signals:\\n' +\n        'InterestedInCoaching: ' + ($json.interested_in_coaching || false) + '\\n' +\n        'Touchpoints: ' + ($json.touchpoint_count || 0) + '\\n' +\n        'WebinarAttendee: ' + ($json.webinar_attendee || false) + '\\n' +\n        'CoursePurchaser: ' + ($json.course_purchaser || false) + '\\n' +\n        'RecentRoleChange: ' + ($json.recent_role_change || false) + '\\n' +\n        'ExperienceYears: ' + ($json.experience_years || 0)\n      ) }\n  ]\n}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "id": "75c3049e-00cb-4b34-96a8-51c80878cd3d",
+      "name": "OpenAI ICP Scoring V3.2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2220,
+        -380
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "mOlpqc0W6d2g5mVh",
+          "name": "OpenAi account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ICP Response Processor V3.2\nfunction n(v){ const x=Number(v); return Number.isFinite(x)?x:null; }\n\nlet openai_total = null, company = null, role = null, engagement = null;\n\ntry {\n  const content = $json?.choices?.[0]?.message?.content ?? $json?.content?.[0]?.text ?? null;\n  if (content && typeof content === 'string') {\n    const p = JSON.parse(content.trim());\n    openai_total = n(p.total_score);\n    company = n(p.company_score);\n    role = n(p.role_score);\n    engagement = n(p.engagement_score);\n  }\n} catch {}\n\nconst result = { ...$json };\n\n// Prefer bounded component sum if components exist\nconst haveComponents = [company, role, engagement].every(v => v !== null);\nif (haveComponents) {\n  const sum = Math.min(100, Math.max(0, (company||0)+(role||0)+(engagement||0)));\n  result.openai_score = sum;\n  result.company_score = company;\n  result.role_score = role;\n  result.engagement_score = engagement;\n  result.scoring_method = 'ai';\n  result.scoring_method_used = 'openai';\n  result.scoring_model = 'v3_2_hybrid';\n} else if (openai_total !== null) {\n  result.openai_score = openai_total;\n  result.scoring_method = 'ai';\n  result.scoring_method_used = 'openai';\n  result.scoring_model = 'v3_2_hybrid';\n} else {\n  // Domain fallback\n  const email = result.email || '';\n  const domain = email.split('@')[1] || '';\n  const title = (result.title_current || '').toLowerCase();\n  \n  let score = 40; // Base score\n  if (domain.includes('salesforce') || domain.includes('hubspot')) score += 15;\n  if (title.includes('account executive')) score += 20;\n  if (title.includes('sales manager')) score += 10;\n  if (result.interested_in_coaching) score += 10;\n  \n  result.openai_score = Math.min(100, score);\n  result.scoring_method = 'domain';\n  result.scoring_method_used = 'domain_fallback';\n}\n\nreturn { json: result };"
+      },
+      "id": "061250d9-a6d6-429a-a253-b1428ecb2753",
+      "name": "ICP Response Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2440,
+        -380
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lead Qualifier V3.2 - Final routing logic\nconst input = $json || {};\n\nfunction toNum(v, def=0){ const n = Number(v); return Number.isFinite(n) ? n : def; }\n\nconst company_score = toNum(input.company_score, 0);\nconst role_score = toNum(input.role_score, 0);\nconst engagement_score = toNum(input.engagement_score, 0);\nlet icp = toNum(input.openai_score, 0);\nicp = Math.max(0, Math.min(100, icp));\n\nlet icp_tier = 'Archive';\nif (icp >= 90) icp_tier = 'Ultra';\nelse if (icp >= 75) icp_tier = 'High';\nelse if (icp >= 70) icp_tier = 'Qualified';\n\n// Human review logic\nconst affordability_tier = input.affordability_tier || null;\nconst location_confidence = toNum(input.location_confidence, 0);\nlet human_review_needed = (affordability_tier === 'D' && location_confidence >= 0.7) || Boolean(input.human_review_needed);\n\n// Check for enrichment failure\nconst hasEnrichment = input.title_current || input.company_enriched || input.linkedin_url;\nif (!hasEnrichment && input.enrichment_attempted) {\n  human_review_needed = true;\n}\n\nlet route = human_review_needed ? 'human_review' : (icp >= 70 ? 'qualified' : 'archive');\n\nconst result = {\n  ...input,\n  icp_score: icp,\n  icp_tier,\n  company_score,\n  role_score,\n  engagement_score,\n  scoring_method: input.scoring_method || 'ai',\n  scoring_date: new Date().toISOString(),\n  human_review_needed,\n  route,\n  decision_final: true,\n  total_processing_cost: toNum(input.total_processing_cost, 0)\n};\n\nreturn { json: result };"
+      },
+      "id": "27bb31a5-4117-40d2-9289-8b67a604f14b",
+      "name": "Lead Qualifier V3.2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2660,
+        -380
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.route}}",
+              "rightValue": "qualified",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "32fb27f5-4f68-4092-ad5f-1d2b1544af82",
+      "name": "Route Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2880,
+        -380
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.human_review_needed}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0f50a747-f297-43f8-85b7-e310090a882e",
+      "name": "HRQ Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3100,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json.email}}",
+            "first_name": "={{$json.first_name}}",
+            "last_name": "={{$json.last_name}}",
+            "company_enriched": "={{$json.company_enriched}}",
+            "title_current": "={{$json.title_current}}",
+            "phone_primary": "={{$json.phone_primary || $json.phone_recent || $json.phone_original}}",
+            "linkedin_url": "={{$json.linkedin_url}}",
+            "icp_score": "={{$json.icp_score}}",
+            "icp_tier": "={{$json.icp_tier}}",
+            "scoring_method": "={{$json.scoring_method}}",
+            "scoring_date": "={{$json.scoring_date}}",
+            "enrichment_path": "={{$json.enrichment_vendor}}",
+            "pdl_cost": "={{$json.pdl_cost || 0}}",
+            "hunter_cost": "={{$json.hunter_cost || 0}}",
+            "dropcontact_cost": "={{$json.dropcontact_cost || 0}}",
+            "total_processing_cost": "={{$json.total_processing_cost || 0}}",
+            "enrichment_attempted": "={{$json.enrichment_attempted}}",
+            "last_enriched": "={{$json.last_enriched}}",
+            "last_activity": "={{new Date().toISOString()}}",
+            "processing_status": "={{$json.route === 'qualified' ? 'Qualified' : ($json.route === 'human_review' ? 'Pending' : 'Archived')}}",
+            "routing": "={{$json.route}}",
+            "interested_in_coaching": "={{$json.interested_in_coaching}}"
+          },
+          "matchingColumns": [
+            "email"
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "bbbb70c4-c0af-46d6-a44d-33caefb1a96c",
+      "name": "Airtable Upsert",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        3320,
+        -480
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json.email}}",
+            "first_name": "={{$json.first_name}}",
+            "last_name": "={{$json.last_name}}",
+            "routing": "human_review",
+            "processing_status": "Pending",
+            "review_notes": "={{$json.human_review_needed ? 'Auto-queued: ' + ($json.route === 'human_review' ? 'Enrichment failed or Tier D location' : 'Low score') : ''}}",
+            "icp_score": "={{$json.icp_score}}",
+            "icp_tier": "={{$json.icp_tier}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "a84a9924-51bb-4e05-8f41-51ca1d71c0a3",
+      "name": "Create HRQ Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        3320,
+        -260
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "5b067fb8-5824-489a-8d82-9865fb7aa878",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        3540,
+        -380
+      ]
+    }
+  ],
+  "connections": {
+    "Kajabi Webhook": {
+      "main": [
+        [
+          {
+            "node": "Smart Field Mapper v4.9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Smart Field Mapper v4.9": {
+      "main": [
+        [
+          {
+            "node": "Airtable Email Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Email Lookup": {
+      "main": [
+        [
+          {
+            "node": "Recency Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recency Check": {
+      "main": [
+        [
+          {
+            "node": "Skip Enrichment?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Enrichment?": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PDL Person Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Enrichment": {
+      "main": [
+        [
+          {
+            "node": "PDL Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Processor": {
+      "main": [
+        [
+          {
+            "node": "PDL Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Success?": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hunter Email Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Email Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Hunter Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Processor": {
+      "main": [
+        [
+          {
+            "node": "Hunter Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Success?": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dropcontact Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropcontact Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Wait for Dropcontact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Dropcontact": {
+      "main": [
+        [
+          {
+            "node": "Extract DC Request ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract DC Request ID": {
+      "main": [
+        [
+          {
+            "node": "Dropcontact Poll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropcontact Poll": {
+      "main": [
+        [
+          {
+            "node": "Dropcontact Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropcontact Processor": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Person Data Merger": {
+      "main": [
+        [
+          {
+            "node": "OpenAI ICP Scoring V3.2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI ICP Scoring V3.2": {
+      "main": [
+        [
+          {
+            "node": "ICP Response Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ICP Response Processor": {
+      "main": [
+        [
+          {
+            "node": "Lead Qualifier V3.2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Qualifier V3.2": {
+      "main": [
+        [
+          {
+            "node": "Route Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Check": {
+      "main": [
+        [
+          {
+            "node": "Airtable Upsert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HRQ Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HRQ Check": {
+      "main": [
+        [
+          {
+            "node": "Create HRQ Record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Airtable Upsert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Upsert": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create HRQ Record": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "680217dd-1d6b-4628-959d-c014a4b55f34",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-18T04:22:35.221Z",
+      "updatedAt": "2025-08-18T04:22:35.221Z",
+      "role": "workflow:owner",
+      "workflowId": "VSFhIbrB5yk3omsb",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-08-28T22:06:26.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-08-28",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
