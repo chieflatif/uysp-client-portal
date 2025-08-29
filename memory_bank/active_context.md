@@ -2,7 +2,7 @@
 
 **Session Status**: ✅ **ACTIVE**
 **Branch**: `feature/clay-sms-integration`
-**Date**: 2025-08-28
+**Date**: 2025-08-29
 
 ---
 
@@ -28,11 +28,13 @@ Implement SMS sequencing (A/B, 3 steps) with SimpleTexting using one outbound sc
 ---
 
 ## ▶ Pending (post-cutover)
-- Implement inbound STOP webhook → set `SMS Stop = true`, reason.
-- Implement Calendly `invitee.created` webhook → set `Booked = true`, `Booked At`.
-- Optional: click tracking proxy (HMAC + 302) and fresh-stop recheck before send.
+- STOP inbound: ✅ Activated and verified (2961, 2962). Leads set `SMS Stop=true`, `SMS Stop Reason=STOP`, `Processing Status=Stopped`.
+- Calendly `invitee.created`: Pending activation; update booked + stop.
+- Click tracking v1: Design documented (HMAC proxy + 302); disabled by default.
 
 ---
 
 ## 🧪 Verification
-Last manual run succeeded: Airtable Update 200 OK; fields updated per design. Airtable fetch latency acceptable; further optimization available by fully removing the extra "Airtable Get Record" hop (safe to do later).
+Outbound: Scheduler updates fields; Test Mode routing verified; cron UTC `0 14-21 * * 1-5`.
+Delivery: Executions 2960, 2959 updated leads to Delivered; Slack and Audit rows present.
+Inbound STOP: Executions 2961, 2962 updated matching leads and set STOP fields.

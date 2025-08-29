@@ -116,3 +116,9 @@ Remaining: 3 critical bug fixes
 2025-08-15: Phase 2D+2E consolidation completed
 
 2025-08-18: Phase 2 Refactor Revised plan finalized. Documentation updated across system. Ready for implementation.
+
+2025-08-29: Delivery webhook v2 stabilized
+- Find Lead node reverted to Record→Search with working OR filter
+- Update Lead Delivery writes `SMS Status=Delivered`, logs carrier; id match=record id
+- Respond 200 set to Run once for each item (`return $input.item;`)
+- Slack delivery notify and SMS_Audit rows verified
