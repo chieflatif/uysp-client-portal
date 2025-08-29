@@ -73,3 +73,14 @@
 - **Delivery Tracking**: Real SimpleTexting webhooks confirmed, audit trail complete
 - **Ready for Production**: All core SMS lifecycle functionality verified with live messages
 - **Parser Fixed**: STOP webhook handles both INCOMING_MESSAGE and UNSUBSCRIBE_REPORT types
+
+## 2025-08-29: Click Tracking Implementation Blocked  
+- **Issue**: n8n Cloud webhook registration bug prevents new webhooks (404 errors)
+- **Tested Endpoints**: /click/, /track/, /click-tracking/, /track-clicks/ - all fail with same 404 despite active status
+- **Current State**: 
+  - ✅ HMAC token generation working in SMS scheduler (`D10qtcjjf2Vmmp5j`)
+  - ✅ URL replacement functional (generates tracking links in SMS)  
+  - ❌ Receiver webhook fails to register (tried multiple approaches)
+- **Platform Issue**: Affects ALL new webhook creation - not specific to our implementation
+- **Workaround**: Temporarily disabled click tracking, will resume when n8n fixes infrastructure issue
+- **Workflows Created**: Multiple attempts (all non-functional due to platform bug): QAEbqrf5x02PNqAX, PVjnPUUmIz8lK4tb

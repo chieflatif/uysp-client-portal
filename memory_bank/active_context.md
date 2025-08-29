@@ -36,11 +36,31 @@ Implement SMS sequencing (A/B, 3 steps) with SimpleTexting using one outbound sc
 - **Delivery Tracking**: ✅ COMPLETE - Real SimpleTexting delivery webhooks updating Status=Delivered
 - **Business Continuity**: ✅ PROVEN - System resumes sequences correctly after stop/restart
 
-## ▶ Enhancement Backlog  
-- Click tracking v1: 🔴 Design ready (HMAC proxy + 302), not implemented
-- Daily monitoring: 🔴 Slack summary workflow needed
-- Bulk backlog processing: 🔴 Lead pipeline automation needed
-- HRQ personal email routing: 🔴 NOT IMPLEMENTED - All emails treated equally.
+## ▶ CRITICAL DEVELOPMENT PRIORITIES (Updated 2025-08-29)
+
+### **🚨 PRIORITY 1: Click Tracking Implementation**
+- **Status**: 🟡 BLOCKED - n8n Cloud webhook registration bug
+- **Business Impact**: ZERO conversion tracking without this - foundational for metrics
+- **Technical Issue**: New webhook endpoints fail to register (404) despite being active
+- **Workaround Needed**: Future development when n8n fixes webhook registration
+- **Current State**: HMAC generation working in SMS scheduler, receiver workflow built but can't activate
+
+### **📊 PRIORITY 2: Daily Monitoring Workflow**  
+- **Status**: 🔴 Requirements defined, implementation needed
+- **Business Impact**: NO operational visibility into system health/performance
+- **Requirements**: Daily Slack summary (sends/deliveries/errors/clicks/stops/booked) + real-time error alerts
+
+### **🏢 PRIORITY 3: HRQ Routing Enforcement**
+- **Status**: 🔴 Business rules need definition, implementation needed  
+- **Business Impact**: Data quality and compliance for personal vs business emails
+
+### **📈 PRIORITY 4: 30K Lead Spreadsheet Processing**
+- **Status**: 🔴 Pipeline architecture needed for massive scale ingestion
+- **Business Impact**: MAJOR - Real business growth opportunity, bulk lead activation
+- **Requirements**: Bulk ingestion → enrichment → qualification → SMS pipeline (TBD)
+
+### **🛡️ PRIORITY 5: Automated Backup System**
+- **Status**: 🟡 Manual process working, automation needed for operational safety
 
 ---
 

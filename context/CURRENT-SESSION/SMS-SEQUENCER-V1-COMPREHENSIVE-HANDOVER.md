@@ -72,16 +72,19 @@
 ## 🟡 DESIGNED BUT NOT IMPLEMENTED
 
 ### **Click Tracking v1**
-- **Status**: 🔴 NOT IMPLEMENTED (design complete)
+- **Status**: 🟡 **BLOCKED - n8n Cloud webhook registration bug**
+- **Technical Issue**: New webhook endpoints fail to register (404) despite being active
+- **Platform Bug**: Affects ALL new webhook creation - not specific to our implementation
+- **Current State**: 
+  - ✅ HMAC token generation working in SMS scheduler (`D10qtcjjf2Vmmp5j`)
+  - ✅ URL replacement functional (generates tracking links in SMS)
+  - ❌ Receiver webhook fails to register (tried multiple approaches)
 - **Specification**: 
   - Path: `/webhook/click/:token` (GET method)
   - Process: Verify token → Find lead/communication → Log click → Set SMS Status=Clicked → 302 redirect to Calendly
   - **Clicks do NOT stop sequences** (by design)
   - Audit: Write SMS_Audit row with Event=Clicked
-- **Requirements**:
-  - HMAC tokenized proxy link generation in scheduler
-  - Click webhook workflow creation
-  - SMS_Audit table integration for clicks
+- **Future Implementation**: Resume when n8n resolves webhook registration infrastructure issue
 
 ### **Monitoring & Alerting**
 - **Status**: 🔴 NOT IMPLEMENTED
@@ -125,13 +128,15 @@
 
 ### **HIGH PRIORITY** (Core Functionality)
 
-#### **1. Click Tracking Implementation** ⭐ **CRITICAL FOR CONVERSION METRICS**
-- **Done-When**: GET `/webhook/click/:token` → verify, 302 to Calendly, set SMS Status=Clicked, write SMS_Audit
-- **Requirements**:
-  - Create click proxy webhook workflow
-  - Add tracking token generation to outbound scheduler  
-  - Update SMS templates to include tokenized links
-- **Business Impact**: Currently NO conversion tracking possible
+#### **1. Click Tracking Implementation** ⭐ **BLOCKED - PLATFORM ISSUE**
+- **Status**: 🟡 **BLOCKED by n8n Cloud webhook registration bug**
+- **Issue**: New webhooks fail to register (404) despite being active - platform infrastructure problem
+- **Current State**: 
+  - ✅ HMAC token generation already working in SMS scheduler
+  - ✅ URL replacement functional (generates tracking links in SMS)
+  - ❌ Receiver webhook fails to register (tried multiple approaches)
+- **Future Action**: Resume implementation when n8n resolves webhook registration issue
+- **Business Impact**: ZERO conversion tracking until platform fix available
 
 #### **2. HRQ Routing Enforcement**  
 - **Done-When**: Personal emails excluded from enrichment/writeback (except HRQ fields)
@@ -257,12 +262,12 @@
 3. **Verify Airtable access**: Check all credential connections
 4. **Review recent executions**: Look for any errors or failures
 
-### **Priority Implementation Order**:
-1. **Click tracking** (highest impact - conversion metrics)
-2. **Daily monitoring** (operational visibility)  
-3. **Bulk processing** (clear backlog)
-4. **HRQ routing** (data quality)
-5. **Backup automation** (operational safety)
+### **Priority Implementation Order** (Updated 2025-08-29):
+1. **Click tracking** (foundational - ZERO conversion tracking without this)
+2. **Daily monitoring** (operational safety - NO system visibility currently)  
+3. **HRQ routing** (data quality and compliance)
+4. **30K lead spreadsheet processing** (MAJOR business impact - bulk lead activation)
+5. **Backup automation** (operational safety - manual process working)
 
 ### **🚨 MANDATORY READING (FRESH AGENT)**:
 **YOU MUST READ THESE FIRST BEFORE ANY WORK:**
