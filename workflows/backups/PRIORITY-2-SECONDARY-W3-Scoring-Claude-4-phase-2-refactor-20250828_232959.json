@@ -1,0 +1,131 @@
+{
+  "createdAt": "2025-08-16T19:27:02.221Z",
+  "updatedAt": "2025-08-16T19:27:02.000Z",
+  "id": "7U5RD8oMQ1joqQIz",
+  "name": "W3-Scoring-Claude-4-phase-2-refactor",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f343d84d-bb88-4e61-9aa7-8bcfa9273134",
+      "name": "Execute Sub-workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lead scoring logic with explainability\nconst items = $input.all();\n\n// Zero item defense\nif (!items || !items.length) {\n  return [{\n    json: {\n      qualified_lead: false,\n      lead_score: 0,\n      qualification_reasons: [],\n      routing_decision: 'unqualified',\n      confidence_score: 0,\n      icp_score: 0,\n      icp_tier: 'Unknown',\n      route: 'unqualified',\n      confidence: 0,\n      score_breakdown: {},\n      reasoning: ['No input data provided']\n    }\n  }];\n}\n\nconst data = items[0].json;\nconst normalized = data.normalized || {};\nconst enriched = data.enriched || {};\n\n// Initialize scoring\nlet score = 0;\nconst breakdown = {};\nconst reasoning = [];\n\n// Title Scoring (0-40 points)\nconst titleScoring = {\n  'c-level|ceo|cto|cfo|chief': 40,\n  'vp|vice president': 35,\n  'director': 30,\n  'manager|head of': 25,\n  'lead|senior': 20,\n  'specialist|analyst': 15,\n  'coordinator|associate': 10\n};\n\nconst title = (enriched.title || '').toLowerCase();\nfor (const [pattern, points] of Object.entries(titleScoring)) {\n  const regex = new RegExp(pattern);\n  if (regex.test(title)) {\n    score += points;\n    breakdown.title_points = points;\n    reasoning.push(`Title match: \"${title}\" (+${points})`);\n    break;\n  }\n}\n\n// Company Size Scoring (0-30 points)\nconst companySize = enriched.company_size || '';\nif (companySize.includes('1000+') || companySize.includes('10000+')) {\n  score += 30;\n  breakdown.company_points = 30;\n  reasoning.push('Enterprise company (+30)');\n} else if (companySize.includes('500-999')) {\n  score += 25;\n  breakdown.company_points = 25;\n  reasoning.push('Large company (+25)');\n} else if (companySize.includes('100-499')) {\n  score += 20;\n  breakdown.company_points = 20;\n  reasoning.push('Mid-market company (+20)');\n} else if (companySize.includes('50-99')) {\n  score += 15;\n  breakdown.company_points = 15;\n  reasoning.push('Small-medium company (+15)');\n} else if (companySize.includes('10-49')) {\n  score += 10;\n  breakdown.company_points = 10;\n  reasoning.push('Small company (+10)');\n}\n\n// Department Scoring (0-20 points)\nconst department = (enriched.department || '').toLowerCase();\nconst departmentScoring = {\n  'sales': 20,\n  'marketing': 18,\n  'operations': 15,\n  'executive': 20,\n  'revenue': 18,\n  'growth': 17,\n  'customer success': 15\n};\n\nfor (const [dept, points] of Object.entries(departmentScoring)) {\n  if (department.includes(dept)) {\n    score += points;\n    breakdown.department_points = points;\n    reasoning.push(`${dept} department (+${points})`);\n    break;\n  }\n}\n\n// Form Source Bonus (0-10 points)\nconst highIntentForms = ['demo_request', 'contact_sales', 'pricing_inquiry', 'trial_request'];\nif (highIntentForms.includes(normalized.source_form)) {\n  score += 10;\n  breakdown.intent_points = 10;\n  reasoning.push(`High-intent form: ${normalized.source_form} (+10)`);\n}\n\n// Seniority Bonus (0-10 points)\nconst seniority = (enriched.seniority || '').toLowerCase();\nif (seniority.includes('senior') || seniority.includes('executive')) {\n  score += 10;\n  breakdown.seniority_points = 10;\n  reasoning.push('Senior level (+10)');\n}\n\n// Determine tier and route\nlet tier, route;\nif (score >= 80) {\n  tier = 'High';\n  route = 'qualified_hot';\n} else if (score >= 60) {\n  tier = 'Medium-High';\n  route = 'qualified';\n} else if (score >= 40) {\n  tier = 'Medium';\n  route = 'qualified';\n} else if (score >= 25) {\n  tier = 'Low';\n  route = 'nurture';\n} else {\n  tier = 'Unqualified';\n  route = 'unqualified';\n}\n\n// Calculate confidence based on data completeness\nlet confidence = 0;\nif (enriched.title) confidence += 25;\nif (enriched.company_size) confidence += 25;\nif (enriched.department) confidence += 25;\nif (enriched.seniority) confidence += 15;\nif (normalized.company) confidence += 10;\n\n// Determine qualified_lead boolean\nconst qualified_lead = score >= 40;\n\n// Compile final result\nreturn [{\n  json: {\n    qualified_lead: qualified_lead,\n    lead_score: score,\n    qualification_reasons: reasoning,\n    routing_decision: route,\n    confidence_score: Math.min(confidence, 100),\n    icp_score: score,\n    icp_tier: tier,\n    route: route,\n    confidence: Math.min(confidence, 100),\n    score_breakdown: breakdown,\n    reasoning: reasoning,\n    max_possible_score: 100\n  }\n}];"
+      },
+      "id": "788e7c6f-6211-4327-9169-8c77fc524c85",
+      "name": "Lead Qualifier V3.2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        40,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check for scoring anomalies and add warnings\nconst data = $input.first().json;\n\nconst warnings = [];\nconst anomalies = [];\n\n// Check for unusually high scores with low confidence\nif (data.icp_score > 70 && data.confidence < 50) {\n  anomalies.push('high_score_low_confidence');\n  warnings.push('High score but missing key data points');\n}\n\n// Check for mismatch between title and route\nif (data.route === 'unqualified' && data.score_breakdown.title_points >= 30) {\n  anomalies.push('title_route_mismatch');\n  warnings.push('Senior title but unqualified route - review manually');\n}\n\n// Check for missing critical data\nif (!data.score_breakdown.title_points) {\n  warnings.push('No title data for scoring');\n}\n\n// Add anomaly data to output\nreturn [{\n  json: {\n    ...data,\n    anomalies: anomalies,\n    warnings: warnings,\n    requires_review: anomalies.length > 0\n  }\n}];"
+      },
+      "id": "1129a38f-7ac6-4e93-8026-09eb3fdcfd6b",
+      "name": "Anomaly Detection",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        -80
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Sub-workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Lead Qualifier V3.2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Qualifier V3.2": {
+      "main": [
+        [
+          {
+            "node": "Anomaly Detection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "6c6f1d3f-4b80-436c-9786-70d38819253c",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-16T21:16:10.229Z",
+      "updatedAt": "2025-08-16T21:16:10.229Z",
+      "role": "workflow:owner",
+      "workflowId": "7U5RD8oMQ1joqQIz",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-08-28T22:06:26.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-08-28",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

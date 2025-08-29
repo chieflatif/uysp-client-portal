@@ -1,0 +1,214 @@
+{
+  "createdAt": "2025-08-28T23:46:02.513Z",
+  "updatedAt": "2025-08-28T23:50:53.336Z",
+  "id": "cb5z8xdOI0AmO77W",
+  "name": "UYSP-ST-Sent-Phones-Today",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "man",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "id": "date",
+      "name": "Today YYYY-MM-DD",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "filterByFormula": "",
+        "options": {}
+      },
+      "id": "air",
+      "name": "Fetch Sent Today",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        -80
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnce",
+        "jsCode": "const items = $items('Fetch Sent Today',0) || [];\nconst rowsAll = items.map(i => i.json.fields || i.json);\n// Compute today's date in America/New_York as YYYY-MM-DD\nconst todayET = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());\nconst normalize = s => String(s||'').replace(/\\D/g,'').replace(/^1/,'');\n// Keep only rows with Sent At equal to today in ET\nconst rows = rowsAll.filter(r => {\n  const sentAt = r['Sent At'];\n  if (!sentAt) return false;\n  const rowDateET = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(sentAt));\n  return rowDateET === todayET;\n});\nconst agg = new Map();\nfor (const r of rows){\n  const phone = normalize(r['Phone']);\n  if (!phone) continue;\n  const recId = r['Lead Record ID'] || '';\n  const camp = r['Campaign ID'] || '';\n  const sentAt = r['Sent At'] || '';\n  if(!agg.has(phone)) agg.set(phone, []);\n  agg.get(phone).push({recId, camp, sentAt});\n}\nconst lines = [];\nlet idx = 1;\nfor (const [phone, arr] of agg.entries()){\n  const count = arr.length;\n  const last = arr[arr.length-1] || {};\n  lines.push(`${idx}) ${phone}  count=${count}  leadId=${last.recId||''}  lastCampaign=${last.camp||''}`);\n  idx++;\n}\nconst text = lines.join('\\n');\nreturn {json:{text: text || 'No sends logged today in SMS_Audit'}};"
+      },
+      "id": "fmt",
+      "name": "Format Phone List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "mode": "list",
+          "value": "C097CHUHNTG",
+          "__rl": true
+        },
+        "text": "={{`Phones texted today (unique):\\n${$json.text}`}}",
+        "otherOptions": {}
+      },
+      "id": "sl",
+      "name": "Post Phones to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        -80
+      ],
+      "webhookId": "ea1de4c1-c396-4b35-889e-2e84b198b008",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Today YYYY-MM-DD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Today YYYY-MM-DD": {
+      "main": [
+        [
+          {
+            "node": "Fetch Sent Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Sent Today": {
+      "main": [
+        [
+          {
+            "node": "Format Phone List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Phone List": {
+      "main": [
+        [
+          {
+            "node": "Post Phones to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "d7316927-a0ce-4056-bd59-fbc356308f7c",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-28T23:47:00.817Z",
+      "updatedAt": "2025-08-28T23:47:00.817Z",
+      "role": "workflow:owner",
+      "workflowId": "cb5z8xdOI0AmO77W",
+      "projectId": "H4VRaaZhd8VKQANf",
+      "project": {
+        "createdAt": "2025-07-20T10:20:07.367Z",
+        "updatedAt": "2025-07-20T10:23:14.000Z",
+        "id": "H4VRaaZhd8VKQANf",
+        "name": "UYSP Lead Qualification Agent ",
+        "type": "team",
+        "icon": {
+          "type": "icon",
+          "value": "layer-group"
+        },
+        "description": "Automated lead qualification and SMS outreach system that processes Kajabi form submissions, enriches B2B leads through two-phase qualification, scores them 0-100 using AI, and sends personalized SMS to qualified prospects while maintaining strict compliance and cost controls.",
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-20T10:23:14.911Z",
+            "updatedAt": "2025-07-20T10:23:14.911Z",
+            "role": "project:admin",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "H4VRaaZhd8VKQANf",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-08-28T22:06:26.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-08-28",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

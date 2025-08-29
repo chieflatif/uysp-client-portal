@@ -1,0 +1,249 @@
+{
+  "createdAt": "2025-08-28T21:38:10.440Z",
+  "updatedAt": "2025-08-29T06:07:28.166Z",
+  "id": "pQhwZYwBXbcARUzp",
+  "name": "UYSP-SMS-Inbound-STOP",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "simpletexting-inbound",
+        "options": {}
+      },
+      "id": "wb",
+      "name": "Webhook (STOP)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1024,
+        -160
+      ],
+      "webhookId": "5aaa37a6-e652-4a48-94af-91f5717bb794"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const raw = $json || {};\nconst body = raw.body || raw;\nconst text = String(body.text || body.message || body.Message || '').trim().toUpperCase();\nconst from = String(body.from || body.phone || body.Phone || body.msisdn || '').trim();\nconst digits = from.replace(/\\D/g,'').replace(/^1/, '');\nconst isStop = /\\b(STOP|END|QUIT|UNSUB|UNSUBSCRIBE|CANCEL)\\b/.test(text);\nif (!isStop) return null;\nreturn { json: { phone_digits: digits, text } };\n"
+      },
+      "id": "parse",
+      "name": "Parse Inbound",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "if ($json.skip) { return null } ; return $input.item;"
+      },
+      "id": "guard",
+      "name": "Skip Non-STOP",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "airtableTokenApi",
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "={{`OR(REGEX_REPLACE({Phone}, \"\\\\D\", \"\")='${$json.phone_digits||''}', REGEX_REPLACE({Phone}, \"\\\\D\", \"\")='1${$json.phone_digits||''}')`}}",
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "find",
+      "name": "Find Lead by Phone",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        -160
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableTokenApi",
+        "resource": "record",
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "SMS Stop": true,
+            "SMS Stop Reason": "STOP",
+            "Processing Status": "Stopped"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "update",
+      "name": "Mark STOP",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -160
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook (STOP)": {
+      "main": [
+        [
+          {
+            "node": "Parse Inbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Inbound": {
+      "main": [
+        [
+          {
+            "node": "Skip Non-STOP",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Find Lead by Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Non-STOP": {
+      "main": [
+        [
+          {
+            "node": "Find Lead by Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Lead by Phone": {
+      "main": [
+        [
+          {
+            "node": "Mark STOP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "e9f89aff-3d62-4107-a078-c29e68dd9a87",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-08-28T21:42:30.370Z",
+      "updatedAt": "2025-08-28T21:42:30.370Z",
+      "role": "workflow:owner",
+      "workflowId": "pQhwZYwBXbcARUzp",
+      "projectId": "H4VRaaZhd8VKQANf",
+      "project": {
+        "createdAt": "2025-07-20T10:20:07.367Z",
+        "updatedAt": "2025-07-20T10:23:14.000Z",
+        "id": "H4VRaaZhd8VKQANf",
+        "name": "UYSP Lead Qualification Agent ",
+        "type": "team",
+        "icon": {
+          "type": "icon",
+          "value": "layer-group"
+        },
+        "description": "Automated lead qualification and SMS outreach system that processes Kajabi form submissions, enriches B2B leads through two-phase qualification, scores them 0-100 using AI, and sends personalized SMS to qualified prospects while maintaining strict compliance and cost controls.",
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-20T10:23:14.911Z",
+            "updatedAt": "2025-07-20T10:23:14.911Z",
+            "role": "project:admin",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "H4VRaaZhd8VKQANf",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-08-28T22:06:26.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-08-28",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
