@@ -165,3 +165,12 @@ Remaining: 3 critical bug fixes
 - **Workaround Applied**: Temporarily disabled click tracking, documented for future implementation
 - **Priority Shift**: Moving to Daily Monitoring workflow (uses existing infrastructure)
 - **Documentation**: Updated roadmap, evidence logs, and handover docs with blocker details
+
+## 2025-08-29: HRQ Routing Implementation Complete
+- **Personal Email Detection**: Added to Real-time Ingestion workflow (`2cdgp1qr9tXlONVL`)
+- **Consistency**: Both Bulk Import and Real-time now have identical HRQ routing logic
+- **Business Logic**: Personal emails (gmail.com, yahoo.com, etc.) → HRQ Status="Archive", skip enrichment
+- **Cost Savings**: Personal emails bypass Clay processing entirely
+- **SOP Created**: `docs/handovers/HRQ-WORKFLOW-SOP.md` with complete routing logic
+- **Backup**: Real-time Ingestion workflow backed up before modifications
+- **Remaining**: Post-enrichment SMS criteria check + HRQ action processor workflows

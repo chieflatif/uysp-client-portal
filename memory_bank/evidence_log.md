@@ -84,3 +84,11 @@
 - **Platform Issue**: Affects ALL new webhook creation - not specific to our implementation
 - **Workaround**: Temporarily disabled click tracking, will resume when n8n fixes infrastructure issue
 - **Workflows Created**: Multiple attempts (all non-functional due to platform bug): QAEbqrf5x02PNqAX, PVjnPUUmIz8lK4tb
+
+**Date**: 2025-08-29 23:17  
+**Agent**: Developer Agent  
+**Action**: HRQ Routing Implementation Complete  
+**Evidence**: Added personal email detection to Real-time Ingestion workflow (`2cdgp1qr9tXlONVL`). Both Bulk Import and Real-time now have identical HRQ routing logic. Personal emails (gmail.com, yahoo.com, etc.) automatically set HRQ Status="Archive", Processing Status="Complete" to skip enrichment.  
+**Files**: `docs/handovers/HRQ-WORKFLOW-SOP.md` (created), Real-time Ingestion workflow updated  
+**Cost Impact**: Personal emails now bypass Clay processing entirely (cost savings)  
+**Backup**: Real-time Ingestion workflow backed up before modifications

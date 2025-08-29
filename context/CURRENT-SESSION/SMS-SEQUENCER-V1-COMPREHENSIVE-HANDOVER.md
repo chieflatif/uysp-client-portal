@@ -138,9 +138,14 @@
 - **Future Action**: Resume implementation when n8n resolves webhook registration issue
 - **Business Impact**: ZERO conversion tracking until platform fix available
 
-#### **2. HRQ Routing Enforcement**  
-- **Done-When**: Personal emails excluded from enrichment/writeback (except HRQ fields)
-- **Requirements**: Identify what constitutes "personal email" vs business
+#### **2. HRQ Routing Enforcement** ✅ **CORE COMPLETE**
+- **Status**: 🟢 Personal email detection implemented in both ingestion workflows
+- **Implemented**: 
+  - Bulk Import (`qMXmmw4NUCh1qu8r`) - ✅ Already had personal email detection
+  - Real-time Ingestion (`2cdgp1qr9tXlONVL`) - ✅ Just added personal email detection
+- **Business Logic**: Personal emails (gmail.com, yahoo.com, etc.) → HRQ Status="Archive", skip enrichment
+- **Remaining**: Post-enrichment SMS criteria check + HRQ action processor workflows
+- **SOP**: `docs/handovers/HRQ-WORKFLOW-SOP.md`
 
 #### **3. SMS Eligible Formula Creation**
 - **Done-When**: `SMS Eligible (calc)` formula created, view filter updated

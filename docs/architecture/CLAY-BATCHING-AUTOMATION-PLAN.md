@@ -253,8 +253,27 @@ Clay → Airtable:
 
 ---
 
-## HRQ Routing (Personal Emails)
-- Source: Clay “Identify Email Type…” enrichment
+## HRQ Routing (Complete Business Logic)
+
+### Inbound Routing (Two Paths to HRQ)
+**Path 1: Personal Emails** (Immediate HRQ)
+- **Trigger**: Personal email domains (gmail.com, yahoo.com, etc.)
+- **Action**: `HRQ Status = "Archive"`, `HRQ Reason = "Personal email"`
+- **Skip**: All enrichment (cost savings)
+
+**Path 2: Business Emails Not Meeting SMS Criteria** (Post-Enrichment HRQ)
+- **Trigger**: `ICP Score < 70` OR `Location != US` OR `Phone Invalid`
+- **Action**: `HRQ Status = "Manual Process"`, `HRQ Reason = "Below SMS threshold"`
+- **Process**: Full enrichment first, then HRQ if criteria not met
+
+### HRQ Actions (Human Reviewer Options)
+1. **"Archive"** - Dead end, no further action
+2. **"Manual Outreach"** - Human-driven outreach (not SMS)
+3. **"Approved"** - Override criteria, send directly to SMS campaign  
+4. **"Enrich"** - Trigger Clay waterfall enrichment process
+
+### Implementation Notes
+- Source: Clay "Identify Email Type…" enrichment for personal email detection
 - Rule: If `IsLikelyPersonalEmail = true` → set `HRQ Status = Archive`, `HRQ Reason = Personal email`, skip enrichment/writeback except HRQ fields.
 
 ### HRQ Prefilter Linkage

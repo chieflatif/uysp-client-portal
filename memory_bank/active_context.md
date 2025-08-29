@@ -51,8 +51,10 @@ Implement SMS sequencing (A/B, 3 steps) with SimpleTexting using one outbound sc
 - **Requirements**: Daily Slack summary (sends/deliveries/errors/clicks/stops/booked) + real-time error alerts
 
 ### **🏢 PRIORITY 3: HRQ Routing Enforcement**
-- **Status**: 🔴 Business rules need definition, implementation needed  
-- **Business Impact**: Data quality and compliance for personal vs business emails
+- **Status**: 🟢 CORE COMPLETE - Personal email detection implemented in both ingestion workflows
+- **Business Impact**: Cost savings by skipping enrichment on personal emails (gmail.com, yahoo.com, etc.)
+- **Implemented**: HRQ Status="Archive" for personal emails, Processing Status="Complete" to skip enrichment
+- **Remaining**: Post-enrichment SMS criteria check + HRQ action processor workflows
 
 ### **📈 PRIORITY 4: 30K Lead Spreadsheet Processing**
 - **Status**: 🔴 Pipeline architecture needed for massive scale ingestion

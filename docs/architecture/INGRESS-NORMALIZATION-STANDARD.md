@@ -87,6 +87,12 @@ return {
   processing_status: isPersonal ? 'Complete' : 'Queued',
   skip_enrichment: isPersonal
 };
+
+// HRQ Actions (Human Reviewer Options):
+// 1. "Archive" - Dead end, no further action
+// 2. "Manual Outreach" - Human-driven outreach (not SMS)
+// 3. "Approved" - Override criteria, send directly to SMS campaign  
+// 4. "Enrich" - Trigger Clay waterfall enrichment process
 ```
 
 Airtable Upsert (single node)

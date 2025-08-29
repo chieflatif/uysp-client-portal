@@ -67,7 +67,7 @@ Done:
 - Clay → Airtable writeback pipeline fully operational ✅
 
 Pending:
-- Enforce HRQ routing for personal emails (exclude from enrichment/writeback except HRQ fields)
+- ✅ HRQ routing for personal emails implemented (both ingestion workflows updated)
 - Create `SMS Eligible (calc)` formula and set SMS Eligible view filter to it
 - Optional: automation to mirror calc → checkbox if needed by n8n
 - Optional: n8n monitoring (Option A); later Option B batch orchestrator
