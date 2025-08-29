@@ -30,6 +30,46 @@
   - recax23rhooohXVv3 (Phone +14085992416) already Delivered; verified no regression
 - Slack: Delivery messages posted to channel C097CHUHNTG for both tests
 - Audit rows: `recki1fqwX1Ru3exp`, `rec4Ln2jfzYOWMBFm`, `rec5VeCaQ7RIjecEP` created in `SMS_Audit`
+
+## 2025-08-29 — Core SMS System Integration Verification
+- **STOP Webhook Complete** (pQhwZYwBXbcARUzp): 
+  - Executions 2961/2962 - processed "STOP" replies correctly
+  - Updated SMS Stop=true, SMS Stop Reason=STOP, Processing Status=Stopped
+  - Phone parsing and lead matching working
+- **Calendly Webhook Complete** (LiVE3BlxsFkHhG83):
+  - Execution 2965 - test booking processed successfully  
+  - Updated Booked=true, Booked At=timestamp, SMS Stop=true, SMS Stop Reason=BOOKED, Processing Status=Completed
+  - Fixed parser and field mappings
+- **Fast Mode Step Sequencing Proven** (D10qtcjjf2Vmmp5j):
+  - Execution 2940 - Step 1 sent to 2 leads (Ryan Lenzen, Chris Rodriguez)
+  - Campaign IDs: 68b12d990f1df339266e50ea, 68b12d991112451ec5048296
+  - Fast Delay Minutes set to 3 min on Step 2/3 templates
+  - Audit logging working: SMS_Audit records rec2x1O6CaS7AIqFW, rec7XlKvpXcM0OGte
 - Node configs (key):
   - Find Lead: Resource=Record, Operation=Search, Return all=ON, filterByFormula = `OR({SMS Campaign ID}='{{$json.campaign_id}}', {Phone}='{{$json.phone_digits}}', {Phone}='+1{{$json.phone_digits}}')`
   - Update Lead Delivery: match on `id`, write `SMS Status`, `Error Log`; no computed fields
+
+
+## 2025-08-29 — Production Readiness Fixes Applied
+- **SMS Eligible Logic Fixed** (D10qtcjjf2Vmmp5j):
+  - Filter updated: `OR({SMS Sequence Position}>0,{SMS Eligible})`
+  - New leads (Position=0) require eligibility: ICP≥70, US, Phone Valid
+  - Continuing leads (Position>0) bypass SMS Eligible check
+  - Verified: Both leads found after fix (recjRGAiCez377jWm, recuWfN0y81iwqJvC)
+- **Same-Day Dedupe Removed** (D10qtcjjf2Vmmp5j):
+  - Eliminated blocking logic from "Prepare Text (A/B)" node
+  - Removed seenPhones tracking and isSameDayET checks
+  - Result: Sequences can send all 3 steps with configured timing
+- **Delivery Webhook Fixed** (vA0Gkp2BrxKppuSu):
+  - Audit Row references updated to use $('Parse Delivery').item.json
+  - Now handles cases where Find Lead returns no results gracefully
+  - Verified: Write Audit Row node properly configured
+
+## 2025-08-29: Complete SMS System Live Validation
+- **3-Step Sequence**: Executions 2967/2976/2980 - Ryan+Chris full A/B sequence 0→3, Status 'Completed'
+- **STOP Processing**: Executions 2989/2990 - Real SMS STOP replies processed, leads marked stopped  
+- **Production Fixes**: SMS Eligible logic, same-day dedupe removal, List Due Leads rebuild
+- **Business Continuity**: System resumes sequences correctly after stop/restart cycles
+- **Delivery Tracking**: Real SimpleTexting webhooks confirmed, audit trail complete
+- **Ready for Production**: All core SMS lifecycle functionality verified with live messages
+- **Parser Fixed**: STOP webhook handles both INCOMING_MESSAGE and UNSUBSCRIBE_REPORT types
