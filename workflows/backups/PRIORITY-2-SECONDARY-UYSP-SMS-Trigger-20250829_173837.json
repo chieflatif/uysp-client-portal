@@ -1,0 +1,246 @@
+{
+  "createdAt": "2025-08-21T21:15:54.571Z",
+  "updatedAt": "2025-08-21T21:15:54.571Z",
+  "id": "cS7zhnWnD637TlqC",
+  "name": "UYSP-SMS-Trigger",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Airtable Trigger",
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "application": "app6cU9HecxLpgT0P",
+        "table": "tblYUvhGADerbD8EO",
+        "view": "SMS Pipeline",
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2",
+      "name": "Check Ready for SMS",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.fields['Processing Status']}}",
+              "operation": "equal",
+              "value2": "Ready for SMS"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "3",
+      "name": "Send SMS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        680,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.simpletexting.com/v2/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{$json.fields['Phone']}}"
+            },
+            {
+              "name": "text",
+              "value": "Hey {{$json.fields['First Name']}}, excited for our call? Book here: [Calendly Link] - Latif from UYSP"
+            },
+            {
+              "name": "from",
+              "value": "+15551234567"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "4",
+      "name": "Update SMS Sent",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        900,
+        100
+      ],
+      "parameters": {
+        "operation": "update",
+        "application": "app6cU9HecxLpgT0P",
+        "table": "tblYUvhGADerbD8EO",
+        "id": "={{$json.id}}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "SMS Status": "Sent",
+            "SMS Sent Date": "={{new Date().toISOString()}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "5",
+      "name": "Update Error",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "operation": "update",
+        "application": "app6cU9HecxLpgT0P",
+        "table": "tblYUvhGADerbD8EO",
+        "id": "={{$json.id}}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "SMS Status": "Failed",
+            "Error Message": "={{$json.error.message}}"
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Airtable Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Ready for SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Ready for SMS": {
+      "main": [
+        [
+          {
+            "node": "Send SMS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS": {
+      "main": [
+        [
+          {
+            "node": "Update SMS Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "ccaa0fe9-f2c2-480c-a369-99790b1d762a",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-21T21:15:54.573Z",
+      "updatedAt": "2025-08-21T21:15:54.573Z",
+      "role": "workflow:owner",
+      "workflowId": "cS7zhnWnD637TlqC",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-08-29T22:42:11.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-08-29",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
