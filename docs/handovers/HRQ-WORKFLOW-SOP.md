@@ -1,7 +1,7 @@
 # Human Review Queue (HRQ) Workflow SOP
 
-**Date**: 2025-08-29  
-**Status**: Draft - Implementation Pending  
+**Date**: 2025-08-30  
+**Status**: Finalized v1 (no new workflows)  
 **Purpose**: Define complete HRQ routing logic, reasons, and human reviewer actions
 
 ---
@@ -14,7 +14,7 @@
 
 ---
 
-## 📥 **INBOUND ROUTING TO HRQ (3 Paths)**
+## 📥 **ROUTING TO HRQ (2 Paths)**
 
 ### **Path 1: Personal Email Detection** ✅ IMPLEMENTED
 - **Trigger**: Personal email domains (gmail.com, yahoo.com, hotmail.com, outlook.com, icloud.com, etc.)
@@ -24,21 +24,12 @@
   - `HRQ Reason = "Personal email"`
   - `Processing Status = "Complete"` (skip all enrichment)
 
-### **Path 2: Data Quality Issues** 🔴 TO IMPLEMENT
-- **Trigger**: Missing phone, invalid email, incomplete data
-- **When**: During initial ingestion validation
-- **Action**:
-  - `HRQ Status = "Manual Process"`
-  - `HRQ Reason = "Data quality error"`
-  - `Processing Status = "Complete"`
-
-### **Path 3: Post-Enrichment SMS Criteria Failure** 🔴 TO IMPLEMENT
-- **Trigger**: `ICP Score < 70` OR `Location != US` OR `Phone Invalid`
-- **When**: After Clay enrichment completes
-- **Action**:
-  - `HRQ Status = "Manual Process"`
-  - `HRQ Reason = "ICP review"` OR `HRQ Reason = "Enrichment failed"`
-  - `Processing Status = "Complete"`
+### **Path 2: Post-Enrichment (No Person Data) — View-Only Detection** ✅ IMPLEMENTED (no node changes)
+- **Trigger (view filter only, no field writes)**: After enrichment attempt, both person-only fields are still empty:
+  - `Job Title` is empty
+  - `Linkedin URL - Person` is empty
+- **When**: After Clay writeback occurs (use `Enrichment Timestamp` not empty to ensure it ran)
+- **Action**: None written to fields. A dedicated Airtable view surfaces these for reviewers. Reviewers decide the next step.
 
 ---
 
@@ -55,20 +46,12 @@
 - **Use Cases**: High-value prospects not meeting SMS criteria, special handling needed
 
 ### **3. Qualified**
-- **Purpose**: Override criteria, approve for SMS campaign
-- **System Action**: 
-  - Set `Processing Status = "Queued"`
-  - Set `HRQ Status = "None"`
-  - Lead enters SMS eligibility check
-- **Use Cases**: Human judgment overrides ICP score, edge cases worth pursuing
-
-### **3. Qualified** (Simplified - Covers Enrichment)
-- **Purpose**: Approve for processing (enrichment → SMS pipeline)
-- **System Action**:
-  - Set `Processing Status = "Queued"`
-  - Set `HRQ Status = "None"`
-  - Lead enters normal flow: Clay enrichment → ICP scoring → SMS eligibility
-- **Use Cases**: Human override for edge cases, retry failed enrichment
+- **Purpose**: Approve for SMS processing (covers enrichment retry)
+- **Reviewer Action**:
+  - Set `HRQ Status = "Qualified"` AND set `Processing Status = "Queued"`
+- **System Behavior**:
+  - Scheduler picks it up automatically (no new workflow). Entry still governed by `SMS Eligible` formula and existing scheduler filters.
+- **Use Cases**: Human override for edge cases or to resume a lead after enrichment gaps
 
 ---
 
@@ -78,11 +61,8 @@
 - **"Personal email"** - gmail.com, yahoo.com, etc. detected at ingestion
 - **"Data quality error"** - missing phone, invalid email, incomplete data
 
-### **Post-Enrichment Reasons** (After Clay Processing)
-- **"ICP review"** - ICP Score < 70, needs human evaluation
-- **"Enrichment failed"** - Clay couldn't enrich, came back from Qualified retry
-- **"Location filter"** - Non-US location, may need manual evaluation
-- **"Phone validation"** - Invalid phone number, may need manual correction
+### **Post-Enrichment Indicators** (After Clay Processing)
+- We avoid storing free-text reasons for enrichment outcomes. Instead, use view-only detection based on missing person fields after `Enrichment Timestamp` is set (see Views section).
 
 ### **Re-Entry Prevention**
 - If lead was previously "Qualified" and returns to HRQ → Use "Enrichment failed" reason
@@ -99,30 +79,24 @@
 - Manual Process
 - Qualified ← (Covers both approval and enrichment retry)
 
-### **Required Workflows**
-
-#### **1. HRQ Action Processor** 🔴 TO BUILD
-- **Trigger**: Manual or scheduled
-- **Function**: Process HRQ Status changes by human reviewers
-- **Logic**:
-  - If `HRQ Status = "Qualified"` → Set `Processing Status = "Queued"`, clear HRQ fields
-  - If `HRQ Status = "Enrich"` → Trigger Clay enrichment, set `Processing Status = "Queued"`
-  - If `HRQ Status = "Manual Process"` → Move to manual outreach view
-
-#### **2. Post-Enrichment SMS Criteria Check** 🔴 TO BUILD
-- **Trigger**: After Clay writeback (webhook or scheduled)
-- **Function**: Check SMS eligibility criteria
-- **Logic**: If ICP<70 OR non-US OR invalid phone → route to HRQ
+### **Workflow Interactions (No New Workflows)**
+- Do not add new workflows or IF nodes. The existing scheduler handles pickup.
+- Reviewer changing `HRQ Status = "Qualified"` AND `Processing Status = "Queued"` is sufficient for the scheduler to process on the next run window.
 
 ---
 
 ## 📊 **HRQ VIEWS & REPORTING**
 
-### **Airtable Views Needed**
-- **"HRQ - Personal Emails"** (HRQ Status = Archive, Reason = Personal email)
-- **"HRQ - Manual Review"** (HRQ Status = Manual Process)
-- **"HRQ - Enrichment Failed"** (HRQ Reason = Enrichment failed)
-- **"HRQ - ICP Review"** (HRQ Reason = ICP review)
+### **Airtable Views**
+- Already present: **"HRQ Personal email (n8n auto find)"**
+- Add: **"HRQ — Manual Process"**  
+  Filter: `HRQ Status` is "Manual Process" AND `Booked` is unchecked
+- Add: **"HRQ — Enrichment Failed (No Person Data)"**  
+  Filters:
+  - `Enrichment Timestamp` is not empty
+  - `Job Title` is empty
+  - `Linkedin URL - Person` is empty
+  - `HRQ Status` is not "Archive"
 
 ### **Monitoring Metrics**
 - Daily HRQ inbound count by reason
@@ -135,8 +109,7 @@
 ## 🚨 **SAFETY PROTOCOLS**
 
 ### **Prevent Infinite Loops**
-- Track enrichment attempts: If lead returns to HRQ after "Enrich" action, set `HRQ Reason = "Enrichment failed"`
-- Prevent re-enrichment of failed enrichment attempts
+- Avoid automatic re-enrichment loops. Use views to surface gaps; human reviewers decide whether to resume (Qualified + Queued) or Archive.
 
 ### **Data Quality Gates**
 - Validate email format before any processing
@@ -159,13 +132,11 @@
 
 ---
 
-## 🔄 **IMPLEMENTATION PRIORITY**
+## 🔄 **IMPLEMENTATION PRIORITY (v1 Final)**
 
-1. **Add "Enrich" option to Airtable HRQ Status field** (Manual)
-2. **Build Post-Enrichment SMS Criteria Check workflow**
-3. **Build HRQ Action Processor workflow**
-4. **Create HRQ monitoring views**
-5. **Test with sample leads through full cycle**
+1. Create Airtable views: "HRQ — Manual Process" and "HRQ — Enrichment Failed (No Person Data)"
+2. Reviewer SOP: To resume, set `HRQ Status = Qualified` AND `Processing Status = Queued`
+3. Validate pickup: Confirm Slack send + audit row on next scheduler window
 
 ---
 

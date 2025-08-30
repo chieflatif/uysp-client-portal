@@ -174,3 +174,13 @@ Remaining: 3 critical bug fixes
 - **SOP Created**: `docs/handovers/HRQ-WORKFLOW-SOP.md` with complete routing logic
 - **Backup**: Real-time Ingestion workflow backed up before modifications
 - **Remaining**: Post-enrichment SMS criteria check + HRQ action processor workflows
+
+## 2025-08-30: Daily Monitoring Workflow Complete
+- **Workflow**: UYSP-Daily-Monitoring (ID: 5xW2QG8x2RFQP8kx)
+- **Scope**: Cron → Airtable searches (24h) → Summary → Slack (C097CHUHNTG)
+- **Testing**: Manual execution 3026; enabled Always Output Data to prevent zero-result stops; Delivered filter uses Delivery At
+- **Outcome**: Slack posts successful daily summary; ready for activation
+
+## 2025-08-30: HRQ SOP Finalized (No IF nodes; views only)
+- **Views**: HRQ Personal email (existing), HRQ — Manual Process, HRQ — Enrichment Failed (No Person Data)
+- **Reviewer Action**: Set HRQ Status="Qualified" AND Processing Status="Queued" to resume; no new workflows needed

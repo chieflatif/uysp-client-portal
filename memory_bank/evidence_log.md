@@ -92,3 +92,10 @@
 **Files**: `docs/handovers/HRQ-WORKFLOW-SOP.md` (created), Real-time Ingestion workflow updated  
 **Cost Impact**: Personal emails now bypass Clay processing entirely (cost savings)  
 **Backup**: Real-time Ingestion workflow backed up before modifications
+
+## 2025-08-30 — Daily Monitoring Workflow Created & Tested
+- **Workflow**: UYSP-Daily-Monitoring (ID: 5xW2QG8x2RFQP8kx)
+- **Test Execution**: 3026 (Manual)
+- **Nodes**: Cron → Airtable (Sent/Delivered/Failed/Stops/Booked) → Build Summary → Slack
+- **Fixes Applied**: Enabled "Always Output Data" on Airtable searches; adjusted Delivered filter to use `Delivery At` where available
+- **Result**: Slack summary posted with 24h counts; chain no longer stops on empty result sets
