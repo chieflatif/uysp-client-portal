@@ -1,0 +1,2992 @@
+{
+  "createdAt": "2025-08-18T21:26:00.105Z",
+  "updatedAt": "2025-08-21T06:42:40.000Z",
+  "id": "l7qQFcxVHBauKZux",
+  "name": "Chosen Path Workflow",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f1711a99-b57f-4d12-a3e0-c907e02e7d86",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cbb7e3db-7df3-40e3-a49f-da2837f35bd4",
+      "name": "Kajabi Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -3056,
+        256
+      ],
+      "webhookId": "f1711a99-b57f-4d12-a3e0-c907e02e7d86",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pass-through; ensure Code node returns array of items\nreturn [{ json: $json }];"
+      },
+      "id": "a6968906-ba95-4e31-933b-1332be38f9fa",
+      "name": "Validate API Key (Dynamic)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2928,
+        256
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Smart Field Mapper v4.7 — add linkedin_location passthrough\nconst inData = ($json?.body && typeof $json.body === 'object') ? $json.body : ($json?.data && typeof $json.data === 'object') ? $json.data : $json;\n\nfunction pick(...keys){ for(const k of keys){ const v = inData?.[k]; if (typeof v === 'string' && v.trim()) return v.trim(); } return null; }\n\nconst normalized = {\n  email: pick('email','email_address','Email','EMAIL'),\n  first_name: pick('first_name','firstname','firstName','FirstName','First_Name','name_first'),\n  last_name: pick('last_name','lastname','lastName','LastName','Last_Name','name_last'),\n  company: pick('company','company_name','organization'),\n  title: pick('title','job_title','role'),\n  phone: pick('phone','phone_number','mobile','cell'),\n  linkedin_url: pick('linkedin','linkedin_url','linkedinProfileUrl'),\n  linkedin_location: pick('linkedin_location','location','city','region'),\n  touchpoint_count: Number(inData?.touchpoint_count) || null,\n  webinar_attendee: !!inData?.webinar_attendee,\n  course_purchaser: !!inData?.course_purchaser,\n  recent_role_change: !!inData?.recent_role_change,\n  experience_years: Number(inData?.experience_years) || null,\n};\n\nreturn { json: { normalized } };"
+      },
+      "id": "0bf63804-ced3-4d28-a9b5-7e8bcdf9d88f",
+      "name": "Smart Field Mapper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2768,
+        256
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// PDL Person Processor — costs only on success, last_enriched only on success, add linkedin_location\nconst resp = $input.first().json || {};\nconst smart = $node['Smart Field Mapper'].json.normalized || {};\n\nconst status = resp.statusCode ?? resp.status ?? null;\nconst body = resp.body ?? resp;\nconst data = body?.data ?? body ?? {};\n\nconst respMs = typeof resp.ms === 'number' ? resp.ms : (typeof resp.elapsedTime === 'number' ? resp.elapsedTime : null);\nconst retries = typeof resp.retryCount === 'number' ? resp.retryCount : (typeof resp.retries === 'number' ? resp.retries : 0);\n\nconst hasPerson = status === 200 && data && Boolean(\n  data.linkedin_url || data.full_name || data.job_title || data.job_company_name\n);\n\nconst first = data.first_name || smart.first_name || null;\nconst last = data.last_name || smart.last_name || null;\nconst title = data.job_title || null;\nconst company = data.job_company_name || null;\nconst linkedin = data.linkedin_url || null;\n\n// Attempt to derive a human-readable location string from common PDL fields\nconst locParts = [];\nconst locCand = data.location || data.location_name || null;\nif (locCand && typeof locCand === 'string') locParts.push(locCand);\nconst locLocality = data.location_locality || data.city || null;\nconst locRegion = data.location_region || data.state || null;\nconst locCountry = data.location_country || data.country || null;\n[locLocality, locRegion, locCountry].forEach(p => { if (p && typeof p === 'string') locParts.push(p); });\nconst derivedLocation = locParts.join(', ').replace(/^[,\\s]+|[,\\s]+$/g,'') || null;\n\nconst normalized = {\n  ...smart,\n  first_name: first,\n  last_name: last,\n  title_current: title || smart.title_current || null,\n  company_enriched: company || smart.company_enriched || smart.company || null,\n  linkedin_url: linkedin || smart.linkedin_url || null,\n  linkedin_location: smart.linkedin_location || derivedLocation || null,\n\n  pdl_person_success: hasPerson,\n  pdl_status_code: status,\n  pdl_response_time_ms: respMs,\n  pdl_retry_count: retries,\n\n  enrichment_vendor: hasPerson ? 'pdl' : (smart.enrichment_vendor || 'pdl'),\n  enrichment_attempted: true\n};\n\nif (hasPerson) {\n  normalized.last_enriched = new Date().toISOString();\n  normalized.pdl_cost = 0.01;\n  normalized.pdl_raw_error = null;\n} else {\n  normalized.pdl_raw_error = body?.error || body?.message || null;\n}\n\nreturn [{ json: normalized }];"
+      },
+      "id": "a48a78d2-b963-4b48-ac73-acc8fb952f9e",
+      "name": "PDL Person Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1584,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hunter Response Processor (NEW) — add linkedin_location derivation\nconst items = $input.all();\nfor (const item of items) {\n  const base = $node['Smart Field Mapper'].json.normalized || {};\n  const resp = item.json || {};\n  const status = resp.statusCode ?? resp.status ?? null;\n  const body = resp.body ?? resp;\n  const data = body?.data ?? body ?? {};\n\n  const respMs = typeof resp.ms === 'number' ? resp.ms : (typeof resp.elapsedTime === 'number' ? resp.elapsedTime : null);\n  const retries = typeof resp.retryCount === 'number' ? resp.retryCount : (typeof resp.retries === 'number' ? resp.retries : 0);\n\n  const linkedinHandle = data?.linkedin?.handle || null;\n  const title = data?.employment?.title || data?.position?.title || data?.job?.title || null;\n  const companyName = data?.employment?.name || data?.company?.name || data?.organization?.name || data?.company || null;\n  const first = data?.name?.givenName || data?.first_name || null;\n  const last = data?.name?.familyName || data?.last_name || null;\n\n  // Location candidates commonly present in Hunter\n  const locParts = [];\n  const loc1 = data?.location || data?.profile?.location || null;\n  if (loc1 && typeof loc1 === 'string') locParts.push(loc1);\n  const city = data?.address?.city || data?.city || null;\n  const region = data?.address?.state || data?.region || null;\n  const country = data?.address?.country || data?.country || null;\n  ;[city, region, country].forEach(p => { if (p && typeof p === 'string') locParts.push(p); });\n  const derivedLocation = locParts.join(', ').replace(/^[,\\s]+|[,\\s]+$/g,'') || null;\n\n  const success = Boolean(linkedinHandle || title || companyName || first || last || derivedLocation);\n\n  const normalized = {\n    ...base,\n    first_name: first || base.first_name || null,\n    last_name: last || base.last_name || null,\n    linkedin_url: linkedinHandle ? `https://www.linkedin.com/in/${linkedinHandle}` : (base.linkedin_url || null),\n    title_current: title || base.title_current || base.pdl_current_title || base.pdl_job_title || null,\n    company_enriched: companyName || base.company_enriched || base.pdl_company_name || base.pdl_current_company || null,\n    linkedin_location: base.linkedin_location || derivedLocation || null,\n\n    hunter_person_success: success,\n    enrichment_vendor: success ? 'hunter' : (base.enrichment_vendor || 'hunter'),\n    enrichment_attempted: true,\n\n    hunter_status_code: status ?? null,\n    hunter_response_time_ms: respMs,\n    hunter_retry_count: retries\n  };\n\n  if (success) {\n    normalized.hunter_cost = 0.049;\n    normalized.last_enriched = new Date().toISOString();\n    normalized.enrichment_failed = false;\n  }\n\n  item.json = normalized;\n}\nreturn items.map(item => ({ json: item.json }));"
+      },
+      "name": "Hunter Response Processor (NEW)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1360,
+        576
+      ],
+      "id": "5829323f-2e5c-4bb2-b665-a63a0cf0aad6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Person Data Merger (NEW) — emit exactly ONE enriched item with phone propagation\nconst inputs = $input.all().map(i => i.json || {});\nconst base = $node['Smart Field Mapper'].json.normalized || {};\n\nfunction pickBest(list) {\n  return (\n    list.find(j => j?.pdl_person_success === true) ||\n    list.find(j => j?.dc_person_success === true) ||\n    list.find(j => j && (j.title_current || j.company_enriched)) ||\n    list[list.length - 1] ||\n    {}\n  );\n}\n\nconst best = pickBest(inputs);\n\nfunction coalescePhone(b, be) {\n  const candidates = [be?.phone_primary, b?.phone_primary, b?.phone_e164, b?.phone_recent, b?.phone_original, b?.phone];\n  for (const v of candidates) {\n    if (typeof v === 'string' && v.trim()) return v.trim();\n  }\n  return null;\n}\n\n// Build merged, preferring enriched fields, falling back to base\nconst merged = {\n  ...base,\n  ...best,\n  email: base.email ?? best.email ?? null,\n  first_name: best.first_name ?? base.first_name ?? null,\n  last_name: best.last_name ?? base.last_name ?? null,\n  title_current: best.title_current ?? base.title ?? null,\n  company_enriched: best.company_enriched ?? base.company ?? null,\n  linkedin_url: best.linkedin_url ?? base.linkedin_url ?? null,\n  phone_primary: coalescePhone(base, best),\n\n  // Observability\n  providers_triggered: Array.isArray(best.providers_triggered) ? best.providers_triggered : (best.providers_triggered ? [best.providers_triggered] : []),\n  enrichment_path: Array.isArray(best.enrichment_path) ? best.enrichment_path : (best.enrichment_path ? [best.enrichment_path] : []),\n\n  pdl_cost: Number(best.pdl_cost ?? 0),\n  hunter_cost: Number(best.hunter_cost ?? 0),\n  dropcontact_cost: Number(best.dropcontact_cost ?? 0),\n  total_processing_cost: Number(best.total_processing_cost ?? 0),\n};\n\nreturn [{ json: merged }];"
+      },
+      "name": "Person Data Merger (NEW)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        240
+      ],
+      "id": "b2fca883-cfa0-450a-afbb-620030902709"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.pdl_person_success}}",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "rightValue": true,
+              "id": "e7a8727a-b2e7-4066-8bad-b0b8c6e35b85"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "PDL Person Success Router (NEW) [FIX]",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1360,
+        336
+      ],
+      "id": "92020d31-9be5-4562-9d34-21da5d169793",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{true}}",
+              "rightValue": 1,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "id": "9eff5ca8-d41c-4062-9d95-557f95f6a87a"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d579cb38-0753-46a0-98b6-50b1bdfbf606",
+      "name": "Hunter Waterfall Feature Gate1 [FIX]",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1808,
+        576
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.peopledatalabs.com/v5/person/enrich",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{$json.normalized.email}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3000
+        }
+      },
+      "id": "a4148489-976b-4e4b-8d31-3ce0a510edfd",
+      "name": "PDL Person Enrichment [FIX]",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1808,
+        336
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "DleHqWmy46lupagO",
+          "name": "PDL-API-KEY"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ !($json.title_current || $json.company_enriched || $json.linkedin_url) }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "id": "198ac631-fe56-4796-a7d8-a059bd099ef6"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d9d59c79-7b39-48c5-8f7e-a05d55f99bb3",
+      "name": "Dropcontact Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1152,
+        576
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dropcontact.io/batch",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dropcontactApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"data\": [{ \"email\": \"{{$json.normalized.email}}\" }], \"siren\": false, \"language\": \"en\" }",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3000
+        }
+      },
+      "id": "aafb1984-5fa0-486e-badf-37e48b3ecd45",
+      "name": "Dropcontact Enrich",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1808,
+        864
+      ],
+      "credentials": {
+        "dropcontactApi": {
+          "id": "Xput7e7yUJ00LrNs",
+          "name": "Dropcontact account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge to Qualifier Output — add linkedin_location from Dropcontact if available\nconst poll = $input.first().json || {};\nconst body = poll.body || poll;\nconst statusCode = poll.statusCode || body.statusCode || null;\nconst data = body.data || body || {};\n\n// Base lead\nconst lead = { ...($json || {}) };\n\n// Capture request_id for subsequent polls\nlead.dc_request_id = body.request_id || poll.request_id || lead.dc_request_id || null;\n\n// Parse DC success block (first item if array)\nconst dc = Array.isArray(data.success) ? data.success[0] : (data.success || {});\n\n// Basic observability\nlead.dc_status_code = statusCode;\nlead.dc_person_success = Boolean(dc && Object.keys(dc).length > 0);\nlead.dc_response_time_ms = typeof poll.ms === 'number' ? poll.ms : (typeof poll.elapsedTime === 'number' ? poll.elapsedTime : null);\nlead.dc_retry_count = typeof poll.retryCount === 'number' ? poll.retryCount : (typeof poll.retries === 'number' ? 0 : 0);\n\n// Cost tracking (flat rate per call)\nconst dcCost = 0.02;\nif (lead.dc_person_success) {\n\tlead.dropcontact_cost = dcCost;\n\tlead.total_processing_cost = Number(lead.total_processing_cost || 0) + dcCost;\n\tlead.enrichment_attempted = true;\n\tlead.enrichment_vendor = 'dropcontact';\n\tlead.last_enriched = new Date().toISOString();\n}\n\n// Field overlay (only fill if missing)\nif (lead.dc_person_success) {\n\tconst pick = (obj, keys) => keys.map(k => obj?.[k]).find(v => v !== undefined && v !== null && v !== '');\n\tconst title = pick(dc, ['job', 'job_title', 'position']);\n\tconst company = pick(dc, ['company', 'company_name']);\n\tconst linkedin = pick(dc, ['linkedin', 'linkedin_url']);\n\tconst phone = pick(dc, ['phone', 'phone_number', 'phone_pro']);\n\tconst locParts = [dc.city, dc.region, dc.country].filter(v => v && typeof v === 'string');\n\tconst locationStr = (locParts.length ? locParts.join(', ') : (dc.location || null));\n\n\tif (!lead.title_current && title) lead.title_current = title;\n\tif (!lead.company_enriched && company) lead.company_enriched = company;\n\tif (!lead.linkedin_url && linkedin) lead.linkedin_url = linkedin;\n\tif (!lead.phone_primary && phone) lead.phone_primary = phone;\n\tif (!lead.linkedin_location && locationStr) lead.linkedin_location = String(locationStr).trim();\n}\n\n// Track enrichment path for visibility\nconst path = Array.isArray(lead.enrichment_path) ? lead.enrichment_path : (lead.enrichment_path ? [lead.enrichment_path] : []);\nif (!path.includes('dropcontact')) path.push('dropcontact');\nlead.enrichment_path = path;\n\nreturn [{ json: lead }];"
+      },
+      "id": "a9bb58a0-0739-4392-84dc-36db8462a106",
+      "name": "Merge to Qualifier Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.dropcontact.io/batch/{{$json.dc_request_id}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dropcontactApi",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3000
+        }
+      },
+      "id": "b932c1ae-7e1a-4aa0-b87e-e284b9b47c4f",
+      "name": "Dropcontact Poll",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1152,
+        864
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "dropcontactApi": {
+          "id": "Xput7e7yUJ00LrNs",
+          "name": "Dropcontact account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "app2OMljI7GEl274h"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblxoJIAK8E55QIFs"
+        },
+        "filterByFormula": "={email}='{{$json.normalized.email}}'",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "id": "382cb5a8-11eb-438d-9342-2b5e8da0f52d",
+      "name": "Airtable Lookup (Email)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -2608,
+        256
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recency Gate (30d): include existing Airtable fields for downstream merge\nconst items = $input.all();\nlet records = [];\nif (items.length && items[0].json && items[0].json.records) {\n  records = items[0].json.records;\n} else {\n  records = items.map(i => i.json);\n}\nconst lead = { ...($node['Smart Field Mapper'].json.normalized || {}) };\nlet existing = null;\nif (records && records.length) {\n  const r = records[0];\n  const fields = r.fields || r;\n  existing = { id: r.id, fields };\n}\nlet skip_enrichment = false;\nif (existing && existing.fields && existing.fields.last_enriched) {\n  const last = new Date(existing.fields.last_enriched);\n  const days = (Date.now() - last.getTime()) / 86400000;\n  skip_enrichment = days <= 30;\n}\nreturn [{ json: { ...lead, existing_record_id: existing ? existing.id : null, existing_fields: existing ? existing.fields : null, skip_enrichment } }];"
+      },
+      "id": "1cc5e84c-93c4-400a-ae98-6e04c259bdea",
+      "name": "Recency Gate (30d)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2288,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.skip_enrichment}}",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "rightValue": true,
+              "id": "ff13ead4-0dc4-4c65-9f9c-f1a0eb4d2a72"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3a7903d6-bff1-41ad-88c0-f01aa6c5977d",
+      "name": "Skip Enrichment?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2128,
+        256
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      },
+      "id": "3ca9556b-bf67-45a1-a894-aff791fe5904",
+      "name": "Wait 5s (Before DC Poll)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        -1584,
+        864
+      ],
+      "webhookId": "cc1d9761-7268-44f2-8f7a-4f6d03848dd8"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract Dropcontact request_id from HTTP response\nconst resp = $input.first().json || {};\nconst body = resp.body || resp;\nconst requestId = body.request_id || resp.request_id || null;\nreturn [{ json: { ...resp, dc_request_id: requestId } }];"
+      },
+      "id": "939b6b5f-d4c0-40e7-be4f-4287924fe656",
+      "name": "Extract DC Request ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1360,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ensure one item continues even if Airtable Lookup matched 0\nconst items = $input.all();\nif (items.length === 0) {\n  const norm = $node['Smart Field Mapper'].json.normalized || {};\n  return [{ json: { records: [], ...norm } }];\n}\nreturn items;"
+      },
+      "id": "8e6dceba-873e-4ef7-92d5-accdf78da40c",
+      "name": "Ensure Continuation (Guard)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2448,
+        256
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({\n  model: \"gpt-4o-mini\",\n  response_format: { type: \"json_object\" },\n  temperature: 0.0,\n  max_tokens: 500,\n  messages: [\n    { role: \"system\", content: \"You are the ICP scoring system for Untap Your Sales Potential (UYSP). Use V3.2 weights: COMPANY (15 max), ROLE (40 max), ENGAGEMENT (30 max). Do not include location in the total; location points are applied downstream. Return STRICT JSON ONLY with keys: total_score (0–100), company_score (0–15), role_score (0–40), engagement_score (0–30). No text.\" },\n    { role: \"user\", content: (\n      'Lead:\\n' +\n      'Email: ' + ($json.email || '') + '\\n' +\n      'Company: ' + ($json.company_enriched || $json.company || 'Unknown') + '\\n' +\n      'Title: ' + ($json.title_current || $json.title || 'Unknown') + '\\n' +\n      'Domain: ' + (function(){ var e = $json.email || ''; return e.indexOf('@')>0 ? e.split('@')[1] : 'unknown'; })() + '\\n\\n' +\n      'Signals:\\n' +\n      'InterestedInCoaching: ' + ( $json.interested_in_coaching === true ) + '\\n' +\n      'Touchpoints: ' + ($json.touchpoint_count || 0) + '\\n' +\n      'WebinarAttendee: ' + ( ($json.webinar_attendee || false) || String($json.source_form || '').toLowerCase().includes('webinar') ) + '\\n' +\n      'CoursePurchaser: ' + ($json.course_purchaser === true) + '\\n' +\n      'RecentRoleChange: ' + ($json.recent_role_change === true) + '\\n' +\n      'ExperienceYears: ' + (Number($json.experience_years || 0))\n    ) }\n  ]\n}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "id": "241e8ec9-481d-47fb-9fa5-326bcab46158",
+      "name": "V3.2 ICP Scoring (OpenAI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        240
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "nr45SiOC4fzbjSjv",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI JSON and produce base V3.2 scores without location\nfunction num(v){ const n = Number(v); return Number.isFinite(n) ? n : null; }\nconst lead = { ...$json };\nlet company=null, role=null, engagement=null, total=null, parseErr=null;\ntry {\n  const content = $json?.body?.choices?.[0]?.message?.content ?? null;\n  if (typeof content === 'string' && content.trim()) {\n    const t = content.trim().replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/i,'');\n    const p = JSON.parse(t);\n    company = num(p.company_score);\n    role = num(p.role_score);\n    engagement = num(p.engagement_score);\n    total = num(p.total_score);\n  }\n} catch (e) { parseErr = e?.message || 'parse_error'; }\n\n// Clamp to V3.2 caps\nfunction clamp(n, min, max){ const x = Number(n ?? 0); return Math.max(min, Math.min(max, isNaN(x)?0:x)); }\ncompany = clamp(company, 0, 15);\nrole = clamp(role, 0, 40);\nengagement = clamp(engagement, 0, 30);\nif (total === null) total = clamp(company + role + engagement, 0, 100);\n\nconst out = {\n  ...lead,\n  company_score: company,\n  role_score: role,\n  engagement_score: engagement,\n  icp_base_score: total,           // before location\n  scoring_method: 'ai',\n  scoring_method_used: 'ai',\n  scoring_model: 'v3.2',\n  scoring_date: new Date().toISOString(),\n  icp_scoring_attempted: true,\n  ai_error: parseErr || null\n};\nreturn [{ json: out }];"
+      },
+      "id": "1deab0d6-e4b4-4d4c-bd00-29a6536cd4ff",
+      "name": "V3.2 ICP Response Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Apply person-location points (A=+15, B=+10, C=+4, D=-15) scaled by confidence (0..1)\n// Expects optional fields: location_tier in {'A','B','C','D'} and location_confidence in [0..1]\nconst d = { ...$json };\nconst tier = (d.location_tier || '').toUpperCase();\nlet conf = Number(d.location_confidence);\nif (!Number.isFinite(conf) || conf < 0) conf = 0; if (conf > 1) conf = 1;\nconst base = Number(d.icp_base_score || 0);\nconst map = { A: 15, B: 10, C: 4, D: -15 };\nconst rawPts = map[tier] ?? 0;\nconst applied = Math.round(rawPts * conf);\nlet finalScore = Math.max(0, Math.min(100, base + applied));\n\n// If Tier D with confidence >= 0.7 → force human review flag\nlet humanReview = Boolean(d.human_review_needed);\nif (tier === 'D' && conf >= 0.7) humanReview = true;\n\n// Only allowed Airtable values: Ultra, High, Qualified, Archive\nconst tierName = (s)=> s>=95?'Ultra': s>=85?'High': s>=70?'Qualified':'Archive';\nconst out = {\n  ...d,\n  affordability_tier: tier || null,\n  location_confidence: conf || 0,\n  location_points_applied: applied,\n  icp_score: finalScore,\n  icp_tier: tierName(finalScore),\n  human_review_needed: humanReview\n};\nreturn [{ json: out }];"
+      },
+      "id": "ff5356c1-4959-4dec-9129-86dc44498536",
+      "name": "Apply Person Location V3.2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Final routing per V3.2 rules\nfunction toNum(v, def=0){ const n = Number(v); return Number.isFinite(n)?n:def; }\nconst input = { ...$json };\n\nconst icp = toNum(input.icp_score, 0);\nconst pdlFailed = input.pdl_person_success === false || input.pdl_person_success === 0 || input.pdl_person_success === undefined;\nconst hunterFailed = input.hunter_person_success === false || input.hunter_person_success === 0 || input.hunter_person_success === undefined;\nconst dcFailed = input.dc_person_success === false || input.dc_person_success === 0 || input.dc_person_success === undefined;\nconst allFailed = pdlFailed && hunterFailed && dcFailed;\n\nconst phone = String(input.phone_primary || input.phone_e164 || '');\nconst isUSPhone = phone.startsWith('+1');\nconst isB2BTech = Boolean(input.is_b2b_tech || (input.company_enriched && input.company_enriched.length > 0));\nconst titleStr = String(input.title_current || input.title || '').toLowerCase();\nconst isSalesRole = /sales|account|revenue|bd\\b/.test(titleStr);\nconst smsEligible = isUSPhone && isB2BTech && isSalesRole;\n\nlet humanReview = Boolean(input.human_review_needed);\nlet route = '';\nlet reviewReason = '';\n\nif (allFailed) {\n  route = 'human_review';\n  humanReview = true;\n  reviewReason = 'All enrichments failed';\n} else if (icp >= 70 && smsEligible && !humanReview) {\n  route = 'qualified';\n} else if (icp < 50 && !allFailed) {\n  route = 'archive';\n  reviewReason = 'Low score with data';\n} else {\n  route = 'human_review';\n  humanReview = true;\n  reviewReason = icp >= 70 ? 'Score qualified but missing SMS criteria' : 'Medium score needs judgment';\n}\n\nif (input.interested_in_coaching === true && icp < 50) {\n  route = 'human_review'; humanReview = true; reviewReason = 'Anomaly: high interest, low score';\n}\n\nconst out = {\n  ...input,\n  route,\n  human_review_needed: humanReview,\n  review_reason: reviewReason,\n  decision_final: true\n};\nreturn [{ json: out }];"
+      },
+      "id": "cbfc2e25-8cb3-4de4-bde7-d011d7c813e9",
+      "name": "Lead Qualifier (Consolidated V3.2)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.route === 'qualified' && $json.human_review_needed !== true }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "rightValue": 1
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2d4fbfad-6ca1-46ba-a8b6-19604aaaa1ca",
+      "name": "Score-Based Routing V3.2",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        656,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "b56d6cef-97c4-45a7-8ce9-55817ff2df70",
+      "name": "Respond to Webhook (200)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Align ICP tier to allowed values and expose icp_tier_aligned\nconst d = { ...$json };\nfunction tierName(s){ return s>=95?'Ultra': s>=85?'High': s>=70?'Qualified':'Archive'; }\nconst score = Number(d.icp_score ?? d.icp_base_score ?? 0);\nlet aligned = d.icp_tier;\nif (!aligned) aligned = tierName(score);\nif (aligned === 'Low') aligned = 'Archive';\nreturn [{ json: { ...d, icp_tier_aligned: aligned } }];"
+      },
+      "id": "09390ff5-8b32-4fdf-955f-1f8e3d143b87",
+      "name": "Align ICP Tier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.email || $json.normalized?.email}}",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "56ef7012-8097-4beb-8094-658629b1c3e3",
+      "name": "Has Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.route}}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "human_review",
+              "id": "84153cf2-c851-4840-bf43-ea4f995bc2bf"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "17a8e49c-9e0e-43c6-b8a3-0c32ffb5ae8e",
+      "name": "Is Human Review?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        848,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "app2OMljI7GEl274h"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblxoJIAK8E55QIFs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json.email || $json.normalized?.email || null}}",
+            "first_name": "={{$json.first_name ?? null}}",
+            "last_name": "={{$json.last_name ?? null}}",
+            "company_enriched": "={{$json.company_enriched ?? $json.company ?? null}}",
+            "title_enriched": "={{$json.title_current ?? $json.title ?? null}}",
+            "linkedin_url": "={{$json.linkedin_url ?? null}}",
+            "icp_score": "={{$json.icp_score ?? $json.icp_base_score ?? 0}}",
+            "icp_tier": "={{$json.icp_tier_aligned ?? $json.icp_tier ?? null}}",
+            "human_review_needed": "={{$json.human_review_needed ?? null}}",
+            "routing": "={{$json.route ?? null}}",
+            "vendor_last_used": "={{$json.enrichment_vendor ? String($json.enrichment_vendor).toUpperCase() : 'None'}}",
+            "vendor_cost_last": "={{$json.pdl_cost ?? $json.hunter_cost ?? $json.dropcontact_cost ?? null}}",
+            "scoring_version": "={{'V3.2'}}",
+            "scored_at": "={{new Date().toISOString()}}",
+            "error_flag": "={{$json.ai_error ? true : null}}",
+            "error_message": "={{$json.ai_error ?? null}}",
+            "location_confidence": 0,
+            "pdl_response_time": 0,
+            "pdl_retry_count": 0,
+            "hunter_response_time": 0,
+            "hunter_retry_count": 0,
+            "dropcontact_response_time": 0,
+            "dropcontact_retry_count": 0,
+            "enrichment_confidence": 0,
+            "dropcontact_cost": 0,
+            "webhook_field_count": 0,
+            "mapped_field_count": 0,
+            "field_mapping_success_rate": 0,
+            "location_points_applied": 0
+          },
+          "matchingColumns": [
+            "email"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "location_confidence",
+              "displayName": "location_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "affordability_tier",
+              "displayName": "affordability_tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "A",
+                  "value": "A"
+                },
+                {
+                  "name": "B",
+                  "value": "B"
+                },
+                {
+                  "name": "C",
+                  "value": "C"
+                },
+                {
+                  "name": "D",
+                  "value": "D"
+                },
+                {
+                  "name": "Unknown",
+                  "value": "Unknown"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "routing",
+              "displayName": "routing",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "qualified",
+                  "value": "qualified"
+                },
+                {
+                  "name": "archive",
+                  "value": "archive"
+                },
+                {
+                  "name": "human_review",
+                  "value": "human_review"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "vendor_last_used",
+              "displayName": "vendor_last_used",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "PDL",
+                  "value": "PDL"
+                },
+                {
+                  "name": "Hunter",
+                  "value": "Hunter"
+                },
+                {
+                  "name": "Dropcontact",
+                  "value": "Dropcontact"
+                },
+                {
+                  "name": "None",
+                  "value": "None"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "vendor_cost_last",
+              "displayName": "vendor_cost_last",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pdl_response_time",
+              "displayName": "pdl_response_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pdl_retry_count",
+              "displayName": "pdl_retry_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "hunter_response_time",
+              "displayName": "hunter_response_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "hunter_retry_count",
+              "displayName": "hunter_retry_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "dropcontact_response_time",
+              "displayName": "dropcontact_response_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "dropcontact_retry_count",
+              "displayName": "dropcontact_retry_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "enrichment_confidence",
+              "displayName": "enrichment_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "dropcontact_cost",
+              "displayName": "dropcontact_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "webhook_field_count",
+              "displayName": "webhook_field_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "mapped_field_count",
+              "displayName": "mapped_field_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "field_mapping_success_rate",
+              "displayName": "field_mapping_success_rate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email_validated",
+              "displayName": "email_validated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_name",
+              "displayName": "last_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_primary",
+              "displayName": "phone_primary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_original",
+              "displayName": "phone_original",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_recent",
+              "displayName": "phone_recent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_validated",
+              "displayName": "phone_validated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_input",
+              "displayName": "company_input",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_enriched",
+              "displayName": "company_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title_input",
+              "displayName": "title_input",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title_enriched",
+              "displayName": "title_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "person_location_country",
+              "displayName": "person_location_country",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_tier",
+              "displayName": "icp_tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Ultra",
+                  "value": "Ultra"
+                },
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                },
+                {
+                  "name": "Archive",
+                  "value": "Archive"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "outreach_potential",
+              "displayName": "outreach_potential",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "human_review_needed",
+              "displayName": "human_review_needed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_version",
+              "displayName": "scoring_version",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "score_reasoning",
+              "displayName": "score_reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_status",
+              "displayName": "processing_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "vendor_status",
+              "displayName": "vendor_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "vendor_request_id",
+              "displayName": "vendor_request_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "errors_log",
+              "displayName": "errors_log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ready_for_sms",
+              "displayName": "ready_for_sms",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "test_mode_record",
+              "displayName": "test_mode_record",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "international_phone",
+              "displayName": "international_phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "qualified_lead",
+              "displayName": "qualified_lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "normalization_version",
+              "displayName": "normalization_version",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_flag",
+              "displayName": "error_flag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "location_points_applied",
+              "displayName": "location_points_applied",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_score",
+              "displayName": "icp_score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scored_at",
+              "displayName": "scored_at",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "d92843a1-4bc0-491b-84ca-044508040fdf",
+      "name": "People Upsert (UYSP TEST)1",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1440,
+        96
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "app2OMljI7GEl274h"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblxoJIAK8E55QIFs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json.email || $json.normalized?.email || null}}",
+            "icp_tier": "={{$json.icp_tier_aligned ?? $json.icp_tier ?? 'Archive'}}",
+            "routing": "={{'archive'}}",
+            "human_review_needed": "={{null}}",
+            "location_confidence": 0,
+            "vendor_cost_last": 0,
+            "pdl_response_time": 0,
+            "pdl_retry_count": 0,
+            "hunter_response_time": 0,
+            "hunter_retry_count": 0,
+            "dropcontact_response_time": 0,
+            "dropcontact_retry_count": 0,
+            "enrichment_confidence": 0,
+            "dropcontact_cost": 0,
+            "webhook_field_count": 0,
+            "mapped_field_count": 0,
+            "field_mapping_success_rate": 0,
+            "location_points_applied": 0,
+            "icp_score": 0
+          },
+          "matchingColumns": [
+            "email"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "location_confidence",
+              "displayName": "location_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "affordability_tier",
+              "displayName": "affordability_tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "A",
+                  "value": "A"
+                },
+                {
+                  "name": "B",
+                  "value": "B"
+                },
+                {
+                  "name": "C",
+                  "value": "C"
+                },
+                {
+                  "name": "D",
+                  "value": "D"
+                },
+                {
+                  "name": "Unknown",
+                  "value": "Unknown"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "routing",
+              "displayName": "routing",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "qualified",
+                  "value": "qualified"
+                },
+                {
+                  "name": "archive",
+                  "value": "archive"
+                },
+                {
+                  "name": "human_review",
+                  "value": "human_review"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "vendor_last_used",
+              "displayName": "vendor_last_used",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "PDL",
+                  "value": "PDL"
+                },
+                {
+                  "name": "Hunter",
+                  "value": "Hunter"
+                },
+                {
+                  "name": "Dropcontact",
+                  "value": "Dropcontact"
+                },
+                {
+                  "name": "None",
+                  "value": "None"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "vendor_cost_last",
+              "displayName": "vendor_cost_last",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pdl_response_time",
+              "displayName": "pdl_response_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pdl_retry_count",
+              "displayName": "pdl_retry_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "hunter_response_time",
+              "displayName": "hunter_response_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "hunter_retry_count",
+              "displayName": "hunter_retry_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "dropcontact_response_time",
+              "displayName": "dropcontact_response_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "dropcontact_retry_count",
+              "displayName": "dropcontact_retry_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "enrichment_confidence",
+              "displayName": "enrichment_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "dropcontact_cost",
+              "displayName": "dropcontact_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "webhook_field_count",
+              "displayName": "webhook_field_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "mapped_field_count",
+              "displayName": "mapped_field_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "field_mapping_success_rate",
+              "displayName": "field_mapping_success_rate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email_validated",
+              "displayName": "email_validated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_name",
+              "displayName": "last_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_primary",
+              "displayName": "phone_primary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_original",
+              "displayName": "phone_original",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_recent",
+              "displayName": "phone_recent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_validated",
+              "displayName": "phone_validated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_input",
+              "displayName": "company_input",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_enriched",
+              "displayName": "company_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title_input",
+              "displayName": "title_input",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title_enriched",
+              "displayName": "title_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "person_location_country",
+              "displayName": "person_location_country",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_tier",
+              "displayName": "icp_tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Ultra",
+                  "value": "Ultra"
+                },
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                },
+                {
+                  "name": "Archive",
+                  "value": "Archive"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "outreach_potential",
+              "displayName": "outreach_potential",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "human_review_needed",
+              "displayName": "human_review_needed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_version",
+              "displayName": "scoring_version",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "score_reasoning",
+              "displayName": "score_reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_status",
+              "displayName": "processing_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "vendor_status",
+              "displayName": "vendor_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "vendor_request_id",
+              "displayName": "vendor_request_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "errors_log",
+              "displayName": "errors_log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ready_for_sms",
+              "displayName": "ready_for_sms",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "test_mode_record",
+              "displayName": "test_mode_record",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "international_phone",
+              "displayName": "international_phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "qualified_lead",
+              "displayName": "qualified_lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "normalization_version",
+              "displayName": "normalization_version",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_flag",
+              "displayName": "error_flag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "location_points_applied",
+              "displayName": "location_points_applied",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_score",
+              "displayName": "icp_score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scored_at",
+              "displayName": "scored_at",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3c544037-f2bf-4134-bce2-f176bfa9c061",
+      "name": "Archive Upsert (UYSP TEST)1",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1440,
+        544
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "app2OMljI7GEl274h"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tbldenEI1OHUaf2CJ"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "first_name": "={{$json.first_name ?? null}}",
+            "last_name": "={{$json.last_name ?? null}}",
+            "full_name": "={{$json.first_name && $json.last_name ? $json.first_name + ' ' + $json.last_name : ($json.first_name ?? $json.last_name ?? null)}}",
+            "company_name": "={{$json.company_enriched ?? $json.company ?? null}}",
+            "title_enriched": "={{$json.title_current ?? $json.title ?? null}}",
+            "person_linkedin_url": "={{$json.linkedin_url ?? null}}",
+            "company_domain": "={{(($json.email || $json.normalized?.email || '').split('@')[1]) || null}}",
+            "icp_score": "={{$json.icp_score ?? $json.icp_base_score ?? 0}}",
+            "icp_tier": "={{$json.icp_tier_aligned ?? $json.icp_tier ?? 'Archive'}}",
+            "review_reason": "={{$json.review_reason ?? 'Human review needed'}}",
+            "follow_up_required": "={{true}}",
+            "enrichment_confidence": 0,
+            "email": "={{$json.email || $json.normalized?.email || null}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_time",
+              "displayName": "created_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_name",
+              "displayName": "last_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email_primary",
+              "displayName": "email_primary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email_alternates",
+              "displayName": "email_alternates",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title_enriched",
+              "displayName": "title_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "person_linkedin_url",
+              "displayName": "person_linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_domain",
+              "displayName": "company_domain",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_linkedin_url",
+              "displayName": "company_linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_score",
+              "displayName": "icp_score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_tier",
+              "displayName": "icp_tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Ultra",
+                  "value": "Ultra"
+                },
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                },
+                {
+                  "name": "Archive",
+                  "value": "Archive"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reason_code",
+              "displayName": "reason_code",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "MissingEmail",
+                  "value": "MissingEmail"
+                },
+                {
+                  "name": "DataConflict",
+                  "value": "DataConflict"
+                },
+                {
+                  "name": "LowConfidence",
+                  "value": "LowConfidence"
+                },
+                {
+                  "name": "EdgeCase",
+                  "value": "EdgeCase"
+                },
+                {
+                  "name": "ManualOverride",
+                  "value": "ManualOverride"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "review_reason",
+              "displayName": "review_reason",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "enrichment_provider",
+              "displayName": "enrichment_provider",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "PDL",
+                  "value": "PDL"
+                },
+                {
+                  "name": "Hunter",
+                  "value": "Hunter"
+                },
+                {
+                  "name": "Apollo",
+                  "value": "Apollo"
+                },
+                {
+                  "name": "Clearbit",
+                  "value": "Clearbit"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "enrichment_confidence",
+              "displayName": "enrichment_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "enrichment_summary",
+              "displayName": "enrichment_summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "source_channel",
+              "displayName": "source_channel",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Website Form",
+                  "value": "Website Form"
+                },
+                {
+                  "name": "Import",
+                  "value": "Import"
+                },
+                {
+                  "name": "Manual",
+                  "value": "Manual"
+                },
+                {
+                  "name": "Webhook",
+                  "value": "Webhook"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "workflow_run_id",
+              "displayName": "workflow_run_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "people_record_id",
+              "displayName": "people_record_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "assigned_reviewer",
+              "displayName": "assigned_reviewer",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "review_status",
+              "displayName": "review_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "In Progress",
+                  "value": "In Progress"
+                },
+                {
+                  "name": "Completed",
+                  "value": "Completed"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "decision",
+              "displayName": "decision",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                },
+                {
+                  "name": "Archive",
+                  "value": "Archive"
+                },
+                {
+                  "name": "Human Review",
+                  "value": "Human Review"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "follow_up_required",
+              "displayName": "follow_up_required",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "83fb7d4b-8862-4e06-b8e5-d7c299d8fc89",
+      "name": "Airtable HRQ (Create)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1312,
+        272
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.hunter.io/v2/email-finder",
+        "options": {
+          "timeout": 3000
+        }
+      },
+      "id": "d917359b-a19a-457d-a893-d0e3cefb8ee1",
+      "name": "Hunter Person Enrichment (Email Finder)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -1632,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize Hunter Email Finder response to canonical fields\nconst res = $json || {};\nconst data = res.data || {};\n\n// Build full LinkedIn URL when handle present\nconst linkedinUrl = data.linkedin?.handle ? `https://www.linkedin.com/in/${data.linkedin.handle}` : null;\n\n// Title / company from employment when present\nconst title = data.employment?.title || null;\nconst company = data.employment?.name || null;\n\nreturn {\n  // Hunter enrichment outputs\n  email: data.email || null,\n  first_name: data.first_name || data.name?.givenName || null,\n  last_name: data.last_name || data.name?.familyName || null,\n  linkedin_url: linkedinUrl,\n  title_current: title,\n  company_enriched: company,\n\n  // Enrichment metadata\n  enrichment_vendor: 'hunter',\n  enrichment_attempted: true,\n  enrichment_failed: !(linkedinUrl || title || company || data.email),\n  last_enriched: new Date().toISOString()\n};"
+      },
+      "id": "b57e1424-ac43-4580-a7f3-5b166c22cae8",
+      "name": "Hunter Response Normalizer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1488,
+        576
+      ]
+    }
+  ],
+  "connections": {
+    "Kajabi Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate API Key (Dynamic)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate API Key (Dynamic)": {
+      "main": [
+        [
+          {
+            "node": "Smart Field Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Smart Field Mapper": {
+      "main": [
+        [
+          {
+            "node": "Airtable Lookup (Email)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Processor": {
+      "main": [
+        [
+          {
+            "node": "PDL Person Success Router (NEW) [FIX]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Response Processor (NEW)": {
+      "main": [
+        [
+          {
+            "node": "Dropcontact Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Person Data Merger (NEW)": {
+      "main": [
+        [
+          {
+            "node": "Merge to Qualifier Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Success Router (NEW) [FIX]": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hunter Waterfall Feature Gate1 [FIX]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Waterfall Feature Gate1 [FIX]": {
+      "main": [
+        [
+          {
+            "node": "Hunter Person Enrichment (Email Finder)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dropcontact Enrich",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Enrichment [FIX]": {
+      "main": [
+        [
+          {
+            "node": "PDL Person Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropcontact Gate": {
+      "main": [
+        [
+          {
+            "node": "Dropcontact Enrich",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Person Data Merger (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropcontact Enrich": {
+      "main": [
+        [
+          {
+            "node": "Wait 5s (Before DC Poll)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge to Qualifier Output": {
+      "main": [
+        [
+          {
+            "node": "V3.2 ICP Scoring (OpenAI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropcontact Poll": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Lookup (Email)": {
+      "main": [
+        [
+          {
+            "node": "Ensure Continuation (Guard)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recency Gate (30d)": {
+      "main": [
+        [
+          {
+            "node": "Skip Enrichment?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Enrichment?": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PDL Person Enrichment [FIX]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 5s (Before DC Poll)": {
+      "main": [
+        [
+          {
+            "node": "Extract DC Request ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract DC Request ID": {
+      "main": [
+        [
+          {
+            "node": "Dropcontact Poll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Continuation (Guard)": {
+      "main": [
+        [
+          {
+            "node": "Recency Gate (30d)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "V3.2 ICP Scoring (OpenAI)": {
+      "main": [
+        [
+          {
+            "node": "V3.2 ICP Response Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "V3.2 ICP Response Processor": {
+      "main": [
+        [
+          {
+            "node": "Apply Person Location V3.2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Person Location V3.2": {
+      "main": [
+        [
+          {
+            "node": "Lead Qualifier (Consolidated V3.2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score-Based Routing V3.2": {
+      "main": [
+        [
+          {
+            "node": "People Upsert (UYSP TEST)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is Human Review?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Qualifier (Consolidated V3.2)": {
+      "main": [
+        [
+          {
+            "node": "Align ICP Tier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Align ICP Tier": {
+      "main": [
+        [
+          {
+            "node": "Score-Based Routing V3.2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Email?": {
+      "main": [
+        [
+          {
+            "node": "Archive Upsert (UYSP TEST)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook (200)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Human Review?": {
+      "main": [
+        [
+          {
+            "node": "Airtable HRQ (Create)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Has Email?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archive Upsert (UYSP TEST)1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (200)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "People Upsert (UYSP TEST)1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (200)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable HRQ (Create)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (200)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Person Enrichment (Email Finder)": {
+      "main": [
+        [
+          {
+            "node": "Hunter Response Normalizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Response Normalizer": {
+      "main": [
+        [
+          {
+            "node": "Hunter Response Processor (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "b403cf5a-f7bd-4d98-b986-03a283fb1041",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-08-18T21:26:00.110Z",
+      "updatedAt": "2025-08-18T21:26:00.110Z",
+      "role": "workflow:owner",
+      "workflowId": "l7qQFcxVHBauKZux",
+      "projectId": "HiFn22PB8pYSxCmP",
+      "project": {
+        "createdAt": "2025-08-18T19:11:02.418Z",
+        "updatedAt": "2025-08-18T19:13:40.000Z",
+        "id": "HiFn22PB8pYSxCmP",
+        "name": "UYSP V2 TEST ",
+        "type": "team",
+        "icon": {
+          "type": "icon",
+          "value": "layers"
+        },
+        "description": "",
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-18T19:13:40.464Z",
+            "updatedAt": "2025-08-18T19:13:40.464Z",
+            "role": "project:admin",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "HiFn22PB8pYSxCmP",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-01T22:04:37.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

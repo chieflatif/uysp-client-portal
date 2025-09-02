@@ -1,0 +1,3891 @@
+{
+  "createdAt": "2025-08-15T16:17:24.473Z",
+  "updatedAt": "2025-08-15T16:17:24.473Z",
+  "id": "meouEdJUQwTiq4tS",
+  "name": "UYSP PHASE 2C - Clean Working-pre-node re-org in 2cNEW",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kajabi-leads-complete-clean",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "cfd368ea-b308-4647-b5a5-9b9cb1b10ee2",
+      "name": "Kajabi Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -4180,
+        160
+      ],
+      "webhookId": "658a1d1c-30a0-484d-b3cd-87578ff5e668"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validation removed - webhook auth now handled at webhook level\nreturn $json;"
+      },
+      "id": "27a0c366-e561-43c6-ad74-fe40d65a6195",
+      "name": "Validate API Key (Dynamic)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4000,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Smart Field Mapper v4.7 - add engagement/experience fields + boolean null fix\n// CRITICAL FIX: Boolean false → null for Airtable checkbox fields\nconst webhookData = $input.first().json;\n\n// Extract payload\nlet inputData;\nif (webhookData.body && typeof webhookData.body === 'object') {\n  inputData = webhookData.body;\n} else if (webhookData.data && typeof webhookData.data === 'object') {\n  inputData = webhookData.data;\n} else {\n  inputData = webhookData;\n}\n\nconst fieldMappings = {\n  email: ['email', 'Email', 'EMAIL', 'email_address', 'emailAddress', 'e-mail', 'e_mail', 'contact_email', 'Email_Address', 'EMAIL_ADDRESS'],\n  phone: ['phone', 'Phone', 'PHONE', 'phone_number', 'phoneNumber', 'mobile', 'cellphone', 'telephone', 'phone_intl', 'mobile_intl'],\n  name: ['name', 'Name', 'NAME', 'full_name', 'fullName', 'contact_name', 'display_name'],\n  first_name: ['first_name', 'firstName', 'fname', 'given_name', 'forename'],\n  last_name: ['last_name', 'lastName', 'lname', 'surname', 'family_name'],\n  company: ['company', 'Company', 'COMPANY', 'company_name', 'companyName', 'organization', 'org', 'business'],\n  title: ['title', 'Title', 'job_title', 'jobTitle', 'position', 'role'],\n  source_form: ['source_form', 'form_name', 'formName', 'source', 'form_id'],\n  interested_in_coaching: ['interested_in_coaching', 'coaching_interest', 'wants_coaching'],\n  qualified_lead: ['qualified_lead', 'is_qualified', 'qualified', 'lead_qualified'],\n  contacted: ['contacted', 'was_contacted', 'contact_attempted', 'reached_out'],\n  linkedin_url: ['linkedin_url', 'linkedin', 'linkedinUrl', 'linkedin_profile'],\n  request_id: ['request_id', 'requestId', 'request', 'id', 'tracking_id'],\n  // New fields for ICP fallback/engagement\n  touchpoint_count: ['touchpoint_count','touchpoints','engagement_count'],\n  course_purchaser: ['course_purchaser','purchased_course','customer'],\n  experience_years: ['experience_years','years_experience','years_in_role','yir'],\n  recent_role_change: ['recent_role_change','recent_promotion','recent_change','role_change','job_change'],\n  sales_focused_motivation: ['sales_focused_motivation','motivation_sales','sales_motivation']\n};\n\nconst normalized = {};\nconst mappedFields = new Set();\n\nfunction findField(aliases) {\n  for (const key of Object.keys(inputData)) {\n    if (aliases.some(alias => alias.toLowerCase() === key.toLowerCase())) {\n      mappedFields.add(key);\n      return inputData[key];\n    }\n  }\n  return null;\n}\n\nObject.entries(fieldMappings).forEach(([normalizedName, aliases]) => {\n  const value = findField(aliases);\n  if (value !== null && value !== undefined && value !== '') {\n    normalized[normalizedName] = value;\n  }\n});\n\n// Auto-split full name if needed\nif (normalized.name && !normalized.first_name) {\n  const parts = normalized.name.trim().split(/\\s+/);\n  normalized.first_name = parts[0] || '';\n  normalized.last_name = parts.slice(1).join(' ') || '';\n}\n\n// 3-Field Phone Strategy\nif (normalized.phone) {\n  normalized.phone_recent = normalized.phone;\n  normalized.phone_original = normalized.phone;\n}\n\n// Boolean conversion for Airtable - null instead of false\n['interested_in_coaching', 'qualified_lead', 'contacted', 'course_purchaser', 'recent_role_change', 'sales_focused_motivation'].forEach(field => {\n  if (normalized[field] !== undefined) {\n    const val = String(normalized[field]).toLowerCase();\n    const isTruthy = ['true', 'yes', '1', 'on', 'y', 'checked', 'enabled'].includes(val);\n    normalized[field] = isTruthy ? true : null;\n  }\n});\n\n// Track unknown fields\nconst unknownFields = Object.keys(inputData).filter(k => !mappedFields.has(k));\n\n// Metadata\nnormalized.webhook_field_count = Object.keys(inputData).length;\nnormalized.mapped_field_count = Object.keys(normalized).length;\nnormalized.unknown_field_list = unknownFields.join(', ');\nnormalized.field_mapping_success_rate = Math.round((Object.keys(normalized).length / Object.keys(inputData).length) * 100);\nnormalized.normalization_version = 'v4.7-engagement-mapping';\nnormalized.raw_webhook_data = JSON.stringify(webhookData);\n\nreturn {\n  normalized,\n  original: inputData,\n  unknownFields,\n  mappingSuccess: Object.keys(normalized).length > 0,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "6a9f4f65-b1d4-4fb4-9814-cfa29bbd8e6f",
+      "name": "Smart Field Mapper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3840,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// PDL Person Processor — map key fields to normalized + success if HTTP 200 AND person data exists\nconst resp = $input.first().json || {};\nconst smart = $node['Smart Field Mapper'].json.normalized || {};\n\nconst status = resp.statusCode ?? resp.status ?? null;\nconst body = resp.body ?? resp;\nconst data = body?.data ?? body ?? {};\n\n// FIXED: Convert to explicit boolean\nconst hasPerson = status === 200 && data && Boolean(\n  data.linkedin_url ||\n  data.full_name ||\n  data.job_title ||\n  data.job_company_name\n);\n\nconst first = data.first_name || smart.first_name || null;\nconst last = data.last_name || smart.last_name || null;\nconst title = data.job_title || null;\nconst company = data.job_company_name || null;\nconst linkedin = data.linkedin_url || null;\nconst seniority = data.job_title_seniority || null;\nconst industry = data.job_company_industry || null;\nconst isSales = data.job_title_role === 'sales' || false;\n\nconst normalized = {\n  ...smart,\n  first_name: first,\n  last_name: last,\n  title_current: title || smart.title_current || null,\n  company_enriched: company || smart.company_enriched || smart.company || null,\n  linkedin_url: linkedin || smart.linkedin_url || null,\n\n  pdl_seniority: seniority,\n  pdl_industry: industry,\n  pdl_is_sales_role: isSales,\n  pdl_job_title: title,\n  pdl_company_name: company,\n\n  pdl_person_success: hasPerson,\n  pdl_status_code: status,\n\n  enrichment_vendor: 'pdl',\n  enrichment_attempted: true,\n  last_enriched: new Date().toISOString(),\n\n  pdl_cost: 0.01,\n  pdl_raw_error: !hasPerson ? (body?.error || body?.message || null) : null\n};\n\nreturn [{ json: normalized }];"
+      },
+      "id": "a28d2008-01ea-42c9-9e3d-12becb686798",
+      "name": "PDL Person Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3460,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ICP Response Processor — OpenAI primary (25/40/35), robust JSON parse, rich fallback (multi-item safe)\nconst items = $input.all();\nconst outputs = [];\n\nfunction clamp(n, min, max){ const x = Number(n ?? 0); return Math.max(min, Math.min(max, isNaN(x) ? 0 : x)); }\nfunction tier(s){ const n = Number(s||0); return n>=90?'Ultra':n>=75?'High':n>=70?'Medium':n>=50?'Low':'Archive'; }\n\nfunction calcFallback(d={}){\n  let reasons=[]; let domainBoost=0; let humanReview=false;\n  const email = d.email || '';\n  const domain = (typeof email==='string' && email.includes('@')) ? email.split('@')[1].toLowerCase() : '';\n  const title = String(d.pdl_job_title || d.title_current || d.title || '').toLowerCase();\n  const company = String(d.company_enriched || d.pdl_company_name || d.company || '').toLowerCase();\n  const experienceYears = Number(d.experience_years || 0);\n  const recentRoleChange = d.recent_role_change === true;\n  const touchpoints = Number(d.touchpoint_count || 0);\n  const coachingYes = d.interested_in_coaching === true;\n  const webinar = String(d.source_form||'').toLowerCase().includes('webinar');\n  const coursePurchaser = d.course_purchaser === true;\n  const salesMotivation = d.sales_focused_motivation === true;\n\n  const techDomains = ['salesforce.com','hubspot.com','microsoft.com','google.com','amazon.com','adobe.com','zoom.us','slack.com','atlassian.com'];\n  const genericDomains = ['gmail.com','yahoo.com','hotmail.com','outlook.com'];\n  const knownBrands = ['salesforce','hubspot','adobe','aws','amazon web services','microsoft','google'];\n\n  // COMPANY (0-25)\n  let company_score = 0;\n  if (techDomains.some(t=>domain.includes(t))) { company_score += 15; domainBoost = 15; reasons.push('Tech domain +15'); }\n  if (genericDomains.includes(domain)) { company_score -= 10; domainBoost = Math.min(domainBoost, -10); reasons.push('Generic domain -10'); }\n  if (/software|saas|tech|technology|cloud|platform/i.test(company)) { company_score += 10; reasons.push('B2B tech +10'); }\n  if (knownBrands.some(b=>company.includes(b))) { company_score += 10; reasons.push('Known brand +10'); }\n  company_score = clamp(company_score,0,25);\n\n  // ROLE (0-40)\n  let role_score = 0;\n  if (title.includes('account executive') || /\\bae\\b/.test(title)) { role_score += 20; if (/(senior|enterprise|strategic)/.test(title)) { role_score += 5; } reasons.push('AE +20 (+5 senior/enterprise)'); }\n  else if (title.includes('account director') || title.includes('account manager')) { role_score += 18; reasons.push('Account mgmt +18'); }\n  else if (title.includes('sales manager') || title.includes('team lead')) { role_score += 10; reasons.push('Sales mgr +10'); }\n  else if (title.includes('sales development representative') || title.includes('business development representative') || title.includes('sdr') || title.includes('bdr') || title.includes('business development')) { role_score += 3; reasons.push('SDR/BDR +3'); }\n  if (experienceYears >= 3) { role_score += 10; reasons.push('3+ yrs +10'); }\n  if (recentRoleChange) { role_score += 10; reasons.push('Recent role change +10'); }\n  role_score = clamp(role_score,0,40);\n\n  // ENGAGEMENT (0-35)\n  let engagement_score = 0;\n  if (coachingYes) { engagement_score += 10; reasons.push('Coaching yes +10'); }\n  if (touchpoints >= 3) { engagement_score += 15; reasons.push('3+ touchpoints +15'); } else if (touchpoints >= 1) { engagement_score += 8; reasons.push('Some engagement +8'); }\n  if (webinar) { engagement_score += 8; reasons.push('Webinar +8'); }\n  if (coursePurchaser) { engagement_score += 10; reasons.push('Course purchaser +10'); }\n  if (salesMotivation) { engagement_score += 5; reasons.push('Sales motivation +5'); }\n  engagement_score = clamp(engagement_score,0,35);\n\n  const total = clamp(company_score + role_score + engagement_score,0,100);\n  if ((touchpoints > 5 && total < 50) || (coachingYes && !/sales|account|revenue|bd/.test(title))) { humanReview = true; }\n  return {\n    icp_score: total, company_score, role_score, engagement_score, icp_tier: tier(total),\n    score_reasoning: reasons.join('; '), scoring_confidence: 0.75, scoring_method_used: 'domain',\n    ai_success:false, ai_error:null, outreach_potential: total>=70, human_review_needed: humanReview, domain_boost_applied: domainBoost\n  };\n}\n\nconst lead = $node['Person Data Merger (NEW)']?.json || {};\nconst hasSignal = Boolean(lead.company_enriched || lead.pdl_company_name || lead.title_current || lead.pdl_job_title || lead.title || lead.company);\n\nfor (const item of items) {\n  const ai = item.json || {};\n\n  // Parse assistant content (handles ```json fences)\n  let content = ai?.choices?.[0]?.message?.content || ai?.content || ai?.message?.content || '';\n  if (typeof content !== 'string') content = JSON.stringify(content);\n  let parsed=null, parseError=null;\n  if (content?.trim()) {\n    try {\n      let t = content.trim()\n        .replace(/^```(?:json)?\\s*/i,'')\n        .replace(/\\s*```$/i,'')\n        .replace(/^[^{]*\\{/,'{')\n        .replace(/\\}[^}]*$/, '}');\n      parsed = JSON.parse(t);\n    } catch (err) { parseError = err?.message || 'JSON parse error'; }\n  } else { parseError = 'Empty AI content'; }\n\n  let result;\n  if (parsed && typeof parsed==='object' && ('total_score' in parsed) && hasSignal) {\n    const company_score = clamp(parsed.company_score,0,25);\n    const role_score = clamp(parsed.role_score,0,40);\n    const engagement_score = clamp(parsed.engagement_score,0,35);\n    let total_score = clamp(parsed.total_score,0,100);\n\n    // Guardrail: if AI score implausibly low (e.g., all zeros) but fallback has better signal, prefer higher of the two\n    const fb = calcFallback(lead);\n    if (total_score < 5 && fb.icp_score > total_score) {\n      result = { ...lead, icp_scoring_attempted:true, icp_scoring_date:new Date().toISOString(), ...fb, scoring_method_used: 'domain', ai_success:false, ai_error: 'ai_low_score_guardrail' };\n    } else {\n      result = { ...lead, icp_scoring_attempted:true, icp_scoring_date:new Date().toISOString(), icp_score: total_score, company_score, role_score, engagement_score, icp_tier: tier(total_score), score_reasoning: parsed.reasoning ?? 'AI scoring', scoring_confidence: clamp(parsed.confidence,0,1) || 0.85, scoring_method_used: 'ai', ai_success:true, ai_error:null, outreach_potential: total_score>=70, human_review_needed:false, domain_boost_applied:0 };\n    }\n  } else {\n    const fb = calcFallback(lead);\n    result = { ...lead, icp_scoring_attempted:true, icp_scoring_date:new Date().toISOString(), ...fb, ai_error: parseError || (hasSignal ? 'AI missing required keys' : 'Insufficient signal') };\n  }\n\n  outputs.push({ json: { normalized: result } });\n}\n\nreturn outputs;"
+      },
+      "id": "e5af6a17-e669-4d95-80f9-7b31bca1c5bb",
+      "name": "ICP Response Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1640,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.normalized.icp_score}}",
+              "rightValue": "70",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "67a07915-686f-48bc-a4e5-7cf0949e53bc",
+      "name": "Score-Based Routing V3.0",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1420,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appuBf0fTe8tp8ZaF",
+          "mode": ""
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSk2Ikg21932uE0",
+          "mode": ""
+        },
+        "filterByFormula": "={{`{email} = '${$node[\"Smart Field Mapper\"].json.normalized.email}'`}}",
+        "options": {}
+      },
+      "id": "411b0222-6c28-4472-b322-b623846ecb9c",
+      "name": "Airtable Search (Dynamic)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -740,
+        140
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// COMPLETE REPLACEMENT - Fixes data flow\nconst search = $input.first()?.json || {};\n\n// Get the lead data that triggered the search (BEFORE search, not after)\nconst leadFromRouting = $node['Score-Based Routing V3.0']?.json?.normalized || \n                        $node['Score-Based Routing V3.0']?.json || {};\n\n// Check if duplicate found\nconst hasDup = !!(search.id || (Array.isArray(search.records) && search.records.length > 0));\nconst existingRecord = hasDup ? (search.records?.[0] || search) : null;\nconst recordId = existingRecord?.id || null;\n\n// Get existing duplicate count and increment\nconst existingDupCount = existingRecord?.fields?.duplicate_count || 0;\nconst newDupCount = hasDup ? existingDupCount + 1 : 0;\n\nreturn [{\n  json: {\n    duplicate: hasDup,\n    duplicateCount: newDupCount,\n    recordId,\n    normalized: leadFromRouting, // Use data from BEFORE search\n    // Include all fields for downstream\n    email: leadFromRouting.email || null,\n    first_name: leadFromRouting.first_name || null,\n    last_name: leadFromRouting.last_name || null,\n    company: leadFromRouting.company_enriched || leadFromRouting.company || null,\n    title: leadFromRouting.title_current || leadFromRouting.title || null,\n    icp_score: leadFromRouting.icp_score || 0,\n    icp_tier: leadFromRouting.icp_tier || 'Archive'\n  }\n}];"
+      },
+      "id": "0adbb404-9b0d-44c6-b1ab-1cb49c86b1ac",
+      "name": "Duplicate Handler (Dynamic)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.duplicate}}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b31a3bd3-5cbd-4c3c-a50c-b0bce2788db4",
+      "name": "Route by Duplicate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -220,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Archive Low Scores - FIXED return shape\nconst leadData = $json.normalized || $json || {};\n\nconsole.log(`Archiving lead ${leadData.email} - ICP Score: ${leadData.icp_score}, Tier: ${leadData.icp_tier}`);\n\nconst archivedLead = {\n  ...leadData,\n  archived_date: new Date().toISOString(),\n  archived_reason: 'icp_score_below_threshold',\n  routing: 'archive',\n  processing_status: 'Archived',\n  processing_completed: new Date().toISOString()\n};\n\n// n8n requires an array of items, each with { json: ... }\nreturn [{ json: { normalized: archivedLead } }];"
+      },
+      "id": "f119d2b0-a770-4e3e-9355-bb672c9ddbc3",
+      "name": "Archive Low Scores",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "17d7415a-a98b-40e0-bf17-857886c5b680",
+              "leftValue": "={{$json.enrichment_failed}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2080,
+        140
+      ],
+      "id": "6954f183-3906-4926-ba06-d747c76edb57",
+      "name": "Double Failure Router",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hunter Response Normalization (plan-compliant)\nconst items = $input.all();\nfor (const item of items) {\n  const base = $node['Smart Field Mapper'].json.normalized || {};\n  const resp = item.json || {};\n  const status = resp.statusCode ?? resp.status ?? null;\n  const body = resp.body ?? resp;\n  const data = body?.data ?? body ?? {};\n\n  const linkedinHandle = data?.linkedin?.handle || null;\n  const title = data?.employment?.title || data?.position?.title || data?.job?.title || null;\n  const companyName = data?.employment?.name || data?.company?.name || data?.organization?.name || data?.company || null;\n\n  const normalized = {\n    ...base,\n    linkedin_url: linkedinHandle ? `https://www.linkedin.com/in/${linkedinHandle}` : (base.linkedin_url || null),\n    title_current: title || base.title_current || base.pdl_current_title || base.pdl_job_title || null,\n    company_enriched: companyName || base.company_enriched || base.pdl_company_name || base.pdl_current_company || null,\n    hunter_person_success: Boolean(linkedinHandle || title || companyName),\n    enrichment_vendor: 'hunter',\n    enrichment_attempted: true,\n    hunter_status_code: status ?? null,\n    hunter_cost: 0.049,\n    last_enriched: new Date().toISOString(),\n    enrichment_failed: false\n  };\n\n  item.json = normalized;\n}\nreturn items;"
+      },
+      "name": "Hunter Response Processor (NEW)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2560,
+        380
+      ],
+      "id": "09823665-06e1-40c1-bce8-a714f8319c71"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Person Data Merger (PDL first, then Hunter; decide final failure)\nconst items = $input.all();\n\nfor (const item of items) {\n  const d = item.json || {};\n\n  const pdlSuccess = d.pdl_person_success === true;\n  const hunterSuccess = d.hunter_person_success === true;\n\n  if (pdlSuccess) {\n    d.enrichment_vendor = 'pdl';\n    d.enrichment_method_primary = 'pdl';\n    d.enrichment_failed = false;\n  } else if (hunterSuccess) {\n    d.enrichment_vendor = 'hunter';\n    d.enrichment_method_primary = 'hunter';\n    d.enrichment_failed = false;\n  } else {\n    d.enrichment_failed = true;\n    d.routing_decision = 'human_review';\n    d.routing_reason = 'person_enrichment_failed_both_providers';\n  }\n\n  if (d.linkedin_url && !String(d.linkedin_url).startsWith('http')) {\n    d.linkedin_url = `https://www.linkedin.com/in/${String(d.linkedin_url).replace(/^\\/+/, '')}`;\n  }\n\n  item.json = d;\n}\n\nreturn items;"
+      },
+      "name": "Person Data Merger (NEW)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2280,
+        140
+      ],
+      "id": "182bae39-7506-4f6b-9346-18007b30e44c"
+    },
+    {
+      "parameters": {
+        "url": "https://api.hunter.io/v2/people/find",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{$node['Smart Field Mapper'].json.normalized.email}}"
+            },
+            {
+              "name": "api_key",
+              "value": "d33ce02f386338836be19e313a9b2933aa55a843"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Hunter Email Enrichment (REBUILT)1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2800,
+        260
+      ],
+      "id": "bfef8953-5d39-488b-b3c8-51964c50980d",
+      "retryOnFail": false,
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"model\":\"gpt-4o-mini\",\"response_format\":{\"type\":\"json_object\"},\"temperature\":0.0,\"max_tokens\":500,\"messages\":[{\"role\":\"system\",\"content\":\"You are the ICP scoring system for Untap Your Sales Potential (UYSP). Score prospects 0-100 using THIS methodology only. COMPANY (0-25): B2B SaaS/Tech up to 15; Known brand up to +10 (Salesforce, HubSpot, Adobe, AWS, Microsoft, Google). Generic/free email domains -10. ROLE (0-40): Account Executive 20 (+5 if Senior/Enterprise/Strategic); Account Director/Manager 18; Sales Manager/Team Lead 10; SDR/BDR 3; Non-sales 0. +10 if >=3 years experience. +10 if recent role change (<90 days). ENGAGEMENT (0-35): 'Yes' to coaching +10; Touchpoints: 3+ =15, 1-2=8; Webinar attendee +8; Course purchaser +10; Sales-focused motivation +5. Return ONLY valid JSON with keys: company_score, role_score, engagement_score, total_score (sum), recommendation (high_priority|medium_priority|low_priority), reasoning, confidence (0-1). No extra text or markdown.\"},{\"role\":\"user\",\"content\":\"Lead Data (JSON):\\n{{ JSON.stringify($json, null, 2) }}\\n\\nFields: company={{ $json.pdl_company_name || $json.company_enriched || $json.company || 'Unknown' }}, title={{ $json.pdl_job_title || $json.title_current || $json.title || 'Unknown' }}, seniority={{ $json.pdl_seniority || 'Unknown' }}, is_sales={{ ($json.pdl_is_sales_role || false) ? 'true' : 'false' }}, linkedin={{ ($json.pdl_linkedin_url || $json.linkedin_url) ? 'Yes' : 'No' }}, domain={{ ($json.email || '').split('@')[1] || 'unknown' }}, touchpoints={{ $json.touchpoint_count || 0 }}, coaching_yes={{ $json.interested_in_coaching === true ? 'true' : 'false' }}, webinar={{ String($json.source_form || '').toLowerCase().includes('webinar') ? 'true' : 'false' }}, course_purchaser={{ $json.course_purchaser === true ? 'true' : 'false' }}, recent_role_change={{ $json.recent_role_change === true ? 'true' : 'false' }}, experience_years={{ $json.experience_years || 0 }}\"}]}",
+        "options": {}
+      },
+      "name": "OpenAI ICP Scoring V3.0 (REBUILT)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1860,
+        260
+      ],
+      "id": "ba9bcec4-ada6-45c0-837e-7985ae331e76"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.pdl_person_success}}",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "rightValue": true
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "PDL Person Success Router (NEW) [FIX]",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -3280,
+        160
+      ],
+      "id": "d59c080f-5731-49ba-b3de-bb4efe39a980"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{true}}",
+              "rightValue": 1,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "id": "9eff5ca8-d41c-4062-9d95-557f95f6a87a"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b95a4b0d-abed-4e3d-b14f-dcd1edee9094",
+      "name": "Hunter Waterfall Feature Gate1 [FIX]",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -3020,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$node[\"Smart Field Mapper\"].json.unknownFields.length || 0}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "id": "e8cc87c4-4deb-4341-81a6-c84ec8028977"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "32956597-2eeb-41c6-a388-ee2f1d47aaac",
+      "name": "Check Unknown Fields1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1260,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appuBf0fTe8tp8ZaF",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl9cOmvkdcokyFmG",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{new Date().toISOString()}}",
+            "webhook_name": "kajabi",
+            "unknown_fields": "={{ $node[\"Smart Field Mapper\"].json.unknownFields.join(', ') }}",
+            "original_payload": "={{ $node[\"Smart Field Mapper\"].json.normalized.raw_webhook_data }}",
+            "mapping_success_rate": "={{ $node[\"Smart Field Mapper\"].json.normalized.field_mapping_success_rate }}",
+            "reviewed": false
+          },
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "id": "ac80511b-00ce-4aea-a368-2557dcd12d76",
+      "name": "Log Unknown Fields1",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1000,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.peopledatalabs.com/v5/person/enrich",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{$node['Smart Field Mapper'].json.normalized.email}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "68fea0c9-c791-490f-a000-932a404d31a9",
+      "name": "PDL Person Enrichment [FIX]",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3660,
+        160
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tbljmIuoX3Qi28WIq"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "person_email": "={{$node['Smart Field Mapper'].json.normalized.email}}",
+            "review_reason": "missing_key_data",
+            "priority": "Medium",
+            "queued_date": "={{DateTime.now().toISO()}}",
+            "review_notes": "={{$json.routing_reason || ($json.pdl_person_success === false && $json.hunter_person_success === true ? 'PDL failed, Hunter succeeded' : ($json.pdl_person_success === true && $json.hunter_person_success === false ? 'Hunter failed after PDL success' : 'person_enrichment_failed_both_providers'))}}"
+          },
+          "matchingColumns": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "name": "Add to Human Review Queue1",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -1860,
+        40
+      ],
+      "id": "d902e4a1-47e5-499f-9081-8909e7073acd"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json.normalized.email}}",
+            "first_name": "={{$json.normalized.first_name || ''}}",
+            "last_name": "={{$json.normalized.last_name || ''}}",
+            "title_current": "={{$json.normalized.title_current || $json.normalized.pdl_job_title || $json.normalized.title}}",
+            "company_enriched": "={{$json.normalized.company_enriched || $json.normalized.pdl_company_name || $json.normalized.company}}",
+            "linkedin_url": "={{$json.normalized.linkedin_url || $json.normalized.pdl_linkedin_url || ''}}",
+            "phone_primary": "={{$json.normalized.phone_recent || $json.normalized.phone_original || ''}}",
+            "icp_score": "={{$json.normalized.icp_score || 0}}",
+            "icp_tier": "={{$json.normalized.icp_tier || 'Archive'}}",
+            "score_breakdown": "={{$json.normalized.score_reasoning || ''}}",
+            "scoring_method": "={{$json.normalized.scoring_method_used || 'ai'}}",
+            "scoring_date": "={{DateTime.now().toFormat('M/d/yyyy')}}",
+            "created_date": "={{DateTime.now().toFormat('M/d/yyyy')}}",
+            "reengagement_count": 0,
+            "duplicate_count": 0,
+            "field_mapping_success_rate": 0,
+            "webhook_field_count": 0,
+            "mapped_field_count": 0,
+            "apollo_org_cost": 0,
+            "apollo_person_cost": 0,
+            "twilio_cost": 0,
+            "claude_cost": 0,
+            "total_processing_cost": 0
+          },
+          "matchingColumns": [
+            "email"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_name",
+              "displayName": "last_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_primary",
+              "displayName": "phone_primary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_type",
+              "displayName": "phone_type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "mobile",
+                  "value": "mobile"
+                },
+                {
+                  "name": "landline",
+                  "value": "landline"
+                },
+                {
+                  "name": "voip",
+                  "value": "voip"
+                },
+                {
+                  "name": "unknown",
+                  "value": "unknown"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_enriched",
+              "displayName": "phone_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_input",
+              "displayName": "company_input",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_enriched",
+              "displayName": "company_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title_current",
+              "displayName": "title_current",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_score",
+              "displayName": "icp_score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_tier",
+              "displayName": "icp_tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Ultra",
+                  "value": "Ultra"
+                },
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                },
+                {
+                  "name": "Archive",
+                  "value": "Archive"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lead_source",
+              "displayName": "lead_source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lead_status",
+              "displayName": "lead_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Contacted",
+                  "value": "Contacted"
+                },
+                {
+                  "name": "Engaged",
+                  "value": "Engaged"
+                },
+                {
+                  "name": "Booked",
+                  "value": "Booked"
+                },
+                {
+                  "name": "Meeting Scheduled",
+                  "value": "Meeting Scheduled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "interested_in_coaching",
+              "displayName": "interested_in_coaching",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "kajabi_id",
+              "displayName": "kajabi_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_enriched",
+              "displayName": "last_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_date",
+              "displayName": "created_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_sent",
+              "displayName": "sms_sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_sent_time",
+              "displayName": "sms_sent_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_clicked",
+              "displayName": "sms_clicked",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_click_time",
+              "displayName": "sms_click_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_opted_out",
+              "displayName": "sms_opted_out",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_opt_out_time",
+              "displayName": "sms_opt_out_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "meeting_booked",
+              "displayName": "meeting_booked",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "meeting_time",
+              "displayName": "meeting_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "score_breakdown",
+              "displayName": "score_breakdown",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_date",
+              "displayName": "scoring_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_method",
+              "displayName": "scoring_method",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "ai",
+                  "value": "ai"
+                },
+                {
+                  "name": "domain",
+                  "value": "domain"
+                },
+                {
+                  "name": "manual",
+                  "value": "manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ready_for_sms",
+              "displayName": "ready_for_sms",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "should_enrich_phone",
+              "displayName": "should_enrich_phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reengagement_count",
+              "displayName": "reengagement_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_activity",
+              "displayName": "last_activity",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "workflow_id",
+              "displayName": "workflow_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "request_id",
+              "displayName": "request_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "test_mode_record",
+              "displayName": "test_mode_record",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "international_phone",
+              "displayName": "international_phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "duplicate_count",
+              "displayName": "duplicate_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "routing",
+              "displayName": "routing",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "auto_qualify",
+                  "value": "auto_qualify"
+                },
+                {
+                  "name": "phase1_fail",
+                  "value": "phase1_fail"
+                },
+                {
+                  "name": "phase2_fail",
+                  "value": "phase2_fail"
+                },
+                {
+                  "name": "data_gaps",
+                  "value": "data_gaps"
+                },
+                {
+                  "name": "international",
+                  "value": "international"
+                },
+                {
+                  "name": "human_review",
+                  "value": "human_review"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reviewed",
+              "displayName": "reviewed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_status",
+              "displayName": "processing_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                },
+                {
+                  "name": "Reviewed",
+                  "value": "Reviewed"
+                },
+                {
+                  "name": "Archived",
+                  "value": "Archived"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_started",
+              "displayName": "processing_started",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_completed",
+              "displayName": "processing_completed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "enrichment_attempted",
+              "displayName": "enrichment_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title_found",
+              "displayName": "title_found",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_verified",
+              "displayName": "company_verified",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "enrichment_failed",
+              "displayName": "enrichment_failed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Communications",
+              "displayName": "Communications",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "qualified_lead",
+              "displayName": "qualified_lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contacted",
+              "displayName": "contacted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "field_mapping_success_rate",
+              "displayName": "field_mapping_success_rate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "normalization_version",
+              "displayName": "normalization_version",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "raw_webhook_data",
+              "displayName": "raw_webhook_data",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "validation_errors",
+              "displayName": "validation_errors",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "webhook_field_count",
+              "displayName": "webhook_field_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "mapped_field_count",
+              "displayName": "mapped_field_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "unknown_field_list",
+              "displayName": "unknown_field_list",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase1_attempted",
+              "displayName": "phase1_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase1_passed",
+              "displayName": "phase1_passed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase2_attempted",
+              "displayName": "phase2_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase2_passed",
+              "displayName": "phase2_passed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_attempted",
+              "displayName": "scoring_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_method_used",
+              "displayName": "scoring_method_used",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "claude_ai",
+                  "value": "claude_ai"
+                },
+                {
+                  "name": "domain_fallback",
+                  "value": "domain_fallback"
+                },
+                {
+                  "name": "manual",
+                  "value": "manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "apollo_org_cost",
+              "displayName": "apollo_org_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "apollo_person_cost",
+              "displayName": "apollo_person_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "twilio_cost",
+              "displayName": "twilio_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "claude_cost",
+              "displayName": "claude_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_processing_cost",
+              "displayName": "total_processing_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_country_code",
+              "displayName": "phone_country_code",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "requires_international_handling",
+              "displayName": "requires_international_handling",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_original",
+              "displayName": "phone_original",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_recent",
+              "displayName": "phone_recent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_validated",
+              "displayName": "phone_validated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "516015d4-018d-45fe-ac50-d5589d7f1faf",
+      "name": "Airtable Upsert (Dynamic) [REPLACE]",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json.normalized.email}}",
+            "first_name": "={{$json.normalized.first_name || ''}}",
+            "last_name": "={{$json.normalized.last_name || ''}}",
+            "title_current": "={{$json.normalized.title_current || $json.normalized.pdl_job_title || $json.normalized.title}}",
+            "company_enriched": "={{$json.normalized.company_enriched || $json.normalized.pdl_company_name || $json.normalized.company}}",
+            "linkedin_url": "={{$json.normalized.linkedin_url || $json.normalized.pdl_linkedin_url || ''}}",
+            "phone_primary": "={{$json.normalized.phone_recent || $json.normalized.phone_original || ''}}",
+            "icp_score": "={{$json.normalized.icp_score || 0}}",
+            "icp_tier": "={{$json.normalized.icp_tier || 'Archive'}}",
+            "score_breakdown": "={{$json.normalized.score_reasoning || ''}}",
+            "scoring_method": "={{$json.normalized.scoring_method_used || 'ai'}}",
+            "scoring_date": "={{DateTime.now().toFormat('M/d/yyyy')}}",
+            "created_date": "={{DateTime.now().toFormat('M/d/yyyy')}}",
+            "reengagement_count": 0,
+            "duplicate_count": 0,
+            "field_mapping_success_rate": 0,
+            "webhook_field_count": 0,
+            "mapped_field_count": 0,
+            "apollo_org_cost": 0,
+            "apollo_person_cost": 0,
+            "twilio_cost": 0,
+            "claude_cost": 0,
+            "total_processing_cost": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_name",
+              "displayName": "last_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_primary",
+              "displayName": "phone_primary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_type",
+              "displayName": "phone_type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "mobile",
+                  "value": "mobile"
+                },
+                {
+                  "name": "landline",
+                  "value": "landline"
+                },
+                {
+                  "name": "voip",
+                  "value": "voip"
+                },
+                {
+                  "name": "unknown",
+                  "value": "unknown"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_enriched",
+              "displayName": "phone_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_input",
+              "displayName": "company_input",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_enriched",
+              "displayName": "company_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title_current",
+              "displayName": "title_current",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_score",
+              "displayName": "icp_score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_tier",
+              "displayName": "icp_tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Ultra",
+                  "value": "Ultra"
+                },
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                },
+                {
+                  "name": "Archive",
+                  "value": "Archive"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lead_source",
+              "displayName": "lead_source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lead_status",
+              "displayName": "lead_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Contacted",
+                  "value": "Contacted"
+                },
+                {
+                  "name": "Engaged",
+                  "value": "Engaged"
+                },
+                {
+                  "name": "Booked",
+                  "value": "Booked"
+                },
+                {
+                  "name": "Meeting Scheduled",
+                  "value": "Meeting Scheduled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "interested_in_coaching",
+              "displayName": "interested_in_coaching",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "kajabi_id",
+              "displayName": "kajabi_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_enriched",
+              "displayName": "last_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_date",
+              "displayName": "created_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_sent",
+              "displayName": "sms_sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_sent_time",
+              "displayName": "sms_sent_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_clicked",
+              "displayName": "sms_clicked",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_click_time",
+              "displayName": "sms_click_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_opted_out",
+              "displayName": "sms_opted_out",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_opt_out_time",
+              "displayName": "sms_opt_out_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "meeting_booked",
+              "displayName": "meeting_booked",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "meeting_time",
+              "displayName": "meeting_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "score_breakdown",
+              "displayName": "score_breakdown",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_date",
+              "displayName": "scoring_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_method",
+              "displayName": "scoring_method",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "ai",
+                  "value": "ai"
+                },
+                {
+                  "name": "domain",
+                  "value": "domain"
+                },
+                {
+                  "name": "manual",
+                  "value": "manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ready_for_sms",
+              "displayName": "ready_for_sms",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "should_enrich_phone",
+              "displayName": "should_enrich_phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reengagement_count",
+              "displayName": "reengagement_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_activity",
+              "displayName": "last_activity",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "workflow_id",
+              "displayName": "workflow_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "request_id",
+              "displayName": "request_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "test_mode_record",
+              "displayName": "test_mode_record",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "international_phone",
+              "displayName": "international_phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "duplicate_count",
+              "displayName": "duplicate_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "routing",
+              "displayName": "routing",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "auto_qualify",
+                  "value": "auto_qualify"
+                },
+                {
+                  "name": "phase1_fail",
+                  "value": "phase1_fail"
+                },
+                {
+                  "name": "phase2_fail",
+                  "value": "phase2_fail"
+                },
+                {
+                  "name": "data_gaps",
+                  "value": "data_gaps"
+                },
+                {
+                  "name": "international",
+                  "value": "international"
+                },
+                {
+                  "name": "human_review",
+                  "value": "human_review"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reviewed",
+              "displayName": "reviewed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_status",
+              "displayName": "processing_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                },
+                {
+                  "name": "Reviewed",
+                  "value": "Reviewed"
+                },
+                {
+                  "name": "Archived",
+                  "value": "Archived"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_started",
+              "displayName": "processing_started",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_completed",
+              "displayName": "processing_completed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "enrichment_attempted",
+              "displayName": "enrichment_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title_found",
+              "displayName": "title_found",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_verified",
+              "displayName": "company_verified",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "enrichment_failed",
+              "displayName": "enrichment_failed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Communications",
+              "displayName": "Communications",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "qualified_lead",
+              "displayName": "qualified_lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contacted",
+              "displayName": "contacted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "field_mapping_success_rate",
+              "displayName": "field_mapping_success_rate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "normalization_version",
+              "displayName": "normalization_version",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "raw_webhook_data",
+              "displayName": "raw_webhook_data",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "validation_errors",
+              "displayName": "validation_errors",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "webhook_field_count",
+              "displayName": "webhook_field_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "mapped_field_count",
+              "displayName": "mapped_field_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "unknown_field_list",
+              "displayName": "unknown_field_list",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase1_attempted",
+              "displayName": "phase1_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase1_passed",
+              "displayName": "phase1_passed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase2_attempted",
+              "displayName": "phase2_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase2_passed",
+              "displayName": "phase2_passed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_attempted",
+              "displayName": "scoring_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_method_used",
+              "displayName": "scoring_method_used",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "claude_ai",
+                  "value": "claude_ai"
+                },
+                {
+                  "name": "domain_fallback",
+                  "value": "domain_fallback"
+                },
+                {
+                  "name": "manual",
+                  "value": "manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "apollo_org_cost",
+              "displayName": "apollo_org_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "apollo_person_cost",
+              "displayName": "apollo_person_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "twilio_cost",
+              "displayName": "twilio_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "claude_cost",
+              "displayName": "claude_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_processing_cost",
+              "displayName": "total_processing_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_country_code",
+              "displayName": "phone_country_code",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "requires_international_handling",
+              "displayName": "requires_international_handling",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_original",
+              "displayName": "phone_original",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_recent",
+              "displayName": "phone_recent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_validated",
+              "displayName": "phone_validated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "9fdd2b68-b54f-4383-a5a8-37f6ca91aa70",
+      "name": "Airtable Create (Dynamic) [REPLACE]",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        20,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblSk2Ikg21932uE0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json.normalized.email}}",
+            "first_name": "={{$json.normalized.first_name || ''}}",
+            "last_name": "={{$json.normalized.last_name || ''}}",
+            "icp_score": "={{$json.normalized.icp_score || 0}}",
+            "icp_tier": "={{$json.normalized.icp_tier || 'Archive'}}",
+            "score_breakdown": "={{$json.normalized.score_reasoning || ''}}",
+            "scoring_method": "={{$json.normalized.scoring_method_used || 'domain'}}",
+            "scoring_date": "={{DateTime.now().toFormat('M/d/yyyy')}}",
+            "created_date": "={{DateTime.now().toFormat('M/d/yyyy')}}",
+            "processing_status": "Archived",
+            "reengagement_count": 0,
+            "duplicate_count": 0,
+            "field_mapping_success_rate": 0,
+            "webhook_field_count": 0,
+            "mapped_field_count": 0,
+            "apollo_org_cost": 0,
+            "apollo_person_cost": 0,
+            "twilio_cost": 0,
+            "claude_cost": 0,
+            "total_processing_cost": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_name",
+              "displayName": "last_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_primary",
+              "displayName": "phone_primary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_type",
+              "displayName": "phone_type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "mobile",
+                  "value": "mobile"
+                },
+                {
+                  "name": "landline",
+                  "value": "landline"
+                },
+                {
+                  "name": "voip",
+                  "value": "voip"
+                },
+                {
+                  "name": "unknown",
+                  "value": "unknown"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_enriched",
+              "displayName": "phone_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_input",
+              "displayName": "company_input",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_enriched",
+              "displayName": "company_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title_current",
+              "displayName": "title_current",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_score",
+              "displayName": "icp_score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_tier",
+              "displayName": "icp_tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Ultra",
+                  "value": "Ultra"
+                },
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "Low",
+                  "value": "Low"
+                },
+                {
+                  "name": "Archive",
+                  "value": "Archive"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lead_source",
+              "displayName": "lead_source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lead_status",
+              "displayName": "lead_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Contacted",
+                  "value": "Contacted"
+                },
+                {
+                  "name": "Engaged",
+                  "value": "Engaged"
+                },
+                {
+                  "name": "Booked",
+                  "value": "Booked"
+                },
+                {
+                  "name": "Meeting Scheduled",
+                  "value": "Meeting Scheduled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "interested_in_coaching",
+              "displayName": "interested_in_coaching",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "kajabi_id",
+              "displayName": "kajabi_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_enriched",
+              "displayName": "last_enriched",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_date",
+              "displayName": "created_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_sent",
+              "displayName": "sms_sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_sent_time",
+              "displayName": "sms_sent_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_clicked",
+              "displayName": "sms_clicked",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_click_time",
+              "displayName": "sms_click_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_opted_out",
+              "displayName": "sms_opted_out",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sms_opt_out_time",
+              "displayName": "sms_opt_out_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "meeting_booked",
+              "displayName": "meeting_booked",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "meeting_time",
+              "displayName": "meeting_time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "score_breakdown",
+              "displayName": "score_breakdown",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_date",
+              "displayName": "scoring_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_method",
+              "displayName": "scoring_method",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "ai",
+                  "value": "ai"
+                },
+                {
+                  "name": "domain",
+                  "value": "domain"
+                },
+                {
+                  "name": "manual",
+                  "value": "manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ready_for_sms",
+              "displayName": "ready_for_sms",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "should_enrich_phone",
+              "displayName": "should_enrich_phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reengagement_count",
+              "displayName": "reengagement_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_activity",
+              "displayName": "last_activity",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "workflow_id",
+              "displayName": "workflow_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "request_id",
+              "displayName": "request_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "test_mode_record",
+              "displayName": "test_mode_record",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "international_phone",
+              "displayName": "international_phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "duplicate_count",
+              "displayName": "duplicate_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "routing",
+              "displayName": "routing",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "auto_qualify",
+                  "value": "auto_qualify"
+                },
+                {
+                  "name": "phase1_fail",
+                  "value": "phase1_fail"
+                },
+                {
+                  "name": "phase2_fail",
+                  "value": "phase2_fail"
+                },
+                {
+                  "name": "data_gaps",
+                  "value": "data_gaps"
+                },
+                {
+                  "name": "international",
+                  "value": "international"
+                },
+                {
+                  "name": "human_review",
+                  "value": "human_review"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reviewed",
+              "displayName": "reviewed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_status",
+              "displayName": "processing_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                },
+                {
+                  "name": "Reviewed",
+                  "value": "Reviewed"
+                },
+                {
+                  "name": "Archived",
+                  "value": "Archived"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_started",
+              "displayName": "processing_started",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_completed",
+              "displayName": "processing_completed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "enrichment_attempted",
+              "displayName": "enrichment_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title_found",
+              "displayName": "title_found",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_verified",
+              "displayName": "company_verified",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "enrichment_failed",
+              "displayName": "enrichment_failed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Communications",
+              "displayName": "Communications",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "qualified_lead",
+              "displayName": "qualified_lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contacted",
+              "displayName": "contacted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "field_mapping_success_rate",
+              "displayName": "field_mapping_success_rate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "normalization_version",
+              "displayName": "normalization_version",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "raw_webhook_data",
+              "displayName": "raw_webhook_data",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "validation_errors",
+              "displayName": "validation_errors",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "webhook_field_count",
+              "displayName": "webhook_field_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "mapped_field_count",
+              "displayName": "mapped_field_count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "unknown_field_list",
+              "displayName": "unknown_field_list",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase1_attempted",
+              "displayName": "phase1_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase1_passed",
+              "displayName": "phase1_passed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase2_attempted",
+              "displayName": "phase2_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phase2_passed",
+              "displayName": "phase2_passed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_attempted",
+              "displayName": "scoring_attempted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scoring_method_used",
+              "displayName": "scoring_method_used",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "claude_ai",
+                  "value": "claude_ai"
+                },
+                {
+                  "name": "domain_fallback",
+                  "value": "domain_fallback"
+                },
+                {
+                  "name": "manual",
+                  "value": "manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "apollo_org_cost",
+              "displayName": "apollo_org_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "apollo_person_cost",
+              "displayName": "apollo_person_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "twilio_cost",
+              "displayName": "twilio_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "claude_cost",
+              "displayName": "claude_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_processing_cost",
+              "displayName": "total_processing_cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_country_code",
+              "displayName": "phone_country_code",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "requires_international_handling",
+              "displayName": "requires_international_handling",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_original",
+              "displayName": "phone_original",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_recent",
+              "displayName": "phone_recent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_validated",
+              "displayName": "phone_validated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "4cacc4cc-45a5-4ae1-b033-9ce1fa2d4512",
+      "name": "Archive to Airtable [FIX]1 [REPLACE]",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -920,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Node Name: Data Integrity Validator\nconst item = $input.first();\nconst data = item.json;\n\n// Validate critical fields exist\nconst criticalFields = ['email', 'normalized'];\nconst missing = criticalFields.filter(f => !data[f]);\n\nif (missing.length > 0) {\n  throw new Error(`Missing critical fields: ${missing.join(', ')}`);\n}\n\n// Validate normalized data structure\nconst normalized = data.normalized;\nif (!normalized.email) {\n  throw new Error('Normalized data missing email');\n}\n\n// Log for debugging\nconsole.log('Validating lead:', {\n  email: normalized.email,\n  duplicate: data.duplicate,\n  duplicateCount: data.duplicateCount,\n  hasScore: !!normalized.icp_score\n});\n\nreturn [item];"
+      },
+      "id": "51ac07e2-8f59-4b1b-9057-5a96f3c95575",
+      "name": "Data Integrity Validator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        140
+      ]
+    }
+  ],
+  "connections": {
+    "Kajabi Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate API Key (Dynamic)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate API Key (Dynamic)": {
+      "main": [
+        [
+          {
+            "node": "Smart Field Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Smart Field Mapper": {
+      "main": [
+        [
+          {
+            "node": "PDL Person Enrichment [FIX]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Processor": {
+      "main": [
+        [
+          {
+            "node": "PDL Person Success Router (NEW) [FIX]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ICP Response Processor": {
+      "main": [
+        [
+          {
+            "node": "Score-Based Routing V3.0",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score-Based Routing V3.0": {
+      "main": [
+        [
+          {
+            "node": "Check Unknown Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Archive Low Scores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Search (Dynamic)": {
+      "main": [
+        [
+          {
+            "node": "Duplicate Handler (Dynamic)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Duplicate": {
+      "main": [
+        [
+          {
+            "node": "Airtable Upsert (Dynamic) [REPLACE]",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Airtable Create (Dynamic) [REPLACE]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archive Low Scores": {
+      "main": [
+        [
+          {
+            "node": "Archive to Airtable [FIX]1 [REPLACE]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Double Failure Router": {
+      "main": [
+        [
+          {
+            "node": "Add to Human Review Queue1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OpenAI ICP Scoring V3.0 (REBUILT)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Response Processor (NEW)": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Person Data Merger (NEW)": {
+      "main": [
+        [
+          {
+            "node": "Double Failure Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Email Enrichment (REBUILT)1": {
+      "main": [
+        [
+          {
+            "node": "Hunter Response Processor (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI ICP Scoring V3.0 (REBUILT)": {
+      "main": [
+        [
+          {
+            "node": "ICP Response Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Success Router (NEW) [FIX]": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hunter Waterfall Feature Gate1 [FIX]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Waterfall Feature Gate1 [FIX]": {
+      "main": [
+        [
+          {
+            "node": "Hunter Email Enrichment (REBUILT)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Person Data Merger (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Unknown Fields1": {
+      "main": [
+        [
+          {
+            "node": "Log Unknown Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Airtable Search (Dynamic)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Unknown Fields1": {
+      "main": [
+        [
+          {
+            "node": "Airtable Search (Dynamic)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Person Enrichment [FIX]": {
+      "main": [
+        [
+          {
+            "node": "PDL Person Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duplicate Handler (Dynamic)": {
+      "main": [
+        [
+          {
+            "node": "Data Integrity Validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Integrity Validator": {
+      "main": [
+        [
+          {
+            "node": "Route by Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "9629d619-0109-40ed-9e9f-15a834cad30a",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-15T16:17:24.476Z",
+      "updatedAt": "2025-08-15T16:17:24.476Z",
+      "role": "workflow:owner",
+      "workflowId": "meouEdJUQwTiq4tS",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-01T22:04:37.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

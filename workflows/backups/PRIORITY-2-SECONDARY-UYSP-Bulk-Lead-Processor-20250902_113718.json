@@ -1,0 +1,537 @@
+{
+  "createdAt": "2025-08-07T15:23:57.515Z",
+  "updatedAt": "2025-08-29T04:09:35.000Z",
+  "id": "1FIscY7vZ7IbCINS",
+  "name": "UYSP-Bulk Lead Processor",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "authentication": "airtableTokenApi",
+        "baseId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "tableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tbllHCB4MaeBkZYPt"
+        },
+        "triggerField": "processing_status",
+        "additionalFields": {}
+      },
+      "id": "19d46d75-e010-4a8f-a11e-93f8e26fdf09",
+      "name": "Lead Import Trigger",
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        -80
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.fields.processing_status}}",
+              "value2": "Pending"
+            }
+          ]
+        }
+      },
+      "id": "227d0194-d0ae-4adb-80ac-df465e7960cb",
+      "name": "Filter Pending Only",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tbllHCB4MaeBkZYPt"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "processing_status": "Processing"
+          }
+        },
+        "options": {}
+      },
+      "id": "70971e7f-3d70-45a1-99a2-4390a9338998",
+      "name": "Mark as Processing",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        -80
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Bulk Lead Field Mapper - Converts Airtable import to webhook format\nconst importRecord = $json.fields;\n\n// Create normalized webhook payload from Airtable import fields\nconst webhookPayload = {};\n\n// Map all available fields from import record\nif (importRecord.email) webhookPayload.email = importRecord.email;\nif (importRecord.first_name) webhookPayload.first_name = importRecord.first_name;\nif (importRecord.last_name) webhookPayload.last_name = importRecord.last_name;\nif (importRecord.full_name) webhookPayload.name = importRecord.full_name;\nif (importRecord.company) webhookPayload.company = importRecord.company;\nif (importRecord.title) webhookPayload.title = importRecord.title;\nif (importRecord.phone) webhookPayload.phone = importRecord.phone;\nif (importRecord.interested_in_coaching) webhookPayload.interested_in_coaching = importRecord.interested_in_coaching;\nif (importRecord.qualified_lead) webhookPayload.qualified_lead = importRecord.qualified_lead;\nif (importRecord.source) webhookPayload.source_form = importRecord.source;\nif (importRecord.linkedin_url) webhookPayload.linkedin_url = importRecord.linkedin_url;\n\n// Add import metadata\nwebhookPayload.import_batch = importRecord.import_batch || 'bulk_import';\nwebhookPayload.import_record_id = $json.id;\n\n// Store raw import data for debugging\nconst rawImportData = JSON.stringify(importRecord);\n\nreturn {\n  // Webhook format for processing pipeline\n  body: webhookPayload,\n  // Import tracking data\n  importRecordId: $json.id,\n  rawImportData: rawImportData\n};"
+      },
+      "id": "0b6868e2-ca5e-40b5-a8e5-fd1e6ec08d86",
+      "name": "Bulk Field Mapper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://rebelhq.app.n8n.cloud/webhook/kajabi-leads-complete-clean",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json.body)}}",
+        "options": {}
+      },
+      "id": "5f9496dc-b6b7-45ad-9072-48a231904edd",
+      "name": "Call Main Pipeline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "appuBf0fTe8tp8ZaF"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tbllHCB4MaeBkZYPt"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "processing_status": "Completed",
+            "processed_date": "={{DateTime.now().toISO()}}",
+            "result_location": "People Table"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_name",
+              "displayName": "last_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "interested_in_coaching",
+              "displayName": "interested_in_coaching",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "qualified_lead",
+              "displayName": "qualified_lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "linkedin_url",
+              "displayName": "linkedin_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processing_status",
+              "displayName": "processing_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Processing",
+                  "value": "Processing"
+                },
+                {
+                  "name": "Completed",
+                  "value": "Completed"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processed_date",
+              "displayName": "processed_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "result_location",
+              "displayName": "result_location",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "People Table",
+                  "value": "People Table"
+                },
+                {
+                  "name": "Human Review Queue",
+                  "value": "Human Review Queue"
+                },
+                {
+                  "name": "Archive",
+                  "value": "Archive"
+                },
+                {
+                  "name": "Error",
+                  "value": "Error"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "import_batch",
+              "displayName": "import_batch",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "raw_data",
+              "displayName": "raw_data",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "172b4ed3-9c8a-4d20-9666-595c06b89fb0",
+      "name": "Mark as Completed",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -80
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Lead Import Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter Pending Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Pending Only": {
+      "main": [
+        [
+          {
+            "node": "Mark as Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark as Processing": {
+      "main": [
+        [
+          {
+            "node": "Bulk Field Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bulk Field Mapper": {
+      "main": [
+        [
+          {
+            "node": "Call Main Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Main Pipeline": {
+      "main": [
+        [
+          {
+            "node": "Mark as Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Lead Import Trigger": {
+      "lastTimeChecked": "2025-08-07T15:31:51Z"
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "6b93e072-18ea-4049-ba44-fe1b2b487663",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-08-25T16:49:48.334Z",
+      "updatedAt": "2025-08-25T16:49:48.334Z",
+      "role": "workflow:owner",
+      "workflowId": "1FIscY7vZ7IbCINS",
+      "projectId": "HiFn22PB8pYSxCmP",
+      "project": {
+        "createdAt": "2025-08-18T19:11:02.418Z",
+        "updatedAt": "2025-08-18T19:13:40.000Z",
+        "id": "HiFn22PB8pYSxCmP",
+        "name": "UYSP V2 TEST ",
+        "type": "team",
+        "icon": {
+          "type": "icon",
+          "value": "layers"
+        },
+        "description": "",
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-18T19:13:40.464Z",
+            "updatedAt": "2025-08-18T19:13:40.464Z",
+            "role": "project:admin",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "HiFn22PB8pYSxCmP",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-01T22:04:37.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
