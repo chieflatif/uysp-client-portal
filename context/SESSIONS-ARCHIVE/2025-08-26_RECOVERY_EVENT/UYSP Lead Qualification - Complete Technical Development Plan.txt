@@ -1,0 +1,508 @@
+# 🚀 UYSP Lead Qualification: Final Comprehensive Development Plan v5.0
+
+**Document Version**: 5.0 FINAL PRODUCTION-READY  
+**Date**: August 21, 2025  
+**Prepared By**: AI Architect  
+**Status**: **SUPERSEDED** - Refer to `context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/MAJOR-REFACTOR-CLAY-COM-PLAN.md`  
+**Architecture**: Option C - Minimalist n8n with Clay.com Integration
+
+---
+
+## **Executive Summary**
+
+This document provides the complete, production-hardened implementation plan for the UYSP Lead Qualification workflow refactor. The system will process a 10,000 lead backlog and scale to 700+ leads/week, achieving 3-5x more meetings at <$5 each through automated qualification, enrichment, and SMS outreach.
+
+**Key Architecture Principles:**
+- **Domain-first company deduplication** (90%+ cost savings on enrichment)
+- **Separate backlog and real-time processing workflows** (system stability)
+- **Manual batch control** with automated monitoring (operational visibility)
+- **Proactive Slack alerts** and daily sales reporting (business value)
+- **Production-hardened error handling** (data integrity)
+
+**Total Implementation Time**: 4 days  
+**Expected ROI**: 3-5x meeting volume at <$5 per meeting cost
+
+---
+
+## System Overview - Master Workflow
+
+```mermaid
+graph TB
+    subgraph "INGESTION LAYER"
+        WH[Webhook - New Leads]
+        CSV[CSV Upload - 10K Backlog]
+        WH --> SM[Smart Field Mapper v4.9]
+        CSV --> SM
+        SM --> DC{Daily Cost < $50?}
+        DC -->|Yes| AU[Airtable Upsert<br/>Match: Email + Phone]
+        DC -->|No| STOP[Stop Processing<br/>Send Alert]
+    end
+
+    subgraph "AIRTABLE STATE MACHINE"
+        AU --> AT[(Airtable Database)]
+        AT --> |Status: New| VN[View: New Leads]
+        AT --> |Status: Processing| VP[View: Processing]
+        AT --> |Status: Qualified| VQ[View: Qualified]
+        AT --> |Status: HRQ| VH[View: Human Review]
+        AT --> |Status: SMS_Sent| VS[View: SMS Active]
+        AT --> |Status: Meeting_Booked| VM[View: Meetings]
+        AT --> |Status: Failed| VF[View: Failed/Retry]
+    end
+
+    subgraph "CLAY ENRICHMENT ENGINE"
+        VN --> CLM[Clay Monitor<br/>Every 60s]
+        CLM --> CLS[Update Status:<br/>Processing]
+        CLS --> CLW[Enrichment Waterfall]
+        CLW --> AP[Apollo API]
+        AP -->|Fail| CB[Clearbit API]
+        CB -->|Fail| PDL[PeopleDataLabs]
+        PDL -->|Fail| ERF[Mark Failed]
+        AP -->|Success| SCR
+        CB -->|Success| SCR
+        PDL -->|Success| SCR[V4 ICP Scoring]
+        SCR --> CLR{Routing Logic}
+        ERF --> CLUF[Update Airtable:<br/>Status = Failed]
+    end
+
+    subgraph "ROUTING DECISIONS"
+        CLR -->|Score >= 70 & US Phone| QUA[Status: Qualified<br/>SMS_Eligible: True]
+        CLR -->|Score >= 70 & Non-US| HRQ1[Status: HRQ<br/>Reason: High-Value Non-US]
+        CLR -->|Score < 70| HRQ2[Status: HRQ<br/>Reason: Low Score]
+        CLR -->|Tier D Location| HRQ3[Status: HRQ<br/>Reason: Tier D Review]
+        CLR -->|Enrichment Failed| HRQ4[Status: HRQ<br/>Reason: No Data]
+    end
+
+    subgraph "SMS ORCHESTRATION"
+        VQ --> SMSW[n8n SMS Workflow<br/>Every 5 min]
+        SMSW --> BHC{Business Hours?<br/>M-F 9-5 EST}
+        BHC -->|No| WAIT[Wait for<br/>Business Hours]
+        BHC -->|Yes| SMSS[Get SMS-Ready Leads<br/>Sequence < 3]
+        SMSS --> SEQ{Which SMS?}
+        SEQ -->|Step 1| SMS1[Send SMS #1<br/>Initial Outreach]
+        SEQ -->|Step 2| SMS2[Send SMS #2<br/>48hr Follow-up]
+        SEQ -->|Step 3| SMS3[Send SMS #3<br/>Final Attempt]
+        SMS1 --> TWI[Twilio API]
+        SMS2 --> TWI
+        SMS3 --> TWI
+        TWI --> SMSU[Update Airtable:<br/>SMS Sent Timestamp]
+    end
+
+    subgraph "MEETING BOOKING"
+        TWI --> LINK[Tracking Link<br/>in SMS]
+        LINK --> CAL[Calendly Page]
+        CAL --> CALW[Calendly Webhook]
+        CALW --> MBH[Meeting Booked Handler]
+        MBH --> MBUA[Update Airtable:<br/>Status = Meeting_Booked]
+        MBH --> STOPSMS[Stop All SMS<br/>Sequences]
+    end
+
+    subgraph "HUMAN REVIEW OPERATIONS"
+        VH --> DRG[Daily Report<br/>Generator 8am]
+        DRG --> EMAIL[Email to Sales Ops]
+        EMAIL --> UI[Review Interface]
+        UI --> DEC{Decision}
+        DEC -->|Approve| OVR[Override to SMS]
+        DEC -->|Reject| ARCH[Archive Lead]
+        DEC -->|Enrich Again| RETRY[Send to Clay]
+        OVR --> AT
+        ARCH --> AT
+        RETRY --> CLM
+    end
+
+    subgraph "MONITORING & ALERTS"
+        AT --> DASH[Real-time Dashboard]
+        DASH --> METRICS[KPI Tracking]
+        METRICS --> ALERTS{Thresholds}
+        ALERTS -->|Cost > $45| CALERT[Cost Alert]
+        ALERTS -->|Error Rate > 10%| EALERT[Error Alert]
+        ALERTS -->|Queue > 500| QALERT[Queue Alert]
+    end
+
+    style WH fill:#4CAF50
+    style CSV fill:#4CAF50
+    style AT fill:#2196F3
+    style CLM fill:#FF9800
+    style TWI fill:#9C27B0
+    style CAL fill:#00BCD4
+    style DASH fill:#795548
+```
+
+## Detailed Component Flows
+
+### 1. Lead Ingestion & Normalization Flow
+
+```mermaid
+sequenceDiagram
+    participant W as Webhook/CSV
+    participant N as n8n
+    participant SM as Smart Mapper
+    participant CG as Cost Guard
+    participant A as Airtable
+
+    W->>N: Raw Lead Data
+    Note over W,N: Fields: email, Email, EMAIL,<br/>phone_number, phoneNumber, etc.
+    
+    N->>SM: Process Fields
+    SM->>SM: Normalize Fields
+    Note over SM: Map 15+ variations<br/>to canonical fields
+    
+    SM->>SM: Log Unknown Fields
+    SM->>CG: Check Daily Costs
+    
+    alt Daily Cost < $50
+        CG->>A: Upsert Lead
+        Note over A: Match on Email + Phone<br/>Atomic Operation
+        A-->>N: Record ID
+    else Daily Cost >= $50
+        CG->>N: Stop Processing
+        CG->>N: Send Alert
+    end
+```
+
+### 2. Clay Enrichment & Scoring Flow
+
+```mermaid
+flowchart LR
+    subgraph "Clay Processing Pipeline"
+        M[Monitor New Leads] --> S1[Status: Processing]
+        S1 --> E{Enrichment}
+        
+        E --> E1[Try Apollo]
+        E1 -->|Success| D[Data Found]
+        E1 -->|Fail| E2[Try Clearbit]
+        E2 -->|Success| D
+        E2 -->|Fail| E3[Try PDL]
+        E3 -->|Success| D
+        E3 -->|Fail| F[Failed]
+        
+        D --> SC[Score Calculation]
+        
+        subgraph "V4 Scoring Logic"
+            SC --> C[Company Score<br/>Max: 25pts]
+            SC --> R[Role Score<br/>Max: 45pts]
+            SC --> L[Location Score<br/>Max: 20pts]
+            SC --> DS[Dynamic Score<br/>Max: 10pts]
+            SC --> PF{Prime Fit?}
+            PF -->|Yes| B[+5 Bonus]
+            PF -->|No| NB[No Bonus]
+        end
+        
+        C --> TS[Total Score]
+        R --> TS
+        L --> TS
+        DS --> TS
+        B --> TS
+        NB --> TS
+        
+        TS --> RT{Route Decision}
+        RT -->|>=70 & US| Q[Qualified]
+        RT -->|>=70 & Non-US| H1[HRQ: Non-US]
+        RT -->|<70| H2[HRQ: Low Score]
+        RT -->|Tier D| H3[HRQ: Location]
+        
+        F --> H4[HRQ: No Data]
+    end
+```
+
+### 3. SMS Campaign Execution Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> CheckTime: Every 5 minutes
+    CheckTime --> BusinessHours: Check if M-F 9-5 EST
+    
+    BusinessHours --> GetLeads: In Business Hours
+    BusinessHours --> Wait: Outside Hours
+    Wait --> CheckTime
+    
+    GetLeads --> FilterLeads: Status=Qualified<br/>SMS_Eligible=True<br/>Sequence < 3
+    
+    FilterLeads --> SMS1: Sequence = 0
+    FilterLeads --> SMS2: Sequence = 1
+    FilterLeads --> SMS3: Sequence = 2
+    
+    SMS1 --> SendSMS: Template 1
+    SMS2 --> SendSMS: Template 2  
+    SMS3 --> SendSMS: Template 3
+    
+    SendSMS --> Twilio: Send via API
+    Twilio --> UpdateDB: Update Airtable
+    
+    UpdateDB --> TrackLink: Generate Tracking URL
+    TrackLink --> WaitResponse: Monitor Clicks
+    
+    WaitResponse --> Clicked: Link Clicked
+    WaitResponse --> NextSequence: No Response (48hr)
+    
+    Clicked --> Calendly: Open Booking Page
+    Calendly --> Booked: Meeting Scheduled
+    Booked --> StopAll: Stop All Sequences
+    StopAll --> [*]
+    
+    NextSequence --> FilterLeads: Continue Sequence
+```
+
+### 4. Human Review Queue Processing
+
+```mermaid
+flowchart TB
+    subgraph "HRQ Entry Points"
+        E1[High Score<br/>Non-US Phone] --> HRQ
+        E2[Low Score<br/>< 70] --> HRQ
+        E3[Tier D<br/>Location] --> HRQ
+        E4[Enrichment<br/>Failed] --> HRQ
+        E5[Manual<br/>Flag] --> HRQ
+    end
+    
+    HRQ[(Human Review Queue)]
+    
+    HRQ --> DR[Daily Report<br/>8am EST]
+    DR --> EM[Email Report]
+    
+    EM --> REV{Review Decision}
+    
+    REV -->|Approve| APP[Override to SMS]
+    REV -->|Reject| REJ[Archive]
+    REV -->|Re-enrich| ENR[Send to Clay]
+    REV -->|Defer| DEF[Keep in Queue]
+    
+    APP --> SMS[SMS Campaign]
+    REJ --> ARC[(Archive After 90 Days)]
+    ENR --> CLAY[Clay Processing]
+    DEF --> HRQ
+```
+
+## Database Schema
+
+```mermaid
+erDiagram
+    LEADS {
+        string record_id PK
+        string email UK
+        string phone
+        string first_name
+        string last_name
+        string company_name
+        string status
+        boolean sms_eligible
+        int icp_score
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    ENRICHMENT_DATA {
+        string record_id FK
+        string company_type
+        string company_industry
+        string job_title
+        string seniority_level
+        string person_location
+        string location_tier
+        float location_confidence
+        string provider_used
+        decimal cost
+    }
+    
+    SCORING_COMPONENTS {
+        string record_id FK
+        int company_score
+        int role_score
+        int location_score
+        int dynamic_score
+        int prime_fit_bonus
+        json score_breakdown
+    }
+    
+    SMS_TRACKING {
+        string record_id FK
+        int sequence_step
+        timestamp sms1_sent
+        timestamp sms2_sent
+        timestamp sms3_sent
+        boolean clicked
+        string tracking_url
+    }
+    
+    MEETINGS {
+        string record_id FK
+        timestamp booked_at
+        timestamp scheduled_for
+        string calendly_link
+        string attendee_email
+    }
+    
+    DAILY_COSTS {
+        date date PK
+        decimal enrichment_costs
+        decimal sms_costs
+        decimal total_costs
+        int leads_processed
+        int meetings_booked
+    }
+    
+    LEADS ||--|| ENRICHMENT_DATA : has
+    LEADS ||--|| SCORING_COMPONENTS : has
+    LEADS ||--o| SMS_TRACKING : may_have
+    LEADS ||--o| MEETINGS : may_have
+```
+
+## Implementation Phases
+
+### Phase 1: Foundation (Day 1)
+- [ ] Create Airtable base with all tables and views
+- [ ] Build n8n ingestion workflow with Smart Field Mapper
+- [ ] Implement cost guard logic
+- [ ] Test with 10 sample leads
+
+### Phase 2: Clay Integration (Day 2)
+- [ ] Configure Clay workflow with Airtable trigger
+- [ ] Set up enrichment waterfall (Apollo → Clearbit → PDL)
+- [ ] Implement V4 scoring logic in Clay AI
+- [ ] Configure routing rules and status updates
+
+### Phase 3: SMS Orchestration (Day 3)
+- [ ] Build n8n SMS workflow with business hours check
+- [ ] Configure Twilio integration
+- [ ] Create SMS templates with personalization
+- [ ] Implement tracking link generation
+- [ ] Test sequence logic
+
+### Phase 4: Meeting & HRQ (Day 4)
+- [ ] Set up Calendly webhook receiver
+- [ ] Build meeting booking handler
+- [ ] Create HRQ daily report generator
+- [ ] Build review interface
+- [ ] Implement override logic
+
+### Phase 5: Monitoring & Launch (Day 5)
+- [ ] Create monitoring dashboard in Airtable
+- [ ] Set up alert workflows
+- [ ] Implement 90-day archive logic
+- [ ] Load test with 500 sample leads
+- [ ] Process first batch of backlog (500 leads)
+
+## Critical Configuration Details
+
+### n8n Environment Variables
+```bash
+N8N_WEBHOOK_URL=https://n8n.company.com
+AIRTABLE_API_KEY=keyXXXXXXXXXXXXXX
+TWILIO_ACCOUNT_SID=ACXXXXXXXXXXXXXXXXX
+TWILIO_AUTH_TOKEN=XXXXXXXXXXXXXXXXXX
+CALENDLY_WEBHOOK_SECRET=XXXXXXXXXXXXXXXXXX
+DAILY_COST_LIMIT=50
+ALERT_EMAIL=sales-ops@company.com
+```
+
+### Clay Configuration
+```yaml
+clay_settings:
+  airtable_connection:
+    base_id: appXXXXXXXXXXXXXX
+    api_key: keyXXXXXXXXXXXXXX
+    
+  enrichment_providers:
+    apollo:
+      api_key: XXXXXXXXXX
+      rate_limit: 100/min
+    clearbit:
+      api_key: XXXXXXXXXX
+      rate_limit: 50/min
+    peopledatalabs:
+      api_key: XXXXXXXXXX
+      rate_limit: 200/min
+      
+  monitoring:
+    check_interval: 60s
+    batch_size: 50
+    retry_failed: true
+    max_retries: 3
+```
+
+### Airtable Views Configuration
+```javascript
+// View: Qualified (Ready for SMS)
+filterByFormula: "AND(
+  {status} = 'Qualified',
+  {sms_eligible} = TRUE(),
+  {sms_sequence_step} < 3,
+  {meeting_booked_at} = BLANK()
+)"
+
+// View: HRQ (Needs Review)
+filterByFormula: "AND(
+  {status} = 'HRQ',
+  {archived_at} = BLANK(),
+  DATETIME_DIFF(NOW(), {created_at}, 'days') < 90
+)"
+
+// View: Processing Cost Monitor
+filterByFormula: "AND(
+  {created_at} >= TODAY(),
+  {processing_cost} > 0
+)"
+```
+
+## Error Handling & Recovery
+
+### Enrichment Failures
+```mermaid
+flowchart LR
+    A[Enrichment Attempt] --> B{Success?}
+    B -->|No| C[Check Retry Count]
+    C -->|< 3| D[Wait 5 min]
+    D --> E[Retry with Next Provider]
+    E --> A
+    C -->|>= 3| F[Route to HRQ]
+    F --> G[Flag: Enrichment Failed]
+    B -->|Yes| H[Continue to Scoring]
+```
+
+### SMS Delivery Failures
+```mermaid
+flowchart LR
+    S[Send SMS] --> T{Delivered?}
+    T -->|No| E{Error Type}
+    E -->|Invalid Number| I[Mark Invalid]
+    E -->|Carrier Block| C[Try Alt Provider]
+    E -->|Rate Limit| W[Wait & Retry]
+    T -->|Yes| U[Update Status]
+    I --> HRQ[Route to HRQ]
+    C --> S
+    W --> S
+```
+
+## Success Metrics & Monitoring
+
+### Real-time KPIs (Airtable Dashboard)
+- **Ingestion Rate**: Leads/hour processing
+- **Qualification Rate**: % scoring ≥70
+- **SMS Delivery Rate**: % successfully sent
+- **Click Rate**: % tracking links clicked
+- **Conversion Rate**: % meetings booked
+- **Cost per Meeting**: Total cost / meetings
+- **HRQ Volume**: Leads awaiting review
+- **Error Rate**: Failed enrichments/SMS
+
+### Daily Reports
+- Leads processed from backlog
+- Meetings booked
+- Total spend vs budget
+- HRQ resolution rate
+- Provider performance (success rates)
+
+### Weekly Analysis
+- Scoring distribution
+- HRQ reason breakdown
+- SMS sequence performance
+- Cost per meeting trends
+- Backlog completion projection
+
+## Notes & Considerations
+
+1. **Backlog Strategy**: Process oldest leads first, but prioritize those with recent engagement signals
+2. **SMS Timing**: Respect timezone - calculate local time from location data
+3. **Cost Control**: Implement hard stop at $45 (10% buffer) with manual override option
+4. **Data Privacy**: All enrichment providers must be GDPR/CCPA compliant
+5. **Scaling**: System designed for 500-1000 leads/day, can scale by adjusting Clay batch size
+6. **Archive Policy**: Auto-archive HRQ leads after 90 days to maintain performance

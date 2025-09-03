@@ -4,6 +4,11 @@ Last Updated: 2025-08-08
 # 🚀 QUICK START FOR NEW AGENT
 ## **IMMEDIATE ACTIONS REQUIRED**
 
+> Pointers:
+> - SSOT (status/decisions): `memory_bank/active_context.md`
+> - Backlog/Roadmap: `memory_bank/task_management.md`
+> - Current Session Guide: `context/CURRENT-SESSION/SESSION-GUIDE.md`
+
 ---
 
 ## **🚨 FIRST PRIORITY: VALIDATE ENFORCEMENT SYSTEMS**

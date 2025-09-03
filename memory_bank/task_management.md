@@ -130,3 +130,22 @@ This ensures transparency and prevents hallucination in task completion claims.
 - **Evidence Requirement**: Every success claim requires tool verification
 - **Update Protocol**: Add new learnings to appropriate table with file references
 - **Commit Pattern**: Git commit per chunk with learning integration notes
+
+---
+
+## Product Roadmap
+
+Moved to `memory_bank/roadmap.md`.
+
+---
+
+## Current Session TODO (scoped)
+
+| Task | Priority | Status | Evidence/Link |
+|---|---|---|---|
+| Standardize Calendly path in docs | P1 | in_progress | active_context SSOT updated |
+| Switch SMS text to client link | P1 | pending | Scheduler preview shows clean link |
+| Calendly webhook instructions (UI labels) | P1 | pending | Client admin guide prepared |
+| Record GET 404 evidence in evidence_log | P1 | pending | curl headers (HTTP/2 404) |
+| Add Cloudflare Worker spec to backlog | P2 | pending | active_context decision noted |
+| Refactor docs per agreed structure | P1 | pending | branch created, backups taken |

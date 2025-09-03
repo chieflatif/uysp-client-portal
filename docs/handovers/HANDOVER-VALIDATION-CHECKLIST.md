@@ -107,6 +107,10 @@
 ### **📈 Data Validation**:
 - [ ] **SMS Eligibility**: ready_for_sms flag accurate for qualified leads
 - [ ] **Delivery Logging**: sms_sent, sms_sent_time fields populated
+
+### Additional Checks (current system)
+- [ ] **Delivery At**: Delivery SOP writes `Delivery At` timestamp; Daily Monitoring uses it for “Delivered Today”.
+- [ ] **GET Webhook Caveat**: Any new GET webhooks on n8n Cloud must be verified with `curl -I`; if 404 at edge, defer or use Cloudflare Worker.
 - [ ] **Cost Tracking**: SMS costs added to total_processing_cost
 - [ ] **Compliance Logs**: All compliance checks logged in Communications table
 

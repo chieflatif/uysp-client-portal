@@ -10,7 +10,7 @@ Enrichment Patterns for qualification, caching, scoring, and cost tracking.
 # This pattern assumes Smart Field Mapper is the first node after any webhook
 
 Pattern: PDL Two-Phase Qualification with Human Review  
-Purpose: PDL Company API ($0.01) → PDL Person API ($0.03) → Claude ICP Scoring V3.0 (Engagement 35%, Role 40%, Company 25%) for AE-focused qualification
+Purpose: PDL Company API ($0.01) → PDL Person API ($0.03) → OpenAI ICP Scoring V4.0 (Company 25, Role 45, Location 20, Dynamic Signals 10) for AE-focused qualification
 Foundation: PRE COMPLIANCE workflow provides superior cost tracking and error handling infrastructure
 Required Nodes: Code (10DLC/cost checks), Airtable (costs), HTTP (Apollo Org/Person), Switch (decisions), Slack (alerts)
 Configuration:
@@ -117,7 +117,7 @@ Configuration:
 // This is a manual process - check daily
 Error Handling: None - manual process
 
-Pattern: AI-Enhanced ICP Scoring V3.2 with Person Location
+Pattern: AI-Enhanced ICP Scoring V4.0 with Dynamic Signals
 Purpose: Score leads 0-100 using V3.2 hybrid methodology; PERSON location only; post-enrichment gating
 Required Nodes: HTTP (Claude AI), Code (Hybrid Fallback Base), Code (Apply Person Location), Code (Outreach Router), HTTP (Slack), Airtable (Update)
 Configuration:

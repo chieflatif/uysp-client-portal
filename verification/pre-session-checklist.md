@@ -18,7 +18,7 @@ airtable-mcp list_tables --base-id appuBf0fTe8tp8ZaF
 - [ ] Test payloads ready in tests/payloads/
 
 ## Memory Bank Status
-- [ ] memory_bank/active_context.md current
+- [ ] memory_bank/active_context.md current (SSOT)
 - [ ] memory_bank/progress.md updated
 - [ ] memory_bank/evidence_log.md ready
 
@@ -26,3 +26,4 @@ airtable-mcp list_tables --base-id appuBf0fTe8tp8ZaF
 - [ ] Human ready to enable "Always Output Data" in UI
 - [ ] Human ready to select credentials in UI
 - [ ] Human understands webhook test mode
+- [ ] Note: new GET webhooks on n8n Cloud may not register at edge (404). Use clean links or Worker.

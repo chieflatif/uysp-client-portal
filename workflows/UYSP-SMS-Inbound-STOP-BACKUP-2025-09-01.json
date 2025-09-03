@@ -1,0 +1,11 @@
+{
+  "backupAt": "2025-09-01T00:00:00Z",
+  "source": "mcp_n8n_get_workflow",
+  "workflow": {
+    "id": "pQhwZYwBXbcARUzp",
+    "name": "UYSP-SMS-Inbound-STOP",
+    "active": true
+  }
+}
+
+

@@ -1,48 +1,19 @@
 {
-  "name": "uysp-lead-qualification",
+  "name": "uysp-lead-qualification-v1",
   "version": "1.0.0",
-  "description": "UYSP Lead Qualification System with Smart Workflow Positioning",
+  "description": "UYSP Lead Qualification V1",
   "main": "index.js",
   "scripts": {
-    "position-workflow": "node scripts/workflow-positioner-cli.js position",
-    "create-workflow": "node scripts/workflow-positioner-cli.js create",
-    "workflow-report": "node scripts/workflow-positioner-cli.js report",
-    "validate-positions": "node scripts/workflow-positioner-cli.js validate",
-    "show-layouts": "node scripts/workflow-positioner-cli.js layouts",
-    "test-positioning": "node scripts/workflow-positioner-cli.js test",
-    "test-all": "npm run test-positioning && node tests/comprehensive-test-runner.js",
-    "test:quick": "node tests/quick/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:smoke": "node tests/quick/smoke.js",
+    "test:validate-scoring": "node tests/quick/validate-v4-scoring.js",
+    "test:phase2d": "node tests/data/phase-2D/test-runner.js",
     "test:comprehensive": "node tests/comprehensive/full-suite.js",
     "test:wrapper": "node tests/comprehensive/test-runner-wrapper.js quick",
-    "test:smoke": "node tests/quick/smoke.js",
-    "test:phase2d": "node tests/data/phase-2D/test-runner.js",
-    "backup": "bash scripts/git-backup.sh",
-    "real-backup": "bash scripts/real-n8n-export.sh",
-    "schema-backup": "node scripts/enhanced-airtable-export.js",
-    "auto-backup": "bash scripts/auto-backup.sh",
-    "start-work": "bash scripts/work-start.sh",
-    "branch": "bash scripts/git-workflow.sh",
-    "run-tests": "node tests/automated-test-runner.js",
-    "position-main": "node scripts/workflow-positioner-cli.js position CefJB1Op3OySG8nb lead_processing",
-    "create-qualification": "node scripts/workflow-positioner-cli.js create \"UYSP Qualification Workflow\" qualification",
-    "create-sms": "node scripts/workflow-positioner-cli.js create \"UYSP SMS Campaign\" sms_campaign"
+    "test:e2e-sms": "node tests/real-data-testing/seed-sms-e2e.js",
+    "smoke:sms": "node tests/real-data-testing/seed-sms-e2e.js --count 1 --prefix smoke --send"
   },
-  "keywords": [
-    "uysp",
-    "lead-qualification",
-    "n8n",
-    "workflow-automation",
-    "smart-positioning"
-  ],
-  "author": "UYSP Team",
-  "license": "MIT",
-  "dependencies": {
-    "n8n": "^1.0.0"
-  },
-  "devDependencies": {
-    "jest": "^29.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 } 

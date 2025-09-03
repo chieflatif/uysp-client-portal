@@ -1,0 +1,299 @@
+{
+  "name": "UYSP-SMS-Trigger",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "baseId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "tableId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "triggerField": "Last Updated Auto",
+        "additionalFields": {
+          "viewId": "SMS Pipeline"
+        }
+      },
+      "id": "trg",
+      "name": "Airtable Trigger",
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -48
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "id": "delay",
+      "name": "Delay 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        -48
+      ],
+      "webhookId": "b0df846b-66a2-452b-ba6e-428b182bb10c"
+    },
+    {
+      "parameters": {
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO",
+          "__rl": true
+        },
+        "id": "={{$json.id}}",
+        "options": {}
+      },
+      "id": "get",
+      "name": "Airtable Get Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        -48
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app2.simpletexting.com/v1/send",
+        "sendBody": true,
+        "specifyBody": "form",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "sms",
+      "name": "SimpleTexting HTTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first();\nconst status = resp?.statusCode || 200;\nconst body = resp?.json || {};\nif (status !== 200) {\n  return [{ json: { sms_status: 'Failed', error_reason: `HTTP ${status}: ${body.message || 'Unknown'}`, estimated_cost: 0 } }];\n}\nreturn [{ json: { sms_status: 'Success', campaign_id: body.campaign_id || '', estimated_cost: (body.total_sent || 1) * 0.01 } }];"
+      },
+      "id": "parse",
+      "name": "Parse SMS Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "columns": {
+          "matchingColumns": [
+            "Email"
+          ]
+        },
+        "options": {}
+      },
+      "id": "update",
+      "name": "Airtable Update",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        640,
+        -48
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": ""
+        },
+        "text": "SMS Test: Lead {{$json.fields['Email']}} | Phone {{$json.fields['Phone']}} | Score {{$json.fields['ICP Score'] || 0}}",
+        "otherOptions": {}
+      },
+      "id": "sms-slack",
+      "name": "SMS Test Notify",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        160,
+        160
+      ],
+      "webhookId": "dcac0cfd-51ae-4f72-b538-3c2472f965ee",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "manual-test",
+      "name": "Manual Test",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { id: \"recbRpivHRnPhFFmE\", phone: \"8319990500\" } }];"
+      },
+      "id": "test-data",
+      "name": "Test Record ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        160
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Airtable Trigger": {
+      "main": [
+        [
+          {
+            "node": "Delay 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delay 2s": {
+      "main": [
+        [
+          {
+            "node": "Airtable Get Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Get Record": {
+      "main": [
+        [
+          {
+            "node": "SimpleTexting HTTP",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SMS Test Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SimpleTexting HTTP": {
+      "main": [
+        [
+          {
+            "node": "Parse SMS Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse SMS Response": {
+      "main": [
+        [
+          {
+            "node": "Airtable Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Test": {
+      "main": [
+        [
+          {
+            "node": "Test Record ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Record ID": {
+      "main": [
+        [
+          {
+            "node": "Airtable Get Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1e71e35e-0bab-40aa-be6d-48fc5853a4a4",
+  "meta": {
+    "instanceId": "9a636351bc32ed33e9cea59b76d232bd10caf6926c3e9fa80d47901eda407040"
+  },
+  "id": "D10qtcjjf2Vmmp5j",
+  "tags": []
+}

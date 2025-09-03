@@ -1,0 +1,364 @@
+{
+  "name": "UYSP-SMS-Scheduler",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-app2.simpletexting.com/v2/api/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "contactPhone": "={{ String(($items('List Due Leads', 0)[$itemIndex].json.fields?.['Phone'] || $items('List Due Leads', 0)[$itemIndex].json['Phone'] || '').toString()).replace(/\\D/g,'').replace(/^1/,'') }}",
+          "accountPhone": "9094988474",
+          "mode": "AUTO",
+          "text": "={{$node['Prepare Text (A/B)'].json.text}}"
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "sms",
+      "name": "SimpleTexting HTTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        -144
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "E4NDaEmBWVX3rawT",
+          "name": "Simple-TXT-API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $item(0).$node[\"Prepare Text (A/B)\"].json || {};\nconst id = ctx.id || $json.id;\nconst variant = ctx.variant || $json.variant || '';\nconst resp = $json;\nconst status = resp?.statusCode ?? 200;\nconst body = resp?.json ?? resp ?? {};\nconst base = { id, variant, ...ctx };\nconst ok = (status === 200 || status === 201) && !body?.code;\nif (!ok) {\n  return { json: { ...base, sms_status: 'Failed', error_reason: body?.message || `HTTP ${status}`, estimated_cost: 0 } };\n}\nreturn { json: { ...base, sms_status: 'Sent', campaign_id: body.id || body.campaign_id || '', estimated_cost: 0.01 } };"
+      },
+      "id": "parse",
+      "name": "Parse SMS Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "SMS Sequence Position": "={{ Number($json.prev_pos || 0) + 1 }}",
+            "SMS Variant": "={{$json.variant}}",
+            "SMS Last Sent At": "={{$now}}",
+            "SMS Sent Count": "={{ Number($json.prev_sent_count || 0) + 1 }}",
+            "SMS Status": "={{$json.sms_status}}",
+            "SMS Campaign ID": "={{$json.campaign_id || ''}}",
+            "SMS Cost": "={{$json.estimated_cost || 0}}",
+            "Error Log": "={{$json.error_reason || ''}}"
+          },
+          "matchingColumns": []
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "update",
+      "name": "Airtable Update",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        608,
+        -240
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": "list"
+        },
+        "text": "={{`SMS: ${$json.first_name || ''} ${$json.last_name || ''} | ${$json.email || ''} | ${$json.company_domain || ''}\\nSend digits: ${$json.phone_digits || ''} (orig: ${$json.phone_original || ''})\\nStatus: ${$json.sms_status || 'n/a'}  Campaign: ${$json.campaign_id || 'n/a'}${$json.error_reason ? `\\nError: ${$json.error_reason}` : ''}`}}",
+        "otherOptions": {}
+      },
+      "id": "sms-slack",
+      "name": "SMS Test Notify",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        608,
+        -48
+      ],
+      "webhookId": "dcac0cfd-51ae-4f72-b538-3c2472f965ee",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblErXnFNMKYhh3Xr",
+          "__rl": true
+        },
+        "options": {}
+      },
+      "id": "9327efec-dc0b-43d3-92f6-477b6dafe7a8",
+      "name": "Get Settings",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        -144
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblsSX9dYMnexdAa7",
+          "__rl": true
+        },
+        "options": {}
+      },
+      "id": "97d8392a-9471-4e25-8424-425ec18304ab",
+      "name": "List Templates",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        -144
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const leads = ($items(\"List Due Leads\", 0) || []).map(i => i.json.fields || i.json);\nconst settingsItem = ($items(\"Get Settings\", 0) || [])[0]?.json || {};\nconst settings = settingsItem.fields || settingsItem;\nconst aPct = Number(settings.ab_ratio_a ?? settings.ab_ratio_A ?? 50);\nconst templates = ($items(\"List Templates\", 0) || []).map(i => i.json.fields || i.json);\nfunction pickVariant(existing){ if (existing==='A'||existing==='B') return existing; const r=Math.random()*100; return r<aPct?'A':'B'; }\nfunction tmplFor(variant, step){ return templates.find(t => String(t.Variant)===variant && Number(t.Step)===step); }\nfunction firstName(rec){ return rec['First Name'] || rec['Full Name']?.split(' ')[0] || (rec['Email']||'').split('@')[0] || '' }\nfunction delayFor(step){ const t = templates.find(tt => Number(tt.Step)===step); if (t && t['Delay Days']!=null) return Number(t['Delay Days']); if (step===2) return 3; if (step===3) return 7; return 0; }\nconst out=[];\nfor (const rec of leads){\n  const phoneOriginal = String(rec['Phone'] || '');\n  const phoneDigits = phoneOriginal.replace(/\\D/g,'').replace(/^1/, '');\n  const isUS = !rec['Location Country'] || rec['Location Country'] === 'United States';\n  if (!isUS || phoneDigits.length !== 10) continue;\n  const pos = Number(rec['SMS Sequence Position'] || 0);\n  const nextStep = pos + 1;\n  if (nextStep > 3) continue;\n  if (pos > 0){\n    const last = rec['SMS Last Sent At'] || rec['Last SMS Sent'] || null;\n    if (!last) continue;\n    const lastMs = new Date(last).getTime();\n    if (Number.isNaN(lastMs)) continue;\n    const msSince = Date.now() - lastMs;\n    const needMs = delayFor(nextStep) * 24 * 60 * 60 * 1000;\n    if (msSince < needMs) continue;\n  }\n  const variant = pickVariant(rec['SMS Variant']);\n  const t = tmplFor(variant, nextStep);\n  const id = rec.id || rec['Record ID'];\n  if (!id || !t || !t.Body) continue;\n  const text = String(t.Body).replaceAll('{Name}', firstName(rec));\n  out.push({ json: { id, text, variant,\n    prev_pos: pos,\n    prev_sent_count: Number(rec['SMS Sent Count'] || 0),\n    first_name: rec['First Name'] || '',\n    last_name: rec['Last Name'] || '',\n    email: rec['Email'] || '',\n    company_domain: rec['Company Domain'] || '',\n    phone_original: phoneOriginal,\n    phone_digits: phoneDigits\n  }});\n}\nreturn out;"
+      },
+      "id": "d1f7e09f-53b0-4931-aa23-0694e164fcec",
+      "name": "Prepare Text (A/B)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "cronExpression"
+            }
+          ]
+        }
+      },
+      "id": "cron",
+      "name": "Schedule",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO",
+          "__rl": true
+        },
+        "options": {}
+      },
+      "id": "list-due",
+      "name": "List Due Leads",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        -144
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -240
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "SimpleTexting HTTP": {
+      "main": [
+        [
+          {
+            "node": "Parse SMS Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse SMS Response": {
+      "main": [
+        [
+          {
+            "node": "Airtable Update",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SMS Test Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule": {
+      "main": [
+        [
+          {
+            "node": "List Due Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Settings": {
+      "main": [
+        [
+          {
+            "node": "List Templates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Templates": {
+      "main": [
+        [
+          {
+            "node": "Prepare Text (A/B)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Text (A/B)": {
+      "main": [
+        [
+          {
+            "node": "SimpleTexting HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "List Due Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Due Leads": {
+      "main": [
+        [
+          {
+            "node": "Get Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "08cd5f69-ac3c-427e-86a7-40f6ed8dfeea",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9a636351bc32ed33e9cea59b76d232bd10caf6926c3e9fa80d47901eda407040"
+  },
+  "id": "D10qtcjjf2Vmmp5j",
+  "tags": []
+}

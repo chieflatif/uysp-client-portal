@@ -1,7 +1,12 @@
 [AUTHORITATIVE]
 Last Updated: 2025-08-08
 
-# 🚀 DEVELOPER AGENT HANDOVER PACKAGE - COMPLETE
+# 🚀 DEVELOPER AGENT HANDOVER PACKAGE - COMPLETE (ARCHIVED)
+
+> Archived. Current work uses the scheduler-based SMS system and SSOT/backlog:
+> - SSOT: `memory_bank/active_context.md`
+> - Backlog: `memory_bank/task_management.md`
+> - Session: `context/CURRENT-SESSION/SESSION-GUIDE.md`
 
 ## **PROJECT HANDOVER STATUS: ✅ READY FOR DEVELOPMENT**
 

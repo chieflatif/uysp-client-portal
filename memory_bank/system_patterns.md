@@ -71,7 +71,7 @@ Incorporate exact node configs from patterns/*.txt.
 ## Troubleshooting
 - API 429: Retry exponential.
 - Airtable 422: Check types.
-- Webhook 404: Active/URL.
+- Webhook 404: For existing POST endpoints, verify active and URL. For newly added GET endpoints on n8n Cloud, an edge 404 may indicate registration failure; verify with `curl -I` and consider alternative (e.g., Cloudflare Worker) until resolved.
 
 ## Violations to Avoid
 - No "added notifications".

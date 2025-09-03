@@ -1,0 +1,71 @@
+{
+  "meta": {
+    "instanceId": "n8n"
+  },
+  "name": "UYSP-Click-Proxy-Simple",
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Click Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 200],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "click/:token"
+      }
+    },
+    {
+      "id": "parse",
+      "name": "Parse Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 200],
+      "parameters": {
+        "jsCode": "// Simple token parsing\nconst token = $json.params?.token || 'no-token';\nreturn { json: { token, leadId: 'test-lead', targetUrl: 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr' } };"
+      }
+    },
+    {
+      "id": "redirect",
+      "name": "Redirect",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [500, 200],
+      "parameters": {
+        "options": {
+          "responseCode": 302,
+          "responseHeaders": {
+            "Location": "https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "webhook": {
+      "main": [
+        [
+          {
+            "node": "parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parse": {
+      "main": [
+        [
+          {
+            "node": "redirect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": {},
+  "tags": []
+}

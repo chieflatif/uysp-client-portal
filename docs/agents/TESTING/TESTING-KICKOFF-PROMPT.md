@@ -1,7 +1,9 @@
-[AUTHORITATIVE]
-Last Updated: 2025-08-08
+# TESTING AGENT KICKOFF PROMPT (ARCHIVED)
 
-# TESTING AGENT RESPONSIBILITIES - DETAILED FRAMEWORK
+> Archived. Use:
+> - SSOT: `memory_bank/active_context.md`
+> - Backlog: `memory_bank/task_management.md`
+> - Current Session Guide: `context/CURRENT-SESSION/SESSION-GUIDE.md`
 ## **COMPREHENSIVE BOUNDARIES & ACCOUNTABILITY**
 
 ### 🎯 **PRIMARY RESPONSIBILITIES (CORE MISSION)**

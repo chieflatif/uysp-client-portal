@@ -1,218 +1,127 @@
-# Active Context - UYSP Lead Qualification System
+# Active Context: UYSP Lead Qualification - Post-Recovery
 
-## Current State: PHASE 2C PLANNING COMPLETE - HUNTER WATERFALL IMPLEMENTATION READY
-
-### 🎯 LATEST ACHIEVEMENTS (2025-08-09): PHASE 2C PLANNING COMPLETE ✅
-
-**MILESTONE COMPLETED (PHASE 2C STRATEGIC PLANNING):**
-✅ **Strategic Analysis**: Comprehensive tool validation and system state analysis complete
-✅ **Technical Planning**: Hunter.io waterfall integration with Context7 validation complete
-✅ **Implementation Plan**: Complete chunked execution strategy with MCP tool specifications
-✅ **Documentation**: Final plan filed with AI agent handoff capability enabled
-
-**EVIDENCE OF COMPLETION:**
-✅ **Final Plan**: `/docs/ARCHITECTURE/PHASE-2C-HUNTER-WATERFALL-FINAL-PLAN.md` - Complete implementation specification
-✅ **Implementation Guide**: `/docs/CURRENT/PHASE-2C-IMPLEMENTATION-GUIDE.md` - AI agent handoff ready
-✅ **Session Status**: `/context/CURRENT-SESSION/PHASE-2C/PHASE-2C-SESSION-STATUS.md` - Session tracking complete
-✅ **Context Engineering**: Complete plan with systematic reference capability for AI agents
-
-### 🎯 PHASE 2B ACHIEVEMENTS (2025-08-07): BASELINE OPERATIONAL ✅
-
-**MILESTONE COMPLETED (PHASE 2B CORE):**
-✅ **PDL Person Enrichment**: Operational with proper authentication and data extraction  
-✅ **ICP Scoring V3.0**: 0-100 scoring system operational and writing to Airtable  
-✅ **Lead Processing Pipeline**: Individual lead qualification working end-to-end  
-✅ **Testing Validation**: Core enrichment and scoring functionality verified  
-
-**EVIDENCE OF COMPLETION:**
-✅ **Workflow ID**: Q2ReTnOliUTuuVpl - "UYSP PHASE 2B - COMPLETE CLEAN REBUILD"  
-✅ **Test Results**: PDL Person enrichment working, ICP scores being calculated and stored  
-✅ **Airtable Integration**: Enriched data and ICP scores properly written to lead records  
-✅ **Documentation**: Phase 2B closeout report with accurate achievement documentation  
-
-### 🚧 KNOWN LIMITATIONS (PHASE 2B):
-⚠️ **Bulk Processing**: Development debt - implemented but never fully tested or validated  
-⚠️ **Job Title Accuracy**: Mismatches between PDL data and LinkedIn profiles observed  
-⚠️ **Phone Normalization**: Inconsistent formatting, SMS readiness compromised  
-⚠️ **Data Quality**: Enrichment accuracy needs validation framework
-
-### 🎯 PREVIOUS ACHIEVEMENTS (2025-01-27): PDL PERSON INTEGRATION COMPLETE ✅
-
-**MILESTONE COMPLETED (PARTIAL PHASE 2):**
-✅ **PDL Person Enrichment**: HTTP Request node operational with proper authentication  
-✅ **PDL Person Processor**: Data extraction and mapping from PDL Person API  
-✅ **PDL Person Routing**: Success/failure routing with Human Review Queue integration  
-✅ **Testing Validation**: Systematic 4-phase anti-whack-a-mole protocol completed  
-
-**EVIDENCE OF COMPLETION:**
-✅ **Workflow ID**: wpg9K9s8wlfofv1u - "UYSP WORKING PRE COMPLIANCE - TESTING ACTIVE"  
-✅ **Execution ID**: 1303 - PDL Person flow with 13.5s runtime and success status  
-✅ **Airtable Record**: recCHAUgQeSNrr6bM - Human Review Queue record created for PDL failure  
-✅ **Testing Validation**: 98% confidence score with systematic evidence collection  
-✅ **PDL Routing Logic**: IF node `"operation": "true"` verified working per memory [[memory:5371063]]
-
-### 🎯 **PHASE 2B DEVELOPMENT READY - ICP SCORING V3.0**
-
-**🚀 CLIENT FEEDBACK INTEGRATED - METHODOLOGY UPDATED:**
-✅ **ICP Scoring V3.0 Framework**: Engagement-focused algorithm documented
-✅ **Development Branch**: feature/phase-2b-icp-scoring created with full backups
-✅ **Technical Requirements**: Slack integration, SMS handling, human-first workflow documented
-✅ **Context Engineering**: Complete Phase 2B development package prepared
-
-**❌ PHASE 2B COMPONENTS TO IMPLEMENT:**
-❌ **AI-Enhanced Claude ICP Scoring**: 0-100 algorithm with customer data insights (+15 tech domains, -10 generic, 3+ years experience boost)
-❌ **Outreach Potential Detection**: Score ≥70 triggers calls/SMS with upgrade potential assumption
-❌ **Score-Based Routing**: 90-100 (Ultra - immediate call), 75-89 (High - same day), 70-74 (Qualified - SMS), <70 (Archive)
-❌ **Slack Integration**: Real-time alerts with rich attachments, outreach potential flags, and action buttons
-❌ **Hybrid Scoring System**: Claude AI primary with enhanced JavaScript fallback including domain analysis
-❌ **Enhanced Airtable Schema**: New fields for outreach_potential, human_review_needed, domain_boost_applied, experience_years
-❌ **SMS Response Handling**: One-way SMS with response categorization and Davidson forwarding
-❌ **Business Hours Logic**: EST-only timezone (9am-5pm EST) for Phase 1 simplicity
-❌ **AI Monitoring System**: Claude API success rate, score distribution tracking, conversion metrics
-
-**❌ REMAINING PHASE 2 COMPONENTS (POST-2B):**
-❌ **Company Qualification (Phase 2C)**: PDL Company API + B2B tech verification  
-❌ **Lead Routing Logic (Phase 2C)**: Score-based routing with ≥70 SMS threshold
-❌ **Cost Tracking & Limits (Phase 2D)**: Daily budget enforcement and API cost monitoring
-❌ **Phone Strategy (Phase 2D)**: 3-field validation + enrichment for high-value leads + international handling  
-
-### 🎯 PREVIOUS ACHIEVEMENTS (2025-08-04): THREE-AGENT SYSTEM ORGANIZATION ✅
-
-**MAJOR MILESTONE COMPLETED:**
-✅ **Three-Agent System Organization**: Complete systematic cleanup of massive contamination and inconsistency  
-✅ **Context Engineering**: "One folder per agent" system established  
-✅ **Documentation Consistency**: Identical structure across all three agents  
-✅ **Commit & Backup**: All changes properly committed and backed up to GitHub  
-
-**EVIDENCE OF COMPLETION:**
-✅ **Git Commit**: `e369570` - THREE-AGENT SYSTEM ORGANIZATION COMPLETE (25 files changed, 2628 insertions, 882 deletions)  
-✅ **Backup Completed**: Workflow (2864 lines) + Airtable schema (157 lines) backed up (20250804_005257)  
-✅ **GitHub Push**: All changes pushed to `origin/feature/session-1-2-cleanup`  
-✅ **Context Update Commit**: `c32bfa7` - Active context updated  
-✅ **File Structure Verified**: All claimed directories and files confirmed to exist  
+**Session Status**: ✅ **ACTIVE**
+**Branch**: `feature/clay-sms-integration`
+**Date**: 2025-08-30
 
 ---
 
-## 🏗️ **THREE-AGENT SYSTEM STATUS - STRUCTURE VERIFIED**
-
-### **VERIFIED FILE STRUCTURE ACROSS ALL AGENTS:**
-
-#### **PM AGENT (VERIFIED):**
-- 📁 `context/PM/PM-CONTEXT-LOADER.md` (2380 bytes, verified exists)
-- 📁 `docs/agents/PM/PM-HANDOVER-PACKAGE.md` (2490 bytes, verified exists)  
-- 📁 `docs/agents/PM/PM-KICKOFF-PROMPT.md` (2482 bytes, verified exists)
-- 📁 `.cursorrules/PM/PM-MASTER-GUIDE.md` (12268 bytes, verified exists)
-- 📁 `.cursorrules/PM/PM-ANTI-HALLUCINATION-PROTOCOL.md` (4254 bytes, verified exists)
-
-#### **TESTING AGENT (VERIFIED):**
-- 📁 `context/TESTING/TESTING-CONTEXT-LOADER.md` (2965 bytes, verified exists)
-- 📁 `docs/agents/TESTING/TESTING-HANDOVER-PACKAGE.md` (5458 bytes, verified exists)
-- 📁 `docs/agents/TESTING/TESTING-KICKOFF-PROMPT.md` (8143 bytes, verified exists)
-- 📁 `.cursorrules/TESTING/TESTING-MASTER-GUIDE.md` (14337 bytes, verified exists)
-- 📁 `.cursorrules/TESTING/ANTI-HALLUCINATION-PROTOCOL.md` (6490 bytes, verified exists)
-
-#### **DEVELOPER AGENT (VERIFIED):**
-- 📁 `context/DEVELOPER/DEVELOPER-CONTEXT-LOADER.md` (7768 bytes, verified exists)  
-- 📁 `docs/agents/DEVELOPER/DEVELOPER-AGENT-HANDOVER-PACKAGE.md` (9246 bytes, verified exists)
-- 📁 `docs/agents/DEVELOPER/DEVELOPER-AGENT-KICKOFF-PROMPT.md` (5197 bytes, verified exists)
-- 📁 `.cursorrules/DEVELOPER/DEVELOPER-MASTER-GUIDE.md` (11217 bytes, verified exists)
-- 📁 `.cursorrules/DEVELOPER/DEVELOPER-ANTI-HALLUCINATION-PROTOCOL.md` (3758 bytes, verified exists)
-
-**CONTAMINATION ELIMINATION EVIDENCE:**
-✅ **Files Deleted**: `context/testing-agent/` and `context/session-developer-pdl/` directories removed (verified in git commit)  
-✅ **Files Created**: 15 new agent documentation files created (verified in commit)  
-✅ **Files Modified**: `.cursorrules/00-CRITICAL-ALWAYS.md` and `.cursorrules/PM/PM-MASTER-GUIDE.md` updated  
+## 🎯 Current Objective
+Implement SMS sequencing (A/B, 3 steps) with SimpleTexting using one outbound scheduler, plus small inbound webhooks (STOP, Calendly) later.
 
 ---
 
-## 📊 **CURRENT SYSTEM STATUS - PRE THREE-AGENT WORK**
-
-### **FOUNDATION STATUS (ESTABLISHED BEFORE TODAY):**
-✅ **Phase 00**: Field Normalization foundation established (100%)  
-✅ **Session 0**: Initial field testing and platform gotcha prevention complete (90% success rate)  
-✅ **PRE COMPLIANCE Foundation**: Evidence-based baseline selection complete (ID: wpg9K9s8wlfofv1u)  
-✅ **Smart Field Mapper v4.6**: Proven working in PRE COMPLIANCE workflow (19 nodes)  
-✅ **Context7 HTTP + MCP Suite**: Updated tool integration ready  
-
-### **WORKFLOW INFRASTRUCTURE:**
-✅ **Target Workspace**: https://rebelhq.app.n8n.cloud/projects/H4VRaaZhd8VKQANf/  
-✅ **Main Workflow**: PRE COMPLIANCE Baseline (ID: wpg9K9s8wlfofv1u) - Evidence-based chosen  
-✅ **Smart Field Mapper v4.6**: Node b8d9c432-2f9f-455e-a0f4-06863abfa10f - Proven working  
-✅ **Airtable Base**: appuBf0fTe8tp8ZaF - Operational  
-✅ **Environment Variables**: All 9 required variables configured  
-
-### **TESTING INFRASTRUCTURE READY:**
-✅ **Test Infrastructure**: Automated runners and evidence collection ready  
-✅ **Testing Registry**: `docs/testing-registry-master.md` - Authoritative testing status  
-✅ **Reality-Based Protocols**: Proven methodology established  
-✅ **Platform Gotchas**: Comprehensive prevention system implemented  
+## ✅ Current System Status (updated)
+- Roadmap (features only): `memory_bank/roadmap.md` (SSOT for product/backlog)
+- Outbound workflow: `UYSP-SMS-Scheduler` (`D10qtcjjf2Vmmp5j`) using hourly cron in business hours.
+- Airtable fetch: Cloud-supported `Search` with server-side `filterByFormula` and `limit` (200/run) to fetch only due leads; no table-wide scan [[memory:7536884]].
+- A/B & templating: `Get Settings` + `List Templates` supply ratios and copy; `Prepare Text (A/B)` assigns variant, selects step template, personalizes `{Name}`; timing due-check embedded.
+- Send & update: `SimpleTexting HTTP` sends; `Airtable Update` writes only allowed fields (`SMS Variant`, `SMS Sequence Position`, `SMS Last Sent At`, `SMS Sent Count`, `SMS Status`, `SMS Campaign ID`, `SMS Cost`, `Error Log`).
+- Visual cleanup: deactivated nodes removed; unnecessary writes to computed fields eliminated.
+ - Enrichment: Clay is the enrichment provider of record. Clay runs enrichment and writes back to Airtable (e.g., `Enrichment Timestamp`, company/person fields). Airtable formulas compute `ICP Score` and `SMS Eligible (calc)` from Clay-provided fields; the scheduler gates on these.
 
 ---
 
-## 🚨 **END-OF-DAY PROTOCOL STATUS**
-
-### **✅ COMPLETED TODAY (EVIDENCE-VERIFIED):**
-1. **Agent Organization**: Complete three-agent system restructuring (commit e369570)  
-2. **Documentation Audit**: Verified no new rules invented, all based on existing patterns  
-3. **Git Commit**: Comprehensive commit with 25 files changed, 2628 insertions, 882 deletions  
-4. **Real Backup**: n8n workflow (2864 lines) + Airtable schema (157 lines) backup executed  
-5. **GitHub Push**: All changes pushed to `origin/feature/session-1-2-cleanup`  
-6. **Context Update**: Current status documented with evidence (commit c32bfa7)  
+## 📌 Decisions
+- Keep single outbound workflow (Option A). Inbound STOP + Calendly as tiny separate workflows (deferred for v1 cutover).
+- Batch cap = 200/run (tunable). If backlog > cap, next cron picks remaining.
+- Clicks do not stop sequences; only Booked/STOP/Manual Stop.
+- Clay enrichment remains mandatory pre-SMS; n8n does not replace Clay for enrichment.
+- Companies cache-first rule: `Leads.Company` links to `Companies` by `Domain`. If linked company exists, use company fields from `Companies` for scoring and skip company re‑enrichment in Clay; only enrich companies missing from `Companies`.
 
 ---
 
-**CONFIDENCE SCORE**: **95%** - Based on verified git commits, confirmed file existence, backup completion, and systematic evidence collection  
+## ✅ COMPLETE SYSTEM VALIDATION (2025-08-29)
+**SMS Sequencer v1 FULLY OPERATIONAL - Live tested with real SMS**
 
-**EVIDENCE SOURCES**: Git log verification, directory structure confirmation, backup file verification, commit content analysis  
+- **3-Step Sequence**: ✅ COMPLETE - Executions 2967/2976/2980. Full A/B sequence Ryan+Chris, Position 0→1→2→3, Status "Completed"  
+- **STOP Processing**: ✅ COMPLETE - Executions 2989/2990. Real SMS STOP replies processed, leads marked stopped
+- **Calendly Integration**: ✅ COMPLETE - Execution 2965. Booking webhook sets Booked=true, stops sequences
+- **Delivery Tracking**: ✅ COMPLETE - Real SimpleTexting delivery webhooks updating Status=Delivered
+- **Business Continuity**: ✅ PROVEN - System resumes sequences correctly after stop/restart
 
-**VERIFICATION STATUS**: Tool verified (git commands, ls commands, file system verification) - Agent validated (systematic audit completed)  
+## ▶ CRITICAL DEVELOPMENT PRIORITIES (Updated 2025-08-30)
 
-**UNCERTAINTY FACTORS**: Testing Agent orchestration capabilities require validation, current workflow operational status needs verification, Session 1.2 completion criteria assessment pending  
+### **🚨 PRIORITY 1: Click Tracking Implementation**
+- **Status**: 🟡 BLOCKED - n8n Cloud webhook registration bug
+- **Business Impact**: ZERO conversion tracking without this - foundational for metrics
+- **Technical Issue**: New webhook endpoints fail to register (404) despite being active
+- **Workaround Needed**: Future development when n8n fixes webhook registration
+- **Current State**: HMAC generation working in SMS scheduler, receiver workflow built but can't activate
 
-**HONESTY CHECK**: 100% evidence-based. No assumptions about future capabilities or unverified system status. All claims backed by file system verification, git commits, and backup evidence.
+### **📊 PRIORITY 2: Daily Monitoring Workflow**  
+- **Status**: 🟢 COMPLETE — Workflow created and tested (ID: 5xW2QG8x2RFQP8kx)
+- **Scope**: Daily Cron → Airtable searches (24h) → Summary → Slack (C097CHUHNTG)
+- **Notes**: Enabled "Always Output Data" on searches; Delivered uses `Delivery At`; Manual Trigger for ad‑hoc runs.
+
+### **🏢 PRIORITY 3: HRQ Routing Enforcement**
+- **Status**: 🟢 CORE COMPLETE — Personal email detection + reviewer flow finalized
+- **Business Impact**: Cost savings by skipping enrichment on personal emails (gmail.com, yahoo.com, etc.)
+- **Implemented**: HRQ Status="Archive" for personal emails; Enrichment gaps handled via view‑only detection (No Person Data). Reviewer resume: set `HRQ Status="Qualified"` AND `Processing Status="Queued"`.
+- **Remaining**: Optional post‑enrichment criteria checker (deferred); no separate action‑processor workflow needed.
+
+### **📈 PRIORITY 4: 30K Lead Spreadsheet Processing**
+- **Status**: 🔴 Pipeline architecture needed for massive scale ingestion
+- **Business Impact**: MAJOR - Real business growth opportunity, bulk lead activation
+- **Requirements**: Bulk ingestion → enrichment → qualification → SMS pipeline (TBD)
+
+### **🛡️ PRIORITY 5: Automated Backup System**
+- **Status**: 🟡 Manual process working, automation needed for operational safety
 
 ---
 
-## 📚 **DOCUMENTATION STRUCTURE UPDATE - 2025-01-27**
-
-### **✅ COMPLETED TODAY (EVIDENCE-VERIFIED):**
-1. **Documentation Reorganization**: Docs folder restructured by purpose (CURRENT/PROCESS/ARCHITECTURE/ARCHIVE)  
-2. **Role Context Updates**: All role contexts updated to reference new documentation paths  
-3. **Authority Clarification**: Each document assigned clear agent ownership  
-4. **Session Integration**: Documentation fully supports ROLE + SESSION workflow  
-
-### **NEW DOCUMENTATION PATHS**:
-- **Current/Active**: `docs/CURRENT/` - Platform gotchas, ICP V3.0, Phase 2B specs, workflows
-- **Process/Workflow**: `docs/PROCESS/` - Testing registry, documentation control, procedures  
-- **Technical Architecture**: `docs/ARCHITECTURE/` - System design, migration roadmaps, blueprints
-- **Historical Archive**: `docs/ARCHIVE/outdated-2025-jan/` - Phase 00 reports and outdated materials
-
-**Note**: For all testing procedures and current system readiness, reference `docs/PROCESS/testing-registry-master.md` as authoritative source.
+## 🧪 Verification
+Outbound: Scheduler updates fields; Test Mode routing verified; cron UTC `0 14-21 * * 1-5`.
+Delivery: Executions 2960, 2959 updated leads to Delivered; Slack and Audit rows present.
+Inbound STOP: Executions 2961, 2962 updated matching leads and set STOP fields.
 
 ---
 
-## 🎯 CURRENT DEVELOPMENT PHASE: PHASE 2C HUNTER WATERFALL IMPLEMENTATION
+## 🔎 Workflow SSOT (2025-09-02)
 
-### **PHASE 2C OBJECTIVE**: 
-Implement Hunter.io as non-disruptive fallback enrichment provider after PDL Person API failures
+- Client Calendly link (for SMS): https://calendly.com/d/cwvn-dwy-v5k/sales-coaching-strategy-call-rrl
+- Click tracking: See `context/CURRENT-SESSION/CLICK-TRACKING-WEBHOOK-SPEC.md` (proxy design, GET 404 evidence, Worker fallback). Until GET is available, ship clean Calendly link or Worker.
 
-### **IMPLEMENTATION STATUS**:
-✅ **Strategic Planning**: Complete with tool validation and system analysis
-✅ **Technical Architecture**: Context7 validated node specifications ready  
-✅ **Chunked Strategy**: 5-chunk execution plan with ≤5 operations per chunk
-✅ **Risk Mitigation**: Memory-informed safeguards and proven patterns applied
-✅ **Documentation**: Complete implementation plan filed for AI agent handoff
+| Workflow | ID | Active | Trigger/Path(s) | Purpose | Evidence | TODO/NEXT |
+|---|---|---|---|---|---|---|
+| UYSP-SMS-Scheduler | D10qtcjjf2Vmmp5j | ✅ | Cron `0 14-21 * * 1-5` | Outbound sends; A/B; audit; Slack | Executions 2967/2976/2980 (3‑step proven) | Swap SMS link to client Calendly; disable URL replacement or move to Worker until GET fixed |
+| UYSP-ST-Delivery V2 | vA0Gkp2BrxKppuSu | ✅ | POST `/webhook/simpletexting-delivery` | Delivery updates → Leads + Audit + Slack | Executions 2960, 2959 | None |
+| UYSP-Calendly-Booked | LiVE3BlxsFkHhG83 | ✅ | POST `/webhook/calendly` | Booked=true; stop sequence | Execution 2965 | Confirm final path naming; keep link in Settings |
+| UYSP-SMS-Inbound-STOP | pQhwZYwBXbcARUzp | ⛔ | POST `/webhook/simpletexting-inbound` (STOP); GET same (click) | STOP/UNSTOP processing; click 302 branch | Real STOP verified earlier; GET 404 at edge | Activate POST; keep GET branch dormant; consider Cloudflare Worker for clicks |
+| UYSP-Daily-Monitoring | 5xW2QG8x2RFQP8kx | ⛔ | Cron `0 14 * * 1-5` | 24h counts → Slack | Manual test 3026 | Ensure Delivered node uses `Delivery At`; activate |
+| UYSP-Realtime-Ingestion | 2cdgp1qr9tXlONVL | ⛔ | POST `/webhook/leads-intake` | Kajabi form intake → upsert leads; HRQ archive personal emails | Node review complete | Confirm forms/fields; activate |
+| UYSP Backlog Ingestion | qMXmmw4NUCh1qu8r | ⛔ | Manual | CSV → normalize → upsert; HRQ archive personal emails | Node review complete | Provide CSV; run batched |
 
-### **NEXT IMMEDIATE ACTION**:
-- Phase 2C bug-fix handoff prepared (Duplicate Handler, Airtable Upsert, Data Integrity Validator)
-- Phase 2D/2E PM context packages created with exact specs and prompts
-- Awaiting development execution per prepared prompts
+Notes
+- GET webhook 404: New GET methods/paths appear unregistered at n8n Cloud edge (curl -I returns 404) while existing POST webhooks work; STOP path kept isolated.
 
-### **IMPLEMENTATION READINESS**:
-✅ **AI Agent Handoff**: Complete context engineering with systematic reference capability
-✅ **MCP Tool Access**: Validated operational patterns for n8n PROJECT workspace
-✅ **Baseline Preservation**: Zero-impact strategy maintaining Phase 2B performance
-✅ **Evidence Framework**: Comprehensive testing protocols with execution ID collection
+---
 
-**LAST UPDATED**: August 9, 2025 - Phase 2C planning complete, implementation ready  
-**STATUS**: Planning complete with finalized implementation plan ready for immediate execution
+## 📌 Production Links & Secrets (references only)
+- Calendly booking link (client, SMS display): `https://calendly.com/d/cwvn-dwy-v5k/sales-coaching-strategy-call-rrl`
+- Note: Any signing secrets, API keys, or HMAC secrets are stored in credentials/env, not in repo.
+
+---
+
+## 🔎 Single‑Source Workflow Status (SSOT)
+
+| Workflow | ID | Trigger | Path/Method | Active | Purpose | Evidence | Next Actions |
+|---|---|---|---|---|---|---|---|
+| UYSP‑SMS‑Scheduler | D10qtcjjf2Vmmp5j | Cron | N/A | ✅ | Outbound SMS (A/B, 3‑step), Slack, Sent audit | Live tests 2967/2976/2980 | If click tracking disabled, ensure URL replacement is OFF for clean link |
+| UYSP‑ST‑Delivery V2 | vA0Gkp2BrxKppuSu | Webhook | /webhook/simpletexting‑delivery (POST) | ✅ | Delivery parse → set `SMS Status`, Slack, audit | Exec 2960/2959 | None |
+| UYSP‑Calendly‑Booked | LiVE3BlxsFkHhG83 | Webhook | /webhook/calendly (POST) | ✅ | Mark `Booked=true`, stop sequence | Exec 2965 | Standardize docs to this path; client to add org webhook |
+| UYSP‑SMS‑Inbound‑STOP | pQhwZYwBXbcARUzp | Webhook | /webhook/simpletexting‑inbound (POST) | ⛔ | STOP/UNSTOP processing | Exec 2989/2990 previously when active | Toggle Active ON; keep GET branch isolated |
+| Click Redirect (GET) | in STOP wf | Webhook | /webhook/simpletexting‑inbound (GET) | ⛔ 404 | Intended 302 redirect for clicks | curl shows 404 at edge | Defer or move to Cloudflare Worker |
+| UYSP‑Daily‑Monitoring | 5xW2QG8x2RFQP8kx | Cron | N/A | ⛔ | 24h KPIs → Slack | Manual exec 3026 | Activate; ensure Delivered uses `Delivery At` |
+| UYSP‑Realtime‑Ingestion | 2cdgp1qr9tXlONVL | Webhook | /webhook/leads‑intake (POST) | ⛔ | Create/queue leads; HRQ personal email | Code node HRQ logic present | Confirm Kajabi forms; activate |
+| UYSP Backlog Ingestion | qMXmmw4NUCh1qu8r | Manual | N/A | ⛔ | CSV → upsert leads; HRQ personal email | Parser/Upsert ready | Provide CSV; run batches |
+
+Notes:
+- GET click path returns 404 (edge not registered). Existing POST paths are unaffected. This matches curl header evidence gathered 2025‑09‑01.
+
+---
+
+## 🎯 Launch Decisions (Click Tracking)
+- For launch: use clean Calendly link in SMS (no token) to keep messages tidy and avoid GET registration bug.
+- Alternative (if required now): Cloudflare Worker redirect on client domain verifying HMAC and 302 to Calendly; optionally POST a click event back to existing POST endpoint.
+

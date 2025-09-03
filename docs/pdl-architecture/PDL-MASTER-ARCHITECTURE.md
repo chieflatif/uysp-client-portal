@@ -1,10 +1,18 @@
-# PDL MASTER ARCHITECTURE
-**TYPE**: Primary Authoritative Architecture  
-**RESPONSIBILITY**: Development Team  
-**UPDATE FREQUENCY**: Major system changes  
-**LAST UPDATED**: August 1, 2025  
-**NEXT REVIEW**: After PRE COMPLIANCE → PDL migration completion  
-**CROSS-REFERENCES**: Pattern 00, 07; PRE COMPLIANCE baseline (ID: wpg9K9s8wlfofv1u); testing-registry-master.md
+# UYSP Lead Qualification: Final Comprehensive Development Plan v5.0
+
+**Document Version**: 5.0 FINAL PRODUCTION-READY  
+**Date**: August 21, 2025  
+**Prepared By**: AI Architect  
+**Status**: **SUPERSEDED** - Refer to `context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/MAJOR-REFACTOR-CLAY-COM-PLAN.md`  
+**Architecture**: Option C - Minimalist n8n with Clay.com Integration
+
+---
+
+## **Executive Summary**
+
+This document provides the complete, production-hardened implementation plan for the UYSP Lead Qualification workflow refactor. The system will process a 10,000 lead backlog and scale to 700+ leads/week, achieving 3-5x more meetings at <$5 each through automated qualification, enrichment, and SMS outreach.
+
+---
 
 ## INTEGRATION REQUIREMENTS
 - **Patterns Required**: Pattern 00 (mandatory first), Pattern 07 (PDL integration)
@@ -24,7 +32,7 @@
 ### **PDL INTEGRATION POINTS**
 1. **Company Qualification**: PDL Company API ($0.01/call) after field normalization
 2. **Person Enrichment**: PDL Person API ($0.03/call) after company passes  
-3. **ICP Scoring**: Claude AI (0-100 scale) combining company + person data
+3. **ICP Scoring**: Claude AI (0-100 scale) combining company + person data — see `docs/CURRENT/ICP-SCORING-V4-METHODOLOGY.md` (Company 25, Role 45, Person Location 20, Dynamic 10, +5 prime-fit; SMS eligibility separate)
 4. **SMS Campaign**: SimpleTexting direct for qualified leads (ICP ≥70, US only)
 
 ---
@@ -66,7 +74,7 @@ Routing: Pass → ICP scoring | Fail → Human review queue
 Input: Combined company + person qualification data
 Service: OpenAI GPT-4 chat completions (Message a model node)
 Scoring: 0-100 scale based on ICP criteria
-Threshold: ≥70 required for SMS campaign eligibility
+Threshold: ≥70 required for SMS campaign eligibility (independent of SMS eligibility gate)
 Routing: ≥70 → SMS | 50-69 → Archive | <50 → Archive
 ```
 

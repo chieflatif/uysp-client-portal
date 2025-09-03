@@ -1,0 +1,65 @@
+### System message for next AI Developer Agent
+
+- Role: Developer Agent (code only; no PM/testing). Use MCP tools; skip backups this session.
+
+- Repo/branch
+  - Current branch: `major-refactor-clay-com` (tracking `origin/major-refactor-clay-com`)
+  - Remote: `https://github.com/chieflatif/UYSP-Lead-Qualification-V1.git`
+  - Backups and commits were pushed already; do not run backup scripts now
+
+- n8n workspace and assets
+  - Project/workspace ID: `H4VRaaZhd8VKQANf`
+  - Core workflows to work with:
+    - `UYSP-Realtime-Ingestion` (ID `2cdgp1qr9tXlONVL`) – Active: Webhook → Normalize → Airtable upsert
+    - `UYSP Backlog Ingestion` (ID `qMXmmw4NUCh1qu8r`) – Manual: CSV fetch/parse → Normalize → Airtable upsert
+    - `UYSP-SMS-Trigger` (ID `D10qtcjjf2Vmmp5j`) – SMS path working via SimpleTexting; Airtable Trigger node exists but is disabled
+    - `UYSP-Health-Monitor` (ID `wNvsJojWTr0U2ypz`) – Cron + Slack alert/daily report configured
+  - SMS: SimpleTexting path tested and working; Slack channel `C097CHUHNTG` used for notifications
+
+- Airtable details
+  - Base ID: `app6cU9HecxLpgT0P`
+  - Leads table ID: `tblYUvhGADerbD8EO`
+  - View to watch for SMS Trigger: `SMS Pipeline`
+  - Trigger field intended: `Last Updated Auto`
+
+- Start-of-session checks (tools recheck)
+  - Verify MCP connectivity:
+    - List n8n workflows; confirm project scope to `H4VRaaZhd8VKQANf`
+    - List Airtable bases and describe Leads table (confirm view/fields)
+    - Optionally load n8n node docs via Context7, if you’ll modify node params
+  - Do not run any backup scripts; they’ve already been completed
+
+- Primary next tasks (development)
+  - Productionize `UYSP-SMS-Trigger`:
+    - Configure the existing Airtable Trigger node with Base=`app6cU9HecxLpgT0P`, Table=`tblYUvhGADerbD8EO`, Trigger Field=`Last Updated Auto`, View=`SMS Pipeline`
+    - Enable the Airtable Trigger node
+    - Keep existing SMS HTTP + Slack notify path intact
+    - Optional: disable the Manual Test path to avoid confusion
+  - Use ≤5 MCP operations per chunk (prefer `updateNode` and `enableNode`; simple `addConnection/removeConnection` if needed)
+  - Evidence to capture in notes for each chunk:
+    - n8n update response shows success + new `versionId`
+    - Workflow structure reflects enabled trigger
+    - Airtable schema/view confirmed
+    - If you test, capture execution IDs
+
+- Guardrails and gotchas
+  - Do not reference conditional nodes from Airtable expressions
+  - Ensure “Always Output Data” is OFF on routing IF nodes (Settings tab)
+  - Preserve battle‑tested nodes: Smart Field Mapper v4.x, ICP Response Processor, Lead Qualifier V3.2
+  - Stop after 2–3 failed connection attempts and request human UI wiring
+
+- What to skip
+  - Skip backup/export this session
+  - Do not create new export scripts or manual JSON backups
+  - Do not alter business logic thresholds without explicit instruction
+
+- Ready-to-use IDs/strings
+  - Project: `H4VRaaZhd8VKQANf`
+  - Airtable Base: `app6cU9HecxLpgT0P`
+  - Leads Table: `tblYUvhGADerbD8EO`
+  - Workflows: `2cdgp1qr9tXlONVL`, `qMXmmw4NUCh1qu8r`, `D10qtcjjf2Vmmp5j`, `wNvsJojWTr0U2ypz`
+
+Summary
+- Backups/commits are done and pushed; branch set to `major-refactor-clay-com`.
+- Recheck MCP access, then implement and enable the Airtable Trigger in `UYSP-SMS-Trigger` using the IDs above.
+- Keep changes chunked (≤5 ops), collect evidence, and preserve existing working logic.

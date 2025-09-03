@@ -14,7 +14,7 @@ You're absolutely right to question whether this is just more sophisticated thea
 
 ---
 
-## **🎯 INDEPENDENT VERIFICATION METHODS**
+## **🎯 INDEPENDENT VERIFICATION METHODS (add system checks)**
 
 ### **METHOD 1: USER-DIRECTED BYPASS TESTING**
 
@@ -28,6 +28,20 @@ node tests/independent-verification-challenge.js
 ```
 
 **Specific bypass attempts YOU can try:**
+### **METHOD 3: SYSTEM WEBHOOK CHECKS (Current Project)**
+- Delivery webhook header check:
+  ```bash
+  curl -I "https://rebelhq.app.n8n.cloud/webhook/simpletexting-delivery"
+  # Expect: HTTP/2 405 (GET not allowed) or 2xx on POST tests, not 404
+  ```
+- Click redirect GET edge check:
+  ```bash
+  curl -I "https://rebelhq.app.n8n.cloud/webhook/simpletexting-inbound?token=INVALID"
+  # Expect: HTTP/2 404 (edge not registered for GET). This is documented; use clean links.
+  ```
+- Daily Monitoring Delivered filter:
+  - Confirm Airtable node uses `Delivery At` for last 24h counts.
+
 
 1. **Synonym Bypass Test**:
    - Replace "Framework simulation" with "Platform emulation"

@@ -23,10 +23,11 @@ Last Updated: 2025-08-08
 - **Agent Coordination**: Testing Agent and Developer Agent oversight
 
 ### 📊 **ESSENTIAL DOCUMENTATION**
-- **Master Guide**: `.cursorrules/PM/PM-MASTER-GUIDE.md` (single source of truth)
-- **Context Loader**: `context/PM/PM-CONTEXT-LOADER.md` (streamlined loading)
-- **Memory Bank**: `memory_bank/active_context.md` for current project status
-- **Testing Registry**: `docs/testing-registry-master.md` for system status
+- **SSOT (status/decisions/priorities)**: `memory_bank/active_context.md`
+- **Backlog/Roadmap**: `memory_bank/task_management.md`
+- **Current Session Guide**: `context/CURRENT-SESSION/SESSION-GUIDE.md`
+- **Master Guide**: `.cursorrules/PM/PM-MASTER-GUIDE.md`
+- **Testing Registry**: `docs/testing-registry-master.md`
 
 ### 🚨 **CRITICAL BOUNDARIES**
 - ❌ NO code writing, implementation, or technical decisions

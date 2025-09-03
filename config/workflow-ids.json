@@ -1,24 +1,26 @@
 {
-  "main_workflow": "wpg9K9s8wlfofv1u",
-  "baseline_name": "PRE COMPLIANCE",
-  "smart_field_mapper_node": "b8d9c432-2f9f-455e-a0f4-06863abfa10f",
-  "webhook_node": "a01c64a7-880f-4003-86e1-61f129f329a9", 
-  "check_unknown_fields_node": "unknown-fields-check",
-  "field_mapping_log_node": "field-mapping-log-create",
-  "version": "87e5e6cd-0626-4f94-b58b-423aadfe4f00",
-  "phase": "PDL Development Ready",
-  "last_updated": "2025-08-01T20:30:00.000Z",
-  "backup_location": "workflows/backups/uysp-lead-processing-WORKING-20250801_141716.json",
-  "component_export": "patterns/exported/smart-field-mapper-v1.js",
-  "previous_workflows": {
-    "session_1_deprecated": "THLrjTC7v6LiXZnV",
-    "grok_reference": "VjJCC0EMwIZp7Y6K"
-  },
-  "evidence": {
-    "test_records_created": 8,
-    "field_capture_rate": "98%+",
-    "boolean_conversion_working": true,
-    "international_detection_working": true,
-    "micro_chunks_complete": 6
+  "description": "This file contains the key identifiers for the production n8n workflows.",
+  "last_updated": "2024-10-27T12:00:00.000Z",
+  "workflows": {
+    "main_orchestrator": {
+      "id": "placeholder_main_orchestrator_id",
+      "file": "workflows/UYSP-Main-Orchestrator-PRODUCTION-READY.json",
+      "description": "Main entry point for lead processing."
+    },
+    "w2_enrichment": {
+      "id": "placeholder_w2_enrichment_id",
+      "file": "workflows/W2-Enrichment-Sub-Workflow-PRODUCTION.json",
+      "description": "Handles lead enrichment via provider waterfall."
+    },
+    "w3_scoring": {
+      "id": "placeholder_w3_scoring_id",
+      "file": "workflows/W3-Scoring-Sub-Workflow-PRODUCTION.json",
+      "description": "Scores leads using the ICP v4.0 methodology."
+    },
+    "w4_persistence": {
+      "id": "placeholder_w4_persistence_id",
+      "file": "workflows/W4-Persistence-Sub-Workflow-PRODUCTION.json",
+      "description": "Saves final lead data to Airtable."
+    }
   }
 } 

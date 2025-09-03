@@ -66,6 +66,22 @@ Risks: <list>
 - All role guides (Developer, PM, Testing) must implement this standard.
 - Platform specifics live in `docs/CURRENT/critical-platform-gotchas.md`. Role guides should be role‑first; refer to gotchas as an annex, not as the core.
 
+## Documentation Integration and File Placement
+- Follow Plan → Document → Execute → Update Docs.
+- SSOT for context engineering: `.cursorrules/CONTEXT-ENGINEERING-STANDARD.md`.
+- After any action: update `memory_bank/active_context.md` and `context/CURRENT-SESSION/SESSION-GUIDE.md`; log evidence in `memory_bank/evidence_log.md` and progress in `memory_bank/progress.md`.
+- File Placement Guardrail: session docs → `context/CURRENT-SESSION/`; system/long‑lived docs → `docs/architecture/` or `docs/handovers/`. Prefer updating existing files; never create ad‑hoc paths.
+
+## Memory-Impacting Documents ("Pinocchio" documents)
+- The following documents directly influence assistant behavior and memories. Changes may require memory updates or re-mirroring `memory_bank/memory-index.md`:
+  - `memory_bank/active_context.md`
+  - `memory_bank/system_patterns.md`
+  - `memory_bank/tech_context.md`
+  - `context/CURRENT-SESSION/SESSION-GUIDE.md`
+  - `.cursorrules/CONTEXT-ENGINEERING-STANDARD.md`
+  - `memory_bank/memory-index.md` (mirror of global memories)
+- Do not mark tasks complete until documentation updates are applied (include done-when: docs updated).
+
 ## Two-Tier Development Strategy (Cost Optimization)
 - **Strategic Analysis Phase**: Expensive thinking models perform heavy-lifting research, validation, and comprehensive planning (Phase 0 + Phase 1).
 - **Implementation Execution Phase**: Cost-efficient models execute the validated strategic plan with chunked implementation (≤5 operations per chunk).

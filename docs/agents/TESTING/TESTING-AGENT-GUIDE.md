@@ -4,6 +4,11 @@ Last Updated: 2025-08-09
 # 🧪 TESTING AGENT GUIDE
 ## **UYSP LEAD QUALIFICATION TESTING SPECIALIST**
 
+> Pointers:
+> - SSOT (status/decisions): `memory_bank/active_context.md`
+> - Backlog/Roadmap: `memory_bank/task_management.md`
+> - Current Session Guide: `context/CURRENT-SESSION/SESSION-GUIDE.md`
+
 ### 🎯 **ROLE WITHIN THREE-AGENT SYSTEM**
 
 **Primary Function**: Execute systematic, reality-based testing protocols for UYSP Lead Qualification System  
