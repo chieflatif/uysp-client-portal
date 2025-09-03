@@ -1,0 +1,442 @@
+{
+  "createdAt": "2025-08-28T21:38:10.440Z",
+  "updatedAt": "2025-09-01T22:30:21.000Z",
+  "id": "pQhwZYwBXbcARUzp",
+  "name": "UYSP-SMS-Inbound-STOP",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "simpletexting-inbound",
+        "options": {}
+      },
+      "id": "wb",
+      "name": "Webhook (STOP)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1024,
+        328
+      ],
+      "webhookId": "5aaa37a6-e652-4a48-94af-91f5717bb794"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst raw = $json || {};\nconst body = raw.body || raw;\nconst params = raw.params || {};\n\n// CHECK FOR CLICK TRACKING (GET request with token parameter)\nif (raw.method === 'GET' && params.token) {\n  const token = params.token;\n  const secret = 'uysp-click-tracking-secret-2025';\n  \n  try {\n    // Decode and verify HMAC token\n    const decoded = Buffer.from(token, 'base64url').toString('utf8');\n    const [payload, signature] = decoded.split('.');\n    const expectedSignature = crypto.createHmac('sha256', secret).update(payload).digest('hex');\n    \n    if (signature === expectedSignature) {\n      const data = JSON.parse(Buffer.from(payload, 'base64').toString('utf8'));\n      const now = Date.now();\n      const tokenAge = now - data.ts;\n      const maxAge = 7 * 24 * 60 * 60 * 1000;\n      \n      if (tokenAge <= maxAge) {\n        // Valid click tracking - return redirect data\n        return { json: { \n          type: 'CLICK_TRACKING',\n          leadId: data.leadId,\n          targetUrl: data.targetUrl || 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr',\n          statusCode: 302,\n          headers: {'Location': data.targetUrl || 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr'}\n        }};\n      }\n    }\n  } catch (error) {\n    // Invalid token - redirect to default\n    return { json: { \n      type: 'CLICK_TRACKING',\n      error: 'Invalid token',\n      statusCode: 302,\n      headers: {'Location': 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr'}\n    }};\n  }\n}\n\n// EXISTING STOP/UNSTOP LOGIC\nconst values = body.values || body.body?.values || body;\nconst text = String(values.text || body.text || body.message || body.Message || '').trim().toUpperCase();\nconst from = String(values.contactPhone || values.phone || body.from || body.phone || body.Phone || body.msisdn || '').trim();\nconst digits = from.replace(/\\D/g,'').replace(/^1/, '');\nconst isStop = /\\b(STOP|END|QUIT|UNSUB|UNSUBSCRIBE|CANCEL)\\b/.test(text);\nconst isUnstop = /\\b(UNSTOP|RESUME|START|OPTIN|OPT.?IN)\\b/.test(text);\nif (!isStop && !isUnstop) return null;\nconst action = isStop ? 'STOP' : 'UNSTOP';\nreturn { json: { type: 'STOP_COMMAND', phone_digits: digits, text, action } };\n"
+      },
+      "id": "parse",
+      "name": "Parse Inbound",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        328
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "if ($json.skip) { return null } ; return $input.item;"
+      },
+      "id": "guard",
+      "name": "Skip Non-Commands",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "={{`OR(REGEX_REPLACE({Phone}, \"\\\\D\", \"\")='${$json.phone_digits||''}', REGEX_REPLACE({Phone}, \"\\\\D\", \"\")='1${$json.phone_digits||''}')`}}",
+        "options": {}
+      },
+      "id": "find",
+      "name": "Find Lead by Phone",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        328
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "SMS Stop": "={{ $('Parse Inbound').item.json.action === 'STOP' ? true : false }}",
+            "SMS Stop Reason": "={{ $('Parse Inbound').item.json.action === 'STOP' ? 'STOP' : '' }}",
+            "Processing Status": "={{ $('Parse Inbound').item.json.action === 'STOP' ? 'Stopped' : 'Queued' }}"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "update",
+      "name": "Mark STOP/UNSTOP",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        328
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "simpletexting-inbound",
+        "options": {},
+        "responseMode": "responseNode"
+      },
+      "id": "cdbde916-f6de-4572-9150-8de57571d596",
+      "name": "Webhook (Clicks GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1024,
+        -160
+      ],
+      "webhookId": "41865747-7da5-4d7e-ab42-1e5fc364351e"
+    },
+    {
+      "parameters": {
+        "options": {},
+        "responseCode": 302,
+        "responseBody": "",
+        "responseHeaders": {
+          "headers": [
+            {
+              "name": "Location",
+              "value": "={{$json.headers.Location || $json.Location || 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr'}}"
+            }
+          ]
+        }
+      },
+      "id": "837d2c53-59c3-454c-ad9f-86af1855ffe7",
+      "name": "Respond 302",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const crypto = require('crypto');\nconst token = $json.params?.token || '';\nconst secret = 'uysp-click-tracking-secret-2025';\n\nfunction respond(url, leadId){\n  return { json: { type: 'CLICK_TRACKING', leadId: leadId || null, statusCode: 302, headers: { Location: url } } };\n}\n\nconst fallbackUrl = 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr';\nif (!token) { return respond(fallbackUrl, null); }\n\ntry {\n  const decoded = Buffer.from(token, 'base64url').toString('utf8');\n  const [payload, signature] = decoded.split('.');\n  const expected = crypto.createHmac('sha256', secret).update(payload).digest('hex');\n  if (signature !== expected) { return respond(fallbackUrl, null); }\n  const data = JSON.parse(Buffer.from(payload, 'base64').toString('utf8'));\n  const maxAgeMs = 7*24*60*60*1000;\n  if (Date.now() - (data.ts||0) > maxAgeMs) { return respond(fallbackUrl, null); }\n  const redirectUrl = data.targetUrl || fallbackUrl;\n  const leadId = data.leadId || data.l || null;\n  return respond(redirectUrl, leadId);\n} catch (e) {\n  return respond(fallbackUrl, null);\n}\n"
+      },
+      "id": "c047f07a-de98-43de-9974-c92589f4d0d9",
+      "name": "Click Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Event": "Click",
+            "Lead Record ID": "={{ $json.leadId || '' }}",
+            "Webhook Raw": "={{ JSON.stringify($json) }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "4875bab7-0726-4e55-8c57-529eaab1c0cb",
+      "name": "Audit Click",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        -352
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "if(!$json.leadId){return null};return $input.item;"
+      },
+      "id": "830e2581-50eb-4011-a678-c7bd8675327f",
+      "name": "Has LeadId",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.leadId }}",
+            "SMS Status": "Clicked"
+          }
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "841e8f72-70e5-4236-a42f-ebb2d90b41a4",
+      "name": "Set Lead Clicked",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        -160
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      },
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "Webhook (STOP)": {
+      "main": [
+        [
+          {
+            "node": "Parse Inbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Inbound": {
+      "main": [
+        [
+          {
+            "node": "Skip Non-STOP",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Skip Non-Commands",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Find Lead by Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Non-STOP": {
+      "main": [
+        [
+          {
+            "node": "Find Lead by Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Lead by Phone": {
+      "main": [
+        [
+          {
+            "node": "Mark STOP",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Mark STOP/UNSTOP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Non-Commands": {
+      "main": [
+        [
+          {
+            "node": "Find Lead by Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (Clicks GET)": {
+      "main": [
+        [
+          {
+            "node": "Click Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click Handler": {
+      "main": [
+        [
+          {
+            "node": "Respond 302",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Audit Click",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Has LeadId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has LeadId": {
+      "main": [
+        [
+          {
+            "node": "Set Lead Clicked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "d74d05d6-11a9-4043-aa60-d0e119640830",
+  "triggerCount": 2,
+  "shared": [
+    {
+      "createdAt": "2025-08-28T21:42:30.370Z",
+      "updatedAt": "2025-08-28T21:42:30.370Z",
+      "role": "workflow:owner",
+      "workflowId": "pQhwZYwBXbcARUzp",
+      "projectId": "H4VRaaZhd8VKQANf",
+      "project": {
+        "createdAt": "2025-07-20T10:20:07.367Z",
+        "updatedAt": "2025-07-20T10:23:14.000Z",
+        "id": "H4VRaaZhd8VKQANf",
+        "name": "UYSP Lead Qualification Agent ",
+        "type": "team",
+        "icon": {
+          "type": "icon",
+          "value": "layer-group"
+        },
+        "description": "Automated lead qualification and SMS outreach system that processes Kajabi form submissions, enriches B2B leads through two-phase qualification, scores them 0-100 using AI, and sends personalized SMS to qualified prospects while maintaining strict compliance and cost controls.",
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-20T10:23:14.911Z",
+            "updatedAt": "2025-07-20T10:23:14.911Z",
+            "role": "project:admin",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "H4VRaaZhd8VKQANf",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-02T22:01:44.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-02",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
