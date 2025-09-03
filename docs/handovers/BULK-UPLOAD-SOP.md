@@ -44,18 +44,25 @@ Workflow used: n8n “UYSP Backlog Ingestion” (id `qMXmmw4NUCh1qu8r`)
 
 7) Verify Normalize output
    - Fields should include: Email, Phone, First Name, Last Name, Company, Title, Company Domain, HRQ Status, HRQ Reason, Source = Backlog, Processing Status = Queued (or Complete for personal emails).
+   - Note: Personal email domains (gmail.com, yahoo.com, outlook.com, icloud.com, etc.) are auto-routed to HRQ:
+     - `HRQ Status = "Archive"`
+     - `HRQ Reason = "Personal email"`
+     - `Processing Status = "Complete"` (skips enrichment)
 
 8) Verify Airtable Upsert mappings
    - Match on: Email
    - Mapped: Phone, First Name, Last Name, Company Domain, Processing Status, Source, HRQ Status, HRQ Reason.
 
-9) Airtable view for Clay intake
+9) Airtable view for Clay intake (Cache‑First)
    - Create/confirm view “Clay Queue” on `Leads` with filter: `Processing Status = Queued AND HRQ Status != "Archive"`.
+   - Optional helper views (HRQ monitoring):
+     - "HRQ — Manual Process": `HRQ Status = "Manual Process" AND Booked is unchecked`
+     - "HRQ — Enrichment Failed (No Person Data)": `Enrichment Timestamp is not empty AND Job Title is empty AND Linkedin URL - Person is empty AND HRQ Status != "Archive"`
 
-10) Run in Clay and validate
+10) Run in Clay and validate (Cache‑First)
    - Clay source: Airtable view “Clay Queue”.
-   - Run the pipeline; use “Run rows that haven’t run or have errors” if needed.
-   - Validate updated fields in Airtable `Leads`; optionally mirror companies to `Companies` table.
+   - Prefer Airtable `Companies` cache: ensure `Leads.Company` is linked by Domain. For domains already present in `Companies`, skip company re‑enrichment and only perform person enrichment (if enabled). For new domains, dedupe to `Companies to Enrich`, enrich once, then mirror back to Airtable `Companies` and join to `Leads`.
+   - Validate: `Companies` receives new domains; `Leads` gets company fields via link or Clay join; person fields/phone normalization updated; `Enrichment Timestamp` set.
 
 ---
 

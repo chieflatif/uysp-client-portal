@@ -1,14 +1,14 @@
 # SMS Sequence Architecture - Safety-First Implementation Plan
 
 ## 🛡️ SAFETY PRINCIPLES
-1. **PRESERVE WORKING SYSTEMS** - Current SMS Trigger workflow stays untouched
+1. **PRESERVE WORKING SYSTEMS** - Current SMS Scheduler workflow stays untouched
 2. **BUILD IN PARALLEL** - New features in separate workflows first
 3. **TEST IN ISOLATION** - Each component verified before integration
 4. **ROLLBACK READY** - Every change has a documented reversal
 5. **VISIBILITY FIRST** - Log everything before taking actions
 
 ## 📊 CURRENT STATE (WORKING - DO NOT BREAK)
-- **UYSP-SMS-Trigger** (D10qtcjjf2Vmmp5j) - Single SMS sends working
+- **UYSP-SMS-Scheduler** (D10qtcjjf2Vmmp5j) - 3-step sends working
 - **UYSP-Realtime-Ingestion** (2cdgp1qr9tXlONVL) - Lead intake working
 - **Airtable Leads Table** - Current fields preserved
 - **SimpleTexting** - Single sends via API working
@@ -137,8 +137,8 @@ Message: "Sequence send failed for {{name}}: {{error}}"
 
 ## 🪝 PHASE 3: WEBHOOK ENDPOINTS (RECEIVE ONLY)
 
-### 1. Click Tracking Webhook
-**Path**: `/webhook/click/:token`
+### 1. Click Tracking Webhook (deferred)
+**Path**: Cloudflare Worker on client domain (n8n GET deferred)
 **Purpose**: First-party tracking, no third-party dependencies
 
 ```javascript
@@ -196,7 +196,7 @@ Headers: {
 ```
 
 ### 4. Calendly Meeting Webhook
-**Path**: `/webhook/calendly-events`
+**Path**: `/webhook/calendly`
 ```javascript
 // Validate signature (when available)
 // On invitee.created:

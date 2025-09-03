@@ -1,6 +1,6 @@
 # Airtable Schema – Companies & Leads
 
-## Companies (Authoritative cache mirrored from Clay)
+## Companies (Authoritative cache; first source for Leads)
 - Domain (Primary) – Single line text (unique key; equals `company_domain`)
 - Company Name – Single line text
 - Company Type – Single select: [B2B SaaS, B2B Tech Services, Other B2B, B2C/Unknown]
@@ -21,8 +21,9 @@ Views:
 - All Companies (sorted by Domain)
 - Needs Refresh (>90 days)
 - High Value (Score ≥20)
+ - Newly Created (no enrichment timestamp)
 
-## Leads (Processing Hub)
+## Leads (Processing Hub — cache-first linkage)
 Core:
 - Processing Status – Single select: [Backlog, Queued, Processing, Ready for SMS, Complete, Failed]
 - Source – Single select: [Backlog, Webhook, Manual]
@@ -32,16 +33,16 @@ Core:
 - Last Name – Text
 - Job Title – Text
 - Company Domain – Text
-- Company – Link to Companies (by Domain)
+- Company – Link to Companies (by Domain) [Cache-first]
 - Company Name – Text (from enrichment)
 - Company Type – Single select: [B2B SaaS, B2B Tech Services, Other B2B, B2C/Unknown]
 - Company Industry – Text (Industry Final from Clay)
 - Company Description – Long text (Description Final from Clay)
 - Company LinkedIn URL – URL
-- Person LinkedIn URL – URL
+- Linkedin URL - Person – URL
 - Batch ID – Text (batch orchestration)
 
-Enrichment:
+Enrichment (from Companies link or Clay if missing):
 - Person Industry – Text
 - Job Level – Single select: [Entry, Mid, Senior, Executive, C-Level]
 - Location Country – Text
@@ -50,7 +51,7 @@ Enrichment:
 - Enrichment Timestamp – Date/time
 - Raw Enrichment Data – Long text
 
-Scoring:
+Scoring (uses linked Companies fields when available):
 - ICP Score – Number (Formula: sum of components + Prime Fit Bonus)
 - Company Score Component – Number (0–25; from Clay or formula)
 - Role Score Component – Number (0–45)
@@ -63,7 +64,6 @@ Scoring:
     {Phone Valid},
     {ICP Score} >= 70,
     LOWER({Location Country}) = "united states",
-    OR({SMS Status}="Not Sent", {SMS Status}=""),
     {HRQ Status} != "Archive"
   )
 
@@ -73,7 +73,7 @@ SMS & Outreach:
 - SMS Sequence Position – Number
 - SMS Sent Count – Number
 - SMS Cost – Currency
-- Last SMS Sent – Date/time
+- SMS Last Sent At – Date/time
 
 HRQ & Quality:
 - HRQ Status – Single select: [None, Archive, Qualified, Manual Process]

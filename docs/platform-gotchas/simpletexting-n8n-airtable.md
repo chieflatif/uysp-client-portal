@@ -12,3 +12,12 @@ SimpleTexting + n8n + Airtable gotchas (current system)
 - Airtable formula gotcha: Use Expression mode; avoid stray leading `=` and multiline `IF`; prefer one OR expression.
 
 
+
+## GET Webhook Registration (n8n Cloud) — Evidence
+- Symptom: Newly added GET webhooks return edge `HTTP/2 404` despite workflow active.
+- Repro command:
+  - `curl -I "https://rebelhq.app.n8n.cloud/webhook/simpletexting-inbound?token=INVALID"`
+  - Expected (working): `HTTP/2 302` with `Location: https://calendly.com/...`
+  - Actual: `HTTP/2 404` (no Location) → indicates edge router did not publish the GET endpoint.
+- Impact: Existing POST webhooks (STOP, Delivery, Calendly) unaffected; only newly created GET endpoints show 404.
+- Workaround: Ship clean Calendly link in SMS (no tracking) or use a Cloudflare Worker click proxy until GET registration is resolved.

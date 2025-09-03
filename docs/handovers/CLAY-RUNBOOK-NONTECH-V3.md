@@ -58,7 +58,7 @@ This runbook provides field-tested, step-by-step instructions for Clay enrichmen
    - `HRQ Reason` → "Personal email"
 3. Exclude these rows from company/person enrichments (or only write the HRQ fields back).
 
-### Step 3: Create Companies List with Unique Domains
+### Step 3: Create Companies List with Unique Domains (Cache‑First)
 1. **Method: Write to Other Table**
    - Raw Leads → Add column → Add enrichment
    - Search: "Write to Other Table"
@@ -123,9 +123,11 @@ description_final: [10-15 words about what they do]
 2. Search company enrichment options for LinkedIn
 3. Or add to Apollo enrichment outputs
 
-### Step 5: Join Companies Back to Leads
+### Step 5: Join Companies Back to Leads (Prefer Airtable Companies cache)
 
 **CRITICAL: Use "Lookup Multiple Rows" NOT "Lookup Single Row"**
+1) First, in Airtable ensure `Leads.Company` links to `Companies` (primary `Domain`). If a link exists, those fields are authoritative and no re‑enrichment is needed for that domain.
+2) In Clay, only attempt company enrichment for leads whose domain is not present in Airtable `Companies` (use a pre‑join to Companies via Airtable integration or export of domains).
 
 1. Raw Leads → Add column → Add enrichment
 2. Search: "Lookup Multiple Rows in Other Table"

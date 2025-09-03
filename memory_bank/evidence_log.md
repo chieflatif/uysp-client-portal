@@ -99,3 +99,38 @@
 - **Nodes**: Cron → Airtable (Sent/Delivered/Failed/Stops/Booked) → Build Summary → Slack
 - **Fixes Applied**: Enabled "Always Output Data" on Airtable searches; adjusted Delivered filter to use `Delivery At` where available
 - **Result**: Slack summary posted with 24h counts; chain no longer stops on empty result sets
+
+## 2025-09-02 — Click Redirect GET Path: Registration Failure Evidence
+- Context: Added GET branch for click redirects to `UYSP-SMS-Inbound-STOP` (same webhook path as POST; method GET)
+- Observation: Browser previously showed JSON; header test now confirms edge 404 → endpoint not registered at edge
+- Evidence:
+  - Command: `curl -I "https://rebelhq.app.n8n.cloud/webhook/simpletexting-inbound?token=INVALID"`
+  - Expected (working): `HTTP/2 302` with `Location: https://calendly.com/...`
+  - Actual: `HTTP/2 404` (no Location) — indicates Cloud edge did not publish the new GET endpoint
+- Impact: Existing POST webhooks (STOP, Delivery, Calendly) continue to work; only newly added GET endpoints exhibit 404
+- Decision: Ship clean Calendly links in SMS (no tracking) OR move click redirect to a Cloudflare Worker on client domain until GET registration is resolved
+
+## 2025-09-03 — SOP & Dev Plan Filed (Campaign Isolation & Clicks)
+- Docs:
+  - `context/CURRENT-SESSION/SOP-SimpleTexting-Campaign-Isolation-and-Reporting.md`
+  - `context/CURRENT-SESSION/DEV-PLAN-SimpleTexting-Campaign-Isolation-and-Clicks.md`
+- Evidence Basis:
+  - Workflows (IDs): D10qtcjjf2Vmmp5j, vA0Gkp2BrxKppuSu, pQhwZYwBXbcARUzp, LiVE3BlxsFkHhG83
+  - Paths: `/webhook/simpletexting-delivery`, `/webhook/simpletexting-inbound`, `/webhook/calendly`
+  - Airtable tables per handover: `Leads`, `SMS_Templates`, `Settings`, `SMS_Audit`
+  - ST API docs confirm 1:1 send and webhooks
+
+## 2025-09-03 — Click Webhook Spec Filed
+- Doc: `context/CURRENT-SESSION/CLICK-TRACKING-WEBHOOK-SPEC.md`
+- Includes: URL design, token format (HMAC), receiver behavior, known GET 404 issue evidence, fallback plan (Cloudflare Worker), configuration summary
+
+## 2025-09-03 — Client Call: SimpleTexting Rollout Decisions & Evidence
+- Source: `~/Downloads/Isaac McCauley and LATIF HORST_otter_ai.txt`
+- Decisions captured in `context/CURRENT-SESSION/CUSTOMER-CALL-2025-09-03-ISAAC-SIMPLETEXTING.md`
+- Key Points:
+  - Use ST Campaign/Tag to isolate automated sends for reporting and enable native click tracking
+  - Include `first_name`/`last_name` on ST contact create/update via API
+  - Interim click tracking via ST campaign short links (HMAC proxy deferred due to n8n GET bug)
+  - Maintain NA-only gating, batching caps, Slack alerts, and dual kill switches (ST + scheduler)
+  - Admin access to be provisioned via Isaac/Jen; LATIF to validate dashboards
+  - Texas compliance requires clarification; avoid premature geo filtering

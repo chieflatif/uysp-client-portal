@@ -1,4 +1,8 @@
-# 🧹 SESSION 1.2 COMPLETION EVIDENCE
+# 🧹 SESSION 1.2 COMPLETION EVIDENCE (ARCHIVED)
+
+> Historical reference only. For current status and decisions, see:
+> - SSOT: `memory_bank/active_context.md`
+> - Backlog/Roadmap: `memory_bank/task_management.md`
 
 **Date**: January 27, 2025  
 **Agent**: Developer Agent (Cleanup & Testing)  

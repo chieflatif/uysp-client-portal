@@ -1,6 +1,8 @@
-# UYSP SMS Trigger - Complete Resolution Guide
+# UYSP SMS Trigger - Complete Resolution Guide (ARCHIVED)
 
-## Issue Summary
+> Archived in favor of current SMS Scheduler architecture. See SSOT: `memory_bank/active_context.md` and SOP: `docs/handovers/SMS-SEQUENCER-V1-SOP.md`.
+
+## Issue Summary (historical)
 The SMS trigger workflow has a fundamental bug in n8n's Airtable Update node when using "Columns to match on" mode.
 
 ### Current Status:

@@ -1,20 +1,19 @@
 # SMS + Clay Enrichment - Final Decisions and Open Questions
 
 ## Final Decisions (approved)
-- Click tracking: Implement first-party redirect `/webhook/c/:token` (Airtable-backed).
+- Click tracking: Launch with clean Calendly link in SMS (no rewrite). Optional: Cloudflare Worker redirect on client domain with HMAC verification → 302 to Calendly. Defer n8n GET proxy until registration issue is resolved.
 - Delivery tracking: Use SimpleTexting delivery/non-delivery webhooks.
 - Unsubscribes: Use SimpleTexting unsubscribe webhook; store per-lead and per-communication.
 - Templates: Stored in Airtable `SMS_Templates`, selectable per campaign and A/B variant.
 - Campaign/batch: Track `lead_source` ("Name – Type") and `campaign_batch_id` on Leads and Communications.
-- Scheduler: Hourly batches of 100 sends (5 hours total) starting 10:00 AM ET; enforce business hours 9–5 ET; skip weekends/US federal holidays.
+- Scheduler: Hourly cron on weekdays (UTC `0 14-21 * * 1-5`) mapping to 10–17 ET; skip weekends; adjust at DST.
 - Initial behavior: One-way SMS; message ends with "Do not reply. Text STOP to opt out." Replies ignored (Phase 1).
 - Calendly: Meeting booked via Calendly webhook is primary success signal; direct Calendly link in SMS.
 - Clay: Run enrichment pre-SMS; log enrichment cost; gate SMS by eligibility.
 - Branching: Implement on `feature/clay-sms-integration` with sessions plan.
 
 ## Implementation Notes
-- Redirect destination URL resolved from active template/variant or Campaign config.
-- Unique `tracking_token` generated per send; stored on Leads and Communications.
+- If/when Worker is used: destination URL resolved from template/variant; HMAC payload includes `{leadId,campaignId,ts,targetUrl}` with 7‑day max age.
 - A/B routing: Random 50/50 split by default; configurable at Campaign.
 - Holiday list maintained in Airtable `Holidays` (date,sms_blocked,name).
 - Metrics: Click rate, booking rate (click→meeting), unsubscribe rate by variant, delivery rate.

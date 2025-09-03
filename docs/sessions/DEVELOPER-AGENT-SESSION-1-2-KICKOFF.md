@@ -1,8 +1,10 @@
-# 🧹 DEVELOPER AGENT: SESSION 1.2 CLEANUP - IMMACULATE KICKOFF
+# 🧹 DEVELOPER AGENT: SESSION 1.2 CLEANUP - IMMACULATE KICKOFF (ARCHIVED)
 
 **Date**: January 27, 2025  
 **Branch**: feature/session-1-2-cleanup  
 **Agent Type**: Developer Agent (Cleanup & Testing)  
+> Archived. For current work, follow `context/CURRENT-SESSION/SESSION-GUIDE.md` and SSOT/backlog.
+
 **Objective**: Strip compliance elements from PRE COMPLIANCE workflow for clean baseline  
 
 ---

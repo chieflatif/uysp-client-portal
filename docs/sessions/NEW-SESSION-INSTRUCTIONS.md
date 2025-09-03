@@ -1,11 +1,9 @@
-# NEW SESSION INSTRUCTIONS - FRESH START AFTER COMPLIANCE FAILURE
+# NEW SESSION INSTRUCTIONS (ARCHIVED) — See Current Session Guide
 ## Complete Setup Guide for New Direction with Preserved Integration
 
-**Session Transition Date**: 2025-08-01  
-**Previous Session**: Compliance Development (CLOSED - functionality failed)  
-**Backup Status**: ✅ COMPLETE (backup/20250801-141729)  
-**Integration Status**: ✅ PRESERVED (all foundational systems operational)  
-**Ready for**: New compliance approach with fresh branch  
+> Archived. Use:
+> - Current Session Guide: `context/CURRENT-SESSION/SESSION-GUIDE.md`
+> - SSOT: `memory_bank/active_context.md`
 
 ---
 

@@ -1,4 +1,9 @@
-## Memory Index (mirrored)
+# Memory Index (mirrored)
+
+> Pointers:
+> - SSOT (status/decisions): `memory_bank/active_context.md`
+> - Backlog/Roadmap: `memory_bank/task_management.md`
+> - Current Session Guide: `context/CURRENT-SESSION/SESSION-GUIDE.md`
 
 Edit this file to audit or propose changes. After editing, tell the assistant to "sync the index to memories" to apply updates. This file is not auto-synced.
 

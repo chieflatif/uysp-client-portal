@@ -1,20 +1,20 @@
 # MAIN DEVELOPMENT PLAN – SMS + Clay Enrichment
 
 ## Objective
-Deliver Phase 1 (single-message, tracked SMS) on top of Clay enrichment with robust metrics and safety, then prepare for sequences.
+Deliver Phase 1 (sequencer with clean booking links) on top of Clay enrichment with robust metrics and safety; click redirects via Worker optional later.
 
 ## Scope (Phase 1)
 - Clay enrichment workflow and ICP gating
 - Mirror Companies to Airtable `Companies` table (upsert by `Domain`)
-- Single SMS daily program (5 hourly runs of 100 from 10am ET)
-- First-party click tracking redirect
+- Outbound SMS sequencer (3 steps) via scheduler (UTC `0 14-21 * * 1-5`)
+- Clean Calendly links in SMS (no tracking); Worker-based redirect optional later
 - Delivery and unsubscribe webhooks
 - Templates in Airtable with optional A/B per campaign/batch
 - Business hours, US holidays
 - Campaign tracking via `lead_source` (Name – Type) and `campaign_batch_id`
 
 ## Deliverables
-- n8n workflows: Clay Enrichment, SMS Single Sender, Click Redirect, Delivery Webhook, Unsubscribe Webhook, (Calendly Webhook when ready)
+- n8n workflows: Realtime/Backlog Ingestion, SMS Scheduler, Delivery Webhook, Inbound STOP, Calendly Webhook, Daily Monitoring
 - Airtable schema updates and views (including `Companies` authoritative cache)
 - Docs: Architecture, Decisions, Sessions, Ops instructions
 

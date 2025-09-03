@@ -184,3 +184,24 @@ Remaining: 3 critical bug fixes
 ## 2025-08-30: HRQ SOP Finalized (No IF nodes; views only)
 - **Views**: HRQ Personal email (existing), HRQ — Manual Process, HRQ — Enrichment Failed (No Person Data)
 - **Reviewer Action**: Set HRQ Status="Qualified" AND Processing Status="Queued" to resume; no new workflows needed
+
+## 2025-09-01: Branch + Backup for Documentation Refactor
+- Branch created: `docs/refactor-ssot-2025-09-01`
+- Full backup executed via `scripts/auto-backup.sh`; workflows and Airtable schema snapshot saved; pushed
+- Purpose: Safe refactor of documentation per agreed structure
+
+## 2025-09-02: SSOT Consolidation Complete
+- `memory_bank/active_context.md` updated with Workflow SSOT table, client Calendly link, and click-tracking decision
+- Backlog normalized in `memory_bank/task_management.md`
+- GET 404 evidence recorded in `memory_bank/evidence_log.md`
+
+## 2025-09-03: Client Call Summary Filed (SimpleTexting)
+- Document: `context/CURRENT-SESSION/CUSTOMER-CALL-2025-09-03-ISAAC-SIMPLETEXTING.md`
+- INDEX link added in `context/CURRENT-SESSION/INDEX.md`
+- `SESSION-GUIDE.md` updated with call takeaways and next steps
+- Evidence: Logged in `memory_bank/evidence_log.md`
+
+## 2025-09-03: SOP & Dev Plan Created (Campaign Isolation & Clicks)
+- SOP: `context/CURRENT-SESSION/SOP-SimpleTexting-Campaign-Isolation-and-Reporting.md`
+- Dev Plan: `context/CURRENT-SESSION/DEV-PLAN-SimpleTexting-Campaign-Isolation-and-Clicks.md`
+- Session INDEX updated with links

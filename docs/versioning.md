@@ -156,6 +156,11 @@
 - **feature/session-X**: Individual session development
 - **hotfix/**: Emergency production fixes
 
+### Backup & Snapshot Protocol (current)
+- Before large doc refactors: create branch (e.g., `docs/refactor-ssot-YYYY-MM-DD`) and run `scripts/auto-backup.sh`.
+- Store workflow exports under `workflows/backups/` and Airtable schema snapshot under `schemas/`.
+- Record branch and backup evidence in `memory_bank/progress.md` and `memory_bank/evidence_log.md`.
+
 ### Tagging Convention
 ```bash
 # Create version tag

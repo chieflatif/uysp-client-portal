@@ -136,7 +136,7 @@
 
 1. Create Airtable views: "HRQ — Manual Process" and "HRQ — Enrichment Failed (No Person Data)"
 2. Reviewer SOP: To resume, set `HRQ Status = Qualified` AND `Processing Status = Queued`
-3. Validate pickup: Confirm Slack send + audit row on next scheduler window
+3. Validate pickup: Confirm Slack send + audit row on next scheduler window (no IF nodes needed; scheduler picks up when `HRQ Status=Qualified` and `Processing Status=Queued`)
 
 ---
 

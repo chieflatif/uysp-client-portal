@@ -19,6 +19,7 @@
 ### Webhook Testing
 - [ ] **Gotcha #5**: Webhook test protocol understood - manual Execute each time
 - [ ] **Gotcha #12**: Environment-specific webhook URLs configured
+- [ ] Note: New GET webhooks on n8n Cloud can 404 at edge; verify with `curl -I` and use clean links or Worker until resolved
 
 ### Performance & Limits
 - [ ] **Gotcha #10**: Workflows split if >5 min execution expected

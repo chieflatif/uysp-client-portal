@@ -40,10 +40,17 @@ Body example (single send):
 - Send: JSON; Content-Type: application/json
 - Body (single send): `{ "mode": "SINGLE", "accountPhone": "<digits>", "contactPhone": "={{$json.fields['Phone'].replace(/\D/g, '')}}", "text": "..." }`
 
-### Post-send Writeback Node
-- Operation: Upsert
-- Matching Columns: ["Email"]
-- Map: SMS Status, SMS Campaign ID, SMS Cost, Last SMS Sent (now), SMS Sent Count (+1)
+### Post-send Writeback Node (Update by ID)
+- Operation: Update
+- ID: `{{$json.id}}`
+- Map only writable fields:
+  - `SMS Status`
+  - `SMS Campaign ID`
+  - `SMS Cost`
+  - `SMS Last Sent At` = `{{$now}}`
+  - `SMS Sent Count` = `{{($json.fields['SMS Sent Count'] || 0) + 1}}`
+  - `Error Log` (when applicable)
+  - Options: typecast = true
 
 ## n8n Response Parsing (Code)
 ```javascript
@@ -57,7 +64,11 @@ if (res.status === 'partial_success' && res.failed_numbers?.length) {
 return [{ json: { sms_status: 'Sent', campaign_id: res.campaign_id } }];
 ```
 
-## Webhooks
-- Configure delivery/click/reply/stop webhooks → n8n endpoint
-- Update Airtable: sms_status, last_sms_sent, sms_sent_count
-- Stop sequence on booking/reply as needed
+## Webhooks (current endpoints)
+- Delivery (POST): `/webhook/simpletexting-delivery`
+  - Updates Lead `SMS Status` and writes `Delivery At`; creates `SMS_Audit` row
+- Inbound STOP (POST): `/webhook/simpletexting-inbound`
+  - Sets `SMS Stop=true`, `SMS Stop Reason=STOP`, `Processing Status=Stopped`
+- Calendly Booked (POST): `/webhook/calendly`
+  - Sets `Booked=true`, `Booked At`, `SMS Stop=true`, `SMS Stop Reason=BOOKED`, `Processing Status=Completed`
+- Click Redirect (GET): Disabled on n8n Cloud due to GET registration issue (edge 404). Use clean Calendly links in SMS or a Cloudflare Worker redirect on client domain.

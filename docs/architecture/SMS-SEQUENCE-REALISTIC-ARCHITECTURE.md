@@ -22,11 +22,10 @@
 
 ## 📐 ARCHITECTURE DECISIONS (FINALIZED)
 
-### 1. Click Tracking Strategy (Required)
-- Use first-party redirect proxy in n8n: `/webhook/c/:token`
-- Generate a unique `tracking_token` per message/lead and store on both `Leads` and `Communications`
-- On GET, log click → 302 redirect to Calendly destination URL
-- A/B tests can map variants to different destination URLs if desired
+### 1. Click Tracking Strategy (Launch Choice)
+- For launch: ship clean Calendly link in SMS; do not rewrite URLs.
+- Option (when needed): Cloudflare Worker redirect on client domain with HMAC verification → 302 to Calendly; optionally POST click back to n8n.
+- n8n Cloud: new GET webhooks currently 404 at edge; defer n8n GET click proxy until resolved.
 
 ### 2. Delivery Confirmation
 ```javascript

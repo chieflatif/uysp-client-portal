@@ -1,6 +1,8 @@
-# UYSP SMS Trigger Issue Resolution - 2025-08-27
+# UYSP SMS Trigger Issue Resolution - 2025-08-27 (ARCHIVED)
 
-## Issue Summary
+> Archived: replaced by stable `UYSP-SMS-Scheduler` flow. Current docs: `memory_bank/active_context.md` and `docs/handovers/SMS-SEQUENCER-V1-SOP.md`.
+
+## Issue Summary (historical)
 The SMS trigger workflow had two critical issues causing intermittent failures:
 
 ### 1. **Record ID Mis-propagation (FIXED)**

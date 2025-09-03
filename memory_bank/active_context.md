@@ -12,11 +12,13 @@ Implement SMS sequencing (A/B, 3 steps) with SimpleTexting using one outbound sc
 ---
 
 ## ✅ Current System Status (updated)
+- Roadmap (features only): `memory_bank/roadmap.md` (SSOT for product/backlog)
 - Outbound workflow: `UYSP-SMS-Scheduler` (`D10qtcjjf2Vmmp5j`) using hourly cron in business hours.
 - Airtable fetch: Cloud-supported `Search` with server-side `filterByFormula` and `limit` (200/run) to fetch only due leads; no table-wide scan [[memory:7536884]].
 - A/B & templating: `Get Settings` + `List Templates` supply ratios and copy; `Prepare Text (A/B)` assigns variant, selects step template, personalizes `{Name}`; timing due-check embedded.
 - Send & update: `SimpleTexting HTTP` sends; `Airtable Update` writes only allowed fields (`SMS Variant`, `SMS Sequence Position`, `SMS Last Sent At`, `SMS Sent Count`, `SMS Status`, `SMS Campaign ID`, `SMS Cost`, `Error Log`).
 - Visual cleanup: deactivated nodes removed; unnecessary writes to computed fields eliminated.
+ - Enrichment: Clay is the enrichment provider of record. Clay runs enrichment and writes back to Airtable (e.g., `Enrichment Timestamp`, company/person fields). Airtable formulas compute `ICP Score` and `SMS Eligible (calc)` from Clay-provided fields; the scheduler gates on these.
 
 ---
 
@@ -24,6 +26,8 @@ Implement SMS sequencing (A/B, 3 steps) with SimpleTexting using one outbound sc
 - Keep single outbound workflow (Option A). Inbound STOP + Calendly as tiny separate workflows (deferred for v1 cutover).
 - Batch cap = 200/run (tunable). If backlog > cap, next cron picks remaining.
 - Clicks do not stop sequences; only Booked/STOP/Manual Stop.
+- Clay enrichment remains mandatory pre-SMS; n8n does not replace Clay for enrichment.
+- Companies cache-first rule: `Leads.Company` links to `Companies` by `Domain`. If linked company exists, use company fields from `Companies` for scoring and skip company re‑enrichment in Clay; only enrich companies missing from `Companies`.
 
 ---
 
@@ -70,3 +74,54 @@ Implement SMS sequencing (A/B, 3 steps) with SimpleTexting using one outbound sc
 Outbound: Scheduler updates fields; Test Mode routing verified; cron UTC `0 14-21 * * 1-5`.
 Delivery: Executions 2960, 2959 updated leads to Delivered; Slack and Audit rows present.
 Inbound STOP: Executions 2961, 2962 updated matching leads and set STOP fields.
+
+---
+
+## 🔎 Workflow SSOT (2025-09-02)
+
+- Client Calendly link (for SMS): https://calendly.com/d/cwvn-dwy-v5k/sales-coaching-strategy-call-rrl
+- Click tracking: See `context/CURRENT-SESSION/CLICK-TRACKING-WEBHOOK-SPEC.md` (proxy design, GET 404 evidence, Worker fallback). Until GET is available, ship clean Calendly link or Worker.
+
+| Workflow | ID | Active | Trigger/Path(s) | Purpose | Evidence | TODO/NEXT |
+|---|---|---|---|---|---|---|
+| UYSP-SMS-Scheduler | D10qtcjjf2Vmmp5j | ✅ | Cron `0 14-21 * * 1-5` | Outbound sends; A/B; audit; Slack | Executions 2967/2976/2980 (3‑step proven) | Swap SMS link to client Calendly; disable URL replacement or move to Worker until GET fixed |
+| UYSP-ST-Delivery V2 | vA0Gkp2BrxKppuSu | ✅ | POST `/webhook/simpletexting-delivery` | Delivery updates → Leads + Audit + Slack | Executions 2960, 2959 | None |
+| UYSP-Calendly-Booked | LiVE3BlxsFkHhG83 | ✅ | POST `/webhook/calendly` | Booked=true; stop sequence | Execution 2965 | Confirm final path naming; keep link in Settings |
+| UYSP-SMS-Inbound-STOP | pQhwZYwBXbcARUzp | ⛔ | POST `/webhook/simpletexting-inbound` (STOP); GET same (click) | STOP/UNSTOP processing; click 302 branch | Real STOP verified earlier; GET 404 at edge | Activate POST; keep GET branch dormant; consider Cloudflare Worker for clicks |
+| UYSP-Daily-Monitoring | 5xW2QG8x2RFQP8kx | ⛔ | Cron `0 14 * * 1-5` | 24h counts → Slack | Manual test 3026 | Ensure Delivered node uses `Delivery At`; activate |
+| UYSP-Realtime-Ingestion | 2cdgp1qr9tXlONVL | ⛔ | POST `/webhook/leads-intake` | Kajabi form intake → upsert leads; HRQ archive personal emails | Node review complete | Confirm forms/fields; activate |
+| UYSP Backlog Ingestion | qMXmmw4NUCh1qu8r | ⛔ | Manual | CSV → normalize → upsert; HRQ archive personal emails | Node review complete | Provide CSV; run batched |
+
+Notes
+- GET webhook 404: New GET methods/paths appear unregistered at n8n Cloud edge (curl -I returns 404) while existing POST webhooks work; STOP path kept isolated.
+
+---
+
+## 📌 Production Links & Secrets (references only)
+- Calendly booking link (client, SMS display): `https://calendly.com/d/cwvn-dwy-v5k/sales-coaching-strategy-call-rrl`
+- Note: Any signing secrets, API keys, or HMAC secrets are stored in credentials/env, not in repo.
+
+---
+
+## 🔎 Single‑Source Workflow Status (SSOT)
+
+| Workflow | ID | Trigger | Path/Method | Active | Purpose | Evidence | Next Actions |
+|---|---|---|---|---|---|---|---|
+| UYSP‑SMS‑Scheduler | D10qtcjjf2Vmmp5j | Cron | N/A | ✅ | Outbound SMS (A/B, 3‑step), Slack, Sent audit | Live tests 2967/2976/2980 | If click tracking disabled, ensure URL replacement is OFF for clean link |
+| UYSP‑ST‑Delivery V2 | vA0Gkp2BrxKppuSu | Webhook | /webhook/simpletexting‑delivery (POST) | ✅ | Delivery parse → set `SMS Status`, Slack, audit | Exec 2960/2959 | None |
+| UYSP‑Calendly‑Booked | LiVE3BlxsFkHhG83 | Webhook | /webhook/calendly (POST) | ✅ | Mark `Booked=true`, stop sequence | Exec 2965 | Standardize docs to this path; client to add org webhook |
+| UYSP‑SMS‑Inbound‑STOP | pQhwZYwBXbcARUzp | Webhook | /webhook/simpletexting‑inbound (POST) | ⛔ | STOP/UNSTOP processing | Exec 2989/2990 previously when active | Toggle Active ON; keep GET branch isolated |
+| Click Redirect (GET) | in STOP wf | Webhook | /webhook/simpletexting‑inbound (GET) | ⛔ 404 | Intended 302 redirect for clicks | curl shows 404 at edge | Defer or move to Cloudflare Worker |
+| UYSP‑Daily‑Monitoring | 5xW2QG8x2RFQP8kx | Cron | N/A | ⛔ | 24h KPIs → Slack | Manual exec 3026 | Activate; ensure Delivered uses `Delivery At` |
+| UYSP‑Realtime‑Ingestion | 2cdgp1qr9tXlONVL | Webhook | /webhook/leads‑intake (POST) | ⛔ | Create/queue leads; HRQ personal email | Code node HRQ logic present | Confirm Kajabi forms; activate |
+| UYSP Backlog Ingestion | qMXmmw4NUCh1qu8r | Manual | N/A | ⛔ | CSV → upsert leads; HRQ personal email | Parser/Upsert ready | Provide CSV; run batches |
+
+Notes:
+- GET click path returns 404 (edge not registered). Existing POST paths are unaffected. This matches curl header evidence gathered 2025‑09‑01.
+
+---
+
+## 🎯 Launch Decisions (Click Tracking)
+- For launch: use clean Calendly link in SMS (no token) to keep messages tidy and avoid GET registration bug.
+- Alternative (if required now): Cloudflare Worker redirect on client domain verifying HMAC and 302 to Calendly; optionally POST a click event back to existing POST endpoint.
+

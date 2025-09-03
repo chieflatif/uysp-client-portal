@@ -1,7 +1,11 @@
 [AUTHORITATIVE]
-Last Updated: 2025-08-26
+Last Updated: 2025-09-02
 
 # CURRENT SESSION GUIDE: Post-Recovery Implementation
+
+> Scope note: This guide is session-only. Project-wide status and roadmap live here:
+> - SSOT: `memory_bank/active_context.md`
+> - Roadmap (features): `memory_bank/roadmap.md`
 
 ## 🎯 **SESSION OVERVIEW**
 
@@ -41,6 +45,31 @@ This session is guided by the suite of documents reconstructed after the data lo
 -   **Implementation Roadmap**: `context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/IMPLEMENTATION-ROADMAP.md`
 -   **Verified System State**: `context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/CURRENT-SYSTEM-STATE.md`
 -   **Clay Runbook**: `context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/CLAY-RUNBOOK-NONTECH.md`
+
+---
+
+## Customer Call Takeaways (2025-09-03 – SimpleTexting)
+
+- Campaign/Tag isolation: Use a dedicated ST Campaign or Tag for automated sends to isolate reporting from manual campaigns.
+- Names on contacts: Include first/last name when creating/upserting ST contacts via API for UI parity and personalization.
+- Click tracking: Prefer ST campaign short-link tracking for this rollout; defer our HMAC proxy until n8n GET webhook registration is fixed.
+- Safeguards: Maintain NA-only gating, batch cap (e.g., 200/run), Slack monitoring, and a clear kill switch in both ST and our scheduler.
+- Access: Isaac to provision admin access (via Jen); LATIF to supply alias if needed and validate dashboards.
+- Compliance (Texas): Await written guidance; avoid premature geo filtering beyond NA gating.
+
+### Next Steps (Session)
+
+1. Create/use ST Campaign or Tag “AI Webinar – Automation (System)” and pass the identifier through our integration; store `SMS Campaign ID` in Airtable and query reports by it.
+2. Update integration to send `first_name`/`last_name` on ST contact create/update.
+3. Swap SMS links to ST campaign short link for click tracking during this launch; keep HMAC proxy documentation ready for later re‑enablement.
+4. Verify monitoring/alerts and kill switches (ST manual pause + scheduler gating) and document the SOP.
+
+---
+
+## References (SOPs & Specs)
+- SOP: `SOP-SimpleTexting-Campaign-Isolation-and-Reporting.md`
+- Dev Plan: `DEV-PLAN-SimpleTexting-Campaign-Isolation-and-Clicks.md`
+- Click Webhook Spec: `CLICK-TRACKING-WEBHOOK-SPEC.md`
 
 ---
 

@@ -1,8 +1,9 @@
-# 🔄 SESSION TRANSITION PROTOCOL - CORRECTION REQUIRED
+# 🔄 SESSION TRANSITION PROTOCOL (ARCHIVED) — See SSOT and Session Guide
 
-**Date**: January 27, 2025  
-**Status**: CRITICAL SESSION ALIGNMENT CORRECTION  
-**Issue**: Session preparation and context misalignment identified
+**Date**: SEPTEMBER 2, 2025  
+> Archived. Current sources of truth:
+> - SSOT: `memory_bank/active_context.md`
+> - Current Session Guide: `context/CURRENT-SESSION/SESSION-GUIDE.md`
 
 ---
 

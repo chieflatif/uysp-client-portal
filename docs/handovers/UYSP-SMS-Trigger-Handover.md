@@ -1,4 +1,8 @@
-## UYSP SMS Trigger – Comprehensive Handover
+## UYSP SMS Trigger – Comprehensive Handover (ARCHIVED)
+
+> Archived in favor of the current scheduler-based architecture. See:
+> - SSOT: `memory_bank/active_context.md`
+> - SOP: `docs/handovers/SMS-SEQUENCER-V1-SOP.md`
 
 - **Project**: H4VRaaZhd8VKQANf
 - **Airtable**: Base `app6cU9HecxLpgT0P`, Table `tblYUvhGADerbD8EO` ("Leads")

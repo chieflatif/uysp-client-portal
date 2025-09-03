@@ -13,15 +13,14 @@ Notes:
 ```
 - Upsert keys: email, phone
 
-## Workflow B: SMS Trigger
+## Workflow B: SMS Scheduler (current)
 Nodes:
-1) Airtable Trigger (View: SMS Pipeline; Trigger Field: Last Updated Auto)
-2) Delay 2s
-3) Airtable Get Record (Leads by id)
-4) Slack (SMS Test Notify) [pre-key]
-5) HTTP Request (SimpleTexting) [post-key]
-6) Code (Parse Response)
-7) Airtable (Upsert by Email: update SMS fields)
+1) Schedule (Cron: `0 14-21 * * 1-5` UTC)
+2) Airtable Search (List Due Leads with smart eligibility filter)
+3) Code (Prepare Text A/B, select template, personalize)
+4) HTTP Request (SimpleTexting send)
+5) Airtable Update (update by ID: SMS fields)
+6) Slack (notify)
 
 Partial parsing snippet (n8n Function):
 ```javascript
@@ -32,7 +31,5 @@ if (res.status === 'partial_success' && res.failed_numbers?.length) {
 return [{ json: { sms_status: 'Sent', campaign_id: res.campaign_id } }];
 ```
 
-Retry logic:
-- Separate scheduled workflow hourly
-- Query Leads where sms_status in [Partial, Failed] and retry_count < 3
-- Re-send only failed numbers, increment retry_count
+Minimal set (current):
+- UYSP-SMS-Scheduler, UYSP-ST-Delivery V2, UYSP-SMS-Inbound-STOP, UYSP-Calendly-Booked, UYSP-Daily-Monitoring

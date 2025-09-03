@@ -4,7 +4,7 @@ memory_bank/tech_context.md
 ## Stack
 - Orchestration: n8n (>=1.0.0).
 - Database: Airtable (Team plan).
-- APIs: PDL, Hunter (fallback), Twilio, SimpleTexting (10DLC), OpenAI GPT-4.
+- APIs: PDL, Hunter (fallback), SimpleTexting (10DLC), OpenAI.
 - Testing: TestSprite MCP.
 - Development: Cursor; MCP servers (n8n-mcp, airtable-mcp, context7, testsprite, openai-mcp).
 
@@ -33,5 +33,15 @@ Store in n8n credentials.
 - Enrichment: Qualification, scoring (03-enrichment-patterns.txt).
 - SMS: Sending, delivery (04-sms-patterns.txt).
 - Utilities: Metrics, errors (05-utility-patterns.txt).
+
+## Webhook Endpoints (current)
+- SimpleTexting Delivery: POST `/webhook/simpletexting-delivery`
+- SimpleTexting Inbound STOP: POST `/webhook/simpletexting-inbound`
+- Calendly Booked: POST `/webhook/calendly`
+- Click Redirect (planned): GET `/webhook/simpletexting-inbound` (currently unregistered at edge; defer or use Worker)
+
+## Calendly
+- Booking link (SMS display): `https://calendly.com/d/cwvn-dwy-v5k/sales-coaching-strategy-call-rrl`
+- Webhook: `invitee.created` → POST to our Calendly endpoint; enable signing secret.
 
 Reference via @patterns/ in prompts.

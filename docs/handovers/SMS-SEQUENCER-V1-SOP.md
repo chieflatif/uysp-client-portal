@@ -140,11 +140,14 @@ This SOP defines day-to-day operations, safe testing, activation windows, and tr
   - Before send: replace any `https://…` in the SMS body with a proxy URL `https://your-domain/click/:token`
   - Token payload: `{ leadId, campaignId, ts }` signed with secret; short-lived (e.g., 7 days)
   - Store mapping (optional) in `SMS_Audit` with Event="LinkIssued"
-- Inbound (new workflow: UYSP-ST-Click-Proxy):
-  - Webhook receives `GET /click/:token`
-  - Verify HMAC; decode payload; 302 redirect to original URL
-  - Update lead: `SMS Status='Clicked'` (do not change `Processing Status`)
-  - Write `SMS_Audit` row: Event="Click", Campaign ID, Lead Record ID, Clicked At
+- Inbound (GET) status:
+  - n8n Cloud GET registration issue currently blocks new GET endpoints (edge 404). Until resolved, click tracking remains OFF.
+  - Alternative: Cloudflare Worker redirect on client domain with HMAC verification and 302 to target.
+  - When enabled: Update lead `SMS Status='Clicked'` and write `SMS_Audit` row: Event="Click".
+
+## Calendly Link (Display in SMS)
+- Current: Use clean client link (no tracking): `https://calendly.com/d/cwvn-dwy-v5k/sales-coaching-strategy-call-rrl`
+- Rationale: Avoid long/ugly URLs and GET registration issue; tracking can be added later via Worker.
 - Done-when checks:
   - Two test links redirect correctly; Airtable shows `SMS Status=Clicked`; Audit rows exist (Click + LinkIssued)
   - Slack optional: post `[CLICK]` notices to channel
