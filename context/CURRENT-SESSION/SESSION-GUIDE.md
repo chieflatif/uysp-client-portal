@@ -52,16 +52,16 @@ This session is guided by the suite of documents reconstructed after the data lo
 
 - Campaign/Tag isolation: Use a dedicated ST Campaign or Tag for automated sends to isolate reporting from manual campaigns.
 - Names on contacts: Include first/last name when creating/upserting ST contacts via API for UI parity and personalization.
-- Click tracking: Prefer ST campaign short-link tracking for this rollout; defer our HMAC proxy until n8n GET webhook registration is fixed.
+- Click tracking: DEFERRED. Reverted to direct Calendly link. Bitly integration added to roadmap.
 - Safeguards: Maintain NA-only gating, batch cap (e.g., 200/run), Slack monitoring, and a clear kill switch in both ST and our scheduler.
 - Access: Isaac to provision admin access (via Jen); LATIF to supply alias if needed and validate dashboards.
 - Compliance (Texas): Await written guidance; avoid premature geo filtering beyond NA gating.
 
 ### Next Steps (Session)
 
-1. Create/use ST Campaign or Tag “AI Webinar – Automation (System)” and pass the identifier through our integration; store `SMS Campaign ID` in Airtable and query reports by it.
+1. Use ST List/Tag “AI Webinar – Automation (System)” + `uysp-automation` for UI visibility (no logic impact). 
 2. Update integration to send `first_name`/`last_name` on ST contact create/update.
-3. Swap SMS links to ST campaign short link for click tracking during this launch; keep HMAC proxy documentation ready for later re‑enablement.
+3. Implement GET click proxy per `CLICK-TRACKING-WEBHOOK-SPEC.md` and enforce `campaign_id` on all sends/audits.
 4. Verify monitoring/alerts and kill switches (ST manual pause + scheduler gating) and document the SOP.
 
 ---
@@ -69,7 +69,7 @@ This session is guided by the suite of documents reconstructed after the data lo
 ## References (SOPs & Specs)
 - SOP: `SOP-SimpleTexting-Campaign-Isolation-and-Reporting.md`
 - Dev Plan: `DEV-PLAN-SimpleTexting-Campaign-Isolation-and-Clicks.md`
-- Click Webhook Spec: `CLICK-TRACKING-WEBHOOK-SPEC.md`
+- Click Webhook Spec: `archive/CLICK-TRACKING-WEBHOOK-SPEC.md`
 
 ---
 

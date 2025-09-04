@@ -134,3 +134,25 @@
   - Maintain NA-only gating, batching caps, Slack alerts, and dual kill switches (ST + scheduler)
   - Admin access to be provisioned via Isaac/Jen; LATIF to validate dashboards
   - Texas compliance requires clarification; avoid premature geo filtering
+
+## 2025-09-04 — Click Webhook Fixed: Working Redirect Implementation
+- Issue: Click webhook returning JSON instead of redirecting to Calendly
+- Root Cause: Mismatched node connections (connection pointed to "Respond 302" but node was named "Respond HTML")
+- Solution: Created new workflow **UYSP-Click-Redirect-Fixed** (ID: `YDMeulcYNT2eFqGh`)
+- Implementation:
+  - Static webhook path `/webhook/click` with token as query param `?t=`
+  - HTML meta refresh redirect for universal browser support
+  - Proper node connections ensure response processing
+  - Minimal token payload without targetUrl (hardcoded in workflow)
+- Evidence: 
+  - Multiple executions showing successful token verification and Airtable updates
+  - User confirmed Airtable shows click tracking working
+  - Workflow activated in project workspace (user confirmed)
+  - Execution #3105 (2025-09-04T00:39:13): Click recorded but blank page due to missing headers
+  - Fixed with Content-Type: text/html header update at 00:40:26
+
+## 2025-09-04 — SMS Scheduler: Add ST Contact Node
+- **Workflow**: `UYSP-SMS-Scheduler` (ID: `D10qtcjjf2Vmmp5j`)
+- **Change**: Added `Update ST Contact` HTTP Request node before the `SimpleTexting HTTP` send node.
+- **Purpose**: To create/update a contact in SimpleTexting, assigning it to the `AI Webinar – Automation (System)` list and tagging it with `uysp-automation` for UI visibility.
+- **Evidence**: `n8n_update_full_workflow` successful at `2025-09-04T04:32:35.019Z`, new Version ID `8f13246c-a40d-4508-abd1-87df375cb7b7`.

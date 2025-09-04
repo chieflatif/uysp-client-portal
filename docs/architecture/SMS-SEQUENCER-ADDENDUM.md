@@ -11,7 +11,7 @@ Workflow: UYSP-SMS-Scheduler (D10qtcjjf2Vmmp5j)
 - Safe writeback pattern: single-record update by ID; only writable fields.
 
 ## Node map (final)
-- Manual Trigger → List Due Leads (Airtable Search) → Get Settings (Airtable Search) → List Templates (Airtable Search) → Prepare Text (A/B) [due-gate + variant + personalization] → SimpleTexting HTTP → Parse SMS Response → [Airtable Update, Slack Notify]
+- Manual Trigger → List Due Leads (Airtable Search) → Get Settings (Airtable Search) → List Templates (Airtable Search) → Prepare Text (A/B) [due-gate + variant + personalization] → **Update ST Contact (HTTP v2/api/contacts)** → SimpleTexting HTTP → Parse SMS Response → [Airtable Update, Slack Notify]
 
 ## Key decisions & rationale
 - One workflow: simplest monitoring and change control.
@@ -22,7 +22,7 @@ Workflow: UYSP-SMS-Scheduler (D10qtcjjf2Vmmp5j)
 ## Future hooks (separate workflows)
 - Inbound STOP webhook → set `SMS Stop` + reason. (Implemented: `pQhwZYwBXbcARUzp`, verified on execs 2961, 2962)
 - Calendly webhook → set `Booked` + `Booked At`; halts sequence. (Pending activation)
-- Click proxy with HMAC redirect (v1 design)
+- Click proxy with HMAC redirect (v1 design) - DEFERRED post-launch. Reverted to direct link.
   - Outbound: replace links with `GET /click/:token` where token = HMAC(payload)
   - Payload: `{ leadId, campaignId, targetUrl, ts }`, secret in environment
   - Inbound: verify HMAC, 302 to `targetUrl`, update lead `SMS Status='Clicked'`, write `SMS_Audit` (Event=Click)

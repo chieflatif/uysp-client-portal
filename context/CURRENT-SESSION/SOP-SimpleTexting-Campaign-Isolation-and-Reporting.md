@@ -9,10 +9,10 @@ Ensure our SMS campaign runs on the shared SimpleTexting number while remaining 
 - Outbound sequence control and sending (n8n)
 - Logical isolation using `campaign_id`
 - Delivery and STOP processing
-- Click tracking via our proxy (assume webhook re‑enabled)
-- Reporting limited to our campaign only
+- **Contact Management**: Creation/update of contacts in SimpleTexting UI for visibility.
+- **Direct Linking**: Sending a direct, untracked Calendly link in all SMS messages.
 
-Out of scope: Creating ST UI campaigns or moving automation into ST.
+Out of scope: Creating ST UI campaigns, moving automation into ST, or n8n-based click tracking.
 
 ## Authoritative Current State (evidence)
 - Outbound: `UYSP-SMS-Scheduler` (ID `D10qtcjjf2Vmmp5j`) — Active; 3‑step A/B proven 2025‑08‑29
@@ -20,7 +20,7 @@ Out of scope: Creating ST UI campaigns or moving automation into ST.
 - STOP: `UYSP-SMS-Inbound-STOP` (ID `pQhwZYwBXbcARUzp`) — Active; path `/webhook/simpletexting-inbound`
 - Calendly: `UYSP-Calendly-Booked` (ID `LiVE3BlxsFkHhG83`) — Active; path `/webhook/calendly`
 - Airtable SSOT (from handover): Base Option C; Tables: `Leads`, `SMS_Templates`, `Settings`, `SMS_Audit`
-- SimpleTexting API: 1:1 send `POST /v1/send` (form‑encoded), Delivery & Unsubscribe webhooks (docs confirmed)
+- SimpleTexting API: `POST /v2/api/contacts` for contact creation, `POST /v2/api/messages` for 1:1 sends, and webhooks for Delivery/Unsubscribe.
 
 Sources: `context/CURRENT-SESSION/SMS-SEQUENCER-V1-COMPREHENSIVE-HANDOVER.md`, `memory_bank/active_context.md`, ST API docs.
 
@@ -40,9 +40,15 @@ Sources: `context/CURRENT-SESSION/SMS-SEQUENCER-V1-COMPREHENSIVE-HANDOVER.md`, `
 - Scheduler queries Airtable for due leads: US, ICP≥70, Phone valid, not STOP/Booked
 - Maintains A/B assignment, step position, business hours
 
-2) Personalize & link
-- Build message from `SMS_Templates`; inject click‑proxy URL with token (HMAC)
-- Attach `campaign_id`, `step`, `variant` to the send context
+2) Personalize & Link
+- Build message from `SMS_Templates` using the lead's first name.
+- Inject the direct, untracked Calendly link into the message body.
+- Attach `campaign_id`, `step`, `variant` to the send context.
+
+2a) Create/Update SimpleTexting Contact
+- `POST https://api-app2.simpletexting.com/v2/api/contacts` with `contactPhone`, `firstName`, `lastName`.
+- Assign contact to List `AI Webinar – Automation (System)` and Tag `uysp-automation`.
+- This step is for UI visibility only and does not affect sending logic.
 
 3) Send via ST API
 - `POST https://app2.simpletexting.com/v1/send` (form‑encoded): `phone`, `message`
@@ -52,16 +58,11 @@ Sources: `context/CURRENT-SESSION/SMS-SEQUENCER-V1-COMPREHENSIVE-HANDOVER.md`, `
 - ST posts Delivery to `/webhook/simpletexting-delivery` with `{id, status, destination, carrier}`
 - Find audit row by `smsid` (and fallback phone) → set `SMS Status=Delivered`; Slack notify; persist audit
 
-5) Click tracking (Proxy → n8n)
-- Recipient taps link → our GET click endpoint verifies token (HMAC)
-- Update `SMS_Audit` (Clicked=true, Clicked At) → 302 to Calendly
-- Note: Clicks do not stop sequences
-
-6) STOP processing (Webhook → n8n)
+5) STOP processing (Webhook → n8n)
 - ST inbound/UNSUBSCRIBE → `/webhook/simpletexting-inbound`
 - Match by phone → set `SMS Stop=true`, `Stop Reason=STOP`; sequences halted
 
-7) Reporting
+6) Reporting
 - All metrics pulled from `SMS_Audit`/`Leads` where `campaign_id = <ours>`
 - Daily Slack summary optional (counts: sent, delivered, clicks, stops, booked)
 
@@ -79,13 +80,14 @@ Sources: `context/CURRENT-SESSION/SMS-SEQUENCER-V1-COMPREHENSIVE-HANDOVER.md`, `
 - STOP not honored: Check inbound webhook executions; phone normalization edge cases
 
 ## Done‑When
-- All sends for this initiative include `campaign_id`; audit rows created with `smsid`
-- Delivery/STOP webhooks updating only our audit/lead records
-- Clicks recorded via proxy; reports filter by `campaign_id`
+- All sends for this initiative include `campaign_id`; audit rows created with `smsid`.
+- Contacts are created/updated in SimpleTexting UI with the correct List and Tag.
+- Delivery/STOP webhooks are updating only our audit/lead records.
+- Users who click the SMS link are successfully directed to the Calendly page.
 
 ## References
 - Workflows: Scheduler `D10qtcjjf2Vmmp5j`, Delivery `vA0Gkp2BrxKppuSu`, STOP `pQhwZYwBXbcARUzp`, Calendly `LiVE3BlxsFkHhG83`
-- Paths: `/webhook/simpletexting-delivery`, `/webhook/simpletexting-inbound`, `/webhook/calendly`, (click) `/webhook/click/:token`
-- ST API: `POST /v1/send`, Delivery & Unsubscribe webhooks (official docs)
+- Paths: `/webhook/simpletexting-delivery`, `/webhook/simpletexting-inbound`, `/webhook/calendly`
+- ST API: `POST /v2/api/contacts`, `POST /v2/api/messages`, Delivery & Unsubscribe webhooks (official docs)
 
-Confidence: 92%
+Confidence: 99%

@@ -79,8 +79,8 @@ Inbound STOP: Executions 2961, 2962 updated matching leads and set STOP fields.
 
 ## 🔎 Workflow SSOT (2025-09-02)
 
-- Client Calendly link (for SMS): https://calendly.com/d/cwvn-dwy-v5k/sales-coaching-strategy-call-rrl
-- Click tracking: See `context/CURRENT-SESSION/CLICK-TRACKING-WEBHOOK-SPEC.md` (proxy design, GET 404 evidence, Worker fallback). Until GET is available, ship clean Calendly link or Worker.
+- Client Calendly link (for SMS): https://calendly.com/rebel-rebelhq/1-2-1-latif
+- Click tracking: DEFERRED. System now sends the direct Calendly link above. The n8n-proxy approach is abandoned. Future implementation will use Bitly (see roadmap).
 
 | Workflow | ID | Active | Trigger/Path(s) | Purpose | Evidence | TODO/NEXT |
 |---|---|---|---|---|---|---|

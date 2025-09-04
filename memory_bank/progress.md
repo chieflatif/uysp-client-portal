@@ -205,3 +205,8 @@ Remaining: 3 critical bug fixes
 - SOP: `context/CURRENT-SESSION/SOP-SimpleTexting-Campaign-Isolation-and-Reporting.md`
 - Dev Plan: `context/CURRENT-SESSION/DEV-PLAN-SimpleTexting-Campaign-Isolation-and-Clicks.md`
 - Session INDEX updated with links
+
+## 2025-09-04: ST Contact Node Added to Scheduler
+- Workflow `UYSP-SMS-Scheduler` (`D10qtcjjf2Vmmp5j`) updated to include an "Update ST Contact" node.
+- This node creates/updates the contact in SimpleTexting, assigning them to a list and tag for UI visibility before sending the SMS.
+- All relevant documentation (SOP, Dev Plan, Architecture) has been updated to reflect this change.

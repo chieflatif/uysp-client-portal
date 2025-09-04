@@ -192,4 +192,10 @@ Template
 ## Design Truth (Clay)
 - Current production: Clay “companies to enrich” is the company cache; Clay “Airtable → Upsert Record (Leads)” maps company fields directly to `Leads`. Airtable `Companies`/automations are optional and currently OFF.
 
+### Future Initiatives (Post-Launch)
+
+- **Click Tracking Enhancement**: Migrate from the temporary direct Calendly link to a robust, third-party URL shortening and tracking service like **Bitly**. This will re-enable click-through rate as a measurable KPI without the reliability issues encountered with the n8n webhook proxy. This involves updating the SMS scheduler to call the Bitly API to create a unique link and a separate n8n workflow to poll for click data.
+- **P1**: Implement Apollo.io integration for automated lead sourcing.
+- **P2**: Scale SMS campaigns to additional ICP segments.
+
 
