@@ -1,0 +1,490 @@
+{
+  "createdAt": "2025-08-13T21:35:30.179Z",
+  "updatedAt": "2025-09-03T19:16:34.000Z",
+  "id": "Cj8PtGEftvVsdZrK",
+  "name": "WTF GROCK 12 Nodes",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kajabi-leads-complete-clean",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "2fe7fe5f-6cd4-4aa6-8147-9afc620412df",
+      "name": "Kajabi Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "658a1d1c-30a0-484d-b3cd-87578ff5e668"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Smart Field Mapper v4.7 - add engagement/experience fields + boolean null fix\n// CRITICAL FIX: Boolean false → null for Airtable checkbox fields\nconst webhookData = $input.first().json;\n\n// Extract payload\nlet inputData;\nif (webhookData.body && typeof webhookData.body === 'object') {\n  inputData = webhookData.body;\n} else if (webhookData.data && typeof webhookData.data === 'object') {\n  inputData = webhookData.data;\n} else {\n  inputData = webhookData;\n}\n\nconst fieldMappings = {\n  email: ['email', 'Email', 'EMAIL', 'email_address', 'emailAddress', 'e-mail', 'e_mail', 'contact_email', 'Email_Address', 'EMAIL_ADDRESS'],\n  phone: ['phone', 'Phone', 'PHONE', 'phone_number', 'phoneNumber', 'mobile', 'cellphone', 'telephone', 'phone_intl', 'mobile_intl'],\n  name: ['name', 'Name', 'NAME', 'full_name', 'fullName', 'contact_name', 'display_name'],\n  first_name: ['first_name', 'firstName', 'fname', 'given_name', 'forename'],\n  last_name: ['last_name', 'lastName', 'lname', 'surname', 'family_name'],\n  company: ['company', 'Company', 'COMPANY', 'company_name', 'companyName', 'organization', 'org', 'business'],\n  title: ['title', 'Title', 'job_title', 'jobTitle', 'position', 'role'],\n  source_form: ['source_form', 'form_name', 'formName', 'source', 'form_id'],\n  interested_in_coaching: ['interested_in_coaching', 'coaching_interest', 'wants_coaching'],\n  qualified_lead: ['qualified_lead', 'is_qualified', 'qualified', 'lead_qualified'],\n  contacted: ['contacted', 'was_contacted', 'contact_attempted', 'reached_out'],\n  linkedin_url: ['linkedin_url', 'linkedin', 'linkedinUrl', 'linkedin_profile'],\n  request_id: ['request_id', 'requestId', 'request', 'id', 'tracking_id'],\n  // New fields for ICP fallback/engagement\n  touchpoint_count: ['touchpoint_count','touchpoints','engagement_count'],\n  course_purchaser: ['course_purchaser','purchased_course','customer'],\n  experience_years: ['experience_years','years_experience','years_in_role','yir'],\n  recent_role_change: ['recent_role_change','recent_promotion','recent_change','role_change','job_change'],\n  sales_focused_motivation: ['sales_focused_motivation','motivation_sales','sales_motivation']\n};\n\nconst normalized = {};\nconst mappedFields = new Set();\n\nfunction findField(aliases) {\n  for (const key of Object.keys(inputData)) {\n    if (aliases.some(alias => alias.toLowerCase() === key.toLowerCase())) {\n      mappedFields.add(key);\n      return inputData[key];\n    }\n  }\n  return null;\n}\n\nObject.entries(fieldMappings).forEach(([normalizedName, aliases]) => {\n  const value = findField(aliases);\n  if (value !== null && value !== undefined && value !== '') {\n    normalized[normalizedName] = value;\n  }\n});\n\n// Auto-split full name if needed\nif (normalized.name && !normalized.first_name) {\n  const parts = normalized.name.trim().split(/\\s+/);\n  normalized.first_name = parts[0] || '';\n  normalized.last_name = parts.slice(1).join(' ') || '';\n}\n\n// 3-Field Phone Strategy\nif (normalized.phone) {\n  normalized.phone_recent = normalized.phone;\n  normalized.phone_original = normalized.phone;\n}\n\n// Boolean conversion for Airtable - null instead of false\n['interested_in_coaching', 'qualified_lead', 'contacted', 'course_purchaser', 'recent_role_change', 'sales_focused_motivation'].forEach(field => {\n  if (normalized[field] !== undefined) {\n    const val = String(normalized[field]).toLowerCase();\n    const isTruthy = ['true', 'yes', '1', 'on', 'y', 'checked', 'enabled'].includes(val);\n    normalized[field] = isTruthy ? true : null;\n  }\n});\n\n// Track unknown fields\nconst unknownFields = Object.keys(inputData).filter(k => !mappedFields.has(k));\n\n// Metadata\nnormalized.webhook_field_count = Object.keys(inputData).length;\nnormalized.mapped_field_count = Object.keys(normalized).length;\nnormalized.unknown_field_list = unknownFields.join(', ');\nnormalized.field_mapping_success_rate = Math.round((Object.keys(normalized).length / Object.keys(inputData).length) * 100);\nnormalized.normalization_version = 'v4.7-engagement-mapping';\nnormalized.raw_webhook_data = JSON.stringify(webhookData);\n\nreturn {\n  normalized,\n  original: inputData,\n  unknownFields,\n  mappingSuccess: Object.keys(normalized).length > 0,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "5b8a5a12-d82e-44a9-afc5-a6475877cb31",
+      "name": "Validate + Smart Field Mapper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.peopledatalabs.com/v5/person/enrich",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "{{$json.normalized.email}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "52581862-af94-420e-9490-9b175c7f8814",
+      "name": "Enrichment Waterfall Sub-Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        40
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "VNS3JAPKgDxyNQa3",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Person Data Merger (PDL first, then Hunter; decide final failure)\nconst items = $input.all();\n\nfor (const item of items) {\n  const d = item.json || {};\n\n  const pdlSuccess = d.pdl_person_success === true;\n  const hunterSuccess = d.hunter_person_success === true;\n\n  if (pdlSuccess) {\n    d.enrichment_vendor = 'pdl';\n    d.enrichment_method_primary = 'pdl';\n    d.enrichment_failed = false;\n  } else if (hunterSuccess) {\n    d.enrichment_vendor = 'hunter';\n    d.enrichment_method_primary = 'hunter';\n    d.enrichment_failed = false;\n  } else {\n    d.enrichment_failed = true;\n    d.routing_decision = 'human_review';\n    d.routing_reason = 'person_enrichment_failed_both_providers';\n  }\n\n  if (d.linkedin_url && !String(d.linkedin_url).startsWith('http')) {\n    d.linkedin_url = `https://www.linkedin.com/in/${String(d.linkedin_url).replace(/^\\//, '')}`;\n  }\n\n  item.json = d;\n}\n\nreturn items;"
+      },
+      "id": "415aa6ef-4db7-4885-a9b8-4bf4d9df1ef8",
+      "name": "Person Data Merger + Duplicate Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Node Name: Data Integrity Validator\nconst item = $input.first();\nconst data = item.json;\n\n// Validate critical fields exist\nconst criticalFields = ['email', 'normalized'];\nconst missing = criticalFields.filter(f => !data[f]);\n\nif (missing.length > 0) {\n  throw new Error(`Missing critical fields: ${missing.join(', ')}`);\n}\n\n// Validate normalized data structure\nconst normalized = data.normalized;\nif (!normalized.email) {\n  throw new Error('Normalized data missing email');\n}\n\n// Log for debugging\nconsole.log('Validating lead:', {\n  email: normalized.email,\n  duplicate: data.duplicate,\n  duplicateCount: data.duplicateCount,\n  hasScore: !!normalized.icp_score\n});\nreturn [item];"
+      },
+      "id": "65f9018d-4f2d-4a6d-a201-9cf87c8b8e00",
+      "name": "Data Integrity Validator + Double Failure Router",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Node Name: Junk Detection Filter + Salvage Pre-Score Calculator\n// Junk Detection\nconst items = $input.all();\nconst staticData = $getWorkflowStaticData('global');\nconst GENERIC_DOMAINS = staticData.GENERIC_DOMAINS || [\n  'gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com'\n];\n\nfor (const item of items) {\n  const d = item.json.normalized || item.json;\n  const email = String(d.email || '').toLowerCase();\n  const domain = email.includes('@') ? email.split('@')[1] : '';\n\n  const isGenericEmail = GENERIC_DOMAINS.includes(domain);\n  const noCompanyData = !d.company && !d.company_enriched && !d.pdl_company_name;\n  const noPhone = !d.phone_primary && !d.phone_enriched;\n  const noLinkedIn = !d.linkedin_url && !d.pdl_linkedin_url;\n  const noTitle = !d.title && !d.title_current && !d.pdl_job_title;\n  const noEngagement = Number(d.touchpoint_count || 0) === 0;\n\n  if (isGenericEmail && noCompanyData && noPhone && noLinkedIn && noTitle && noEngagement) {\n    d.processing_status = 'Archived';\n    d.archived_reason = 'insufficient_signal';\n    d.routing = 'archive';\n    d.routing_reason = 'auto_junk_detection';\n    d.junk_score = 100;\n    item.json = { normalized: d, route: 'archive' };\n  } else {\n    item.json = { normalized: d, route: 'salvage_check' };\n    // Salvage Pre-Score\n    const TECH_DOMAINS = staticData.TECH_DOMAINS || [\n      'salesforce.com','hubspot.com','microsoft.com'\n    ];\n    let preScore = 0;\n    const signals = [];\n    if (TECH_DOMAINS.includes(domain)) { preScore += 15; signals.push('tech_domain'); }\n    if (Number(d.touchpoint_count || 0) >= 2) { preScore += 8; signals.push('has_engagement_2plus'); }\n    if (['true', 'Yes', true].includes(d.interested_in_coaching)) { preScore += 10; signals.push('coaching_interest'); }\n    d.salvage_pre_score = preScore;\n    d.salvage_signals = signals.join(',');\n    const salvageEnabled = $vars.SALVAGE_DOUBLE_FAIL === 'true';\n    if (salvageEnabled && preScore >= 20) { item.json.route = 'salvage_scoring'; }\n    else { item.json.route = 'human_review'; }\n  }\n}\nreturn items;"
+      },
+      "id": "4e18d936-8176-423a-aa5e-e49dcf20495e",
+      "name": "Junk Detection + Salvage Pre-Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "{{ $json.route }}",
+              "rightValue": "salvage_scoring",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "546c2c4d-88d3-485e-9722-094a64f67d8e",
+      "name": "Salvage Route Switch",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-4o"
+            },
+            {
+              "name": "messages",
+              "value": "{{ [{'role':'system','content':'Score this lead per V3 ICP: company_score (max 15), role_score (max 40), engagement_score (max 30), total_score, tier (Ultra/High/Qualified/Archive), reasoning, confidence (>0.8). Output JSON only.'}, {'role':'user','content':`Company: ${$json.company_enriched}, Title: ${$json.title_current}, Engagement: touchpoint_count=${$json.touchpoint_count}, interested_in_coaching=${$json.interested_in_coaching ? 'yes' : 'no'}, webinar_attendee=${String($json.source_form || '').toLowerCase().includes('webinar') ? 'true' : 'false' }, course_purchaser=${ $json.course_purchaser === true ? 'true' : 'false' }, recent_role_change=${ $json.recent_role_change === true ? 'true' : 'false' }, experience_years=${ $json.experience_years || 0 }`}] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9fdfc8ef-258e-477a-b247-6263b2dd285d",
+      "name": "OpenAI ICP Scoring V3.0",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// COMPLETE REPLACEMENT CODE - Fixes all issues\nconst items = $input.all();\n\n// Get tech/generic domains from static data or defaults\nconst staticData = $getWorkflowStaticData('global');\nconst TECH_DOMAINS = staticData.TECH_DOMAINS || [\n  'salesforce.com','hubspot.com','microsoft.com','google.com','adobe.com',\n  'amazon.com','atlassian.com','slack.com','snowflake.com','datadog.com'\n];\nconst GENERIC_DOMAINS = staticData.GENERIC_DOMAINS || [\n  'gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com'\n];\n\n// V3.2 BASE with PROPER SECTION CAPS (Company 15, Role 40, Engagement 30)\nfunction calculateV3Fallback(data) {\n  const reasons = [];\n  \n  // COMPANY SECTION (15 max)\n  let companyScore = 0;\n  const email = String(data.email || '').toLowerCase();\n  const domain = email.includes('@') ? email.split('@')[1] : '';\n  const company = String(data.company || data.company_enriched || '').toLowerCase();\n  \n  if (TECH_DOMAINS.includes(domain)) {\n    companyScore += 15;\n    reasons.push('Tech domain +15');\n  } else if (GENERIC_DOMAINS.includes(domain)) {\n    companyScore -= 10;\n    reasons.push('Generic domain -10');\n  }\n  \n  if (company.match(/\\b(saas|software|tech|cloud|data|cyber|ai)\\b/)) {\n    companyScore += 15;\n    reasons.push('B2B Tech +15');\n  }\n  \n  // Cap company section\n  companyScore = Math.min(15, Math.max(0, companyScore));\n  \n  // ROLE SECTION (40 max)\n  let roleScore = 0;\n  const title = String(data.title || data.title_current || '').toLowerCase();\n  \n  // FIX: Proper substring matching\n  if (title.includes('account executive') || title.includes(' ae ') || \n      title.match(/\\bae\\b/)) {\n    roleScore += 20;\n    reasons.push('AE +20');\n    if (title.includes('senior') || title.includes('enterprise')) {\n      roleScore += 5;\n      reasons.push('Senior +5');\n    }\n  } else if (title.includes('account manager')) {\n    roleScore += 18;\n    reasons.push('AM +18');\n  } else if (title.includes('sales manager')) {\n    roleScore += 10;\n    reasons.push('Sales Mgr +10');\n  } else if (title.includes('sdr') || title.includes('bdr')) {\n    roleScore += 3;\n    reasons.push('SDR/BDR +3');\n  }\n  \n  // Cap role section\n  roleScore = Math.min(40, Math.max(0, roleScore));\n  \n  // ENGAGEMENT SECTION (30 max)\n  let engagementScore = 0;\n  \n  // Handle multiple coaching formats\n  const coaching = data.interested_in_coaching;\n  if (coaching === true || coaching === 'true' || \n      coaching === 'Yes' || coaching === 'yes' || coaching === 1) {\n    engagementScore += 10;\n    reasons.push('Coaching +10');\n  }\n  \n  const touchpoints = Number(data.touchpoint_count || 0);\n  if (touchpoints >= 3) {\n    engagementScore += 15;\n    reasons.push('Touchpoints 3+ +15');\n  } else if (touchpoints >= 1) {\n    engagementScore += 8;\n    reasons.push('Touchpoints 1-2 +8');\n  }\n  \n  if (data.webinar_attendee === true || data.webinar_attendee === 'true') {\n    engagementScore += 8;\n    reasons.push('Webinar +8');\n  }\n  \n  if (data.course_purchaser === true || data.course_purchaser === 'true') {\n    engagementScore += 10;\n    reasons.push('Course +10');\n  }\n  \n  // FIX: Add missing field\n  if (data.sales_focused_motivation === true || \n      data.sales_focused_motivation === 'true') {\n    engagementScore += 5;\n    reasons.push('Sales motivation +5');\n  }\n  \n  // Cap engagement section\n  engagementScore = Math.min(30, Math.max(0, engagementScore));\n  \n  // Calculate BASE total (pre-location)\n  const totalScore = companyScore + roleScore + engagementScore;\n  const tier = totalScore >= 90 ? 'Ultra' : \n               totalScore >= 75 ? 'High' : \n               totalScore >= 70 ? 'Qualified' : 'Archive';\n  \n  // Confidence based on data completeness\n  const criticalFields = [\n    data.email, data.company, data.title, \n    data.first_name, data.phone_primary\n  ].filter(Boolean).length;\n  const confidence = 0.4 + (criticalFields * 0.12);\n  \n  return {\n    icp_score: totalScore,\n    company_score: companyScore,\n    role_score: roleScore,\n    engagement_score: engagementScore,\n    icp_tier: tier,\n    score_reasoning: reasons.join('; '),\n    scoring_confidence: Math.min(1.0, confidence),\n      scoring_method: 'domain_base_v3_2',\n    openai_api_used: false\n  };\n}\n\n// Process each item\nfor (const item of items) {\n  const input = item.json;\n  const aiResponse = input.ai_response || input;\n  \n  let useAI = false;\n  let parsedAI = null;\n  \n  // Try to parse AI response\n  if (aiResponse && aiResponse.content) {\n    try {\n      let content = typeof aiResponse.content === 'string' ? \n        aiResponse.content : \n        aiResponse.content[0]?.text || JSON.stringify(aiResponse.content);\n      \n      // Clean markdown\n      content = content.replace(/```json\\s*/gi, '').replace(/```\\s*/gi, '').trim();\n      parsedAI = JSON.parse(content);\n      \n      // Validate AI response\n      if (parsedAI && \n          typeof parsedAI.company_score === 'number' &&\n          typeof parsedAI.role_score === 'number' &&\n          typeof parsedAI.engagement_score === 'number' &&\n          parsedAI.company_score <= 25 &&\n          parsedAI.role_score <= 40 &&\n          parsedAI.engagement_score <= 35 &&\n          parsedAI.confidence >= 0.8) {\n        useAI = true;\n      }\n    } catch (e) {\n      // Will use fallback\n    }\n  }\n  \n  let result;\n  if (useAI && parsedAI) {\n    result = {\n      ...input,\n      icp_score: Math.min(100, parsedAI.total_score),\n      company_score: parsedAI.company_score,\n      role_score: parsedAI.role_score,\n      engagement_score: parsedAI.engagement_score,\n      icp_tier: parsedAI.tier,\n      score_reasoning: parsedAI.reasoning,\n      scoring_confidence: parsedAI.confidence,\n      scoring_method: 'ai',\n      openai_api_used: true\n    };\n  } else {\n    result = {\n      ...input,\n      ...calculateV3Fallback(input),\n      ai_parse_error: parsedAI ? 'low_confidence' : 'parse_failed'\n    };\n  }\n  \n  result.scoring_date = new Date().toISOString();\n  result.v3_aligned = true;\n  \n  // Anomaly Detection\n  const tp = Number(result.touchpoint_count || 0);\n  const hasCoaching = ['true','True','yes','Yes',true,1].includes(result.interested_in_coaching);\n  const score = Number(result.icp_score || 0);\n  const title = String(result.title || result.title_current || '').toLowerCase();\n  const highEngagementLowScore = tp > 5 && score < 50;\n  const coachingNonSales = hasCoaching && !title.includes('sales') && !title.includes('account') && !title.includes('revenue');\n  const suspiciousScore = result.scoring_method === 'ai' && result.company_score === 0 && result.role_score === 0 && result.engagement_score > 30;\n  if (highEngagementLowScore || coachingNonSales || suspiciousScore) {\n    result.human_review_needed = true;\n    result.anomaly_detected = true;\n    result.anomaly_reason = highEngagementLowScore ? 'high_engagement_low_score' : (coachingNonSales ? 'coaching_interest_non_sales' : 'suspicious_score_distribution');\n  } else {\n    result.human_review_needed = false;\n    result.anomaly_detected = false;\n  }\n\n  // Provisional Geo Inference\n  const linkedin = result.linkedin_url || '';\n  const geoMatch = linkedin.match(/\\/in\\/([a-z]{2})\\/);\n  if (geoMatch) {\n    result.person_location_country = geoMatch[1].toUpperCase();\n    result.location_confidence = 0.5;\n    result.location_points_applied = 0; // neutral\n    result.location_source = 'linkedin';\n  } else {\n    result.person_location_country = null;\n    result.location_confidence = 0;\n    result.location_points_applied = 0;\n  }\n  \n  item.json = result;\n}\n\nreturn items;"
+      },
+      "id": "9090bcc9-3de7-43dd-9171-f971418ba3c3",
+      "name": "ICP Response Processor + Anomaly Detection",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "{{$json.icp_score}}",
+              "rightValue": "70",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bfb1f913-110a-4e33-8f4a-6339c238771a",
+      "name": "Score-Based Routing V3.0",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appuBf0fTe8tp8ZaF",
+          "mode": ""
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSk2Ikg21932uE0",
+          "mode": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "{{$json.normalized.email}}",
+            "first_name": "{{$json.normalized.first_name || ''}}",
+            "last_name": "{{$json.normalized.last_name || ''}}",
+            "title_current": "{{$json.normalized.title_current || $json.normalized.pdl_job_title || $json.normalized.title}}",
+            "company_enriched": "{{$json.normalized.company_enriched || $json.normalized.pdl_company_name || $json.normalized.company}}",
+            "linkedin_url": "{{$json.normalized.linkedin_url || $json.normalized.pdl_linkedin_url || ''}}",
+            "phone_primary": "{{$json.normalized.phone_recent || $json.normalized.phone_original || ''}}",
+            "icp_score": "{{$json.icp_score || 0}}",
+            "icp_tier": "{{$json.icp_tier || 'Archive'}}",
+            "score_breakdown": "{{$json.score_reasoning || ''}}",
+            "scoring_method": "{{$json.scoring_method || 'domain'}}",
+            "scoring_date": "{{new Date().toFormat('M/d/yyyy')}}",
+            "created_date": "{{new Date().toFormat('M/d/yyyy')}}",
+            "reengagement_count": 0,
+            "duplicate_count": "{{ $json.duplicateCount || 0 }}",
+            "last_enriched": "{{ $json.last_enriched || new Date().toISOString() }}",
+            "processing_status": "{{$json.processing_status || 'Processed'}}"
+          },
+          "matchingColumns": [
+            "email"
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "9a1999d0-966f-48b9-8abb-61bd2fd52411",
+      "name": "Airtable Dynamic Upsert",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2200,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appuBf0fTe8tp8ZaF",
+          "mode": ""
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljmIuoX3Qi28WIq",
+          "mode": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "person_email": "{{$json.normalized.email}}",
+            "review_reason": "{{$json.routing_reason || 'needs_review'}}",
+            "priority": "Medium",
+            "queued_date": "{{new Date().toISOString()}}",
+            "review_notes": "{{ `${$json.routing_reason || 'needs_review'} | title=${$json.normalized.title_current || ''} | company=${$json.normalized.company_enriched || ''} | linkedin=${$json.normalized.linkedin_url || ''}` }}"
+          },
+          "matchingColumns": [
+            "person_email"
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "bc7ad5f6-e5e4-4a4f-9069-5e051bb7414b",
+      "name": "Airtable Human Review Queue",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2420,
+        40
+      ]
+    }
+  ],
+  "connections": {
+    "Kajabi Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate + Smart Field Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate + Smart Field Mapper": {
+      "main": [
+        [
+          {
+            "node": "Enrichment Waterfall Sub-Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrichment Waterfall Sub-Workflow": {
+      "main": [
+        [
+          {
+            "node": "Person Data Merger + Duplicate Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Person Data Merger + Duplicate Handler": {
+      "main": [
+        [
+          {
+            "node": "Data Integrity Validator + Double Failure Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Integrity Validator + Double Failure Router": {
+      "main": [
+        [
+          {
+            "node": "Junk Detection + Salvage Pre-Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Junk Detection + Salvage Pre-Score": {
+      "main": [
+        [
+          {
+            "node": "Salvage Route Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvage Route Switch": {
+      "main": [
+        [
+          {
+            "node": "OpenAI ICP Scoring V3.0",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Airtable Human Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI ICP Scoring V3.0": {
+      "main": [
+        [
+          {
+            "node": "ICP Response Processor + Anomaly Detection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ICP Response Processor + Anomaly Detection": {
+      "main": [
+        [
+          {
+            "node": "Score-Based Routing V3.0",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score-Based Routing V3.0": {
+      "main": [
+        [
+          {
+            "node": "Airtable Dynamic Upsert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Airtable Dynamic Upsert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "c5f9088a-f521-4f3d-b0be-c8e9c4083af2",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-13T21:35:30.181Z",
+      "updatedAt": "2025-08-13T21:35:30.181Z",
+      "role": "workflow:owner",
+      "workflowId": "Cj8PtGEftvVsdZrK",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-03T22:00:13.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

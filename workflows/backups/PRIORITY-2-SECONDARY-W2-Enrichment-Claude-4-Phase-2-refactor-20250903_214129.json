@@ -1,0 +1,203 @@
+{
+  "createdAt": "2025-08-16T19:25:45.026Z",
+  "updatedAt": "2025-09-03T19:17:25.000Z",
+  "id": "MrnlIXtiy2i40jOi",
+  "name": "W2-Enrichment-Claude-4-Phase-2-refactor",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "8d954091-3a4a-4323-b59f-e5d830b28892",
+      "name": "Execute Sub-workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// CRITICAL: Zero item defense and initialization\nconst items = $input.all();\n\nif (!items || !items.length) {\n  return [{\n    json: {\n      status: 'no_input',\n      enriched: {},\n      providers_triggered: [],\n      costs: { total: 0 },\n      enrichment_path: 'no_input_received',\n      error: 'No input data received'\n    }\n  }];\n}\n\nconst data = items[0].json;\n// FIX: Handle both 'feature_flags' (from main workflow) and 'flags' (legacy)\nconst normalized = data.normalized || {};\nconst flags = data.feature_flags || data.flags || {\n  pdl_enabled: true,\n  hunter_enabled: true,\n  dropcontact_enabled: true\n};\n\n// Validate required email field\nif (!normalized.email) {\n  return [{\n    json: {\n      status: 'fail',\n      enriched: {},\n      providers_triggered: [],\n      costs: { total: 0 },\n      enrichment_path: 'no_email',\n      error: 'No email provided for enrichment'\n    }\n  }];\n}\n\n// Initialize state for tracking\nreturn [{\n  json: {\n    normalized: normalized,\n    flags: flags,  // Standardize to 'flags' for internal use\n    enrichment_state: {\n      success: false,\n      enriched: {},\n      providers_triggered: [],\n      costs: {},\n      path: []\n    }\n  }\n}];"
+      },
+      "id": "7d269865-9290-43d7-9450-193836c51c08",
+      "name": "Entry Guard & Initialize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        40,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// PDL enrichment with actual API call structure\nconst data = $input.first().json;\nconst normalized = data.normalized;\nconst flags = data.flags;\nconst state = data.enrichment_state;\n\n// Only proceed if PDL is enabled and we haven't succeeded yet\nif (!flags.pdl_enabled || state.success) {\n  return [{ json: data }];\n}\n\ntry {\n  // In production, this would be an HTTP Request node\n  // For testing, simulate the response\n  const pdlResponse = {\n    // Simulated response - replace with actual HTTP Request node\n    data: {\n      job_title: \"Senior Account Executive\",\n      job_company_name: \"TechCorp Inc\",\n      linkedin_url: \"linkedin.com/in/johndoe\",\n      job_company_size: \"100-500\",\n      job_seniority: \"senior\"\n    }\n  };\n  \n  // Check if we got meaningful data\n  if (pdlResponse.data && pdlResponse.data.job_title) {\n    state.enriched = {\n      title: pdlResponse.data.job_title,\n      company: pdlResponse.data.job_company_name,\n      linkedin: pdlResponse.data.linkedin_url,\n      company_size: pdlResponse.data.job_company_size,\n      seniority: pdlResponse.data.job_seniority\n    };\n    state.success = true;\n    state.providers_triggered.push('pdl');\n    state.costs.pdl = 0.01;\n    state.path.push('pdl_success');\n  } else {\n    state.path.push('pdl_no_data');\n  }\n} catch (error) {\n  state.path.push('pdl_error');\n}\n\nreturn [{\n  json: {\n    normalized: normalized,\n    flags: flags,\n    enrichment_state: state\n  }\n}];"
+      },
+      "id": "235c47a6-461d-4bbb-b3fc-1c1212c38174",
+      "name": "PDL Enrichment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hunter fallback - only if PDL didn't succeed\nconst data = $input.first().json;\nconst normalized = data.normalized;\nconst flags = data.flags;\nconst state = data.enrichment_state;\n\n// Only proceed if Hunter is enabled and we haven't succeeded yet\nif (!flags.hunter_enabled || state.success) {\n  return [{ json: data }];\n}\n\ntry {\n  // Extract domain from email\n  const domain = normalized.email.split('@')[1];\n  \n  // In production, this would be an HTTP Request node\n  const hunterResponse = {\n    // Simulated response\n    data: {\n      position: \"Account Executive\",\n      company: \"TechCorp\",\n      confidence: 85\n    }\n  };\n  \n  if (hunterResponse.data && hunterResponse.data.position) {\n    state.enriched = {\n      title: hunterResponse.data.position,\n      company: hunterResponse.data.company,\n      confidence: hunterResponse.data.confidence\n    };\n    state.success = true;\n    state.providers_triggered.push('hunter');\n    state.costs.hunter = 0.005;\n    state.path.push('hunter_success');\n  } else {\n    state.path.push('hunter_no_data');\n  }\n} catch (error) {\n  state.path.push('hunter_error');\n}\n\nreturn [{\n  json: {\n    normalized: normalized,\n    flags: flags,\n    enrichment_state: state\n  }\n}];"
+      },
+      "id": "bd037c5d-6ad6-4f17-97ab-4634b353df8d",
+      "name": "Hunter Enrichment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Dropcontact last resort - only if both PDL and Hunter failed\nconst data = $input.first().json;\nconst normalized = data.normalized;\nconst flags = data.flags;\nconst state = data.enrichment_state;\n\n// Only proceed if Dropcontact is enabled and we haven't succeeded yet\nif (!flags.dropcontact_enabled || state.success) {\n  return [{ json: data }];\n}\n\ntry {\n  // In production, this would be an HTTP Request node\n  const dropcontactResponse = {\n    // Simulated response\n    data: [{\n      job: \"Sales Executive\",\n      company_name: \"Tech Corporation\",\n      email_qualification: \"valid\",\n      linkedin: \"linkedin.com/in/johndoe\"\n    }]\n  };\n  \n  if (dropcontactResponse.data && dropcontactResponse.data[0] && dropcontactResponse.data[0].job) {\n    state.enriched = {\n      title: dropcontactResponse.data[0].job,\n      company: dropcontactResponse.data[0].company_name,\n      email_verified: dropcontactResponse.data[0].email_qualification === 'valid',\n      linkedin: dropcontactResponse.data[0].linkedin\n    };\n    state.success = true;\n    state.providers_triggered.push('dropcontact');\n    state.costs.dropcontact = 0.02;\n    state.path.push('dropcontact_success');\n  } else {\n    state.path.push('dropcontact_no_data');\n  }\n} catch (error) {\n  state.path.push('dropcontact_error');\n}\n\nreturn [{\n  json: {\n    normalized: normalized,\n    flags: flags,\n    enrichment_state: state\n  }\n}];"
+      },
+      "id": "bbbab95b-6a25-4377-9690-4b05ed89472a",
+      "name": "Dropcontact Enrichment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// CRITICAL: Always return exactly one item with consistent structure\nconst data = $input.first().json;\nconst state = data.enrichment_state;\n\n// Calculate total cost\nstate.costs.total = Object.values(state.costs)\n  .reduce((sum, cost) => sum + (cost || 0), 0);\n\n// Format enrichment path\nconst enrichmentPath = state.path.join(' → ');\n\n// ALWAYS return one item with consistent structure\nreturn [{\n  json: {\n    status: state.success ? 'success' : 'fail',\n    enriched: state.enriched,\n    providers_triggered: state.providers_triggered,\n    costs: state.costs,\n    enrichment_path: enrichmentPath,\n    attempts: state.path.length\n  }\n}];"
+      },
+      "id": "b6941e40-71f3-4a9b-bc49-073b7b9314d0",
+      "name": "Consolidate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        -80
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Sub-workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Entry Guard & Initialize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entry Guard & Initialize": {
+      "main": [
+        [
+          {
+            "node": "PDL Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDL Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Hunter Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Dropcontact Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropcontact Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Consolidate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "c30ced77-2287-481a-9721-d13fe258fb30",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-16T21:16:10.226Z",
+      "updatedAt": "2025-08-16T21:16:10.226Z",
+      "role": "workflow:owner",
+      "workflowId": "MrnlIXtiy2i40jOi",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-03T22:00:13.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

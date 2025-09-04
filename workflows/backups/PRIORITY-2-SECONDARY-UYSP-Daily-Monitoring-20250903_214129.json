@@ -1,0 +1,389 @@
+{
+  "createdAt": "2025-08-30T00:17:13.205Z",
+  "updatedAt": "2025-08-30T00:24:43.000Z",
+  "id": "5xW2QG8x2RFQP8kx",
+  "name": "UYSP-Daily-Monitoring",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "custom",
+              "cronExpression": "0 14 * * 1-5 "
+            }
+          ]
+        }
+      },
+      "id": "cron",
+      "name": "Daily Schedule",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "filterByFormula": "AND({Status}='Sent', IS_AFTER({Sent At}, DATEADD(NOW(), -1, 'day')))",
+        "options": {}
+      },
+      "id": "sent",
+      "name": "Sent Today",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        -48
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "filterByFormula": "AND({Status}='Delivered', IS_AFTER({Sent At}, DATEADD(NOW(), -1, 'day')))",
+        "options": {}
+      },
+      "id": "deliv",
+      "name": "Delivered Today",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        -48
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "filterByFormula": "AND({Status}='Failed', IS_AFTER({Sent At}, DATEADD(NOW(), -1, 'day')))",
+        "options": {}
+      },
+      "id": "failed",
+      "name": "Failed Today",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        -48
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "AND({SMS Stop}, IS_AFTER({Last Updated Auto}, DATEADD(NOW(), -1, 'day')))",
+        "options": {}
+      },
+      "id": "stops",
+      "name": "Stops Today",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -48
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "AND({Booked}, IS_AFTER({Booked At}, DATEADD(NOW(), -1, 'day')))",
+        "options": {}
+      },
+      "id": "booked",
+      "name": "Booked Today",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -48
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sent = ($items('Sent Today', 0) || []).length;\nconst delivered = ($items('Delivered Today', 0) || []).length;\nconst failed = ($items('Failed Today', 0) || []).length;\nconst stops = ($items('Stops Today', 0) || []).length;\nconst booked = ($items('Booked Today', 0) || []).length;\n\nconst lines = [];\nlines.push(`[Daily Summary]`);\nlines.push(`Sends: ${sent}`);\nlines.push(`Delivered: ${delivered}`);\nlines.push(`Failed: ${failed}`);\nlines.push(`Stops: ${stops}`);\nlines.push(`Booked: ${booked}`);\nlines.push(`Clicks: disabled (n8n webhook issue)`);\nlines.push(`Time: ${new Date().toISOString()}`);\nreturn [{ json: { text: lines.join('\\n') } }];"
+      },
+      "id": "summary",
+      "name": "Build Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": "list"
+        },
+        "text": "={{$json.text}}",
+        "otherOptions": {}
+      },
+      "id": "slack",
+      "name": "Post to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        608,
+        -48
+      ],
+      "webhookId": "68381bd8-71b6-4adf-a96b-4a5b1f43b851",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -208
+      ],
+      "id": "be049722-0ff4-4748-8b01-8a5e8f5b1cf3",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "connections": {
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Sent Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sent Today": {
+      "main": [
+        [
+          {
+            "node": "Delivered Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delivered Today": {
+      "main": [
+        [
+          {
+            "node": "Failed Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Failed Today": {
+      "main": [
+        [
+          {
+            "node": "Stops Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stops Today": {
+      "main": [
+        [
+          {
+            "node": "Booked Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booked Today": {
+      "main": [
+        [
+          {
+            "node": "Build Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Summary": {
+      "main": [
+        [
+          {
+            "node": "Post to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Sent Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "01f72b55-d60b-4c11-a9fd-711ef2dbd526",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-30T00:24:07.540Z",
+      "updatedAt": "2025-08-30T00:24:07.540Z",
+      "role": "workflow:owner",
+      "workflowId": "5xW2QG8x2RFQP8kx",
+      "projectId": "H4VRaaZhd8VKQANf",
+      "project": {
+        "createdAt": "2025-07-20T10:20:07.367Z",
+        "updatedAt": "2025-07-20T10:23:14.000Z",
+        "id": "H4VRaaZhd8VKQANf",
+        "name": "UYSP Lead Qualification Agent ",
+        "type": "team",
+        "icon": {
+          "type": "icon",
+          "value": "layer-group"
+        },
+        "description": "Automated lead qualification and SMS outreach system that processes Kajabi form submissions, enriches B2B leads through two-phase qualification, scores them 0-100 using AI, and sends personalized SMS to qualified prospects while maintaining strict compliance and cost controls.",
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-20T10:23:14.911Z",
+            "updatedAt": "2025-07-20T10:23:14.911Z",
+            "role": "project:admin",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "H4VRaaZhd8VKQANf",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-03T22:00:13.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

@@ -1,0 +1,405 @@
+{
+  "createdAt": "2025-07-25T06:43:40.523Z",
+  "updatedAt": "2025-09-03T19:16:05.000Z",
+  "id": "qdimdNznYPiYIYEj",
+  "name": "uysp-error-handler-v1",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "37c6612f-16ba-467d-a9d4-42c34e708338",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "error-type",
+              "name": "error_type",
+              "value": "={{ $('Error Trigger').item.json.error.type || 'Unknown Error' }}",
+              "type": "string"
+            },
+            {
+              "id": "execution-id",
+              "name": "execution_id",
+              "value": "={{ $('Error Trigger').item.json.execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "error-reasons",
+              "name": "error_reasons",
+              "value": "={{ $('Error Trigger').item.json.error.message || 'No error message available' }}",
+              "type": "string"
+            },
+            {
+              "id": "workflow-name",
+              "name": "workflow_name",
+              "value": "={{ $('Error Trigger').item.json.workflow.name || 'Unknown Workflow' }}",
+              "type": "string"
+            },
+            {
+              "id": "error-time",
+              "name": "error_time",
+              "value": "={{ DateTime.now().toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "node-name",
+              "name": "error_node",
+              "value": "={{ $('Error Trigger').item.json.error.node ? $('Error Trigger').item.json.error.node.name : 'Unknown Node' }}",
+              "type": "string"
+            },
+            {
+              "id": "stack-trace",
+              "name": "stack_trace",
+              "value": "={{ $('Error Trigger').item.json.error.stack ? $('Error Trigger').item.json.error.stack.substring(0, 500) + '...' : 'No stack trace' }}",
+              "type": "string"
+            },
+            {
+              "id": "slack-message",
+              "name": "slack_message",
+              "value": "🚨 *UYSP Lead Qualification Error*\n\n*Execution ID:* {{ $('Error Trigger').item.json.execution.id }}\n*Workflow:* {{ $('Error Trigger').item.json.workflow.name || 'Unknown' }}\n*Error Type:* {{ $('Error Trigger').item.json.error.type || 'Unknown' }}\n*Error Message:* {{ $('Error Trigger').item.json.error.message || 'No details' }}\n*Time:* {{ DateTime.now().toFormat('yyyy-MM-dd HH:mm:ss') }} UTC\n\n*Node:* {{ $('Error Trigger').item.json.error.node ? $('Error Trigger').item.json.error.node.name : 'Unknown Node' }}\n*Stack:* {{ $('Error Trigger').item.json.error.stack ? $('Error Trigger').item.json.error.stack.substring(0, 500) + '...' : 'No stack trace' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "62148d37-0ab5-42ec-80e7-27d752f601a0",
+      "name": "Format Alert Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        420,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": "list",
+          "cachedResultName": "uysp-error-handler"
+        },
+        "text": "={{ $json.slack_message }}",
+        "otherOptions": {}
+      },
+      "id": "d62e6c09-0137-4e76-9e20-6e4170780a93",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        620,
+        -180
+      ],
+      "webhookId": "f7a9b138-ca19-4113-bc2c-b3ff460082ec",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appuBf0fTe8tp8ZaF",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhwXfPLCoF1hvNi",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "error_type": "={{ $json.error_type }}",
+            "execution_id": "={{ $json.execution_id }}",
+            "workflow_name": "={{ $json.workflow_name }}",
+            "resolved": false,
+            "timestamp": "={{ DateTime.now().toFormat('M/d/yyyy') }}",
+            "error_node": "={{ $json.error_node }}",
+            "error_message": "={{ $json.error_reasons }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "execution_id",
+              "displayName": "execution_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_node",
+              "displayName": "error_node",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_type",
+              "displayName": "error_type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "validation",
+                  "value": "validation"
+                },
+                {
+                  "name": "api",
+                  "value": "api"
+                },
+                {
+                  "name": "rate_limit",
+                  "value": "rate_limit"
+                },
+                {
+                  "name": "timeout",
+                  "value": "timeout"
+                },
+                {
+                  "name": "unknown",
+                  "value": "unknown"
+                },
+                {
+                  "name": "duplicate",
+                  "value": "duplicate"
+                },
+                {
+                  "name": "dnd_block",
+                  "value": "dnd_block"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lead_email",
+              "displayName": "lead_email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "resolved",
+              "displayName": "resolved",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "raw_error",
+              "displayName": "raw_error",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": false
+        }
+      },
+      "id": "b37b3e0d-21ad-4f6b-83da-49f05a211979",
+      "name": "Log Error to Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        820,
+        -180
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "WdyZ25N0TLnykzMq",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Format Alert Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Alert Data": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Slack Alert": {
+      "main": [
+        [
+          {
+            "node": "Log Error to Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "9097218d-e0ba-4250-abd8-533ab2950d43",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-16T02:33:31.280Z",
+      "updatedAt": "2025-08-16T02:33:31.280Z",
+      "role": "workflow:owner",
+      "workflowId": "qdimdNznYPiYIYEj",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-03T22:00:13.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

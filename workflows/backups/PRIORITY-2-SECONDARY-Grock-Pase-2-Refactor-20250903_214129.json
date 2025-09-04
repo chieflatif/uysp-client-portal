@@ -1,0 +1,259 @@
+{
+  "createdAt": "2025-08-16T19:08:59.521Z",
+  "updatedAt": "2025-09-03T19:17:02.000Z",
+  "id": "UCq3BAxvfLBQEfaC",
+  "name": "Grock-Pase-2-Refactor",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/webhook/uysp-lead-intake",
+        "options": {}
+      },
+      "id": "0dfbef00-17a3-4933-b5e1-4f19f52c1cda",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        60,
+        -100
+      ],
+      "webhookId": "ad0741c2-1ee2-4105-ac24-e76839ea35a2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst normalized = {};\nconst unknownFields = [];\nconst mappedFields = new Set();\nconst fieldMappings = {\n  email: ['email', 'Email', 'EMAIL', 'email_address', 'emailAddress', 'e-mail', 'contact_email', 'EmailAddress', 'user_email', 'primary_email'],\n  phone: ['phone', 'Phone', 'PHONE', 'phone_number', 'phoneNumber', 'mobile', 'cellphone', 'telephone', 'cell', 'mobile_number', 'contact_phone'],\n  first_name: ['first_name', 'firstName', 'fname', 'given_name', 'forename', 'FirstName', 'first', 'f_name'],\n  last_name: ['last_name', 'lastName', 'lname', 'surname', 'family_name', 'LastName', 'last', 'l_name'],\n  company: ['company', 'Company', 'company_name', 'companyName', 'organization', 'org', 'business', 'employer'],\n  title: ['title', 'Title', 'job_title', 'jobTitle', 'position', 'role', 'job_role', 'designation'],\n  source_form: ['source_form', 'form_name', 'formName', 'source', 'form_id', 'lead_source', 'form'],\n  interested_in_coaching: ['interested_in_coaching', 'coaching_interest', 'wants_coaching', 'coaching', 'interest_coaching'],\n  linkedin_url: ['linkedin_url', 'linkedin', 'linkedinUrl', 'linkedin_profile', 'linkedIn', 'linkedin_link'],\n  request_id: ['request_id', 'requestId', 'request', 'id', 'tracking_id', 'unique_id']\n};\n\nfor (const [normalizedKey, variations] of Object.entries(fieldMappings)) {\n  for (const variation of variations) {\n    if (input[variation] !== undefined && input[variation] !== null) {\n      normalized[normalizedKey] = input[variation];\n      mappedFields.add(variation);\n      break;\n    }\n  }\n}\n\nfor (const [key, value] of Object.entries(input)) {\n  if (!mappedFields.has(key) && value !== null && value !== undefined) {\n    unknownFields.push({ field: key, value: value, timestamp: new Date().toISOString() });\n  }\n}\n\nif (normalized.phone) {\n  normalized.phone = normalized.phone.replace(/\\D/g, '').replace(/^1/, '').replace(/^(\\d{3})(\\d{3})(\\d{4})$/, '+1$1$2$3');\n}\n\nif (normalized.interested_in_coaching !== undefined) {\n  const val = String(normalized.interested_in_coaching).toLowerCase();\n  normalized.interested_in_coaching = ['true', '1', 'yes', 'y'].includes(val);\n}\n\nconst crypto = require('crypto');\nnormalized.idempotency_key = crypto.createHash('sha256').update((normalized.email || '') + new Date().toDateString()).digest('hex').substring(0, 16);\n\nreturn [{\n  json: {\n    normalized,\n    unknownFields,\n    originalFieldCount: Object.keys(input).length,\n    mappedFieldCount: mappedFields.size,\n    captureRate: (mappedFields.size / Object.keys(input).length * 100).toFixed(2)\n  }\n}];"
+      },
+      "id": "c3112db1-a358-4982-8b86-b8177d8ba5c2",
+      "name": "Smart Field Mapper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        280,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const MAX_DAILY_SPEND = 50;\nconst todaySpend = 0; // Would come from Airtable/variables in production\n\nif (todaySpend >= MAX_DAILY_SPEND) {\n  return [{\n    json: {\n      ...($json.normalized || {}),\n      enrichment_skipped: true,\n      reason: 'daily_budget_exceeded'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...($json.normalized || {}),\n    enrichment_allowed: true,\n    remaining_budget: MAX_DAILY_SPEND - todaySpend\n  }\n}];"
+      },
+      "id": "cabe6ae7-e2b7-4083-b3e5-9aab19dfba4d",
+      "name": "Budget Gate Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "workflow_xxxxx",
+        "options": {}
+      },
+      "id": "7c5d7d68-c33d-4c60-b8df-eb49646d8244",
+      "name": "Execute W2 Enrichment",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        720,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "workflow_xxxxx",
+        "options": {}
+      },
+      "id": "3ddbfb24-f447-4fc6-94b1-46b4b7362638",
+      "name": "Execute W3 Scoring",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        940,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "workflow_xxxxx",
+        "options": {}
+      },
+      "id": "72b5f2d4-3155-4c7f-ac46-d07e04b77a07",
+      "name": "Execute W4 Persistence",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const error = $input.first().json.error || {};\nreturn [{\n  json: {\n    status: 'error',\n    error_message: error.message || 'Unknown error',\n    error_node: error.node || 'Unknown',\n    timestamp: new Date().toISOString(),\n    fallback_action: 'logged_for_manual_review'\n  }\n}];"
+      },
+      "id": "a3893f56-c62b-4320-af82-945ba351289a",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        -220
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "a4f1063f-bc40-4350-8a8a-411fef67f7ef",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1640,
+        -80
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Smart Field Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Smart Field Mapper": {
+      "main": [
+        [
+          {
+            "node": "Budget Gate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Budget Gate Check": {
+      "main": [
+        [
+          {
+            "node": "Execute W2 Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute W2 Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Execute W3 Scoring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute W3 Scoring": {
+      "main": [
+        [
+          {
+            "node": "Execute W4 Persistence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute W4 Persistence": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "b56fc134-80e5-45a5-a5d7-c8e0f5801b16",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-16T19:08:59.525Z",
+      "updatedAt": "2025-08-16T19:08:59.525Z",
+      "role": "workflow:owner",
+      "workflowId": "UCq3BAxvfLBQEfaC",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-03T22:00:13.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
