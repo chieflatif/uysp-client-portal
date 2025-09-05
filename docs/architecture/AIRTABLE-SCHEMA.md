@@ -63,7 +63,10 @@ Scoring (uses linked Companies fields when available):
   AND(
     {Phone Valid},
     {ICP Score} >= 70,
-    LOWER({Location Country}) = "united states",
+    OR(
+      LOWER({Location Country}) = "united states",
+      LOWER({Location Country}) = "canada"
+    ),
     {HRQ Status} != "Archive"
   )
 

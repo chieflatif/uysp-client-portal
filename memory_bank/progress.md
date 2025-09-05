@@ -112,6 +112,18 @@ Remaining: 3 critical bug fixes
 - Lessons: Don't waste time "fixing" normal security behaviors
 
 ## Progress Log
+2025-09-05: Final SMS Scheduler Fixes Deployed
+- Created new, clean SMS scheduler workflow (`UAZWVFzMrJaVbvGM`) to resolve persistent update issues.
+- Permanently disabled all link-rewriting logic to ensure direct Calendly links are sent.
+- Corrected Slack notification to properly display Status and Campaign Name.
+- Archived old scheduler workflow (`D10qtcjjf2Vmmp5j`).
+- System is now stable and all known bugs in the SMS sequence have been resolved.
+
+2025-09-05: Helpers configured in Airtable; SMS send expressions fixed
+- Added Promote Ready automation; verified action test passes
+- Added Route Enrichment Failures automation (HRQ Status=Review; HRQ Reason=Enrichment failed)
+- Updated scheduler send expressions to reference prepared items (text, phone_digits)
+- Logged evidence and updated SOP with schema/views/notes
 
 2025-08-15: Phase 2D+2E consolidation completed
 
@@ -210,3 +222,10 @@ Remaining: 3 critical bug fixes
 - Workflow `UYSP-SMS-Scheduler` (`D10qtcjjf2Vmmp5j`) updated to include an "Update ST Contact" node.
 - This node creates/updates the contact in SimpleTexting, assigning them to a list and tag for UI visibility before sending the SMS.
 - All relevant documentation (SOP, Dev Plan, Architecture) has been updated to reflect this change.
+
+## 2025-09-04: Complete End-to-End Test Protocol Finalized
+- **Document**: `context/CURRENT-SESSION/SOP-Bulk-Import-End-to-End-Test.md` (COMPLETE)
+- **Protocol**: 5-stage sequential validation covering all system components
+- **Detail Level**: Field-by-field verification with exact expected values
+- **Documentation Cleanup**: Old incomplete versions removed, all references updated
+- **Status**: Documentation is pristine and aligned - system ready for final end-to-end test

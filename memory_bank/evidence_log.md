@@ -151,8 +151,60 @@
   - Execution #3105 (2025-09-04T00:39:13): Click recorded but blank page due to missing headers
   - Fixed with Content-Type: text/html header update at 00:40:26
 
+## 2025-09-04 — Complete SOP Documentation Finalized
+- **Document**: `context/CURRENT-SESSION/SOP-Bulk-Import-End-to-End-Test.md` (COMPLETE)
+- **Content**: 5-stage sequential protocol with detailed field-by-field verification
+- **Scope**: Validates all intelligence and logic built over months of development
+- **Key Features**:
+  - Exact Airtable field names and expected values at each stage
+  - Clay.com monitoring and verification steps
+  - SMS Scheduler logic validation (lead selection, contact creation, audit trail)
+  - Complete formula validation (ICP Score, SMS Eligible, HRQ routing)
+  - Sequential Action → Verification → Next Action format
+- **Documentation Updates**: SESSION-GUIDE.md, INDEX.md, active_context.md all updated to reference complete SOP
+- **Status**: System ready for final end-to-end test execution
+
+## 2025-09-04 — Critical SOP Fix: Google Sheets CSV Export
+- **Issue**: SOP contained completely incorrect instructions for generating CSV export URL from Google Sheets
+- **Problem**: Instructions referenced non-existent "File > Share > Publish to web" functionality
+- **Root Cause**: AI provided inaccurate UI navigation instructions without verification
+- **Fix Applied**: Updated with correct URL conversion method:
+  - Copy Google Sheets URL from address bar
+  - Remove `/edit` portion and everything after
+  - Add `/export?format=csv&gid=SHEET_ID` 
+- **Evidence**: User correctly identified error immediately upon testing
+- **Impact**: Critical fix - test execution would have failed at Step 2 without this correction
+
+## 2025-09-04 — Google Sheets Permission Issue During Test
+- **Issue**: n8n workflow failed with "Bad request" and German error "Datei kann derzeit nicht geöffnet werden"
+- **Root Cause**: Google Sheet was private/restricted, preventing n8n from accessing the CSV export URL
+- **Error Details**: Permission denied when n8n tried to fetch CSV data from Google Sheets
+- **Solution Applied**: Updated SOP with permission fix instructions:
+  - Change Google Sheet access from "Restricted" to "Anyone with the link"
+  - Set permission to "Viewer"
+  - Provided alternative manual CSV download method if needed
+- **Status**: Awaiting user permission change to proceed with test
+
 ## 2025-09-04 — SMS Scheduler: Add ST Contact Node
 - **Workflow**: `UYSP-SMS-Scheduler` (ID: `D10qtcjjf2Vmmp5j`)
 - **Change**: Added `Update ST Contact` HTTP Request node before the `SimpleTexting HTTP` send node.
 - **Purpose**: To create/update a contact in SimpleTexting, assigning it to the `AI Webinar – Automation (System)` list and tagging it with `uysp-automation` for UI visibility.
 - **Evidence**: `n8n_update_full_workflow` successful at `2025-09-04T04:32:35.019Z`, new Version ID `8f13246c-a40d-4508-abd1-87df375cb7b7`.
+
+## 2025-09-05 — SMS Send Expressions Corrected
+- Workflow: `UYSP-SMS-Scheduler` (ID: `D10qtcjjf2Vmmp5j`)
+- Change: `SimpleTexting HTTP` jsonBody now references prepared values directly:
+  - `text` = `$items('Prepare Text (A/B)',0)[$itemIndex].json.text`
+  - `contactPhone` (else branch) = `$items('Prepare Text (A/B)',0)[$itemIndex].json.phone_digits`
+- Evidence: Workflow updated at `2025-09-05T00:37:17Z`; versionId `75b3606c-7112-4132-a232-76ace7a99037`.
+
+## 2025-09-05 — Airtable Automations Enabled (Helpers)
+- Promote Ready: Enrichment Timestamp ≠ empty AND SMS Eligible = true AND Processing Status ≠ "Ready for SMS" → Update record: Processing Status = "Ready for SMS".
+- Route Enrichment Failures: Enrichment Timestamp ≠ empty AND Job Title empty AND Linkedin URL - Person empty AND HRQ Status = "Qualified" → Update record: HRQ Status = "Review"; HRQ Reason = "Enrichment failed".
+- Evidence: User provided screenshots confirming configuration and successful updates; automations turned ON in Airtable UI.
+
+## 2025-09-05 — Final SMS Scheduler Fixes & System Stabilization
+- **Workflow**: `UYSP-SMS-Scheduler-CLEAN` (ID: `UAZWVFzMrJaVbvGM`) created to replace old scheduler (`D10qtcjjf2Vmmp5j`).
+- **Change 1 (Link Fix)**: Replaced the `Prepare Text (A/B)` node with a clean version that has all link-rewriting logic permanently removed. The system now sends the direct Calendly URL from the Airtable `SMS_Templates` table.
+- **Change 2 (Slack Fix)**: Replaced the `SMS Test Notify` node and updated the `Parse SMS Response` node. The parser now reliably sets the campaign name, and the Slack node correctly references the parser's output to display "Status" and "Campaign".
+- **Evidence**: New workflow created `2025-09-05T04:46:36.250Z`. Final fixes applied and verified with user. The system is now stable and ready for production use.

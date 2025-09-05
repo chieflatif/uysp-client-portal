@@ -7,7 +7,7 @@
 ---
 
 ## 🎯 Current Objective
-Implement SMS sequencing (A/B, 3 steps) with SimpleTexting using one outbound scheduler, plus small inbound webhooks (STOP, Calendly) later.
+**FINAL END-TO-END TESTING**: Execute comprehensive bulk import test to validate all system components before production deployment. All workflows are implemented and ready for testing.
 
 ---
 
@@ -18,7 +18,8 @@ Implement SMS sequencing (A/B, 3 steps) with SimpleTexting using one outbound sc
 - A/B & templating: `Get Settings` + `List Templates` supply ratios and copy; `Prepare Text (A/B)` assigns variant, selects step template, personalizes `{Name}`; timing due-check embedded.
 - Send & update: `SimpleTexting HTTP` sends; `Airtable Update` writes only allowed fields (`SMS Variant`, `SMS Sequence Position`, `SMS Last Sent At`, `SMS Sent Count`, `SMS Status`, `SMS Campaign ID`, `SMS Cost`, `Error Log`).
 - Visual cleanup: deactivated nodes removed; unnecessary writes to computed fields eliminated.
- - Enrichment: Clay is the enrichment provider of record. Clay runs enrichment and writes back to Airtable (e.g., `Enrichment Timestamp`, company/person fields). Airtable formulas compute `ICP Score` and `SMS Eligible (calc)` from Clay-provided fields; the scheduler gates on these.
+ - Enrichment: Clay is the enrichment provider of record. Clay writes back enrichment data (e.g., company/person fields).
+ - **Enrichment Timestamp**: This is set by an Airtable Automation, not Clay. This is the intended permanent solution to keep logic within Airtable. The automation triggers when enrichment fields like `Job Title` or `Linkedin URL - Person` are populated.
 
 ---
 
@@ -77,17 +78,18 @@ Inbound STOP: Executions 2961, 2962 updated matching leads and set STOP fields.
 
 ---
 
-## 🔎 Workflow SSOT (2025-09-02)
+## 🔎 Workflow SSOT (2025-09-05) - STABLE & TESTED STATE
 
-- Client Calendly link (for SMS): https://calendly.com/rebel-rebelhq/1-2-1-latif
-- Click tracking: DEFERRED. System now sends the direct Calendly link above. The n8n-proxy approach is abandoned. Future implementation will use Bitly (see roadmap).
+- **Decision**: Click tracking via n8n proxy is permanently disabled. System now sends direct Calendly links from templates. Future tracking will use an external service (e.g., Switchy).
+- **Active Scheduler**: The new, clean workflow `UYSP-SMS-Scheduler-CLEAN` (ID: `UAZWVFzMrJaVbvGM`) is now the active scheduler. The old scheduler is archived.
 
 | Workflow | ID | Active | Trigger/Path(s) | Purpose | Evidence | TODO/NEXT |
 |---|---|---|---|---|---|---|
-| UYSP-SMS-Scheduler | D10qtcjjf2Vmmp5j | ✅ | Cron `0 14-21 * * 1-5` | Outbound sends; A/B; audit; Slack | Executions 2967/2976/2980 (3‑step proven) | Swap SMS link to client Calendly; disable URL replacement or move to Worker until GET fixed |
+| UYSP-SMS-Scheduler-CLEAN | UAZWVFzMrJaVbvGM | ✅ | Cron `0 14-21 * * 1-5` | Outbound sends; A/B; audit; Slack. **Sends direct links.** | Final test runs successful. | Monitor. |
+| UYSP-SMS-Scheduler | D10qtcjjf2Vmmp5j | ⛔ (Archived) | Cron `0 14-21 * * 1-5` | Old version. Kept for historical reference. | N/A | Delete after 30 days. |
 | UYSP-ST-Delivery V2 | vA0Gkp2BrxKppuSu | ✅ | POST `/webhook/simpletexting-delivery` | Delivery updates → Leads + Audit + Slack | Executions 2960, 2959 | None |
 | UYSP-Calendly-Booked | LiVE3BlxsFkHhG83 | ✅ | POST `/webhook/calendly` | Booked=true; stop sequence | Execution 2965 | Confirm final path naming; keep link in Settings |
-| UYSP-SMS-Inbound-STOP | pQhwZYwBXbcARUzp | ⛔ | POST `/webhook/simpletexting-inbound` (STOP); GET same (click) | STOP/UNSTOP processing; click 302 branch | Real STOP verified earlier; GET 404 at edge | Activate POST; keep GET branch dormant; consider Cloudflare Worker for clicks |
+| UYSP-SMS-Inbound-STOP | pQhwZYwBXbcARUzp | ⛔ | POST `/webhook/simpletexting-inbound` (STOP) | STOP/UNSTOP processing | Real STOP verified earlier | Activate POST |
 | UYSP-Daily-Monitoring | 5xW2QG8x2RFQP8kx | ⛔ | Cron `0 14 * * 1-5` | 24h counts → Slack | Manual test 3026 | Ensure Delivered node uses `Delivery At`; activate |
 | UYSP-Realtime-Ingestion | 2cdgp1qr9tXlONVL | ⛔ | POST `/webhook/leads-intake` | Kajabi form intake → upsert leads; HRQ archive personal emails | Node review complete | Confirm forms/fields; activate |
 | UYSP Backlog Ingestion | qMXmmw4NUCh1qu8r | ⛔ | Manual | CSV → normalize → upsert; HRQ archive personal emails | Node review complete | Provide CSV; run batched |

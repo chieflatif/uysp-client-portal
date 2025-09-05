@@ -68,6 +68,7 @@ This session is guided by the suite of documents reconstructed after the data lo
 
 ## References (SOPs & Specs)
 - SOP: `SOP-SimpleTexting-Campaign-Isolation-and-Reporting.md`
+- **SOP**: `SOP-Bulk-Import-End-to-End-Test.md` (COMPLETE - Ready for Testing)
 - Dev Plan: `DEV-PLAN-SimpleTexting-Campaign-Isolation-and-Clicks.md`
 - Click Webhook Spec: `archive/CLICK-TRACKING-WEBHOOK-SPEC.md`
 

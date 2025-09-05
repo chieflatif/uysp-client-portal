@@ -190,10 +190,10 @@ Weekly Metrics (Manual Dashboard Check):
 - **No Weekends**: Saturday/Sunday blocked
 - **No Holidays**: US federal holidays in Airtable
 - **Single Send Batching**: 5 hourly runs of 100 starting 10:00 AM ET
-- **Sequence Timing (future)**: 
+- **Sequence Timing (current)**: 
   - Message 1: Immediately when qualified
-  - Message 2: +3 business days
-  - Message 3: +4 business days after Message 2
+  - Message 2: +3 business days (or ~3 minutes in Fast Mode)
+  - Message 3: +4 business days after Message 2 (or ~3 minutes in Fast Mode)
 
 ### Stop Conditions:
 - Meeting booked (Calendly webhook)
