@@ -114,6 +114,34 @@ https://docs.google.com/spreadsheets/d/13zn4hMDC4wUSmSY12g-_tU74N3wlsBLX1fhjQrQp
 
 ---
 
+## What's Happening "Under the Hood"? Key Automation Triggers
+
+This test validates several automated triggers. Understanding them is key to knowing *why* things are happening without manual intervention.
+
+1.  **Clay.com's Trigger (Ingestion)**
+    - **What it is**: Clay is not an n8n workflow; it's an external service we've configured to watch a specific view in our Airtable.
+    - **The View it Watches**: `[Leads] Clay Queue`
+    - **The Trigger**: A lead record **appearing in that view** is the trigger. A lead appears there when its `Processing Status` is "Queued" and its `HRQ Status` is "Qualified".
+    - **The Action**: Clay automatically pulls the lead's data into its own table for enrichment.
+
+2.  **Airtable Automation: "Promote Ready & Timestamp"**
+    - **What it is**: A native automation built inside Airtable.
+    - **The Trigger**: A record in the `Leads` table is **updated**.
+    - **The Condition**: The automation ONLY proceeds IF `Job Title` is not empty AND `Linkedin URL - Person` is not empty AND `Enrichment Timestamp` IS empty. This means Clay has successfully written back the key data.
+    - **The Action**:
+        1.  It sets the `Enrichment Timestamp` to the current time.
+        2.  It changes the `Processing Status` to "Ready for SMS".
+        3.  It sets the `HRQ Status` to "Qualified".
+
+3.  **Airtable Automation: "Route Enrichment Failures"**
+    - **What it is**: Another native automation inside Airtable.
+    - **The Trigger**: A record in the `Leads` table is **updated**.
+    - **The Condition**: The automation ONLY proceeds IF `HRQ Status` is "Review" AND `HRQ Reason` contains "Enrichment failed".
+    - **The Action**:
+        1. It sets the `Processing Status` to "Complete". This removes it from any further automated processing queues.
+
+---
+
 ## Phase 3: Sequential Test Execution & Verification
 
 ### **STAGE 1: BULK INGESTION & INITIAL ROUTING**
@@ -167,6 +195,10 @@ https://docs.google.com/spreadsheets/d/13zn4hMDC4wUSmSY12g-_tU74N3wlsBLX1fhjQrQp
 
 #### **Verification 2.2: Confirm Clay Processing & Company Logic**
 **What's Happening**: Clay detects the new leads in the Clay Queue view and automatically imports them. Clay then runs its enrichment waterfall:
+
+**What's Triggering This?**
+> This entire stage is kicked off by **Clay.com's Trigger**. Because the valid leads now have `Processing Status` = "Queued" and `HRQ Status` = "Qualified", they appear in the `[Leads] Clay Queue` view. Clay sees them, and automatically begins its work.
+
 1. **Company Domain Extraction**: Gets domain from email (e.g., salesforce.com from rlenzen@salesforce.com)
 2. **Company Enrichment**: Looks up company data or uses existing data
 3. **Person Enrichment**: Finds job title, location, LinkedIn for each person
@@ -197,7 +229,7 @@ https://docs.google.com/spreadsheets/d/13zn4hMDC4wUSmSY12g-_tU74N3wlsBLX1fhjQrQp
 **🚨 CRITICAL VERIFICATION**: 
 - **Companies Table**: Only ONE Attensi record despite two employees
 - **Clay Queue View**: Should be empty when Clay finishes
-- **Latif's Status**: Should fail and route to Manual Review
+- **Latif's Status**: Should fail, and the **"Route Enrichment Failures"** automation should set its `Processing Status` to "Complete".
 
 **DO NOT PROCEED UNTIL CLAY ENRICHMENT IS COMPLETE AND VERIFIED.**
 
@@ -210,6 +242,9 @@ https://docs.google.com/spreadsheets/d/13zn4hMDC4wUSmSY12g-_tU74N3wlsBLX1fhjQrQp
 
 #### **Verification 3.2: Verify ICP Scoring Intelligence & SMS Eligibility Logic**
 **What's Happening**: Clay writes enriched data back to the Leads table, which triggers our sophisticated scoring formulas and automations:
+
+**What's Triggering This?**
+> The **"Promote Ready & Timestamp"** Airtable Automation is the key driver here. When Clay writes back a `Job Title` and `Linkedin URL - Person`, this automation fires. It sets the `Enrichment Timestamp`, qualifies the lead, and crucially, changes the `Processing Status` to "Ready for SMS", which makes the lead eligible for the next stage.
 
 **A. Enrichment Timestamp Automation (Airtable)**
 - An Airtable Automation runs when `Job Title` or `Linkedin URL - Person` are updated.
