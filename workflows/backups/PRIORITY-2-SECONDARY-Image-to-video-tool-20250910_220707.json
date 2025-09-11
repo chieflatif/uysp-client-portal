@@ -1,0 +1,501 @@
+{
+  "createdAt": "2025-09-10T00:00:21.294Z",
+  "updatedAt": "2025-09-10T00:00:21.000Z",
+  "id": "fKeMVoAS9FOxhCOL",
+  "name": "Image to video tool",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "fileID"
+            },
+            {
+              "name": "videoPrompt"
+            },
+            {
+              "name": "chatID"
+            },
+            {
+              "name": "image"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1456,
+        224
+      ],
+      "id": "01894247-6ad7-4008-96d3-a45576757c1f",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/fal-ai/veo3/fast/image-to-video",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $('When Executed by Another Workflow').item.json.videoPrompt }}"
+            },
+            {
+              "name": "generate_audio",
+              "value": "true"
+            },
+            {
+              "name": "image_url",
+              "value": "={{ $json.data.url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -720,
+        224
+      ],
+      "id": "58cfff99-d441-471c-a199-9a9a32f524a8",
+      "name": "Generate Video"
+    },
+    {
+      "parameters": {
+        "url": "=https://queue.fal.run/fal-ai/veo3/requests/{{ $json.request_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        224
+      ],
+      "id": "71797ec0-93ba-4986-9cc5-ad1a6a54c570",
+      "name": "Get Result",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        224
+      ],
+      "id": "372925cb-a56e-4232-9efc-643af67a957b",
+      "name": "30 Seconds",
+      "webhookId": "5f6bbd1e-a155-48de-b737-a225c6fd7a84"
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('When Executed by Another Workflow').item.json.fileID }}",
+          "mode": "id"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "reader",
+            "type": "anyone"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1232,
+        224
+      ],
+      "id": "42997ab4-1e01-4390-bed4-e4932da4f40e",
+      "name": "Share file"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('When Executed by Another Workflow').item.json.fileID }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1088,
+        224
+      ],
+      "id": "1d11cb3a-4340-4b45-b77f-d767722bb9a3",
+      "name": "Download file"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.imgbb.com/1/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -944,
+        224
+      ],
+      "id": "5f0497d1-c675-4887-93d4-03ca43136d3a",
+      "name": "Get URL"
+    },
+    {
+      "parameters": {
+        "name": "={{ $('When Executed by Another Workflow').item.json.image }} (VFX).mp4",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Fm7PN1nMICKnAZpf6-3YYrSJlBEQ7Xbe",
+          "mode": "list",
+          "cachedResultName": "Media",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Fm7PN1nMICKnAZpf6-3YYrSJlBEQ7Xbe"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        96,
+        352
+      ],
+      "id": "042d0701-3e90-42a4-89cf-3e10ea4a3e66",
+      "name": "Upload Video"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.video.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -176,
+        224
+      ],
+      "id": "7dedcd3a-60cb-4ad6-9e50-f1595fc1122d",
+      "name": "Download File"
+    },
+    {
+      "parameters": {
+        "operation": "sendVideo",
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.chatID }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        96,
+        96
+      ],
+      "id": "90ad1624-18e0-4a79-adaf-73cf5229972c",
+      "name": "Send Video",
+      "webhookId": "8fcbda9c-8396-41f7-8f2d-39e4ae4337c7"
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -592,
+        224
+      ],
+      "id": "2c012395-1a25-4c81-8e95-c7c891555d1b",
+      "name": "1 Minute",
+      "webhookId": "caad73e3-58d8-4fbd-a3e9-c42424f2d1ee"
+    },
+    {
+      "parameters": {
+        "content": "# Trigger\n",
+        "height": 260,
+        "width": 212,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1504,
+        128
+      ],
+      "id": "5f573391-26d6-43a5-8271-15be54f52ad5",
+      "name": "Sticky Note5",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "# Download\n",
+        "height": 260,
+        "width": 476,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        128
+      ],
+      "id": "dd91b501-87da-4b5e-ad46-704d950ec526",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "# Generate Video\n\n",
+        "height": 260,
+        "width": 764,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        128
+      ],
+      "id": "75a3c046-981b-415e-bf9c-f62495de973f",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "# Send Content",
+        "height": 240,
+        "width": 300,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0d9c5a08-b906-4e36-ab82-3ebc25ec0fcc",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "# Write to Drive",
+        "height": 240,
+        "width": 300,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        256
+      ],
+      "id": "d010c07a-efb5-4f90-aa3c-42cde0a7b4e6",
+      "name": "Sticky Note6"
+    }
+  ],
+  "connections": {
+    "Generate Video": {
+      "main": [
+        [
+          {
+            "node": "1 Minute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Result": {
+      "main": [
+        [
+          {
+            "node": "Download File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "30 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "30 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Get Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Share file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Share file": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Get URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get URL": {
+      "main": [
+        [
+          {
+            "node": "Generate Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File": {
+      "main": [
+        [
+          {
+            "node": "Send Video",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upload Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1 Minute": {
+      "main": [
+        [
+          {
+            "node": "Get Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "2d2023df-bd3b-41b1-ac5c-931e44a90f58",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-10T00:00:21.298Z",
+      "updatedAt": "2025-09-10T00:00:21.298Z",
+      "role": "workflow:owner",
+      "workflowId": "fKeMVoAS9FOxhCOL",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-10T22:00:48.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-10",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

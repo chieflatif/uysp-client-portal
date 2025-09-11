@@ -1,0 +1,2056 @@
+{
+  "createdAt": "2025-09-10T00:19:33.033Z",
+  "updatedAt": "2025-09-10T00:19:33.000Z",
+  "id": "WzolmJnm8fYu3Jfr",
+  "name": "Youtube Strategist",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Niche Outliers",
+        "formDescription": "Input 3 high quality channel URLs in your niche",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Channel 1",
+              "placeholder": "https://www.youtube.com/@nateherk",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Channel 2",
+              "placeholder": "https://www.youtube.com/@nateherk",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Channel 3",
+              "placeholder": "https://www.youtube.com/@nateherk",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -1440,
+        560
+      ],
+      "id": "04e7409d-c78d-438b-ba2b-cf8636a1f4f1",
+      "name": "On form submission",
+      "webhookId": "04baa499-4b3a-4ba3-9dd5-4cecb73864a9"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "20f6c922-f0d8-4b22-9fbe-200c0d239b4d",
+              "name": "channels",
+              "value": "=[\"{{ $json['Channel 1'] }}\",\"{{ $json['Channel 2'] }}\",\"{{ $json['Channel 3'] }}\"]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1280,
+        560
+      ],
+      "id": "7783f86a-174c-424d-bb39-22f4363bc164",
+      "name": "3 Channels"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "channels",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        560
+      ],
+      "id": "7e87c051-bf7c-491a-9797-fcbfe240d76d",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -928,
+        480
+      ],
+      "id": "c9b20254-b738-4250-9770-1d4e895dca88",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Video Title: {{ $json.title }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an AI agent that acts as an expert YouTube strategist and title analyzer. Your task is to analyze YouTube video titles and identify the key “power words” or phrases that make the title compelling and clickable.\n\n## Your Goal\nExtract 1 to 3 power words or short phrases from the title that are likely contributing to its strong performance. Power words often signal a:\n- Big promise (e.g., \"10x\", \"guaranteed\", \"million-dollar\")\n- Ease or simplicity (e.g., \"in 5 minutes\", \"no code\", \"zero effort\")\n- Relatable challenge or desire (e.g., \"burnout\", \"quitting my job\", \"first $1000\")\n\nThese power words should stand out because they create curiosity, offer value, and appeal to the viewer’s emotions or goals.\n\n## Requirements\n- Do not rewrite the title.\n- Do not explain the full meaning of the title.\n- Just output the power words or chunks, each as a string in a list.\n- Focus on what would trigger a click from a human browsing YouTube."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        480
+      ],
+      "id": "c3a0dead-b2bc-46db-9e0e-ec9b1a1cd1cd",
+      "name": "Title Analyzer"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        144,
+        528
+      ],
+      "id": "dd861668-2b1a-44cd-815d-6991b57f5aeb",
+      "name": "GPT 4.1-mini"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        368,
+        480
+      ],
+      "id": "94df888f-e407-44af-8d30-36491f5c9d56",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "text": "=# Overview\nYou are an expert in YouTube thumbnail strategy. Your task is to analyze a thumbnail image and identify **why it grabs attention** and encourages clicks.\n\n## Focus on:\n- What the viewer immediately sees or feel\n- The implicit promise or curiosity the image creates\n- What makes someone want to learn more or click\n- Be concise and keep your answer simple",
+        "imageUrls": "={{ $('Channel Outliers').item.json.thumbnailUrl }}",
+        "simplify": false,
+        "options": {
+          "detail": "high",
+          "maxTokens": 50
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -80,
+        608
+      ],
+      "id": "38ad387d-0a4e-426a-9277-9fa1165e5dd7",
+      "name": "Analyze Thumbnails"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5f19a9cd-6201-41f6-ba7e-9e7fddb48e1e",
+              "name": "channel",
+              "value": "={{ $json.channelName }}",
+              "type": "string"
+            },
+            {
+              "id": "8f29f01f-fa89-4a6c-8ed9-9b216dd722a8",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "4a82add2-86aa-418b-a8dc-bbfb809f658e",
+              "name": "url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "c9f9b9a0-d960-4411-b5cc-b3c14f446f95",
+              "name": "thumbnail",
+              "value": "={{ $json.thumbnailUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "43d1ad8f-f704-4cf6-84b0-9cad874c87d7",
+              "name": "views",
+              "value": "={{ $json.viewCount }}",
+              "type": "number"
+            },
+            {
+              "id": "282f8501-f8e7-46ed-9b53-4b6a57e312ca",
+              "name": "likes",
+              "value": "={{ $json.likes }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        336
+      ],
+      "id": "6ea5bfd9-27ab-47ad-9724-71ab54436057",
+      "name": "Set Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc",
+          "mode": "list",
+          "cachedResultName": "YouTube Strategist",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Niche Outliers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Channel": "={{ $json.channel }}",
+            "Title": "={{ $json.title }}",
+            "URL": "={{ $json.url }}",
+            "Thumbnail": "={{ $json.thumbnail }}",
+            "Views": "={{ $json.views }}",
+            "Likes": "={{ $json.likes }}",
+            "Power Words": "={{ $json.output }}",
+            "Thumbnail Analysis": "={{ $json.choices[0].message.content }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Channel",
+              "displayName": "Channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Thumbnail",
+              "displayName": "Thumbnail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Views",
+              "displayName": "Views",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Likes",
+              "displayName": "Likes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Power Words",
+              "displayName": "Power Words",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Thumbnail Analysis",
+              "displayName": "Thumbnail Analysis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        624,
+        560
+      ],
+      "id": "2b4044d2-fdc2-463a-9675-a61e8ca8df6a",
+      "name": "Niche Outliers Data"
+    },
+    {
+      "parameters": {
+        "content": "# Phase 1) Niche Outliers",
+        "height": 480,
+        "width": 2400,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        288
+      ],
+      "id": "9f63c39e-1c60-4041-8f68-b5b7e286cc25",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/streamers~youtube-scraper/run-sync-get-dataset-items",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "YOUR API KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"dateFilter\": \"week\",\n    \"downloadSubtitles\": false,\n    \"hasCC\": false,\n    \"hasLocation\": false,\n    \"hasSubtitles\": false,\n    \"is360\": false,\n    \"is3D\": false,\n    \"is4K\": false,\n    \"isBought\": false,\n    \"isHD\": false,\n    \"isHDR\": false,\n    \"isLive\": false,\n    \"isVR180\": false,\n    \"maxResultStreams\": 0,\n    \"maxResults\": 5,\n    \"maxResultsShorts\": 0,\n    \"preferAutoGeneratedSubtitles\": false,\n    \"saveSubsToKVS\": false,\n    \"searchQueries\": [\n        \"{{ $json.niche }}\"\n    ],\n    \"sortingOrder\": \"views\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1152,
+        912
+      ],
+      "id": "78f11eee-ff16-4097-a2be-01ded6e3fffd",
+      "name": "Scrape YT"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Video Title: {{ $json.title }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an AI agent that acts as an expert YouTube strategist and title analyzer. Your task is to analyze YouTube video titles and identify the key “power words” or phrases that make the title compelling and clickable.\n\n## Your Goal\nExtract 1 to 3 power words or short phrases from the title that are likely contributing to its strong performance. Power words often signal a:\n- Big promise (e.g., \"10x\", \"guaranteed\", \"million-dollar\")\n- Ease or simplicity (e.g., \"in 5 minutes\", \"no code\", \"zero effort\")\n- Relatable challenge or desire (e.g., \"burnout\", \"quitting my job\", \"first $1000\")\n\nThese power words should stand out because they create curiosity, offer value, and appeal to the viewer’s emotions or goals.\n\n## Requirements\n- Do not rewrite the title.\n- Do not explain the full meaning of the title.\n- Just output the power words or chunks, each as a string in a list.\n- Focus on what would trigger a click from a human browsing YouTube."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        912
+      ],
+      "id": "7084be06-f116-44b6-8e40-650f3d531f2b",
+      "name": "Title Analyzer1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "text": "=# Overview\nYou are an expert in YouTube thumbnail strategy. Your task is to analyze a thumbnail image and identify **why it grabs attention** and encourages clicks.\n\n## Focus on:\n- What the viewer immediately sees or feel\n- The implicit promise or curiosity the image creates\n- What makes someone want to learn more or click\n- Be concise and keep your answer simple",
+        "imageUrls": "={{ $('Scrape YT').item.json.thumbnailUrl }}",
+        "simplify": false,
+        "options": {
+          "detail": "high",
+          "maxTokens": 50
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -640,
+        912
+      ],
+      "id": "da57c1f1-9dff-414c-b6c1-dac3e53c107b",
+      "name": "Analyze Thumbnails1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        1040
+      ],
+      "id": "f92a78cb-0551-426c-a61e-de5fb2c99f03",
+      "name": "GPT 4.1-mini1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "feeba2c9-c8f4-4f97-aeab-a5c3c7dc94ad",
+              "name": "niche",
+              "value": "artificial intelligence",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1312,
+        912
+      ],
+      "id": "4bdf6967-c426-4940-9823-540003e6295d",
+      "name": "Broad Niche"
+    },
+    {
+      "parameters": {
+        "content": "# Phase 2) Broad Niche Insights (Weekly)",
+        "height": 380,
+        "width": 1280,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        800
+      ],
+      "id": "11ea218d-9a4c-4b58-bb39-cc8f935e247b",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/streamers~youtube-scraper/run-sync-get-dataset-items",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "YOUR API KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"dateFilter\": \"week\",\n    \"downloadSubtitles\": false,\n    \"hasCC\": false,\n    \"hasLocation\": false,\n    \"hasSubtitles\": false,\n    \"is360\": false,\n    \"is3D\": false,\n    \"is4K\": false,\n    \"isBought\": false,\n    \"isHD\": false,\n    \"isHDR\": false,\n    \"isLive\": false,\n    \"isVR180\": false,\n    \"maxResultStreams\": 0,\n    \"maxResults\": 5,\n    \"maxResultsShorts\": 0,\n    \"preferAutoGeneratedSubtitles\": false,\n    \"saveSubsToKVS\": false,\n    \"searchQueries\": [\n        \"{{ $json.niche }}\"\n    ],\n    \"sortingOrder\": \"views\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1152,
+        1312
+      ],
+      "id": "fc955f45-1881-4322-a153-e309a258cc2e",
+      "name": "Scrape YT1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Video Title: {{ $json.title }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an AI agent that acts as an expert YouTube strategist and title analyzer. Your task is to analyze YouTube video titles and identify the key “power words” or phrases that make the title compelling and clickable.\n\n## Your Goal\nExtract 1 to 3 power words or short phrases from the title that are likely contributing to its strong performance. Power words often signal a:\n- Big promise (e.g., \"10x\", \"guaranteed\", \"million-dollar\")\n- Ease or simplicity (e.g., \"in 5 minutes\", \"no code\", \"zero effort\")\n- Relatable challenge or desire (e.g., \"burnout\", \"quitting my job\", \"first $1000\")\n\nThese power words should stand out because they create curiosity, offer value, and appeal to the viewer’s emotions or goals.\n\n## Requirements\n- Do not rewrite the title.\n- Do not explain the full meaning of the title.\n- Just output the power words or chunks, each as a string in a list.\n- Focus on what would trigger a click from a human browsing YouTube."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        1312
+      ],
+      "id": "d3a4b759-4835-4fa0-b4ea-1ae436e4fcb6",
+      "name": "Title Analyzer2"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "text": "=# Overview\nYou are an expert in YouTube thumbnail strategy. Your task is to analyze a thumbnail image and identify **why it grabs attention** and encourages clicks.\n\n## Focus on:\n- What the viewer immediately sees or feel\n- The implicit promise or curiosity the image creates\n- What makes someone want to learn more or click\n- Be concise and keep your answer simple",
+        "imageUrls": "={{ $('Scrape YT1').item.json.thumbnailUrl }}",
+        "simplify": false,
+        "options": {
+          "detail": "high",
+          "maxTokens": 50
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -640,
+        1312
+      ],
+      "id": "b64b9536-a6fe-4caf-a2ab-de4641b60166",
+      "name": "Analyze Thumbnails2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -1008,
+        1440
+      ],
+      "id": "ca7714b7-9a3a-44cc-bb3a-898ab436e897",
+      "name": "GPT 4.1-mini2"
+    },
+    {
+      "parameters": {
+        "content": "# Phase 3) Niche Insights (Daily)",
+        "height": 380,
+        "width": 1280,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        1200
+      ],
+      "id": "925a49f2-3450-461f-a9e3-7a228b7884b2",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "feeba2c9-c8f4-4f97-aeab-a5c3c7dc94ad",
+              "name": "niche",
+              "value": "n8n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1312,
+        1312
+      ],
+      "id": "caec8bc6-d1b5-4803-8a6e-a72c72c1c981",
+      "name": "Niche"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1472,
+        1312
+      ],
+      "id": "235a3f2c-3adc-4a70-a279-4283b8e6fb18",
+      "name": "6 am"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 5
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1472,
+        912
+      ],
+      "id": "746addb3-d059-4c8a-98d6-d552cb8a8aae",
+      "name": "Sundays"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc",
+          "mode": "list",
+          "cachedResultName": "YouTube Strategist",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1836706523,
+          "mode": "list",
+          "cachedResultName": "Niche Daily",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit#gid=1836706523"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.format('yyyy-MM-dd') }}",
+            "Channel": "={{ $('Scrape YT1').item.json.channelName }}",
+            "Title": "={{ $('Scrape YT1').item.json.title }}",
+            "URL": "={{ $('Scrape YT1').item.json.url }}",
+            "Thumbnail": "={{ $('Scrape YT1').item.json.thumbnailUrl }}",
+            "Views": "={{ $('Scrape YT1').item.json.viewCount }}",
+            "Likes": "={{ $('Scrape YT1').item.json.likes }}",
+            "Power Words": "={{ $('Title Analyzer2').item.json.output }}",
+            "Thumbnail Analysis": "={{ $json.choices[0].message.content }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Channel",
+              "displayName": "Channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Thumbnail",
+              "displayName": "Thumbnail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Views",
+              "displayName": "Views",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Likes",
+              "displayName": "Likes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Power Words",
+              "displayName": "Power Words",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Thumbnail Analysis",
+              "displayName": "Thumbnail Analysis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -480,
+        1312
+      ],
+      "id": "6bbb88c7-55a4-43f9-86f7-72ddf04cc47e",
+      "name": "Niche Daily"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e9d530bf-3ca2-48c3-a40b-24f22646289d",
+              "name": "Channel Details",
+              "value": "=Nate Herk creates practical, beginner-friendly videos that teach people how to build AI automations using n8n. His content is aimed at solopreneurs, small business owners, and aspiring automation developers who want to save time, reduce costs, and scale without hiring. Whether you're just getting started with AI or looking to level up your automation skills, Nate breaks down complex workflows into simple, actionable tutorials that anyone can follow.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        1312
+      ],
+      "id": "2df5bdc8-fa9e-410d-8c87-d0964e33f89c",
+      "name": "Channel Description"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"name\": \"youtube_strategist_output\",\n  \"description\": \"Generates three high-performing YouTube title and thumbnail ideas based on title trends, power words, and thumbnail analysis.\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"title_1\": {\n      \"type\": \"string\",\n      \"description\": \"A compelling YouTube video title idea tailored to the channel and based on provided patterns.\"\n    },\n    \"thumbnail_1\": {\n      \"type\": \"string\",\n      \"description\": \"A short visual description of the thumbnail concept that pairs with title_1.\"\n    },\n    \"title_2\": {\n      \"type\": \"string\",\n      \"description\": \"A second unique YouTube video title idea that fits the niche and follows successful patterns.\"\n    },\n    \"thumbnail_2\": {\n      \"type\": \"string\",\n      \"description\": \"A short visual description of the thumbnail concept that pairs with title_2.\"\n    },\n    \"title_3\": {\n      \"type\": \"string\",\n      \"description\": \"A third distinct YouTube video title idea optimized for the channel's audience and niche.\"\n    },\n    \"thumbnail_3\": {\n      \"type\": \"string\",\n      \"description\": \"A short visual description of the thumbnail concept that pairs with title_3.\"\n    }\n  },\n  \"required\": [\"title_1\", \"thumbnail_1\", \"title_2\", \"thumbnail_2\", \"title_3\", \"thumbnail_3\"]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        1408
+      ],
+      "id": "2a6960a8-d6b6-40c2-9418-2f80d6ecb235",
+      "name": "Titles & Thumbs"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc",
+          "mode": "list",
+          "cachedResultName": "YouTube Strategist",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 288691584,
+          "mode": "list",
+          "cachedResultName": "Ideation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit#gid=288691584"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.format('yyyy-MM-dd') }}",
+            "Title 1": "={{ $json.output.title_1 }}",
+            "Thumbnail 1": "={{ $json.output.thumbnail_1 }}",
+            "Title 2": "={{ $json.output.title_2 }}",
+            "Thumbnail 2": "={{ $json.output.thumbnail_2 }}",
+            "Title 3": "={{ $json.output.title_3 }}",
+            "Thumbnail 3": "={{ $json.output.thumbnail_3 }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title 1",
+              "displayName": "Title 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Thumbnail 1",
+              "displayName": "Thumbnail 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title 2",
+              "displayName": "Title 2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Thumbnail 2",
+              "displayName": "Thumbnail 2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title 3",
+              "displayName": "Title 3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Thumbnail 3",
+              "displayName": "Thumbnail 3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        544,
+        1312
+      ],
+      "id": "80c9ca99-101b-4283-beae-42e57bd39a61",
+      "name": "Append Ideas"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "76d7e324-60bd-4b29-a85b-f62166af1f97",
+              "name": "channel",
+              "value": "https://www.youtube.com/@nateherk",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -192,
+        912
+      ],
+      "id": "a4a22962-d329-4fc2-9396-84ec1837b3d7",
+      "name": "Channel URL",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Titles:\n{{ $('Aggregate').item.json.Title.join(\"\\n\\n\") }}\n\nPower Words:\n{{ $('Aggregate').item.json['Power Words'].join(\"\\n\\n\") }}\n\nThumbnail Analysis:\n{{ $('Aggregate').item.json['Thumbnail Analysis'].join(\"\\n\\n\") }}\n\nThe Audience Wants These Things:\n{{ $('Comment Analysis').item.json['Do These Things'] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Overview\nYou are a top-tier YouTube strategist and content ideation expert. You help YouTube creators generate high-performing video ideas based on proven title patterns, power words, and thumbnail styles in their niche.\n\n## Your Task\nYou will be given:\n- Five existing YouTube titles from the same niche\n- A list of five power words or phrases commonly found in those titles\n- A summary of thumbnail analysis (what hooks, visual cues, or promises are working)\n- An analysis of what the audience wants to see more of\n\nYour goal is to generate three distinct video ideas for this channel. Each idea should include:\n- A compelling title that fits the niche and leverages the given power words and structural patterns\n- A thumbnail concept that aligns with the successful elements found in the analysis\n\nEach idea should be unique but rooted in the style, voice, and viewer intent relevant to the channel's audience.\n\n## Here is a description of the YouTube channel you work for\n{{ $json['Channel Details'] }}\n\n## Creative Guidelines:\n- Avoid rephrasing or reusing the titles provided.\n- Aim for **variety across the three ideas**: different angles, formats, or value propositions.\n- Ensure each title and thumbnail work together to trigger curiosity, highlight a transformation or insight, and align with the channel’s brand and audience.\n\n## Guidelines\n- Use language and visuals that would **grab attention, spark curiosity**, and clearly signal **value or a result**\n- Titles should be optimized for clicks, while still being relevant and authentic to the niche\n- Thumbnails should be described in terms of **what’s visually shown** and **why it works**\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        240,
+        1312
+      ],
+      "id": "a2eae184-39df-49bd-88f9-9d5860553f86",
+      "name": "Creative Agent"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/streamers~youtube-scraper/run-sync-get-dataset-items",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "YOUR API KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"downloadSubtitles\": false,\n    \"hasCC\": false,\n    \"hasLocation\": false,\n    \"hasSubtitles\": false,\n    \"is360\": false,\n    \"is3D\": false,\n    \"is4K\": false,\n    \"isBought\": false,\n    \"isHD\": false,\n    \"isHDR\": false,\n    \"isLive\": false,\n    \"isVR180\": false,\n    \"maxResultStreams\": 0,\n    \"maxResults\": 5,\n    \"maxResultsShorts\": 0,\n    \"preferAutoGeneratedSubtitles\": false,\n    \"saveSubsToKVS\": false,\n    \"sortVideosBy\": \"NEWEST\",\n    \"startUrls\": [\n        {\n            \"url\": \"{{ $json.channel }}\",\n            \"method\": \"GET\"\n        }\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -48,
+        912
+      ],
+      "id": "059a9a98-8909-4e80-9412-7b3da0d53769",
+      "name": "Scrape Channel"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/streamers~youtube-comments-scraper/run-sync-get-dataset-items",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "YOUR API KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"commentsSortBy\": \"1\",\n    \"maxComments\": 30,\n    \"startUrls\": [\n        {\n            \"url\": \"{{ $json.url }}\",\n            \"method\": \"GET\"\n        }\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        96,
+        912
+      ],
+      "id": "89c0260f-e1ab-487f-a59b-63da4480d383",
+      "name": "Get Comments"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "comment"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        240,
+        912
+      ],
+      "id": "c65c2673-5dcb-49d8-8b59-d1384f3b711b",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Comments:\n{{ $json.comment.join(\"\\n\\n\") }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Overview\nYou are a YouTube audience insights analyst. You will be given a collection of real YouTube comments on a specific channel.\n\n## Your Task\nAnalyze the comments and identify key audience patterns across three categories:\n\n1. **Things You're Doing Well**  \n   What do viewers consistently praise or respond positively to? Look for compliments, recurring appreciation, or mentions of what they found helpful, interesting, or enjoyable.\n\n2. **Things the Audience Doesn’t Like**  \n   Identify areas of criticism, confusion, or frustration. This includes anything the audience didn’t enjoy, found unclear, repetitive, boring, or overwhelming.\n\n3. **Things the Audience Is Looking For**  \n   Look for requests, questions, or desires for future content — anything viewers are hoping to see more of, learn next, or get clarification on.\n\n## Notes\n- Insights should be concise but specific.\n- Focus on patterns, not isolated comments.\n- Do not quote individual comments unless it helps summarize a recurring theme."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        384,
+        912
+      ],
+      "id": "ab412624-aca8-4d0e-9a5d-ab3facee5516",
+      "name": "Comment Analyzer"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"name\": \"youtube_comment_analysis\",\n  \"description\": \"Analyzes YouTube comments to identify what viewers like, dislike, and are asking for.\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"doing_well\": {\n      \"type\": \"array\",\n      \"description\": \"A list of key things the channel is doing well, based on positive viewer feedback.\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"audience_dislikes\": {\n      \"type\": \"array\",\n      \"description\": \"A list of recurring issues or criticisms mentioned by the audience.\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"audience_requests\": {\n      \"type\": \"array\",\n      \"description\": \"A list of things viewers are asking for or want to see in future content.\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"required\": [\"doing_well\", \"audience_dislikes\", \"audience_requests\"]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        1008
+      ],
+      "id": "db81605c-ea00-4210-92b4-4f4a34659a9b",
+      "name": "Insights"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc",
+          "mode": "list",
+          "cachedResultName": "YouTube Strategist",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1836706523,
+          "mode": "list",
+          "cachedResultName": "Niche Daily",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit#gid=1836706523"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $now.format('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -192,
+        1312
+      ],
+      "id": "e76fce6a-b473-44c7-bf10-593b312dafa5",
+      "name": "Get High Performers"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "Title"
+            },
+            {
+              "fieldToAggregate": "Power Words"
+            },
+            {
+              "fieldToAggregate": "Thumbnail Analysis"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        1312
+      ],
+      "id": "602f0628-b60b-4ded-8803-3ebc881cc12b",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C08L6NPLT98",
+          "mode": "list",
+          "cachedResultName": "youtube"
+        },
+        "text": "=Your Niche and Channel Audit for {{ $now.format('yyyy-MM-dd') }} is complete. \n\nView the results and insights here: \nhttps://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit?gid=1836706523#gid=1836706523",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        688,
+        1312
+      ],
+      "id": "a99ca868-36a1-4001-9631-f70546106288",
+      "name": "Notification",
+      "webhookId": "0d1bb128-308a-4ebb-a83e-f41c491c91d0"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        336,
+        1008
+      ],
+      "id": "55f486c1-f48b-4f0b-aa8c-6d7b42130864",
+      "name": "GPT 4.1-mini3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        208,
+        1408
+      ],
+      "id": "ebd933f7-e3b5-412f-925c-a68450b67530",
+      "name": "GPT 4.1-mini4"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc",
+          "mode": "list",
+          "cachedResultName": "YouTube Strategist",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 69853265,
+          "mode": "list",
+          "cachedResultName": "Comment Analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit#gid=69853265"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.format('yyyy-MM-dd') }}",
+            "Good": "={{ $json.output.doing_well.join(\"\\n\\n\") }}",
+            "Bad": "={{ $json.output.audience_dislikes.join(\"\\n\\n\") }}",
+            "Do These Things": "={{ $json.output.audience_requests.join(\"\\n\\n\") }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Good",
+              "displayName": "Good",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Bad",
+              "displayName": "Bad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Do These Things",
+              "displayName": "Do These Things",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        688,
+        912
+      ],
+      "id": "f689e1f9-31cd-4e4c-b857-6c5fa8d408f0",
+      "name": "Comment Analysis"
+    },
+    {
+      "parameters": {
+        "content": "# Phase 4) Comment Analysis",
+        "height": 380,
+        "width": 1100,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        800
+      ],
+      "id": "84a552b2-debe-43dc-954a-16593efaa665",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "# Phase 5) Ideation",
+        "height": 380,
+        "width": 1100,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        1200
+      ],
+      "id": "b682ca32-de7c-4c45-91e5-8c42f74d27f3",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/streamers~youtube-scraper/run-sync-get-dataset-items",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "YOUR API KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"downloadSubtitles\": false,\n    \"hasCC\": false,\n    \"hasLocation\": false,\n    \"hasSubtitles\": false,\n    \"is360\": false,\n    \"is3D\": false,\n    \"is4K\": false,\n    \"isBought\": false,\n    \"isHD\": false,\n    \"isHDR\": false,\n    \"isLive\": false,\n    \"isVR180\": false,\n    \"maxResultStreams\": 0,\n    \"maxResults\": 30,\n    \"maxResultsShorts\": 0,\n    \"preferAutoGeneratedSubtitles\": false,\n    \"saveSubsToKVS\": false,\n    \"sortVideosBy\": \"POPULAR\",\n    \"sortingOrder\": \"views\",\n    \"startUrls\": [\n        {\n            \"url\": \"{{ $json.channels }}\",\n            \"method\": \"GET\"\n        }\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -720,
+        368
+      ],
+      "id": "88acc483-da22-4a21-990c-b7b6926e23c3",
+      "name": "Channel Outliers"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "viewCount",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        368
+      ],
+      "id": "4d4f361e-b55e-46e2-9a18-bad0f5fddd00",
+      "name": "Sort1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "63026392-559e-4b21-be7d-224fea72c911",
+              "leftValue": "={{ $json.date }}",
+              "rightValue": "={{ DateTime.now().minus({ months: 6 }).toISO() }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "after"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -720,
+        576
+      ],
+      "id": "97ca0166-5eb1-4feb-9f0b-259193da7223",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        576
+      ],
+      "id": "8874e1c2-b9d7-4f72-99da-10059dbdfcfa",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc",
+          "mode": "list",
+          "cachedResultName": "YouTube Strategist",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 817026250,
+          "mode": "list",
+          "cachedResultName": "Broad Niche Weekly",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jdBRXleVhZiZvvEpzugGGznls_wUOOWENKJR8PeFMc/edit#gid=817026250"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.format('yyyy-MM-dd') }}",
+            "Channel": "={{ $('Scrape YT').item.json.channelName }}",
+            "Title": "={{ $('Scrape YT').item.json.title }}",
+            "URL": "={{ $('Scrape YT').item.json.url }}",
+            "Thumbnail": "={{ $('Scrape YT').item.json.thumbnailUrl }}",
+            "Views": "={{ $('Scrape YT').item.json.viewCount }}",
+            "Likes": "={{ $('Scrape YT').item.json.likes }}",
+            "Power Words": "={{ $('Title Analyzer1').item.json.output }}",
+            "Thumbnail Analysis": "={{ $json.choices[0].message.content }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Channel",
+              "displayName": "Channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Thumbnail",
+              "displayName": "Thumbnail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Views",
+              "displayName": "Views",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Likes",
+              "displayName": "Likes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Power Words",
+              "displayName": "Power Words",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Thumbnail Analysis",
+              "displayName": "Thumbnail Analysis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -480,
+        912
+      ],
+      "id": "8e0150ac-10e9-4cf6-b913-e0bf67c0242d",
+      "name": "Broad Niche Weekly"
+    },
+    {
+      "parameters": {
+        "content": "# ⚙️ Setup Guide  \n**Author:** [Nate Herk](https://www.youtube.com/@nateherk)\n\nFollow these steps to configure your n8n workflow:\n\n### ✅ Step 1: Get Your [Apify](https://www.apify.com/?fpr=nate) API Key  \nSign up on Apify and use code `30NATEHERK` for **30% off**.  \nPlug this API key into the **5 HTTP Request nodes** in your workflow. Once connected, your Apify setup is complete.\n\n### ✅ Step 2: Connect Your [OpenRouter](https://openrouter.ai/) & [OpenAI API](https://platform.openai.com/settings/organization/api-keys) Keys  \n- Get your OpenRouter API key, add billing info, and connect the credential in n8n.  \n- For image analysis, you also need to connect a **separate OpenAI credential**.\n\n### ✅ Step 3: Copy & Link the [Google Sheet Template](https://docs.google.com/spreadsheets/d/197vv7pZWXOiMufm1BFuV07obNafBr3PgOsbR5a4JAAI/edit?usp=sharing)  \nMake a copy in your Google account.  \nThen, connect it in all **Google Sheet nodes**.  \nEnsure you're linking the **correct sheet and tabs** for each node.\n\n### ✅ Step 4: Customize Triggers & Settings  \n- Set the **Schedule Triggers** to run at your desired intervals.  \n- Test the **Form Submission Trigger** on channels in your niche.  \n- Fill in your information in the **Set nodes**:\n  - **Phase II:** Broad Niche  \n  - **Phase III:** Specific Niche  \n  - **Phase IV:** Channel URL  \n  - **Phase V:** Channel Description  \n\n### 🧪 Final Step: Run Tests  \nOnce everything is linked, start testing to ensure all components fire correctly and data flows as expected.\n",
+        "height": 1280,
+        "width": 840
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2432,
+        288
+      ],
+      "id": "609c595e-8661-4a20-bc04-ca69d023b1c3",
+      "name": "Sticky Note3"
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "3 Channels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3 Channels": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Channel Outliers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Title Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "GPT 4.1-mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Title Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Niche Outliers Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Thumbnails": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Set Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Niche Outliers Data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape YT": {
+      "main": [
+        [
+          {
+            "node": "Title Analyzer1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Title Analyzer1": {
+      "main": [
+        [
+          {
+            "node": "Analyze Thumbnails1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Thumbnails1": {
+      "main": [
+        [
+          {
+            "node": "Broad Niche Weekly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT 4.1-mini1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Title Analyzer1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Broad Niche": {
+      "main": [
+        [
+          {
+            "node": "Scrape YT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape YT1": {
+      "main": [
+        [
+          {
+            "node": "Title Analyzer2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Title Analyzer2": {
+      "main": [
+        [
+          {
+            "node": "Analyze Thumbnails2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Thumbnails2": {
+      "main": [
+        [
+          {
+            "node": "Niche Daily",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT 4.1-mini2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Title Analyzer2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Niche": {
+      "main": [
+        [
+          {
+            "node": "Scrape YT1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6 am": {
+      "main": [
+        [
+          {
+            "node": "Niche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sundays": {
+      "main": [
+        [
+          {
+            "node": "Broad Niche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Niche Daily": {
+      "main": [
+        [
+          {
+            "node": "Channel URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channel Description": {
+      "main": [
+        [
+          {
+            "node": "Creative Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Titles & Thumbs": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Creative Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Ideas": {
+      "main": [
+        [
+          {
+            "node": "Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channel URL": {
+      "main": [
+        [
+          {
+            "node": "Scrape Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Creative Agent": {
+      "main": [
+        [
+          {
+            "node": "Append Ideas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Channel": {
+      "main": [
+        [
+          {
+            "node": "Get Comments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Comments": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Comment Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comment Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Comment Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insights": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Comment Analyzer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get High Performers": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Channel Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT 4.1-mini3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Comment Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT 4.1-mini4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Creative Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comment Analysis": {
+      "main": [
+        [
+          {
+            "node": "Get High Performers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channel Outliers": {
+      "main": [
+        [
+          {
+            "node": "Sort1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort1": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Set Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Title Analyzer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analyze Thumbnails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "b80743c0-9398-4f07-b298-8653349ff884",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-10T00:19:33.036Z",
+      "updatedAt": "2025-09-10T00:19:33.036Z",
+      "role": "workflow:owner",
+      "workflowId": "WzolmJnm8fYu3Jfr",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-10T22:00:48.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-10",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

@@ -1,0 +1,93 @@
+{
+  "createdAt": "2025-08-09T13:37:00.371Z",
+  "updatedAt": "2025-09-03T19:15:59.000Z",
+  "id": "F2Drp6WfCiNBL6GX",
+  "name": "Test Hunter Authentication Workflow",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "test-http",
+      "name": "Test HTTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "test-hunter-cred",
+          "name": "Test Hunter"
+        }
+      }
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "954cabcd-8b74-4b2c-babb-a500113cd5be",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-09T13:37:00.373Z",
+      "updatedAt": "2025-08-09T13:37:00.373Z",
+      "role": "workflow:owner",
+      "workflowId": "F2Drp6WfCiNBL6GX",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-10T22:00:48.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-10",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

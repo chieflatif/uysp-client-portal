@@ -1,0 +1,2044 @@
+{
+  "createdAt": "2025-09-09T23:35:02.743Z",
+  "updatedAt": "2025-09-09T23:35:02.743Z",
+  "id": "7oadnHZO6ImgBlHE",
+  "name": "The AI Email Nurturing Agent",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        240
+      ],
+      "id": "571585f3-385d-4064-b9ad-dd4b445dfae5",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        624,
+        240
+      ],
+      "id": "d635a16c-31f0-4a6e-a685-fe3a3c1f0d95",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "filters": {
+          "q": "label:followUp -label:processed"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        352,
+        240
+      ],
+      "id": "68872021-7a44-4578-aac8-1ee04162f413",
+      "name": "Retrieve_lead_to_add",
+      "webhookId": "988bc7b5-e7db-4f57-a229-2c416f454e71"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "get",
+        "threadId": "={{ $('Retrieve_lead_to_add').item.json.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        880,
+        352
+      ],
+      "id": "d167d7c8-8096-4788-97b9-cc8cd05a072b",
+      "name": "Get_thread",
+      "webhookId": "02bda9aa-6d68-42a3-ba89-bee4d339bcfa"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7fb3171d-09c8-45f1-a159-3f507463fe25",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "={{ $json.email }}",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1520,
+        352
+      ],
+      "id": "b5f62169-bcf8-4ace-9516-d6ccb43ecd08",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const messages = $('Get_thread').first().json.messages;\n\n// Get last two messages safely\nconst lastTwoMessages = messages.slice(-2);\n\n// Create JSON output as a single object with the last two messages\nconst output = {\n    [`id_1`]: lastTwoMessages[0].id ? lastTwoMessages[0].id : \"\",\n    [`content_1`]: lastTwoMessages[0].snippet ? lastTwoMessages[0].snippet : \"\",\n    [`date_prospect`]: lastTwoMessages[0].internalDate ? lastTwoMessages[0].internalDate : \"\",\n    [`id_2`]: lastTwoMessages[1] ? lastTwoMessages[1].id : \"\",\n    [`content_2`]: lastTwoMessages[1] ? lastTwoMessages[1].snippet : \"\",\n    [`date_reply`]: lastTwoMessages[1] ? lastTwoMessages[1].internalDate : \"\"\n};\n\n// Return the output object\nreturn [output];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        464
+      ],
+      "id": "27448c13-cd0b-4288-9fd7-a9d7dae3a1ae",
+      "name": "Get_last_2_emails"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputString = $input.first().json.messages[0].From;\n\n// Regular expression to extract name and email, removing surrounding quotes\nconst match = inputString.match(/\"?(.+?)\"?\\s<([^>]+)>/);\n\nconst fullName = match ? match[1].trim().replace(/^\"|\"$/g, '') : null;\nconst email = match ? match[2] : null;\nconst domain = email ? email.split('@')[1] : null;\n\n// Extract first name and last name\nconst nameParts = fullName ? fullName.split(' ') : [];\nconst firstName = nameParts.length > 0 ? nameParts[0] : null;\nconst lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : null;\n\nreturn [{ json: { fullName, firstName, lastName, email, domain } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        352
+      ],
+      "id": "1865bc2d-4adc-40f4-a229-6da5553b22da",
+      "name": "Extract_lead_info"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0",
+          "mode": "list",
+          "cachedResultName": "inbox_leads_follows",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $json.email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1344,
+        352
+      ],
+      "id": "ec0082c8-8c79-4e20-ab33-ee86a42f532b",
+      "name": "Retrieve_lead",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0",
+          "mode": "list",
+          "cachedResultName": "inbox_leads_follows",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{ $('Extract_lead_info').item.json.email }}",
+            "lead status": "=open",
+            "website": "={{ $('Extract_lead_info').item.json.domain }}",
+            "last email id": "={{ $('Get_last_2_emails').item.json.id_2 }}",
+            "first name": "={{ $('Extract_lead_info').item.json.firstName }}",
+            "thread subject": "={{ $('Get_thread').item.json.messages[0].Subject }}",
+            "prospect reply date": "={{ new Date(Number($('Get_last_2_emails').item.json.date_prospect)).toISOString().slice(0,10) }}",
+            "follow up history": "={{ $('If').item.json['follow up history'] + \"[\" + $now.format('yyyy-MM-dd') + \"] Prospect updated for follow up\" }}",
+            "last thread id": "={{ $('Get_thread').item.json.id }}",
+            "your reply date": "={{ new Date(Number($('Get_last_2_emails').item.json.date_reply)).toISOString().slice(0,10) }}",
+            "Last Message Received from the Prospect": "={{ $json.content_1 }}",
+            "Last Message Sent to the Prospect": "={{ $json.content_2 }}"
+          },
+          "matchingColumns": [
+            "email"
+          ],
+          "schema": [
+            {
+              "id": "lead status",
+              "displayName": "lead status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "first name",
+              "displayName": "first name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "thread subject",
+              "displayName": "thread subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last thread id",
+              "displayName": "last thread id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last email id",
+              "displayName": "last email id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "your reply date",
+              "displayName": "your reply date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "prospect reply date",
+              "displayName": "prospect reply date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "follow up history",
+              "displayName": "follow up history",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last Message Received from the Prospect",
+              "displayName": "Last Message Received from the Prospect",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last Message Sent to the Prospect",
+              "displayName": "Last Message Sent to the Prospect",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2048,
+        464
+      ],
+      "id": "3fafad1f-87bc-46e7-9457-95fb0e5f8c31",
+      "name": "Update_lead_in_sheet1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const messages = $('Get_thread').first().json.messages;\n\n// Get last two messages safely\nconst lastTwoMessages = messages.slice(-2);\n\n// Create JSON output as a single object with the last two messages\nconst output = {\n    [`id_1`]: lastTwoMessages[0].id ? lastTwoMessages[0].id : \"\",\n    [`content_1`]: lastTwoMessages[0].snippet ? lastTwoMessages[0].snippet : \"\",\n    [`date_prospect`]: lastTwoMessages[0].internalDate ? lastTwoMessages[0].internalDate : \"\",\n    [`id_2`]: lastTwoMessages[1] ? lastTwoMessages[1].id : \"\",\n    [`content_2`]: lastTwoMessages[1] ? lastTwoMessages[1].snippet : \"\",\n    [`date_reply`]: lastTwoMessages[1] ? lastTwoMessages[1].internalDate : \"\"\n};\n\n// Return the output object\nreturn [output];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        800
+      ],
+      "id": "a34c9183-ab18-44df-9a77-8c90ba61ab18",
+      "name": "Get_last_2_emails1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0",
+          "mode": "list",
+          "cachedResultName": "inbox_leads_follows",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead status": "=open",
+            "email": "={{ $('Extract_lead_info').item.json.email }}",
+            "last email id": "={{ $('Get_last_2_emails1').item.json.id_2 }}",
+            "first name": "={{ $('Extract_lead_info').item.json.firstName }}",
+            "thread subject": "={{ $('Get_thread').item.json.messages[0].Subject }}",
+            "your reply date": "={{ new Date(Number($('Get_last_2_emails1').item.json.date_reply)).toISOString().slice(0,10) }}",
+            "prospect reply date": "={{ new Date(Number($('Get_last_2_emails1').item.json.date_prospect)).toISOString().slice(0,10) }}",
+            "follow up history": "={{ \"[\" + $now.format('yyyy-MM-dd') + \"] Prospect added for follow up\" }}",
+            "last thread id": "={{ $('Get_thread').item.json.messages[0].threadId }}",
+            "website": "={{ $('Extract_lead_info').item.json.domain }}",
+            "Last Message Received from the Prospect": "={{ $json.content_1 }}",
+            "Last Message Sent to the Prospect": "={{ $json.content_2 }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "lead status",
+              "displayName": "lead status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "first name",
+              "displayName": "first name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "thread subject",
+              "displayName": "thread subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last thread id",
+              "displayName": "last thread id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last email id",
+              "displayName": "last email id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "your reply date",
+              "displayName": "your reply date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "prospect reply date",
+              "displayName": "prospect reply date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "follow up history",
+              "displayName": "follow up history",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last Message Received from the Prospect",
+              "displayName": "Last Message Received from the Prospect",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last Message Sent to the Prospect",
+              "displayName": "Last Message Sent to the Prospect",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2064,
+        800
+      ],
+      "id": "cc62ffa2-8c90-4515-9162-066f32587f34",
+      "name": "Create_lead_in_sheet1"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "addLabels",
+        "threadId": "={{ $('Get_thread').item.json.id }}",
+        "labelIds": [
+          "Label_1666408463285925209",
+          "Label_1367183265616858933"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2272,
+        464
+      ],
+      "id": "fcccd365-a4b3-4ae3-91ac-a04f49b6556a",
+      "name": "Add_processed_label",
+      "webhookId": "87f3a50c-d4ad-406b-adc6-35a0b59da3fd"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "addLabels",
+        "threadId": "={{ $('Get_thread').item.json.id }}",
+        "labelIds": [
+          "Label_1666408463285925209",
+          "Label_1367183265616858933"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2288,
+        800
+      ],
+      "id": "59b181be-d7a5-462e-b37a-6f252ffa1957",
+      "name": "Add_processed_label1",
+      "webhookId": "87f3a50c-d4ad-406b-adc6-35a0b59da3fd"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2512,
+        464
+      ],
+      "id": "64fbca92-fd51-435a-aa6c-228457382dea",
+      "name": "Wait",
+      "webhookId": "fc4b9ad9-6212-41d8-b254-d359e834c474"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2512,
+        800
+      ],
+      "id": "e6adefb7-bbbb-4f9c-9cb8-ee5be53cd42b",
+      "name": "Wait1",
+      "webhookId": "e1814361-52bb-4a86-afe3-7ee988796d49"
+    },
+    {
+      "parameters": {
+        "content": "### Schedule a time to retrieve your follow up email to process (Depending of the volume you will need), can be every 30min or more",
+        "height": 280
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        128
+      ],
+      "id": "c9fc3e05-c62d-49b3-b80d-b06bdde73971",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "### Check leads that have not been processed yet and added to the follow up sheet",
+        "height": 280,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        288,
+        128
+      ],
+      "id": "50eb78d7-6c02-4fa6-8f90-5526f65227e5",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "### Retrieve the current topics and extract lead info",
+        "height": 280,
+        "width": 380,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        864,
+        240
+      ],
+      "id": "557d2f6b-ecdf-4b05-a35d-44b27ae0af6b",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "### Check if the lead is already in the sheet and started a new topic or if this is a new",
+        "height": 280,
+        "width": 400,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        240
+      ],
+      "id": "1cd21979-eb55-4ab4-a0f6-bc1f1130d5fa",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "### Get last 2 emails content and create the lead on the follow up sheet",
+        "height": 240,
+        "width": 440,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        720
+      ],
+      "id": "87cd8f91-debb-42f7-9819-ce2662dd5103",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "### Update the lead if he start a new thread and mark it again as open for follow up",
+        "height": 260,
+        "width": 900,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        384
+      ],
+      "id": "ebc0cf32-86aa-497d-9b35-ed8f74cfb6ef",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "### Add a new tag to track the follow up that are being processed and wait before new lead",
+        "height": 240,
+        "width": 400,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        720
+      ],
+      "id": "1bf5be5e-f534-4c53-a021-076ea33226d1",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "### Handle follow up thread lead one by one",
+        "height": 280,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        560,
+        128
+      ],
+      "id": "b84bff86-631f-4d4c-842b-ccbc02b6213a",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## This workflow will run every X minutes/hours to check leads that need follow up and add them to a sheet to start and track the follow up journey",
+        "height": 80,
+        "width": 2660
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e8e1d4ac-573b-4c99-8161-dda99e8a2ab5",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputString = $input.first().json.messages[0].From;\n\n// Regular expression to extract name and email, removing surrounding quotes\nconst match = inputString.match(/\"?(.+?)\"?\\s<([^>]+)>/);\n\nconst fullName = match ? match[1].trim().replace(/^\"|\"$/g, '') : null;\nconst email = match ? match[2] : null;\nconst domain = email ? email.split('@')[1] : null;\n\n// Extract first name and last name\nconst nameParts = fullName ? fullName.split(' ') : [];\nconst firstName = nameParts.length > 0 ? nameParts[0] : null;\nconst lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : null;\n\nreturn [{ json: { fullName, firstName, lastName, email, domain } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        1264
+      ],
+      "id": "78c9196c-dd1e-4456-84bf-26c6b3d9fe7b",
+      "name": "Extract_prospect_information"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "71954338-ce17-4378-be71-b2027754498b",
+              "leftValue": "={{ $('Get_thread1').item.json.messages.some(message => \n     message.labels.some(label => label.name.includes('processed'))\n   ) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "0e6574e1-d13b-47f2-bd49-562fcab542bd",
+              "leftValue": "={{ $('Message_trigger').item.json.labels.some(label => label.name.includes('CATEGORY_PERSONAL')) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1488,
+        1264
+      ],
+      "id": "0234a88b-7bda-4369-9e62-fa4c6fa65e41",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1136,
+        1264
+      ],
+      "id": "d4cab47d-3f94-400c-873c-5fb27be89392",
+      "name": "Message_trigger"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "removeLabels",
+        "threadId": "={{ $('Get_thread1').item.json.id }}",
+        "labelIds": [
+          "Label_1367183265616858933",
+          "Label_1666408463285925209"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2352,
+        1264
+      ],
+      "id": "781e35fd-9035-478f-b2ce-27160c9f9518",
+      "name": "Gmail1",
+      "webhookId": "d7a509f7-96c3-43d3-8a04-12bd795ac684"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0",
+          "mode": "list",
+          "cachedResultName": "inbox_leads_follows",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{ $('Extract_prospect_information').item.json.email }}",
+            "lead status": "=close",
+            "last email id": "={{ $('Message_trigger').item.json.id }}",
+            "prospect reply date": "={{ new Date(Number($('Message_trigger').item.json.internalDate)).toISOString().slice(0,10) }}",
+            "follow up history": "={{ $json['follow up history'] + \" [\" + $now.format('yyyy-MM-dd') + \"] Prospect replied\" }}",
+            "Last Message Received from the Prospect": "={{ $('Message_trigger').item.json.snippet }}"
+          },
+          "matchingColumns": [
+            "email"
+          ],
+          "schema": [
+            {
+              "id": "lead status",
+              "displayName": "lead status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "first name",
+              "displayName": "first name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "thread subject",
+              "displayName": "thread subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last thread id",
+              "displayName": "last thread id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last email id",
+              "displayName": "last email id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "your reply date",
+              "displayName": "your reply date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "prospect reply date",
+              "displayName": "prospect reply date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "follow up history",
+              "displayName": "follow up history",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last Message Received from the Prospect",
+              "displayName": "Last Message Received from the Prospect",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last Message Sent to the Prospect",
+              "displayName": "Last Message Sent to the Prospect",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2128,
+        1264
+      ],
+      "id": "7d149081-4181-4b9b-876b-c97df96ccd24",
+      "name": "Update_lead_in_sheet"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0",
+          "mode": "list",
+          "cachedResultName": "inbox_leads_follows",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $json.email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1904,
+        1264
+      ],
+      "id": "2f846424-e709-4492-bad4-f62f97555db3",
+      "name": "Retrieve_lead1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "get",
+        "threadId": "={{ $json.threadId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1312,
+        1264
+      ],
+      "id": "a52204fc-45f4-4cb2-b742-38619cf47a0f",
+      "name": "Get_thread1",
+      "webhookId": "27387056-b59e-4696-a6bd-96ea0ef76bc4"
+    },
+    {
+      "parameters": {
+        "content": "### This workflow track lead response to follow up. When they respond, the worfklow update the lead to stop sending follow up to them",
+        "height": 80,
+        "width": 1400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        1104
+      ],
+      "id": "ffb31787-273c-45f4-90c6-dca47a0a4baf",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "### When a new email is received, we check if the email is a response to a follow up",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        1216
+      ],
+      "id": "80b6877c-2e5c-48d4-bcc2-1fab9ca62659",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "### Retrieve and update information about the lead",
+        "height": 220,
+        "width": 620,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        1216
+      ],
+      "id": "4cc7bb0c-9ab5-40b4-8c6e-06367ad066c1",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "### Remove labels",
+        "height": 220,
+        "width": 220,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2288,
+        1216
+      ],
+      "id": "0ea855de-088b-4f79-bcf3-4b679d4bc447",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "anthropic/claude-3.5-haiku",
+          "mode": "list",
+          "cachedResultName": "anthropic/claude-3.5-haiku"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1936,
+        2176
+      ],
+      "id": "141e8e04-0033-4e90-b7c9-dc9e18ac10fe",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $now }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a expert at doing email follow-up.\n\nObjective:\nCraft a highly personalized follow-up email that:\n\nBuilds on the last two email messages (provided as input).\n\nAdapts based on the follow-up history (provided as input).\n\nUses prospect website insights (if the domain is not an email provider) to personalize the response. (if it is an email provider, then just don't use it)\n\nIf you need to find information to give better response, look at my website\n\"https://repliq.co\" if needed to hyper personalized.\n\nFocuses on providing value rather than pushing for a meeting.\n\nSends the email using Gmail's \"Reply Follow-Up\" tool, ensuring it remains within the same thread.\n\nInputs Required:\n1️⃣ Last Two Email Messages (Provided as Input)\n\nProspect’s Last Message: {{ $('Loop Over Items1').item.json['Last Message Received from the Prospect'] }}\n\nProspect's website: {{ $('Loop Over Items1').item.json.website }} (use it if not an email provider domain)\n\nYour Unanswered Reply: {{ $('Loop Over Items1').item.json['Last Message Sent to the Prospect'] }}\n(Make sure that this reply is not the same follow up you are going to send, it should drive the prospect to respond with more value, draft a completely different email each time)\n\nYour website: https://repliq.co, use it to give better response\n\n2️⃣ Follow-Up History (Provided as Input)\n\n{{ $('Loop Over Items1').item.json['follow up history'] }}\n\nDate of today: {{ $now }}\n\n3️⃣ Prospect’s Domain (Provided as Input)\n\n{{ $('Loop Over Items1').item.json.website }} (Only visit if not an email provider like Gmail, Outlook, Yahoo)\n\n4] Prospect Name (Provided as Input)\n\n{{ $('Loop Over Items1').item.json['first name'] }}\n\nWorkflow Steps:\nStep 1. Analyze Email Context\nUnderstand the prospect’s last message to ensure the follow-up feels relevant.\n\nIdentify the main topic of your previous reply that was unanswered.\n\nIf multiple follow-ups have been sent, adjust the tone (e.g., if it’s the third follow-up, make it softer and more value-driven).\n\nStep 2. Enrich with Website Insights (If Applicable) or my website (If relevant)\nIf {{ $('Loop Over Items1').item.json.website }} is a company website, extract:\n\nCompany name\n\nIndustry\n\nServices/products mentioned\n\nUse these insights to make the follow-up more relevant to their business.\n\nStep 3. Generate the Follow-Up Email (HTML Format)\nMain Focus: Provide additional context, insights, or useful information related to the unanswered message.\n\nNo Hard Sell: Avoid requesting a meeting or call.\n\nUse his name for greetings.\n\nEngagement Strategy: Encourage a response by highlighting why the topic is important to them. (but only if the previous follow up didn't have insight on this already)\n\nKeep the response conscise and to the point based on last exchange.\n\nDon't exagerate on terms, keep it conversationnal, not getting too excited, its just an response to a question or information.\n\nDon't give me the subject, just send the content of the email in html format including basic styling.\n\nRemove all politness text, Don't thank them for reaching out or hope that they are being well or looking forward to respond since its already a thread in progress there is no need for such formality anymore. Just signing is enough with the content.\n\nSign with \"RepliQ Team\".\n\nAlways use the gmail tool to send the email before giving me the output.\nAlways have the email body content only, not the full tags of html needed. So no <html> or <body> or <style> tag, just the necessary. Dont input link in the email.\nSo use only <p>, <strong>, <li>, <ul>, <a> tags to craft the email.\nMake sure to close your tags correctly not to show a missing closing bracket to the email sent.\n\nGive me only the content of the email using html format.\n\nCustomization Options\nValue-Driven Content: Adapt insights to provide value.\n\nPersonalization Depth: Dynamically include or exclude website-based context depending on {{ $('Loop Over Items1').item.json.website }} and \"https://repliq.co\".\n\nStep 4. Send Email via Gmail \"Reply Follow-Up\" Tool\nUse n8n’s Gmail integration to send this email as a reply within the same thread.\n\nEnsure the email remains properly threaded for context by using the provided thread and email IDs.\n\nRequired Inputs for Sending the Email:\n\nEmail ID: {{ $('Loop Over Items1').item.json['last email id'] }} (to reply to the correct message)\n\nStep 5. Generate the email content as a string output in HTML format. Do not include any explanations, metadata, or additional formatting instructions—only return the email body as a raw string containing valid HTML. Give it to me in a JSON.\nSuch as \n{\n  \"email\": \"email content to put here as output\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        2032,
+        1888
+      ],
+      "id": "9abeca62-b0a5-46cc-bd8c-44e6649fe79e",
+      "name": "Expert follow up emails"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_Snippet_or_ID', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        2224,
+        2176
+      ],
+      "id": "55ccec3a-b0a0-475d-b415-99c985a32691",
+      "name": "Gmail Reply Follow-Up",
+      "webhookId": "fd478874-4c7f-408d-bf39-6bb71776edea"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0",
+          "mode": "list",
+          "cachedResultName": "inbox_leads_follows",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{ $('Loop Over Items1').item.json.email }}",
+            "follow up history": "={{ $('Retrieve_lead2').item.json['follow up history'] + \" [\" + $now.format('yyyy-MM-dd') + \"] follow up sent \" }}",
+            "Last Message Sent to the Prospect": "={{ $json.output.email ? $json.output.email : $('Loop Over Items1').item.json['Last Message Sent to the Prospect'] }}"
+          },
+          "matchingColumns": [
+            "email"
+          ],
+          "schema": [
+            {
+              "id": "lead status",
+              "displayName": "lead status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "first name",
+              "displayName": "first name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "thread subject",
+              "displayName": "thread subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last thread id",
+              "displayName": "last thread id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last email id",
+              "displayName": "last email id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "your reply date",
+              "displayName": "your reply date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "prospect reply date",
+              "displayName": "prospect reply date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "follow up history",
+              "displayName": "follow up history",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Message Received from the Prospect",
+              "displayName": "Last Message Received from the Prospect",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Message Sent to the Prospect",
+              "displayName": "Last Message Sent to the Prospect",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2384,
+        1888
+      ],
+      "id": "6dcfc77e-41dc-42cf-963e-37aec0ff6b70",
+      "name": "Google Sheets"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d7baac24-31e9-4fd0-89aa-6bab15b20d02",
+              "leftValue": "={{ $json.message.content == \"YES\" }}",
+              "rightValue": "NO",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1584,
+        1888
+      ],
+      "id": "95a4008a-6230-422c-99d3-1dc44f0bb79b",
+      "name": "Filter_if_follow_up"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Follow-up history: {{ $('Retrieve_lead2').item.json['follow up history'] }}\n\nDate of Last Message Received from the Prospect: {{ $('Retrieve_lead2').item.json['prospect reply date'] }}\n\nDate of Last Message Sent to the Prospect: {{ $('Retrieve_lead2').item.json['your reply date'] }}\n\nDate of today: {{ $now }}"
+            },
+            {
+              "content": "=You are an expert nudge system designed to determine whether a follow-up is due for a prospect based on their communication history and the specified follow-up strategy.\n\nGiven the following information:\n\nFollow-up History: [List past follow-up attempts, including dates]\n\nDate of Last Message Received from the Prospect: [Exact date of the last response]\n\nDate of Last Message Sent to the Prospect: [Exact date of the last message sent]\n\nToday's Date: {{ $now }}\n\nFollow-up Strategy:\n\nFirst follow-up: 3 days after the initial contact.\n\nSecond follow-up: 7 days after the first follow-up.\n\nThird follow-up: 14 days after the second follow-up.\n\nSubsequent follow-ups occur at increasing intervals.\n\nTask:\nBased on the provided communication history and follow-up strategy, determine if a follow-up is due today.\n\nResponse Options:\n\nReply \"YES\" if a follow-up is due.\n\nReply \"NO\" if no follow-up is necessary yet.\n\nGive me only the answer \"YES\" or \"NO\"",
+              "role": "system"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1216,
+        1888
+      ],
+      "id": "7e58f444-d5b1-4147-8618-f28f5adc90f6",
+      "name": "Check_follow_up_schedule"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $now }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2096,
+        2176
+      ],
+      "id": "1c489bf1-cb3e-4a9a-9882-941e55634321",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"email\": \"email content\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2384,
+        2176
+      ],
+      "id": "5f6ea85e-8c77-48d9-b978-b49b908b448d",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        1856
+      ],
+      "id": "5b6bc2c9-02b8-4f16-a895-f1e1b5a33acb",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0",
+          "mode": "list",
+          "cachedResultName": "inbox_leads_follows",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172MysCRX2_2xwWBLrJfmC5YUh86N1O2WnBEngioIUj0/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "lead status",
+              "lookupValue": "=open"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        752,
+        1856
+      ],
+      "id": "5790dd21-1465-4790-8e48-33cfb319e944",
+      "name": "Retrieve_lead2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        976,
+        1856
+      ],
+      "id": "fe162173-ea5c-4bbe-92d1-86bc612a4961",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1808,
+        1888
+      ],
+      "id": "1d01dd91-97a3-4300-8758-a84bd4501f15",
+      "name": "Wait2",
+      "webhookId": "773108ba-9d1f-469e-b0f5-c24e552d26d2"
+    },
+    {
+      "parameters": {
+        "content": "### This workflow that run every day will check all leads that needs a follow up, see if it the right time to send them a follow up based on today's date and a follow up schedule, craft the email and send them a personalized response based on the query",
+        "height": 80,
+        "width": 2180
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        1648
+      ],
+      "id": "8430821a-55d6-457b-8ebd-9de257437b7f",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "content": "### Runs everyday",
+        "height": 220,
+        "width": 160,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        1792
+      ],
+      "id": "ebb0a3be-7453-4d79-980e-b02c4be412d8",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "content": "### Retrieve all leads that needs follow up and handle them one by one",
+        "height": 220,
+        "width": 400,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        736,
+        1792
+      ],
+      "id": "f61190f4-82d9-4171-a82e-61de9e089a39",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2608,
+        1888
+      ],
+      "id": "1674c44c-ce05-4dc5-9e97-b19e097f58c2",
+      "name": "Wait3",
+      "webhookId": "65843306-2c70-4ab8-ab60-920859a8b03d"
+    },
+    {
+      "parameters": {
+        "content": "### Based on the follow up history and today's date, the AI will know if the lead need a follow up or not",
+        "height": 200,
+        "width": 800,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        1856
+      ],
+      "id": "e5eac6d1-0f67-4856-8f10-f4691fbf8158",
+      "name": "Sticky Note16"
+    },
+    {
+      "parameters": {
+        "content": "### The agent will craft and send a personalized email",
+        "height": 200,
+        "width": 720,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        1856
+      ],
+      "id": "09416c2a-4675-4beb-8342-ab18b0fab807",
+      "name": "Sticky Note17"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Retrieve_lead_to_add",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get_thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve_lead_to_add": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_thread": {
+      "main": [
+        [
+          {
+            "node": "Extract_lead_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get_last_2_emails",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get_last_2_emails1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract_lead_info": {
+      "main": [
+        [
+          {
+            "node": "Retrieve_lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve_lead": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_last_2_emails": {
+      "main": [
+        [
+          {
+            "node": "Update_lead_in_sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_lead_in_sheet1": {
+      "main": [
+        [
+          {
+            "node": "Add_processed_label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_last_2_emails1": {
+      "main": [
+        [
+          {
+            "node": "Create_lead_in_sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create_lead_in_sheet1": {
+      "main": [
+        [
+          {
+            "node": "Add_processed_label1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add_processed_label": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add_processed_label1": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract_prospect_information": {
+      "main": [
+        [
+          {
+            "node": "Retrieve_lead1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Extract_prospect_information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message_trigger": {
+      "main": [
+        [
+          {
+            "node": "Get_thread1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_lead_in_sheet": {
+      "main": [
+        [
+          {
+            "node": "Gmail1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve_lead1": {
+      "main": [
+        [
+          {
+            "node": "Update_lead_in_sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_thread1": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Expert follow up emails",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expert follow up emails": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Reply Follow-Up": {
+      "ai_tool": [
+        [
+          {
+            "node": "Expert follow up emails",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter_if_follow_up": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check_follow_up_schedule": {
+      "main": [
+        [
+          {
+            "node": "Filter_if_follow_up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Expert follow up emails",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Expert follow up emails",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Retrieve_lead2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve_lead2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check_follow_up_schedule",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Expert follow up emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "a6bf15b8-bbfa-4e07-8c67-f52f33ffa968",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-09T23:35:02.746Z",
+      "updatedAt": "2025-09-09T23:35:02.746Z",
+      "role": "workflow:owner",
+      "workflowId": "7oadnHZO6ImgBlHE",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-10T22:00:48.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-10",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
