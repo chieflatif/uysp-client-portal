@@ -1,0 +1,526 @@
+{
+  "createdAt": "2025-07-30T19:49:27.862Z",
+  "updatedAt": "2025-09-03T19:16:45.000Z",
+  "id": "Ow8ahl9Qulmi2B6o",
+  "name": "claude PRM",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "02128950-2baa-45e2-9d32-6b8dfe3ffbcb",
+      "name": "Slack Event Receiver",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1000,
+        -20
+      ],
+      "webhookId": "slack-events-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Slack event and extract relevant data\nconst items = $input.all();\nconst slackEvent = items[0].json;\n\n// Handle different Slack event types\nlet extractedData = {};\n\nif (slackEvent.type === 'url_verification') {\n  // Handle Slack URL verification\n  return [{\n    json: {\n      challenge: slackEvent.challenge\n    }\n  }];\n}\n\nif (slackEvent.event) {\n  const event = slackEvent.event;\n  \n  // Skip bot messages to prevent loops\n  if (event.bot_id || event.user === 'USLACKBOT') {\n    return [];\n  }\n  \n  extractedData = {\n    user_id: event.user,\n    channel_id: event.channel,\n    thread_ts: event.thread_ts || event.ts,\n    original_text: event.text,\n    timestamp: new Date().toISOString(),\n    request_id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,\n    event_type: event.type\n  };\n} else {\n  // Handle direct webhook calls\n  extractedData = {\n    user_id: slackEvent.user_id || 'unknown',\n    channel_id: slackEvent.channel_id || 'unknown',\n    thread_ts: slackEvent.thread_ts || Date.now().toString(),\n    original_text: slackEvent.text || slackEvent.message || '',\n    timestamp: new Date().toISOString(),\n    request_id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,\n    event_type: 'direct_message'\n  };\n}\n\n// Validate we have text to process\nif (!extractedData.original_text || extractedData.original_text.trim() === '') {\n  return [];\n}\n\nreturn [{ json: extractedData }];"
+      },
+      "id": "d4bafcd4-a90a-499d-8419-55526aab419c",
+      "name": "Parse Slack Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "prompt": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are an intent classifier for a relationship management system. Analyze user messages and extract intent and entities. Return ONLY valid JSON with no additional text.\n\nReturn JSON format:\n{\n  \"intent\": \"research_contact|manage_contact|generate_content|schedule_outreach|system_status\",\n  \"entities\": {\n    \"contact_name\": \"string or null\",\n    \"company_name\": \"string or null\",\n    \"action_type\": \"string or null\",\n    \"timing\": \"string or null\"\n  },\n  \"confidence\": 0-100,\n  \"extracted_data\": {}\n}\n\nIntent definitions:\n- research_contact: Research someone or their company\n- manage_contact: Add, update, or manage contact information  \n- generate_content: Create outreach content\n- schedule_outreach: Schedule future outreach\n- system_status: Check system health or metrics"
+            },
+            {
+              "content": "={{$json.original_text}}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 500,
+          "temperature": 0.1
+        },
+        "requestOptions": {}
+      },
+      "id": "5ca0a11d-381d-436a-9f90-b888842b13bb",
+      "name": "Intent Classification",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.1,
+      "position": [
+        -600,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse OpenAI response and combine with original data\nconst items = $input.all();\nconst originalData = items[0].json;\nconst aiResponse = items[1].json;\n\nlet parsedIntent = {};\n\ntry {\n  // Try to parse the AI response\n  const responseText = aiResponse.choices?.[0]?.message?.content || aiResponse.text || '{}';\n  parsedIntent = JSON.parse(responseText.replace(/```json\\n?|```\\n?/g, '').trim());\n} catch (error) {\n  // Fallback parsing if JSON is malformed\n  console.log('Failed to parse AI response, using fallback');\n  parsedIntent = {\n    intent: 'system_status',\n    entities: {},\n    confidence: 50,\n    extracted_data: {}\n  };\n}\n\n// Combine original Slack data with parsed intent\nconst combinedData = {\n  ...originalData,\n  intent: parsedIntent.intent || 'system_status',\n  entities: parsedIntent.entities || {},\n  confidence: parsedIntent.confidence || 50,\n  extracted_data: parsedIntent.extracted_data || {},\n  ai_tokens_used: aiResponse.usage?.total_tokens || 0\n};\n\nreturn [{ json: combinedData }];"
+      },
+      "id": "b0ca1510-17ae-4962-aa67-7d724392b62b",
+      "name": "Combine Intent Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "research-condition",
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "research_contact",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Research Agent"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "contact-condition",
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "manage_contact",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Contact Management"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "content-condition",
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "generate_content",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Content Generation"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "schedule-condition",
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "schedule_outreach",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Schedule Outreach"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "System Status"
+        }
+      },
+      "id": "774ddab5-be8e-469e-bb46-bbb3a74d82cf",
+      "name": "Route by Intent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -200,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.N8N_BASE_URL}}/webhook/research-agent",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "a4acfa30-b0e2-45bf-a964-da31187db145",
+      "name": "Research Agent Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.N8N_BASE_URL}}/webhook/contact-agent",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "0bf06924-3a11-40a8-80fa-940e8ba8e31b",
+      "name": "Contact Management Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.N8N_BASE_URL}}/webhook/content-agent",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "c98da309-8ea6-4e40-bd42-9476ee8cda90",
+      "name": "Content Generation Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.N8N_BASE_URL}}/webhook/schedule-agent",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "679d1a53-fca9-4456-84cd-6cd9371e2813",
+      "name": "Schedule Agent Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle system status requests directly\nconst items = $input.all();\nconst requestData = items[0].json;\n\n// Simple system status response\nconst statusResponse = {\n  agent_type: 'system_status',\n  status: 'online',\n  execution_time: Date.now() - new Date(requestData.timestamp).getTime(),\n  results: {\n    system_health: 'operational',\n    available_commands: [\n      'Research [contact name] at [company]',\n      'Add contact [name] with [details]',\n      'Generate content for [contact]',\n      'Schedule outreach to [contact]',\n      'System status'\n    ],\n    last_updated: new Date().toISOString()\n  },\n  metadata: {\n    version: '1.0.0',\n    uptime: '24/7',\n    features_enabled: ['research', 'contact_management', 'content_generation']\n  }\n};\n\nreturn [{ json: statusResponse }];"
+      },
+      "id": "92752146-f55f-4a01-9c75-a0110f8d159c",
+      "name": "System Status Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate all agent responses and format for Slack\nconst items = $input.all();\nconst originalRequest = items[0].json;\n\n// Find the agent response (will be the second item)\nconst agentResponse = items[1]?.json || {\n  agent_type: 'unknown',\n  status: 'no_response',\n  results: { message: 'No response received from agent' }\n};\n\n// Format response based on agent type and status\nlet slackMessage = '';\nlet slackBlocks = [];\n\nif (agentResponse.status === 'completed' || agentResponse.status === 'online') {\n  switch (agentResponse.agent_type) {\n    case 'research_intelligence':\n      slackMessage = `🔍 **Research Complete**\\n\\n${agentResponse.results.intelligence_summary || 'Research completed successfully.'}`;\n      \n      if (agentResponse.results.conversation_starters) {\n        slackMessage += `\\n\\n💬 **Conversation Starters:**\\n${agentResponse.results.conversation_starters.map(s => `• ${s}`).join('\\n')}`;\n      }\n      break;\n      \n    case 'contact_management':\n      slackMessage = `👥 **Contact Management**\\n\\n${agentResponse.results.message || 'Contact updated successfully.'}`;\n      break;\n      \n    case 'content_generation':\n      slackMessage = `✍️ **Content Generated**\\n\\nContent has been generated and is awaiting your approval.`;\n      break;\n      \n    case 'system_status':\n      slackMessage = `🤖 **System Status: ${agentResponse.results.system_health || 'Operational'}**\\n\\n**Available Commands:**\\n${agentResponse.results.available_commands?.map(cmd => `• ${cmd}`).join('\\n') || 'No commands available'}`;\n      break;\n      \n    default:\n      slackMessage = `✅ **Task Completed**\\n\\n${agentResponse.results.message || 'Operation completed successfully.'}`;\n  }\n} else {\n  slackMessage = `❌ **Error Occurred**\\n\\n${agentResponse.results.error || 'An unknown error occurred. Please try again.'}`;\n}\n\n// Add execution metadata\nif (agentResponse.execution_time) {\n  slackMessage += `\\n\\n_Completed in ${Math.round(agentResponse.execution_time)}ms_`;\n}\n\n// Create structured response\nconst formattedResponse = {\n  channel: originalRequest.channel_id,\n  thread_ts: originalRequest.thread_ts,\n  user_id: originalRequest.user_id,\n  text: slackMessage,\n  blocks: slackBlocks,\n  agent_type: agentResponse.agent_type,\n  execution_summary: {\n    intent: originalRequest.intent,\n    confidence: originalRequest.confidence,\n    execution_time: agentResponse.execution_time,\n    tokens_used: originalRequest.ai_tokens_used + (agentResponse.metadata?.tokens_consumed || 0),\n    cost_estimate: ((originalRequest.ai_tokens_used + (agentResponse.metadata?.tokens_consumed || 0)) * 0.00003).toFixed(4)\n  }\n};\n\nreturn [{ json: formattedResponse }];"
+      },
+      "id": "b32a6249-4bad-45be-b1c0-e8a12e6e2c17",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "otherOptions": {}
+      },
+      "id": "1da82fe8-a9e5-4b98-a255-6ddf4ab740f2",
+      "name": "Send Slack Response",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        80
+      ],
+      "webhookId": "7745a9a6-a316-4ff2-ba8f-6b026b4c6ff5"
+    }
+  ],
+  "connections": {
+    "Parse Slack Event": {
+      "main": [
+        [
+          {
+            "node": "Intent Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intent Classification": {
+      "main": [
+        [
+          {
+            "node": "Combine Intent Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Intent Data": {
+      "main": [
+        [
+          {
+            "node": "Route by Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Intent": {
+      "main": [
+        [
+          {
+            "node": "Research Agent Call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contact Management Call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Content Generation Call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Schedule Agent Call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "System Status Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Agent Call": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Management Call": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Generation Call": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Agent Call": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "System Status Handler": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "250c8e6a-eed5-41e8-b7be-da8a261531f8",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-07-30T19:49:27.865Z",
+      "updatedAt": "2025-07-30T19:49:27.865Z",
+      "role": "workflow:owner",
+      "workflowId": "Ow8ahl9Qulmi2B6o",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-10T22:00:48.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-10",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

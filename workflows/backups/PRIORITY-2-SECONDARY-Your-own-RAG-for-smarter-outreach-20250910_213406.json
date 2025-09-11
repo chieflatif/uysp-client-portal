@@ -1,0 +1,1173 @@
+{
+  "createdAt": "2025-09-09T23:38:16.160Z",
+  "updatedAt": "2025-09-09T23:38:16.160Z",
+  "id": "yPtkQDRY08ybx1Vq",
+  "name": "Your own RAG for smarter outreach",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        320
+      ],
+      "id": "c2f8564b-5cb6-4099-98a4-7bb601eebada",
+      "name": "Postgres Chat Memory1"
+    },
+    {
+      "parameters": {
+        "name": "project_data",
+        "description": "Retrieve information from the vector database which contains one YouTube video script per document"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        544,
+        288
+      ],
+      "id": "4c3864e7-0d8c-478c-a17a-d46082a32947",
+      "name": "project_data1"
+    },
+    {
+      "parameters": {
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        432,
+        432
+      ],
+      "id": "a24c182a-3685-4c6d-ae03-53932210286d",
+      "name": "Supabase Vector Store1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        560
+      ],
+      "id": "d6062d19-7edf-4f7c-bb2a-a0e9cddb51ca",
+      "name": "Embeddings OpenAI1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        64,
+        128
+      ],
+      "id": "a1ff017a-3619-44fb-9693-b1548b4d5c87",
+      "name": "When chat message received",
+      "webhookId": "04ad72de-4e19-4668-ae05-1efae116fce8"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=RAG AI Agent Instructions for your business information\n\nObjective\nThis AI agent is designed to respond to user query by extracting insights from a structured database containing websites page information. The AI will identify the user query and search on the vector database to respond. Always check the vector database content before giving me a response.\n\nTrigger Conditions\nThe AI agent is activated by user chat request.\n\nStep-by-Step Execution\n1. Retrieve & Analyze the user query.\n\n2. Check the database of website page or other pdf that were downloaded as text in the database to find highly relevant sections related to the respond to the query based on business information vector database.\n\n3. Craft a response based on the information you find that relate to the user query.\n\nFinal Output\nThe AI will respond to the user query, all information about the business of the user can be retrieve from the vector database project document that is link to this ai agent.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        304,
+        128
+      ],
+      "id": "5aeba219-849c-4065-8bd4-4b0274486f8c",
+      "name": "YourRAG",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        144,
+        320
+      ],
+      "id": "200a4320-118f-4891-b478-c6f6d37c1bbd",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        432
+      ],
+      "id": "aebf3073-3baf-460b-b9e5-ea88c2a0b817",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "content": "## This workflow is to discuss with you RAG.\nThis is to see if the content you uploaded can be retrieve correctly by your AI. \nThe goal of this RAG will be for you to use all your company data to craft personalization messages, offers and much more...",
+        "height": 720,
+        "width": 920,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6a30b32e-433c-47d6-b7fe-e24692f9db54",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1DT45_A7qjUHSUDe1lNeZm3CLbuAxmJQm",
+          "mode": "list",
+          "cachedResultName": "n8nPdfUpload",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1DT45_A7qjUHSUDe1lNeZm3CLbuAxmJQm"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        1568
+      ],
+      "id": "ebd68125-b465-4a97-b0dd-e0637f6a1e57",
+      "name": "File Created"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -832,
+        1568
+      ],
+      "id": "1f81f1b3-3acb-4d4e-92a4-217128b17c58",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        352,
+        1552
+      ],
+      "id": "7a7ca5ef-61b8-4fb1-8588-d3ba9fdcdc81",
+      "name": "Supabase Vector Store"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        1744
+      ],
+      "id": "a03ed38d-5773-4ca5-ae02-2ca8e7708879",
+      "name": "Embeddings OpenAI"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $('Code').item.json.cleanedText }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_id",
+                "value": "={{ $('Set File ID').item.json.file_id }}"
+              },
+              {
+                "name": "version",
+                "value": "v1"
+              },
+              {
+                "name": "creator",
+                "value": "={{ $('File Created').item.json.owners[0].displayName }}"
+              },
+              {
+                "name": "created_at",
+                "value": "={{ $('File Created').item.json.createdTime }}"
+              },
+              {
+                "name": "last_modified",
+                "value": "={{ $('File Created').item.json.modifiedTime }}"
+              },
+              {
+                "name": "folder_path",
+                "value": "projects"
+              },
+              {
+                "name": "file_name",
+                "value": "={{ $('File Created').item.json.name }}"
+              },
+              {
+                "name": "file_extension",
+                "value": "={{ $('File Created').item.json.mimeType }}"
+              },
+              {
+                "name": "origin",
+                "value": "websitePDF"
+              },
+              {
+                "name": "platform",
+                "value": "website"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        512,
+        1744
+      ],
+      "id": "b747978f-675a-4cfd-9a7d-9fe06e3f54ab",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        464,
+        1904
+      ],
+      "id": "31b4a306-f9af-4aa8-8c94-a3dd5ac3faaf",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Set File ID').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "data",
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf",
+              "drawingsToFormat": "application/pdf",
+              "slidesToFormat": "application/pdf",
+              "sheetsToFormat": "application/pdf"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -656,
+        1648
+      ],
+      "id": "59de6778-146e-4908-bd2d-e399a9cbb8be",
+      "name": "DownloadPDF"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1566945f-fae0-421c-b80c-3165af139a63",
+              "name": "file_id",
+              "value": "={{ $('File Created').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "c7123e27-4d45-4882-93ec-8595eadb1061",
+              "name": "file_type",
+              "value": "={{ $('File Created').item.json.mimeType }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1072,
+        1568
+      ],
+      "id": "bc20c02d-38ab-46f6-a693-80989587d6fb",
+      "name": "Set File ID"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        1552
+      ],
+      "id": "620d9404-a4ea-4553-9a2b-c46014258f38",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputText = $(\"Extract from File\").first().json.text;\n\n// Normalize text and remove unsupported characters\nconst cleanText = inputText\n  .normalize(\"NFKC\")  // Normalize to standard form\n  .replace(/[\\u0000-\\u001F\\u007F-\\u009F]/g, ' ')  // Remove control characters\n  .replace(/\\n/g, ' ');  // Remove new lines\n\nreturn { cleanedText: cleanText };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        1568
+      ],
+      "id": "999e6edc-5497-46e3-8503-999f168dc9f0",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "content": "## Set an id for this file and download the file",
+        "height": 400,
+        "width": 620,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1104,
+        1472
+      ],
+      "id": "ac0dad53-8023-4913-a528-b83aed066007",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "### Extract text from pdf and transform it so it can be added to database",
+        "height": 240,
+        "width": 640,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        1472
+      ],
+      "id": "8366b818-04ca-4a5f-bd4a-0fbca9ebe3ce",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Add pdf information to your RAG Agent",
+        "height": 600,
+        "width": 540,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        256,
+        1440
+      ],
+      "id": "3a0a1f9c-8014-4004-9e51-52c40a456ce5",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -224,
+        1552
+      ],
+      "id": "bbc378a9-8896-4336-83f7-a66cf455ed61",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e790378-46c5-4094-aa88-093edb609678",
+              "name": "response",
+              "value": "done",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        1280
+      ],
+      "id": "1ec1e408-e6f5-42bf-8bc2-bed586d07928",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "content": "### Once a pdf file is added to your drive, trigger this flow",
+        "height": 260,
+        "width": 200
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1312,
+        1472
+      ],
+      "id": "f75ac375-7650-4ac7-9ef7-5221c97b9cf0",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.data }}",
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"urls\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"url\": {\n          \"currentUrl\": { \"type\": \"string\" }\n        },\n        \"required\": [\"currentUrl\"]\n      }\n    }\n  },\n  \"required\": [\"urls\"]\n}",
+        "options": {
+          "systemPromptTemplate": "You are an expert extraction algorithm.\nOnly extract all the website urls from the sitemap.\nEach url to extract are between <url><loc> \"THE URL IS HERE\"</loc>\n</url>\nIf you do not know the value of an attribute asked to extract, you may omit the attribute's value.\nOnly extract up to the first 5 urls, once you have 5, stop. and if the site have less than 5 urls, then stop once you can't find anymore.\nIf the url are the same but in other language, change to the next one. Only one url per page main page. (Homepage, blog, about ect...)\n\nAlways output the data in a json array.  Your output should contain a list of urls from the sitemap."
+        }
+      },
+      "id": "a66622fd-d337-4e53-a622-d5f736d806c2",
+      "name": "Information Extractor",
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "position": [
+        624,
+        992
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        16,
+        992
+      ],
+      "id": "ae577fe6-ed70-46d7-8e04-b0031f0d4999",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.urls",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        976,
+        992
+      ],
+      "id": "2273bad1-9f7f-47d6-ae67-4270bfb1aede",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://v2.convertapi.com/convert/web/to/pdf",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Url",
+              "value": "={{ $json.url || $json.loc }}"
+            },
+            {
+              "name": "StoreFile",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1392,
+        1088
+      ],
+      "id": "f78d68fb-9ac9-46ea-ac33-ece15bc024b2",
+      "name": "urlsToPDF"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2128,
+        1088
+      ],
+      "id": "8c0a1ef5-5649-4dcb-9e34-343ca8962cef",
+      "name": "Wait",
+      "webhookId": "8d12d7b7-2f41-4b41-9226-de61fa789d7a"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "359db111-c9c4-4e92-a1b7-f0c3dda831db",
+              "name": "myWebsite",
+              "value": "https://repliq.co",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        992
+      ],
+      "id": "d63e65a6-19cf-4700-81ef-19ac2eaa5c7d",
+      "name": "yourWebsiteUrl"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.myWebsite }}/sitemap.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        432,
+        992
+      ],
+      "id": "c22fd2a8-06fb-4547-9a3e-68c9f4104a97",
+      "name": "retrieveSitemap"
+    },
+    {
+      "parameters": {
+        "name": "={{ $('Split Out').item.json.loc || $('Split Out').item.json.url }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1DT45_A7qjUHSUDe1lNeZm3CLbuAxmJQm",
+          "mode": "list",
+          "cachedResultName": "n8nPdfUpload",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1DT45_A7qjUHSUDe1lNeZm3CLbuAxmJQm"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1888,
+        1088
+      ],
+      "id": "e4a16856-039e-465f-b1ab-5c92fffa7204",
+      "name": "UploadPdfToDrive"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "78ef64a9-7023-40c3-9a4b-f6a33fc33d55",
+              "name": "response",
+              "value": "done",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1488,
+        960
+      ],
+      "id": "6687f433-b189-4d95-a308-d271a25849da",
+      "name": "FinishNode"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        704,
+        1168
+      ],
+      "id": "ccd8fd4a-278a-425e-a303-a8efc2a7dbcb",
+      "name": "OpenAI Chat Model2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1168,
+        992
+      ],
+      "id": "73dc741d-d6d8-4f33-8c43-c003f61ae936",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {},\n    binary: {\n      data: {\n        data: Buffer.from($(\"urlsToPDF\").first().json.Files[0].FileData, 'base64'), // Convert Base64 to Binary\n        mimeType: \"application/pdf\", // Set MIME type\n        fileName: \"document.pdf\", // Set a filename\n      }\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1648,
+        1088
+      ],
+      "id": "18653120-abc9-456a-b9ea-51d0aaad4ac1",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "content": "## Add your website url here",
+        "height": 300,
+        "width": 220
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        144,
+        880
+      ],
+      "id": "3d80d6e7-09ea-4081-9945-b02a08bfebde",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "### This node retrieve all the page in your websites (homepage, about ect..)\n",
+        "height": 300,
+        "width": 200,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        384,
+        880
+      ],
+      "id": "0bebcbdd-c0af-44ca-b302-e68af824827f",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## This filter the result to extracts only relevant page",
+        "height": 460,
+        "width": 320,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        608,
+        880
+      ],
+      "id": "1a74807d-f541-4bdd-93b1-0f2b2cdece74",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## Go through the main pages of your website and transform them into pdf, then upload them inside your drive",
+        "height": 460,
+        "width": 1400,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        944,
+        880
+      ],
+      "id": "efb43db0-7a19-43ed-8c02-7c595b0a424a",
+      "name": "Sticky Note8"
+    }
+  ],
+  "connections": {
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "YourRAG",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "project_data1": {
+      "ai_tool": [
+        [
+          {
+            "node": "YourRAG",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "project_data1",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "YourRAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "YourRAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "project_data1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File Created": {
+      "main": [
+        [
+          {
+            "node": "Set File ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "DownloadPDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DownloadPDF": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set File ID": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "yourWebsiteUrl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "urlsToPDF": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "yourWebsiteUrl": {
+      "main": [
+        [
+          {
+            "node": "retrieveSitemap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "retrieveSitemap": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UploadPdfToDrive": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [
+          {
+            "node": "FinishNode",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "urlsToPDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "UploadPdfToDrive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "33593da0-97cc-478d-8bfb-4b3a446d80db",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-09T23:38:16.162Z",
+      "updatedAt": "2025-09-09T23:38:16.162Z",
+      "role": "workflow:owner",
+      "workflowId": "yPtkQDRY08ybx1Vq",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-10T22:00:48.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-10",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

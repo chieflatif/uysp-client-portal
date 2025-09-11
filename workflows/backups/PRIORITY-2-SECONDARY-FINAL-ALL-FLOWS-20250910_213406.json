@@ -1,0 +1,3694 @@
+{
+  "createdAt": "2025-08-30T00:36:59.098Z",
+  "updatedAt": "2025-09-09T17:08:51.000Z",
+  "id": "dzY7pBKj8ZDi9vup",
+  "name": "FINAL ALL FLOWS",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "custom",
+              "cronExpression": "0 14 * * 1-5 "
+            }
+          ]
+        }
+      },
+      "id": "ef3fa5c3-f23c-4024-9339-07cf3e7d37e6",
+      "name": "Daily Schedule",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -1232,
+        1568
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "filterByFormula": "AND({Status}='Sent', IS_AFTER({Sent At}, DATEADD(NOW(), -1, 'day')))",
+        "options": {}
+      },
+      "id": "4f081954-2f58-4fc9-860a-acb3e9a75252",
+      "name": "Sent Today",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -1008,
+        1472
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "filterByFormula": "AND({Status}='Delivered', IS_AFTER({Sent At}, DATEADD(NOW(), -1, 'day')))",
+        "options": {}
+      },
+      "id": "bddf86cd-f8ef-402a-b00a-9cc8fe0009d3",
+      "name": "Delivered Today",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -784,
+        1472
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "filterByFormula": "AND({Status}='Failed', IS_AFTER({Sent At}, DATEADD(NOW(), -1, 'day')))",
+        "options": {}
+      },
+      "id": "4483a6b4-7ee6-42b4-9c0d-34f0a90eb164",
+      "name": "Failed Today",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        1472
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "AND({SMS Stop}, IS_AFTER({Last Updated Auto}, DATEADD(NOW(), -1, 'day')))",
+        "options": {}
+      },
+      "id": "fa0d8244-0418-49da-b7c3-ca3b4544a05a",
+      "name": "Stops Today",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        1472
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "AND({Booked}, IS_AFTER({Booked At}, DATEADD(NOW(), -1, 'day')))",
+        "options": {}
+      },
+      "id": "6cd4aa97-e10e-45ee-a288-c2bccbd2ad92",
+      "name": "Booked Today",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        1472
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sent = ($items('Sent Today', 0) || []).length;\nconst delivered = ($items('Delivered Today', 0) || []).length;\nconst failed = ($items('Failed Today', 0) || []).length;\nconst stops = ($items('Stops Today', 0) || []).length;\nconst booked = ($items('Booked Today', 0) || []).length;\n\nconst lines = [];\nlines.push(`[Daily Summary]`);\nlines.push(`Sends: ${sent}`);\nlines.push(`Delivered: ${delivered}`);\nlines.push(`Failed: ${failed}`);\nlines.push(`Stops: ${stops}`);\nlines.push(`Booked: ${booked}`);\nlines.push(`Clicks: disabled (n8n webhook issue)`);\nlines.push(`Time: ${new Date().toISOString()}`);\nreturn [{ json: { text: lines.join('\\n') } }];"
+      },
+      "id": "2747ffec-c6e7-4d68-b6ad-028632078dda",
+      "name": "Build Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        1472
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": "list"
+        },
+        "text": "={{$json.text}}",
+        "otherOptions": {}
+      },
+      "id": "633ad81d-715f-45a9-bfcc-ef9c4d8a83d8",
+      "name": "Post to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        336,
+        1472
+      ],
+      "webhookId": "68381bd8-71b6-4adf-a96b-4a5b1f43b851",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "p1X3UzjnPBY3sSHS",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1232,
+        1376
+      ],
+      "id": "9fca6237-fa78-4313-889d-046e12e91249",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "leads-intake",
+        "options": {}
+      },
+      "id": "6e6185e0-8778-46c6-aeb8-832a85a7bba7",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        400
+      ],
+      "webhookId": "9a0b595d-f358-46c5-beb2-c5b5f3e3db3c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const first = $input.first();\nconst root = first.json && first.json.body ? first.json.body : first.json;\nfunction sanitizeEmail(v){ if(!v) return ''; const s=String(v).trim().toLowerCase(); return s.replace(/[\\s]+/g,'').replace(/[\\.,;:]+$/, ''); }\nfunction normalizePhone(v){ if(!v) return ''; let s=String(v).trim(); if (s.startsWith('+')) s = '+'+s.slice(1).replace(/[^0-9]/g,''); else s=s.replace(/[^0-9]/g,''); if (s.startsWith('+')) return s; if (s.length===11 && s.startsWith('1')) return '+1'+s.slice(1); if (s.length===10) return '+1'+s; return s; }\nfunction deriveDomain(email, company){ if(email){ const at=email.split('@')[1]; if(at) return at; } if(company){ return String(company).toLowerCase().replace(/[^a-z0-9-]/g,'') + '.com'; } return ''; }\n\n// Personal email domains (same as bulk import)\nconst personalDomains = ['gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com','aol.com','proton.me','protonmail.com','msn.com','live.com','me.com','mac.com','yandex.com','gmx.com','zoho.com','mail.com','fastmail.com','pm.me'];\n\nconst email = sanitizeEmail(root.email || root.Email || root.email_address || '');\nconst phone = normalizePhone(root.phone || root.Phone || root.phone_number || '');\nconst firstName = root.first_name || root.firstName || root.first || '';\nconst lastName = root.last_name || root.lastName || root.last || '';\nconst company = root.company || root.Company || '';\nconst title = root.title || root.job_title || '';\nconst domain = deriveDomain(email, company);\n\n// HRQ routing for personal emails\nconst isPersonal = personalDomains.some(pd => domain === pd || domain.endsWith('.' + pd));\n\nconst out = {\n  'Email': email,\n  'Phone': phone,\n  'First Name': firstName,\n  'Last Name': lastName,\n  'Company': company,\n  'Title': title,\n  'Company Domain': domain,\n  'Source': 'Webhook',\n  'Processing Status': isPersonal ? 'Complete' : 'Queued',\n  'HRQ Status': isPersonal ? 'Archive' : 'None',\n  'HRQ Reason': isPersonal ? 'Personal email' : ''\n};\nreturn [{ json: out }];"
+      },
+      "id": "4c9d187e-4587-43ae-b271-efb1d8de8a57",
+      "name": "Normalize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2512,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/app6cU9HecxLpgT0P/tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{$json.Email}}",
+            "Phone": "={{$json.Phone}}",
+            "First Name": "={{$json['First Name']}}",
+            "Last Name": "={{$json['Last Name']}}",
+            "Company Domain": "={{$json['Company Domain']}}",
+            "Processing Status": "={{$json['Processing Status']}}",
+            "Source": "={{$json.Source}}",
+            "HRQ Status": "={{$json['HRQ Status']}}",
+            "HRQ Reason": "={{$json['HRQ Reason']}}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true,
+          "updateAllMatches": false
+        }
+      },
+      "id": "c7924705-acc5-4d15-917f-3ed11925dc8c",
+      "name": "Airtable Upsert Leads",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -2288,
+        400
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "simpletexting-inbound",
+        "options": {}
+      },
+      "id": "d8acf10d-2048-461b-aa79-8e917c7c0795",
+      "name": "Webhook (STOP)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -2752,
+        1392
+      ],
+      "webhookId": "5aaa37a6-e652-4a48-94af-91f5717bb794"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst raw = $json || {};\nconst body = raw.body || raw;\nconst params = raw.params || {};\n\n// CHECK FOR CLICK TRACKING (GET request with token parameter)\nif (raw.method === 'GET' && params.token) {\n  const token = params.token;\n  const secret = 'uysp-click-tracking-secret-2025';\n  \n  try {\n    // Decode and verify HMAC token\n    const decoded = Buffer.from(token, 'base64url').toString('utf8');\n    const [payload, signature] = decoded.split('.');\n    const expectedSignature = crypto.createHmac('sha256', secret).update(payload).digest('hex');\n    \n    if (signature === expectedSignature) {\n      const data = JSON.parse(Buffer.from(payload, 'base64').toString('utf8'));\n      const now = Date.now();\n      const tokenAge = now - data.ts;\n      const maxAge = 7 * 24 * 60 * 60 * 1000;\n      \n      if (tokenAge <= maxAge) {\n        // Valid click tracking - return redirect data\n        return { json: { \n          type: 'CLICK_TRACKING',\n          leadId: data.leadId,\n          targetUrl: data.targetUrl || 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr',\n          statusCode: 302,\n          headers: {'Location': data.targetUrl || 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr'}\n        }};\n      }\n    }\n  } catch (error) {\n    // Invalid token - redirect to default\n    return { json: { \n      type: 'CLICK_TRACKING',\n      error: 'Invalid token',\n      statusCode: 302,\n      headers: {'Location': 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr'}\n    }};\n  }\n}\n\n// EXISTING STOP/UNSTOP LOGIC\nconst values = body.values || body.body?.values || body;\nconst text = String(values.text || body.text || body.message || body.Message || '').trim().toUpperCase();\nconst from = String(values.contactPhone || values.phone || body.from || body.phone || body.Phone || body.msisdn || '').trim();\nconst digits = from.replace(/\\D/g,'').replace(/^1/, '');\nconst isStop = /\\b(STOP|END|QUIT|UNSUB|UNSUBSCRIBE|CANCEL)\\b/.test(text);\nconst isUnstop = /\\b(UNSTOP|RESUME|START|OPTIN|OPT.?IN)\\b/.test(text);\nif (!isStop && !isUnstop) return null;\nconst action = isStop ? 'STOP' : 'UNSTOP';\nreturn { json: { type: 'STOP_COMMAND', phone_digits: digits, text, action } };\n"
+      },
+      "id": "36cfa15f-ba4f-420a-a097-917d31cfdad3",
+      "name": "Parse Inbound",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2528,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "if ($json.skip) { return null } ; return $input.item;"
+      },
+      "id": "4500efff-b723-41c7-83c7-df10ba33f939",
+      "name": "Skip Non-Commands",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2304,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "={{`OR(REGEX_REPLACE({Phone}, \"\\\\D\", \"\")='${$json.phone_digits||''}', REGEX_REPLACE({Phone}, \"\\\\D\", \"\")='1${$json.phone_digits||''}')`}}",
+        "options": {}
+      },
+      "id": "af42baa6-11c0-4d51-bb72-b18ea686adab",
+      "name": "Find Lead by Phone",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -2080,
+        1392
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "SMS Stop": "={{ $('Parse Inbound').item.json.action === 'STOP' ? true : false }}",
+            "SMS Stop Reason": "={{ $('Parse Inbound').item.json.action === 'STOP' ? 'STOP' : '' }}",
+            "Processing Status": "={{ $('Parse Inbound').item.json.action === 'STOP' ? 'Stopped' : 'Queued' }}"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "cc5e37b7-4353-4e01-8b0c-37b883eb01b5",
+      "name": "Mark STOP/UNSTOP",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -1856,
+        1392
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "simpletexting-delivery",
+        "options": {}
+      },
+      "id": "e95338b8-4567-4530-90d9-32db562f4876",
+      "name": "Webhook (ST Delivery)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        1792
+      ],
+      "webhookId": "b0fc0d9d-18e5-4a9a-af2b-3c71072e7765"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const raw = $json || {};\nconst body = raw.body || raw;\nconst v = body.values || body || {};\nconst campaign_id = v.messageId || v.message_id || v.id || '';\nconst phone_digits = String(v.contactPhone || v.phone || v.to || '').replace(/\\D/g,'').replace(/^1/,'');\nconst delivered = v.delivered === true || String(v.status||'').toLowerCase()==='delivered';\nconst delivery_status = delivered ? 'Delivered' : 'Undelivered';\nconst carrier = v.carrier || '';\nreturn { json: { campaign_id, phone_digits, carrier, delivery_status } };"
+      },
+      "id": "000753f3-dce4-41e7-b5dd-5266809deac2",
+      "name": "Parse Delivery",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2512,
+        1792
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "={{`OR({SMS Campaign ID}='${$json.campaign_id||''}', {Phone}='${$json.phone_digits||''}', {Phone}='+1${$json.phone_digits||''}')`}}",
+        "options": {}
+      },
+      "id": "ab84a479-295f-4ba3-b363-6b3346cab3d7",
+      "name": "Find Lead (by Campaign/Phone)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -2288,
+        1696
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "SMS Status": "={{$json.delivery_status}}",
+            "Error Log": "={{$json.carrier ? 'Carrier: ' + $json.carrier : ''}}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "Lead",
+              "displayName": "Lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Processing Status",
+              "displayName": "Processing Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Backlog",
+                  "value": "Backlog"
+                },
+                {
+                  "name": "Queued",
+                  "value": "Queued"
+                },
+                {
+                  "name": "Processing",
+                  "value": "Processing"
+                },
+                {
+                  "name": "Ready for SMS",
+                  "value": "Ready for SMS"
+                },
+                {
+                  "name": "Complete",
+                  "value": "Complete"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                },
+                {
+                  "name": "In Sequence",
+                  "value": "In Sequence"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Backlog",
+                  "value": "Backlog"
+                },
+                {
+                  "name": "Webhook",
+                  "value": "Webhook"
+                },
+                {
+                  "name": "Manual",
+                  "value": "Manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Phone Valid",
+              "displayName": "Phone Valid",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Domain",
+              "displayName": "Company Domain",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Linkedin URL - Person",
+              "displayName": "Linkedin URL - Person",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Location Country",
+              "displayName": "Location Country",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ICP Score",
+              "displayName": "ICP Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Company Score Component",
+              "displayName": "Company Score Component",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Role Score Component",
+              "displayName": "Role Score Component",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Location Score Component",
+              "displayName": "Location Score Component",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Dynamic Signals Score",
+              "displayName": "Dynamic Signals Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Prime Fit Bonus",
+              "displayName": "Prime Fit Bonus",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "SMS Eligible",
+              "displayName": "SMS Eligible",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "SMS Status",
+              "displayName": "SMS Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Not Sent",
+                  "value": "Not Sent"
+                },
+                {
+                  "name": "Queued",
+                  "value": "Queued"
+                },
+                {
+                  "name": "Sent",
+                  "value": "Sent"
+                },
+                {
+                  "name": "Delivered",
+                  "value": "Delivered"
+                },
+                {
+                  "name": "Clicked",
+                  "value": "Clicked"
+                },
+                {
+                  "name": "Replied",
+                  "value": "Replied"
+                },
+                {
+                  "name": "Meeting Booked",
+                  "value": "Meeting Booked"
+                },
+                {
+                  "name": "Success",
+                  "value": "Success"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Campaign ID",
+              "displayName": "SMS Campaign ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "SMS Sequence Position",
+              "displayName": "SMS Sequence Position",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "SMS Sent Count",
+              "displayName": "SMS Sent Count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "SMS Cost",
+              "displayName": "SMS Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Last SMS Sent",
+              "displayName": "Last SMS Sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "SMS Variant",
+              "displayName": "SMS Variant",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "A",
+                  "value": "A"
+                },
+                {
+                  "name": "B",
+                  "value": "B"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "SMS Stop",
+              "displayName": "SMS Stop",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "SMS Stop Reason",
+              "displayName": "SMS Stop Reason",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "SMS Last Sent At",
+              "displayName": "SMS Last Sent At",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "HRQ Status",
+              "displayName": "HRQ Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "None",
+                  "value": "None"
+                },
+                {
+                  "name": "Archive",
+                  "value": "Archive"
+                },
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                },
+                {
+                  "name": "Manual Process",
+                  "value": "Manual Process"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "HRQ Reason",
+              "displayName": "HRQ Reason",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Data Quality Score",
+              "displayName": "Data Quality Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Validation Errors",
+              "displayName": "Validation Errors",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Total Processing Cost",
+              "displayName": "Total Processing Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Error Log",
+              "displayName": "Error Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Processing Duration",
+              "displayName": "Processing Duration",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Last Updated Manual",
+              "displayName": "Last Updated Manual",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Last Updated Auto",
+              "displayName": "Last Updated Auto",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Company Type",
+              "displayName": "Company Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "B2B SaaS",
+                  "value": "B2B SaaS"
+                },
+                {
+                  "name": "B2B Tech Services",
+                  "value": "B2B Tech Services"
+                },
+                {
+                  "name": "Other B2B",
+                  "value": "Other B2B"
+                },
+                {
+                  "name": "B2C/Unknown",
+                  "value": "B2C/Unknown"
+                },
+                {
+                  "name": "/company",
+                  "value": "/company"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Industry",
+              "displayName": "Company Industry",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Description",
+              "displayName": "Company Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company LinkedIn",
+              "displayName": "Company LinkedIn",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Batch ID",
+              "displayName": "Batch ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Enrichment Provider Used",
+              "displayName": "Enrichment Provider Used",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Enrichment Timestamp",
+              "displayName": "Enrichment Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Phone (10d)",
+              "displayName": "Phone (10d)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Location Confidence",
+              "displayName": "Location Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Record ID",
+              "displayName": "Record ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Booked",
+              "displayName": "Booked",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Campaign",
+              "displayName": "Campaign",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Booked At",
+              "displayName": "Booked At",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "70919ced-dbe0-4df5-a811-dfc4ee968d0b",
+      "name": "Update Lead Delivery",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -2064,
+        1648
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Event": "Delivery",
+            "Campaign ID": "={{ $('Parse Delivery').item.json.campaign_id || '' }}",
+            "Phone": "={{ $('Parse Delivery').item.json.phone_digits || '' }}",
+            "Status": "={{ $('Parse Delivery').item.json.delivery_status || 'unknown' }}",
+            "Carrier": "={{ $('Parse Delivery').item.json.carrier || '' }}",
+            "Lead Record ID": "={{ $('Find Lead (by Campaign/Phone)').item.json.id || '' }}",
+            "Delivery At": "={{ $now }}",
+            "Webhook Raw": "={{ JSON.stringify($('Parse Delivery').item.json) }}"
+          },
+          "matchingColumns": []
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "6bd7fb8d-6140-4a8b-a4f0-cbfc92f2a8b9",
+      "name": "Write Audit Row",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -2064,
+        1792
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "mode": "list",
+          "value": "C097CHUHNTG",
+          "__rl": true
+        },
+        "text": "={{ `[DELIVERY] ${$json.phone_digits||''} → ${$json.delivery_status||'unknown'}  Carrier: ${$json.carrier||''}  Campaign: ${$json.campaign_id||''}` }}",
+        "otherOptions": {}
+      },
+      "id": "db342803-b7f9-4e12-8bff-3d081094451c",
+      "name": "Delivery Notify",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -2288,
+        1888
+      ],
+      "webhookId": "939ba3f5-1ecd-499f-8927-a32ed262f53b",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "p1X3UzjnPBY3sSHS",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return $input.item;"
+      },
+      "id": "1f502b67-f3dd-4eaa-a337-4cc87df4e173",
+      "name": "Respond 200",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1872,
+        1648
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "calendly",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "9beb3314-0c49-477e-bacd-051105d0c6ec",
+      "name": "Webhook (Calendly)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1248,
+        768
+      ],
+      "webhookId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const raw = $json || {};\nconst body = raw.body || raw;\nconst payload = body.payload || body || {};\nconst email = (payload?.invitee?.email || payload?.email || '').toString().trim().toLowerCase();\nconst eventId = (payload?.event_uuid || payload?.event || payload?.event_id || '').toString();\nconst bookedAt = payload?.start_time || payload?.time || new Date().toISOString();\nif (!email) return null;\nreturn { json: { email, eventId, bookedAt } };\n"
+      },
+      "id": "0b428a50-cb45-4d3e-9829-7872a29a3e4e",
+      "name": "Parse Calendly",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "={{`LOWER({Email})='${($json.email||'').toLowerCase()}'`}}",
+        "options": {}
+      },
+      "id": "a22e2589-79cd-4341-8420-bf4f902a5431",
+      "name": "Find Lead by Email",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        768
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "Booked": true,
+            "Booked At": "={{ $('Parse Calendly').item.json.bookedAt }}",
+            "SMS Stop": true,
+            "SMS Stop Reason": "BOOKED",
+            "Processing Status": "Completed"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "80193005-189f-4c03-9dd3-2285d67ddc58",
+      "name": "Mark Booked",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        768
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return { json: { ok: true } }"
+      },
+      "id": "e6ad1397-78b4-4e7f-9c99-78d3b0fd4e54",
+      "name": "Respond ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://docs.google.com/spreadsheets/d/1GeCbf9kHmzCKpDh0dPJ0aBWJ5glw_t7vGBFfmD3X-TM/export?format=csv&gid=0",
+        "options": {}
+      },
+      "id": "980c4b29-145e-4ee0-ac84-8636fc192fdb",
+      "name": "Fetch CSV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1232,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().binary?.data || $input.first().json?.data || $input.first().json?.body || '';\nconst text = Buffer.isBuffer(body) ? body.toString('utf8') : String(body);\nconst normalized = text.replace(/\\r\\n/g, '\\n').trim();\nif (!normalized) return [];\nconst lines = normalized.split('\\n').filter(l => l.trim().length > 0);\nconst headerLine = lines.shift();\nconst rawHeaders = headerLine.split(',').map(h => h.trim());\nfunction normalizeHeader(h) {\n  const x = String(h).trim().toLowerCase();\n  if ([\"email\",\"email address\",\"email-address\",\"e-mail\"].includes(x)) return \"email\";\n  if ([\"phone\",\"phone number\",\"mobile\",\"cell\"].includes(x)) return \"phone\";\n  if ([\"first_name\",\"firstname\",\"first name\",\"first\",\"fname\"].includes(x)) return \"first_name\";\n  if ([\"last_name\",\"lastname\",\"last name\",\"last\",\"lname\",\"surname\"].includes(x)) return \"last_name\";\n  if ([\"name\",\"full name\",\"fullname\"].includes(x)) return \"name\";\n  if ([\"company\",\"company name\",\"employer\",\"org\",\"organization\"].includes(x)) return \"company\";\n  if ([\"title\",\"job title\",\"role\",\"position\"].includes(x)) return \"title\";\n  return x;\n}\nconst headers = rawHeaders.map(normalizeHeader);\nconst idx = Object.fromEntries(headers.map((h,i)=>[h,i]));\nfunction sanitizeEmail(v){ if (!v) return ''; const s = String(v).trim().toLowerCase(); return s.replace(/[\\s]+/g,'').replace(/[\\.,;:]+$/, ''); }\nfunction normalizePhone(v){ if (!v) return ''; let s = String(v).trim(); if (s.startsWith('+')) s = '+' + s.slice(1).replace(/[^0-9]/g,''); else s = s.replace(/[^0-9]/g,''); if (s.startsWith('+')) return s; if (s.length === 11 && s.startsWith('1')) return '+1' + s.slice(1); if (s.length === 10) return '+1' + s; return s; }\nfunction splitName(full){ const parts = String(full||'').trim().split(/\\s+/).filter(Boolean); if (!parts.length) return { first_name: '', last_name: '' }; const first = parts.shift(); const last = parts.join(' '); return { first_name: first || '', last_name: last || '' }; }\nfunction toRow(line){\n  const cols = line.split(',').map(c => c.trim());\n  const get = (key) => cols[idx[key] ?? -1] ?? '';\n  const email = sanitizeEmail(get('email'));\n  const phone = normalizePhone(get('phone'));\n  let first_name = get('first_name');\n  let last_name = get('last_name');\n  if (!first_name && !last_name){ const nm = get('name'); const sp = splitName(nm); first_name = sp.first_name; last_name = sp.last_name; }\n  if (!first_name) first_name = get('first') || get('firstname');\n  if (!last_name) last_name = get('last') || get('lastname');\n  const company = get('company');\n  const title = get('title');\n  return { json: { email, phone, first_name, last_name, company, title } };\n}\nreturn lines.map(toRow);"
+      },
+      "id": "d33fa529-4c7d-47ee-8290-ba5a0072e3c6",
+      "name": "Parse CSV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1008,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $json || {};\nfunction sanitizeEmail(v){ if(!v) return ''; const s=String(v).trim().toLowerCase(); return s.replace(/[\\s]+/g,'').replace(/[\\.,;:]+$/, ''); }\nfunction normalizePhone(v){ if(!v) return ''; let s=String(v).trim(); if (s.startsWith('+')) s = '+'+s.slice(1).replace(/[^0-9]/g,''); else s=s.replace(/[^0-9]/g,''); if (s.startsWith('+')) return s; if (s.length===11 && s.startsWith('1')) return '+1'+s.slice(1); if (s.length===10) return '+1'+s; return s; }\nfunction deriveDomain(email, company){ if(email){ const at=email.split('@')[1]; if(at) return at; } if(company){ return String(company).toLowerCase().replace(/[^a-z0-9-]/g,'') + '.com'; } return ''; }\nconst personalDomains = ['gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com','aol.com','proton.me','protonmail.com','msn.com','live.com','me.com','mac.com','yandex.com','gmx.com','zoho.com','mail.com','fastmail.com','pm.me'];\nconst email = sanitizeEmail(item.email || item.Email || '');\nconst phone = normalizePhone(item.phone || item.Phone || '');\nconst first = item.first_name || item.firstName || item.first || '';\nconst last = item.last_name || item.lastName || item.last || '';\nconst company = item.company || item.Company || '';\nconst title = item.title || item.job_title || '';\nconst domain = deriveDomain(email, company);\nconst isPersonal = personalDomains.some(pd => domain === pd || domain.endsWith('.' + pd));\nreturn { json: {\n  Email: email,\n  Phone: phone,\n  'First Name': first,\n  'Last Name': last,\n  Company: company,\n  Title: title,\n  'Company Domain': domain,\n  'HRQ Status': isPersonal ? 'Archive' : 'None',\n  'HRQ Reason': isPersonal ? 'Personal email' : '',\n  Source: 'Backlog',\n  'Processing Status': isPersonal ? 'Complete' : 'Queued'\n}};"
+      },
+      "id": "2c24afa7-dc8f-43be-abd7-ad7a6e262acf",
+      "name": "Normalize1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -784,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{$json.Email || $json.email}}",
+            "Phone": "={{$json.Phone || $json.phone}}",
+            "First Name": "={{$json['First Name'] || $json.first_name}}",
+            "Last Name": "={{$json['Last Name'] || $json.last_name}}",
+            "Company Domain": "={{$json['Company Domain'] || $json.company_domain}}",
+            "Processing Status": "={{$json['Processing Status'] || $json.processing_status || 'Queued'}}",
+            "Source": "={{$json.Source || 'Backlog'}}",
+            "HRQ Status": "={{$json['HRQ Status'] || $json.hrq_status || 'None'}}",
+            "HRQ Reason": "={{$json['HRQ Reason'] || $json.hrq_reason || ''}}",
+            "Company Score Component": 0,
+            "Role Score Component": 0,
+            "Dynamic Signals Score": 0,
+            "SMS Sequence Position": 0,
+            "SMS Sent Count": 0,
+            "SMS Cost": 0,
+            "Data Quality Score": 0,
+            "Total Processing Cost": 0,
+            "Processing Duration": 0,
+            "Location Confidence": 0
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Lead",
+              "displayName": "Lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Processing Status",
+              "displayName": "Processing Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Backlog",
+                  "value": "Backlog"
+                },
+                {
+                  "name": "Queued",
+                  "value": "Queued"
+                },
+                {
+                  "name": "Processing",
+                  "value": "Processing"
+                },
+                {
+                  "name": "Ready for SMS",
+                  "value": "Ready for SMS"
+                },
+                {
+                  "name": "Complete",
+                  "value": "Complete"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Backlog",
+                  "value": "Backlog"
+                },
+                {
+                  "name": "Webhook",
+                  "value": "Webhook"
+                },
+                {
+                  "name": "Manual",
+                  "value": "Manual"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone Valid",
+              "displayName": "Phone Valid",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company Domain",
+              "displayName": "Company Domain",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Linkedin URL - Person",
+              "displayName": "Linkedin URL - Person",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Location Country",
+              "displayName": "Location Country",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ICP Score",
+              "displayName": "ICP Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Company Score Component",
+              "displayName": "Company Score Component",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role Score Component",
+              "displayName": "Role Score Component",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Location Score Component",
+              "displayName": "Location Score Component",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Dynamic Signals Score",
+              "displayName": "Dynamic Signals Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Prime Fit Bonus",
+              "displayName": "Prime Fit Bonus",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Eligible",
+              "displayName": "SMS Eligible",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "SMS Status",
+              "displayName": "SMS Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Not Sent",
+                  "value": "Not Sent"
+                },
+                {
+                  "name": "Queued",
+                  "value": "Queued"
+                },
+                {
+                  "name": "Sent",
+                  "value": "Sent"
+                },
+                {
+                  "name": "Delivered",
+                  "value": "Delivered"
+                },
+                {
+                  "name": "Clicked",
+                  "value": "Clicked"
+                },
+                {
+                  "name": "Replied",
+                  "value": "Replied"
+                },
+                {
+                  "name": "Meeting Booked",
+                  "value": "Meeting Booked"
+                },
+                {
+                  "name": "Success",
+                  "value": "Success"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Campaign ID",
+              "displayName": "SMS Campaign ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Sequence Position",
+              "displayName": "SMS Sequence Position",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Sent Count",
+              "displayName": "SMS Sent Count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SMS Cost",
+              "displayName": "SMS Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last SMS Sent",
+              "displayName": "Last SMS Sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "HRQ Status",
+              "displayName": "HRQ Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "None",
+                  "value": "None"
+                },
+                {
+                  "name": "Archive",
+                  "value": "Archive"
+                },
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                },
+                {
+                  "name": "Manual Process",
+                  "value": "Manual Process"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "HRQ Reason",
+              "displayName": "HRQ Reason",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Data Quality Score",
+              "displayName": "Data Quality Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Validation Errors",
+              "displayName": "Validation Errors",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Total Processing Cost",
+              "displayName": "Total Processing Cost",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Error Log",
+              "displayName": "Error Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Processing Duration",
+              "displayName": "Processing Duration",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last Updated Manual",
+              "displayName": "Last Updated Manual",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last Updated Auto",
+              "displayName": "Last Updated Auto",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Company Type",
+              "displayName": "Company Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "B2B SaaS",
+                  "value": "B2B SaaS"
+                },
+                {
+                  "name": "B2B Tech Services",
+                  "value": "B2B Tech Services"
+                },
+                {
+                  "name": "Other B2B",
+                  "value": "Other B2B"
+                },
+                {
+                  "name": "B2C/Unknown",
+                  "value": "B2C/Unknown"
+                },
+                {
+                  "name": "/company",
+                  "value": "/company"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company Industry",
+              "displayName": "Company Industry",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company Description",
+              "displayName": "Company Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company LinkedIn",
+              "displayName": "Company LinkedIn",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Batch ID",
+              "displayName": "Batch ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Enrichment Provider Used",
+              "displayName": "Enrichment Provider Used",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Enrichment Timestamp",
+              "displayName": "Enrichment Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone (10d)",
+              "displayName": "Phone (10d)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Location Confidence",
+              "displayName": "Location Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true,
+          "updateAllMatches": false
+        }
+      },
+      "id": "453cb73c-93ff-496b-9d27-f6b445c85f8e",
+      "name": "Airtable Upsert Leads1",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        448
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 15,
+              "unit": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "c7ba002c-a301-4d62-951a-278a7a635ae3",
+      "name": "Schedule (15m)",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -1248,
+        1024
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYUvhGADerbD8EO",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "96fa160b-fca3-41a1-b68a-07dcd9fc78cf",
+      "name": "Airtable List (All)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        1024
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst now = new Date();\nconst stuckProcessing = items.filter(i => i.json.fields?.['Processing Status'] === 'Processing').length;\nconst queued = items.filter(i => i.json.fields?.['Processing Status'] === 'Queued').length;\nconst issues = [];\nif (stuckProcessing > 100) issues.push(`${stuckProcessing} leads stuck in Processing >2h`);\nif (queued > 500) issues.push(`${queued} leads queued > 1h`);\nreturn [{ json: { health_status: issues.length ? 'CRITICAL' : 'HEALTHY', issues, queued, stuckProcessing, timestamp: now.toISOString() } }];"
+      },
+      "id": "1415866d-da6e-4858-ae03-1f5b416d9523",
+      "name": "Check Thresholds",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        1024
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "ignoreCase": true
+          },
+          "string": [
+            {
+              "value1": "={{$json.health_status}}",
+              "operation": "equal",
+              "value2": "CRITICAL"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b4b19fd1-b811-499e-94c5-16a3da68f77b",
+      "name": "If Critical",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -576,
+        1024
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": "list",
+          "cachedResultName": "uysp-error-handler"
+        },
+        "text": "🚨 UYSP Health Alert: {{$json.issues && $json.issues.length ? $json.issues.join(', ') : 'No details provided'}} | Queued: {{$json.queued || 0}} | Processing: {{$json.stuckProcessing || 0}} | {{$json.timestamp || $now}}",
+        "otherOptions": {}
+      },
+      "id": "7a482758-138e-4950-aad6-944a926b4f43",
+      "name": "Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -352,
+        1024
+      ],
+      "webhookId": "fef24bba-d1f0-4d52-ab93-8b28dafde98f",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "p1X3UzjnPBY3sSHS",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "custom",
+              "cronExpression": "0 0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "9572ff72-0ea0-4fa4-aa6b-e94424132dcd",
+      "name": "Daily 9AM EST",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app6cU9HecxLpgT0P",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYUvhGADerbD8EO",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "7b2a926b-3cee-4c16-837e-91fd6f483521",
+      "name": "Daily Stats Query",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -2512,
+        976
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst high = items.filter(i => (i.json.fields?.['ICP Score'] || 0) >= 70).length;\nconst smsEligible = items.filter(i => i.json.fields?.['SMS Eligible'] === true).length;\nconst failed = items.filter(i => i.json.fields?.['Processing Status'] === 'Failed').length;\nconst byDomain = new Map();\nitems.forEach(i => { const d = i.json.fields?.['Company Domain']; if (d) byDomain.set(d, (byDomain.get(d)||0)+1); });\nconst top = [...byDomain.entries()].sort((a,b)=>b[1]-a[1]).slice(0,3).map(([d,c])=>`${d} (${c})`).join(', ');\nconst report = `🎯 Daily Lead Report - ${new Date().toDateString()}\\n├── Total Processed: ${items.length}\\n├── High-Value Leads: ${high} (Score ≥70)\\n├── SMS Eligible: ${smsEligible}\\n├── Failed Processing: ${failed}\\n└── Top Domains: ${top}`;\nreturn [{ json: { report } }];"
+      },
+      "id": "2787bae9-0270-4392-a3e6-bd19271c0a9e",
+      "name": "Format Daily Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2288,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": "list",
+          "cachedResultName": "uysp-error-handler"
+        },
+        "text": "{{$json.report || 'Daily report generated, but no details found.'}}",
+        "otherOptions": {}
+      },
+      "id": "c997d5f5-e796-4966-a615-ffff6967529d",
+      "name": "Slack Daily Report",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -2064,
+        976
+      ],
+      "webhookId": "3837fa97-13dc-4714-810a-5c9179137ee8",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "p1X3UzjnPBY3sSHS",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Text Delivery Tracker\n",
+        "height": 128,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2944,
+        1776
+      ],
+      "id": "3a42375a-0c5d-4af3-83ba-e1172344b98d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Caledley Booking Tracker\n",
+        "height": 128,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1456,
+        768
+      ],
+      "id": "88d2eb1f-379a-4d8e-aa75-9b8bcd28c5f8",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Bulk Import",
+        "height": 112,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1472,
+        448
+      ],
+      "id": "5d520585-5ae5-433e-948d-06cf387ef2f2",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## SMS Sender\n",
+        "height": 112,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1488,
+        1872
+      ],
+      "id": "34a91bd1-c15c-49fd-8ea4-fffefa95db48",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## SMS Daily Report",
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1456,
+        1440
+      ],
+      "id": "fc83d61b-0146-4bda-a10d-3b490f2be26a",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Kajabi Realtime Intake\n",
+        "height": 144,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2960,
+        368
+      ],
+      "id": "d55a5bdc-b4ba-4593-9c67-a1abe6854a34",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Error Notifications",
+        "width": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1472,
+        1008
+      ],
+      "id": "796e4e84-a464-4cd6-951d-eca3bbedd303",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Daily Stats Report",
+        "height": 144,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2944,
+        960
+      ],
+      "id": "56d55c3f-a055-4b4c-a135-c1df9314eff6",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## STOP TXT \n",
+        "height": 128,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2960,
+        1360
+      ],
+      "id": "d910f742-850d-4ad1-8795-367bad8aef7d",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 256,
+        "width": 2656,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1504,
+        1792
+      ],
+      "id": "01846583-2c8d-4325-a576-2949ac32a225",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 464,
+        "width": 2064,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1504,
+        1264
+      ],
+      "id": "f4025070-001b-47ad-bc70-cf84d61b9dc8",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 240,
+        "width": 1200,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1504,
+        384
+      ],
+      "id": "4bad3b11-1326-42ec-a38f-e59f7ca02911",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 240,
+        "width": 1376,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1504,
+        688
+      ],
+      "id": "06c4655e-2939-41b6-9e9b-173bff162779",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 448,
+        "width": 1392,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2992,
+        1600
+      ],
+      "id": "55683556-2b08-4076-b3e3-b111dafa2786",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 240,
+        "width": 992,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3008,
+        336
+      ],
+      "id": "54bcbea8-fd65-4144-b24b-ea52bf33919c",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 240,
+        "width": 1376,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1504,
+        976
+      ],
+      "id": "7dc12f07-962e-4850-8a0d-b8ea9dfe0cfe",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 240,
+        "width": 1248,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2992,
+        912
+      ],
+      "id": "fe8b015c-824d-48c7-ad48-ec855e002e91",
+      "name": "Sticky Note16"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 352,
+        "width": 1392,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2992,
+        1200
+      ],
+      "id": "c9538fea-2deb-492f-83c8-e00dcbe8a198",
+      "name": "Sticky Note17"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-app2.simpletexting.com/v2/api/contacts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "contactPhone": "={{ $json.phone_digits }}",
+          "firstName": "={{ $json.first_name }}",
+          "lastName": "={{ $json.last_name }}",
+          "listName": "AI Webinar – Automation (System)",
+          "tags": [
+            "uysp-automation"
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "814173ad-17dc-4154-aca1-5179423cc9fd",
+      "name": "Update ST Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -208,
+        1856
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "DleHqWmy46lupagO",
+          "name": "PDL-API-KEY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "custom",
+              "cronExpression": "0 14-21 * * 1-5 "
+            }
+          ]
+        }
+      },
+      "id": "f43edd62-ab3a-43e5-8636-3dd87254dda3",
+      "name": "Schedule1",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -1296,
+        1856
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "AND({Phone Valid},NOT({SMS Stop}),NOT({Booked}),LEN({Phone})>0,{SMS Eligible},NOT({Current Coaching Client}),OR({Processing Status}='Queued',{Processing Status}='In Sequence'))",
+        "options": {}
+      },
+      "id": "cb803a03-b492-433e-a042-38887e2fb417",
+      "name": "List Due Leads1",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        1856
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblErXnFNMKYhh3Xr"
+        },
+        "options": {}
+      },
+      "id": "995d082d-b0ac-4eae-8224-92cbdac1af01",
+      "name": "Get Settings1",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        1856
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblsSX9dYMnexdAa7"
+        },
+        "options": {}
+      },
+      "id": "a50952ce-6f17-4d03-bd27-f0a5e5fd72e6",
+      "name": "List Templates1",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        1856
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst leads = ($items(\"List Due Leads1\", 0) || []).map(i => i.json.fields || i.json);\nconst settingsRows = ($items(\"Get Settings1\", 0) || []).map(i => i.json);\nconst pickSettings = () => {\n  const candidates = settingsRows.map(r => r.fields || r);\n  for (const s of candidates) {\n    if (s && (s['Active Campaign'] || s['Fast Mode'] !== undefined || s['ab_ratio_a'] !== undefined)) return s;\n  }\n  return candidates[candidates.length - 1] || {};\n};\nconst settings = pickSettings();\nconst aPct = Number(settings.ab_ratio_a ?? settings.ab_ratio_A ?? 50);\nconst fastMode = !!(settings['Fast Mode']);\nconst templates = ($items(\"List Templates1\", 0) || []).map(i => i.json.fields || i.json);\n\nfunction pickVariant(existing){ if (existing==='A'||existing==='B') return existing; const r=Math.random()*100; return r<aPct?'A':'B'; }\nfunction tmplFor(variant, step){ return templates.find(t => String(t.Variant)===variant && Number(t.Step)===step); }\nfunction firstName(rec){ return rec['First Name'] || rec['Full Name']?.split(' ')[0] || (rec['Email']||'').split('@')[0] || '' }\nfunction delayMsFor(step, t){\n  if (step===1) return 0;\n  if (fastMode) {\n    const m = Number((t && (t['Fast Delay Minutes'] ?? t['Fast delay minutes'])) ?? 3);\n    return m * 60 * 1000;\n  }\n  const d = Number((t && t['Delay Days']) ?? (step===2?3:7));\n  return d * 24 * 60 * 60 * 1000;\n}\n\nconst out=[];\nfor (const rec of leads){\n  const phoneOriginal = String(rec['Phone'] || '');\n  const phoneDigits = phoneOriginal.replace(/\\D/g,'').replace(/^1/, '');\n  const country = rec['Location Country'] || '';\n  const isUSCA = country === 'United States' || country === 'Canada';\n  if (!isUSCA || phoneDigits.length !== 10) continue;\n  let pos = Number(rec['SMS Sequence Position'] || 0);\n  let last = rec['SMS Last Sent At'] || rec['Last SMS Sent'] || null;\n  if (pos > 0 && !last) { pos = 0; last = null; }\n  const processing = rec['Processing Status'] || '';\n  const nextStep = pos + 1;\n  if (nextStep > 3) continue;\n  const variant = pickVariant(rec['SMS Variant']);\n  const t = tmplFor(variant, nextStep);\n  if (!t || !t.Body) continue;\n  if (pos > 0){\n    const lastMs = new Date(last).getTime();\n    if (Number.isNaN(lastMs)) continue;\n    const msSince = Date.now() - lastMs;\n    const needMs = delayMsFor(nextStep, t);\n    if (msSince < needMs) continue;\n  }\n  const tempCampaignId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;\n  let text = String(t.Body).replaceAll('{Name}', firstName(rec));\n  const templateCampaign = (t.Campaign || t['Campaign'] || settings['Active Campaign'] || '').toString();\n  out.push({ json: { id: rec.id || rec['Record ID'], text, variant,\n    campaign_id: templateCampaign, prev_pos: pos, prev_sent_count: Number(rec['SMS Sent Count'] || 0),\n    first_name: rec['First Name'] || '', last_name: rec['Last Name'] || '', email: rec['Email'] || '',\n    company_domain: rec['Company Domain'] || '', phone_original: phoneOriginal, phone_digits: phoneDigits,\n    temp_campaign_id: tempCampaignId,\n    last_sent_at: last || '', processing_status: processing || ''\n  }});\n}\nreturn out;"
+      },
+      "id": "25668f06-dff3-4631-bd1b-d7ef6ef86822",
+      "name": "Prepare Text (A/B)1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -432,
+        1856
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-app2.simpletexting.com/v2/api/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "contactPhone": "={{ $items('Get Settings1',0)[0].json['Test Mode'] ? (String($items('Get Settings1',0)[0].json['Test Phone']||'').replace(/\\D/g,'').replace(/^1/,'')||'0000000000') : $items('Prepare Text (A/B)1',0)[$itemIndex].json.phone_digits }}",
+          "accountPhone": "9094988474",
+          "mode": "AUTO",
+          "text": "={{ $items('Prepare Text (A/B)1',0)[$itemIndex].json.text }}"
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "a9c06810-8de0-4354-9c3a-caec3aa42770",
+      "name": "SimpleTexting HTTP1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        16,
+        1856
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "DleHqWmy46lupagO",
+          "name": "PDL-API-KEY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const stItems = $items('SimpleTexting HTTP1', 0) || [];\nconst prepItems = $items('Prepare Text (A/B)1', 0) || [];\nconst settingsItems = $items('Get Settings1', 0) || [];\nconst settings = (settingsItems.map(i => i.json.fields || i.json).find(s => s['Active Campaign']) || settingsItems[settingsItems.length-1]?.json || {});\nconst fallbackCampaign = settings['Active Campaign'] || '';\nconst nowIso = new Date().toISOString();\nconst out = [];\nfor (let i = 0; i < stItems.length; i++) {\n  const resp = stItems[i]?.json || {};\n  const prepared = prepItems[i]?.json || {};\n  const httpId = resp.id || '';\n  const sent = Boolean(httpId);\n  const sms_status = sent ? 'Sent' : 'Failed';\n  const error_reason = sent ? '' : (resp.message || resp.error || 'No response id');\n  const prev_pos = Number(prepared.prev_pos || 0);\n  const prev_count = Number(prepared.prev_sent_count || 0);\n  const next_pos = sent ? prev_pos + 1 : prev_pos;\n  const next_count = sent ? prev_count + 1 : prev_count;\n  const next_last_sent_at = sent ? nowIso : (prepared.last_sent_at || '');\n  const next_processing = sent ? (next_pos >= 3 ? 'Completed' : 'In Sequence') : (prepared.processing_status || '');\n  const campaign_id = prepared.campaign_id || fallbackCampaign || httpId || '';\n  out.push({ json: { ...prepared, sms_status, error_reason, next_pos, next_count, next_last_sent_at, next_processing, campaign_id } });\n}\nreturn out;"
+      },
+      "id": "0c576b50-63d4-463f-8a1c-6cdcb7cba730",
+      "name": "Parse SMS Response1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        1856
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "SMS Status": "={{ $json.sms_status || '' }}",
+            "SMS Campaign ID": "={{ $json.campaign_id || '' }}",
+            "SMS Sequence Position": "={{ $json.next_pos }}",
+            "SMS Sent Count": "={{ $json.next_count }}",
+            "SMS Variant": "={{ $json.variant || '' }}",
+            "SMS Last Sent At": "={{ $json.next_last_sent_at || '' }}",
+            "Processing Status": "={{ $json.next_processing || '' }}",
+            "Error Log": "={{ $json.error_reason || '' }}",
+            "id": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "5ec468bf-00ad-42ae-8d94-104c4310f97a",
+      "name": "Airtable Update1",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        464,
+        1856
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Event": "Send Attempt",
+            "Campaign ID": "={{$json.campaign_id || ''}}",
+            "Phone": "={{$json.phone_digits || ''}}",
+            "Status": "={{$json.sms_status || ''}}",
+            "Lead Record ID": "={{$json.id || ''}}",
+            "Text": "={{$json.text || ''}}",
+            "Sent At": "={{$now}}"
+          },
+          "matchingColumns": []
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "1c7757a6-37c3-4593-acb2-ea308fddcca6",
+      "name": "Audit Sent1",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        688,
+        1856
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": "list"
+        },
+        "text": "=[{{$items('Get Settings1',0)[0].json['Test Mode'] ? 'TEST MODE' : 'LIVE'}}] SMS: {{$items('Prepare Text (A/B)1',0)[$itemIndex].json.first_name}} {{$items('Prepare Text (A/B)1',0)[$itemIndex].json.last_name}} | {{$items('Prepare Text (A/B)1',0)[$itemIndex].json.email}} | {{$items('Prepare Text (A/B)1',0)[$itemIndex].json.company_domain}}\\nSend digits: {{$items('Get Settings1',0)[0].json['Test Mode'] ? (String($items('Get Settings1',0)[0].json['Test Phone']||'').replace(/\\D/g,'').replace(/^1/,'')||'0000000000') : $items('Prepare Text (A/B)1',0)[$itemIndex].json.phone_digits}} (orig: {{$items('Prepare Text (A/B)1',0)[$itemIndex].json.phone_original}})\\nStatus: {{$items('Parse SMS Response1',0)[$itemIndex].json.sms_status}}  Campaign: {{$items('Parse SMS Response1',0)[$itemIndex].json.campaign_id}}",
+        "otherOptions": {}
+      },
+      "id": "ee3c55a8-8997-484a-804f-f809c4fb817c",
+      "name": "SMS Test Notify1",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        912,
+        1856
+      ],
+      "webhookId": "0a12fa10-b641-4803-b658-2aa0ac360024",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "p1X3UzjnPBY3sSHS",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "custom",
+              "cronExpression": "*/10 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "4278fab5-f456-4627-a374-fcaeeef1250d",
+      "name": "Schedule",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblErXnFNMKYhh3Xr"
+        },
+        "options": {}
+      },
+      "id": "d2c27c43-79fa-4ee3-913a-a33303c74069",
+      "name": "Get Settings",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -2544,
+        688
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GSBF0imga14BnKkS",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graphql.switchy.io/v1/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Authorization",
+              "value": "0ea65170-03e2-41d6-ae53-a7cbd7dc273d"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "query": "query { links(where: {id: {_eq: \"UYSP\"}}) { id clicks createdDate }}"
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "fa22295f-5b67-40de-a884-a59c0fa7e67f",
+      "name": "Query Switchy Clicks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2336,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $items('Query Switchy Clicks', 0)[0]?.json || {};\nconst settingsItems = $items('Get Settings', 0) || [];\nconst settings = settingsItems.find(s => s.json.fields?.['UYSP Link Total Clicks'] !== undefined) || settingsItems[settingsItems.length - 1];\nconst currentClicks = settings?.json?.fields?.['UYSP Link Total Clicks'] || 0;\n\nif (response.errors) {\n  return [{ json: { error: 'GraphQL Error', details: response.errors, hasNewClicks: false } }];\n}\n\nconst links = response.data?.links || [];\nconst uyspLink = links.find(l => l.id === 'UYSP');\n\nif (!uyspLink) {\n  return [{ json: { error: 'UYSP link not found', hasNewClicks: false } }];\n}\n\nconst newClicks = Number(uyspLink.clicks || 0);\nconst hasNewClicks = newClicks > currentClicks;\n\nreturn [{ json: {\n  settingsRecordId: settings?.json?.id || '',\n  currentClicks,\n  newClicks, \n  hasNewClicks,\n  clickDifference: newClicks - currentClicks\n}}];"
+      },
+      "id": "0190a079-a453-4aaf-9d6b-988242d9d896",
+      "name": "Parse Click Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2144,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Click Tracker",
+        "height": 144,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2944,
+        672
+      ],
+      "id": "80af4392-51a1-47d5-87ef-8df462dc0a1a",
+      "name": "Sticky Note18"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 224,
+        "width": 1152,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2992,
+        640
+      ],
+      "id": "c23a50dc-c72d-491f-ad4b-d682f7208e41",
+      "name": "Sticky Note19"
+    }
+  ],
+  "connections": {
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Sent Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sent Today": {
+      "main": [
+        [
+          {
+            "node": "Delivered Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delivered Today": {
+      "main": [
+        [
+          {
+            "node": "Failed Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Failed Today": {
+      "main": [
+        [
+          {
+            "node": "Stops Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stops Today": {
+      "main": [
+        [
+          {
+            "node": "Booked Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booked Today": {
+      "main": [
+        [
+          {
+            "node": "Build Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Summary": {
+      "main": [
+        [
+          {
+            "node": "Post to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Sent Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize": {
+      "main": [
+        [
+          {
+            "node": "Airtable Upsert Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (STOP)": {
+      "main": [
+        [
+          {
+            "node": "Parse Inbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Inbound": {
+      "main": [
+        [
+          {
+            "node": "Skip Non-Commands",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Find Lead by Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Non-Commands": {
+      "main": [
+        [
+          {
+            "node": "Find Lead by Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Lead by Phone": {
+      "main": [
+        [
+          {
+            "node": "Mark STOP/UNSTOP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (ST Delivery)": {
+      "main": [
+        [
+          {
+            "node": "Parse Delivery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Delivery": {
+      "main": [
+        [
+          {
+            "node": "Find Lead (by Campaign/Phone)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Write Audit Row",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Delivery Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Lead (by Campaign/Phone)": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Delivery",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Write Audit Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Lead Delivery": {
+      "main": [
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (Calendly)": {
+      "main": [
+        [
+          {
+            "node": "Parse Calendly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Calendly": {
+      "main": [
+        [
+          {
+            "node": "Find Lead by Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Lead by Email": {
+      "main": [
+        [
+          {
+            "node": "Mark Booked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Booked": {
+      "main": [
+        [
+          {
+            "node": "Respond ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch CSV": {
+      "main": [
+        [
+          {
+            "node": "Parse CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse CSV": {
+      "main": [
+        [
+          {
+            "node": "Normalize1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize1": {
+      "main": [
+        [
+          {
+            "node": "Airtable Upsert Leads1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule (15m)": {
+      "main": [
+        [
+          {
+            "node": "Airtable List (All)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable List (All)": {
+      "main": [
+        [
+          {
+            "node": "Check Thresholds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Thresholds": {
+      "main": [
+        [
+          {
+            "node": "If Critical",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Critical": {
+      "main": [
+        [
+          {
+            "node": "Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily 9AM EST": {
+      "main": [
+        [
+          {
+            "node": "Daily Stats Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Stats Query": {
+      "main": [
+        [
+          {
+            "node": "Format Daily Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Daily Report": {
+      "main": [
+        [
+          {
+            "node": "Slack Daily Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update ST Contact": {
+      "main": [
+        [
+          {
+            "node": "SimpleTexting HTTP1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule1": {
+      "main": [
+        [
+          {
+            "node": "List Due Leads1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Due Leads1": {
+      "main": [
+        [
+          {
+            "node": "Get Settings1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Settings1": {
+      "main": [
+        [
+          {
+            "node": "List Templates1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Templates1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Text (A/B)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Text (A/B)1": {
+      "main": [
+        [
+          {
+            "node": "Update ST Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SimpleTexting HTTP1": {
+      "main": [
+        [
+          {
+            "node": "Parse SMS Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse SMS Response1": {
+      "main": [
+        [
+          {
+            "node": "Airtable Update1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Update1": {
+      "main": [
+        [
+          {
+            "node": "Audit Sent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit Sent1": {
+      "main": [
+        [
+          {
+            "node": "SMS Test Notify1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule": {
+      "main": [
+        [
+          {
+            "node": "Get Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Settings": {
+      "main": [
+        [
+          {
+            "node": "Query Switchy Clicks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Switchy Clicks": {
+      "main": [
+        [
+          {
+            "node": "Parse Click Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "7cfed8be-2c47-4d94-a43e-4e20ed7a1a01",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-30T00:36:59.101Z",
+      "updatedAt": "2025-08-30T00:36:59.101Z",
+      "role": "workflow:owner",
+      "workflowId": "dzY7pBKj8ZDi9vup",
+      "projectId": "HiFn22PB8pYSxCmP",
+      "project": {
+        "createdAt": "2025-08-18T19:11:02.418Z",
+        "updatedAt": "2025-08-18T19:13:40.000Z",
+        "id": "HiFn22PB8pYSxCmP",
+        "name": "UYSP V2 TEST ",
+        "type": "team",
+        "icon": {
+          "type": "icon",
+          "value": "layers"
+        },
+        "description": "",
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-18T19:13:40.464Z",
+            "updatedAt": "2025-08-18T19:13:40.464Z",
+            "role": "project:admin",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "HiFn22PB8pYSxCmP",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-10T22:00:48.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-10",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

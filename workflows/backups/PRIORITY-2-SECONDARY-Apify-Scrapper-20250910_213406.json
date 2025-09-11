@@ -1,0 +1,226 @@
+{
+  "createdAt": "2025-09-10T00:24:59.521Z",
+  "updatedAt": "2025-09-10T00:24:59.521Z",
+  "id": "r3mKPoQIHhz9cjfJ",
+  "name": "Apify Scrapper",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/compass~google-maps-extractor/runs/last/dataset/items?token=YOUR API KEY",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1184,
+        80
+      ],
+      "id": "d4e451ec-c91a-4169-8079-6300d9b7fa76",
+      "name": "Get Results",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/compass~google-maps-extractor/runs?token=YOUR API KEY",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"language\": \"en\",\n    \"locationQuery\": \"New York, USA\",\n    \"maxCrawledPlacesPerSearch\": 50,\n    \"searchStringsArray\": [\n        \"plumbers\"\n    ],\n    \"skipClosedPlaces\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        624,
+        80
+      ],
+      "id": "365be284-8e23-4fda-bb6e-0fd851672c07",
+      "name": "Google Maps Actor",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "content": "# Start Actor",
+        "height": 260,
+        "width": 260,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        0
+      ],
+      "id": "faf1c940-74e7-49e2-bd99-672cf709884e",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# Grab Results",
+        "height": 260,
+        "width": 260,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        0
+      ],
+      "id": "04d44bf6-4154-45d4-9f97-6c48cefe0d5c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/compass~google-maps-extractor/run-sync?token=apify_api_8tZJaGxvs9ZkkfFXV5eaqEOCDHpGln2TnJno",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"language\": \"en\",\n    \"locationQuery\": \"New York, USA\",\n    \"maxCrawledPlacesPerSearch\": 50,\n    \"searchStringsArray\": [\n        \"plumbers\"\n    ],\n    \"skipClosedPlaces\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        624,
+        368
+      ],
+      "id": "cb363230-3d24-4767-8358-86abf94e8b61",
+      "name": "Sync Run",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "amount": 25
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        912,
+        128
+      ],
+      "id": "b7b0b296-655d-4744-9e7c-858fa4bae79f",
+      "name": "Wait",
+      "webhookId": "426f22d5-31db-4344-ae7a-13dedfc46bf4"
+    },
+    {
+      "parameters": {
+        "content": "# Wait\nSet this to an appropriate wait time",
+        "height": 260,
+        "width": 260,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        832,
+        0
+      ],
+      "id": "e7ca1771-ef91-44f7-b298-e7ff47e230d2",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "# Sync Run\n",
+        "height": 260,
+        "width": 260,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        288
+      ],
+      "id": "3e1ba8a1-8d26-4a3a-a054-4bfcec6852d8",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "# 🛠️ Setup Guide  \n**Author:** [Nate Herk](https://www.youtube.com/@nateherk)\n---\n\n### Steps to Get Started with Apify\n\n1. **Sign Up for Apify**  \n   Go to [Apify](https://www.apify.com/?fpr=nate) and create an account.\n\n2. **Claim Your Discount**  \n   Use the code `30NATEHERK` to get **30% off Apify credits**.\n\n3. **Find the Actor You Need**  \n   Browse Apify's actor library and select the actor that fits your use case.\n\n4. **Integrate in n8n**  \n   Copy the appropriate actor endpoints into the designated HTTP Request nodes, as demonstrated in the YouTube tutorial.\n\n---\n📺 Watch the full guide here: [YouTube - Nate Herk](https://www.youtube.com/@nateherk)\n",
+        "height": 540,
+        "width": 520
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ebd2910d-538b-4022-872f-551bc3f802b7",
+      "name": "Sticky Note4"
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "45d1b119-e211-4da1-8687-d44ac3cf13eb",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-10T00:24:59.523Z",
+      "updatedAt": "2025-09-10T00:24:59.523Z",
+      "role": "workflow:owner",
+      "workflowId": "r3mKPoQIHhz9cjfJ",
+      "projectId": "wvkG5jFMc7QXvOh5",
+      "project": {
+        "createdAt": "2025-07-01T09:55:16.699Z",
+        "updatedAt": "2025-07-01T09:55:19.189Z",
+        "id": "wvkG5jFMc7QXvOh5",
+        "name": "LATIF HORST <latifhorst@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-01T09:55:16.699Z",
+            "updatedAt": "2025-07-01T09:55:16.699Z",
+            "role": "project:personalOwner",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "wvkG5jFMc7QXvOh5",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-10T22:00:48.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-10",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
