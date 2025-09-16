@@ -331,6 +331,57 @@ After EVERY component:
 - [✅] Ready for Session 0
 
 ## 16. CREDENTIAL & HTTP NODE SAFETY PROTOCOL (MANDATORY)
+
+### 16a. CRITICAL: SLACK NODE CREDENTIAL FIX PROTOCOL (PROVEN WORKING 2025-09-16)
+**WHEN SLACK NODE CREDENTIALS GET WIPED (COMMON ISSUE):**
+
+**Step 1: Identify the credential ID from a working node or previous workflow export**
+- Look for existing `credentials.slackOAuth2Api.id` (e.g., `"OyxQzoqNPQocHdnn"`)
+- Look for existing `credentials.slackOAuth2Api.name` (e.g., `"Slack account"`)
+
+**Step 2: Fix the Slack node with COMPLETE updateNode operation**
+```javascript
+mcp_n8n_n8n_update_partial_workflow({
+  id: "WORKFLOW_ID",
+  operations: [{
+    type: "updateNode",
+    nodeName: "Slack Node Name",
+    changes: {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09D6U5BLG6", // Actual channel ID
+          "mode": "list",
+          "cachedResultName": "channel-name" // Actual channel name
+        },
+        "text": "Your message template with {{ $json.field }} expressions",
+        "color": "good",
+        "iconEmoji": ":bell:",
+        "username": "n8n Bot",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn", // CRITICAL: Use existing credential ID
+          "name": "Slack account"
+        }
+      }
+    }
+  }]
+})
+```
+
+**EVIDENCE REQUIRED:**
+- `"success": true` response
+- `credentials` block present in subsequent `get_workflow` call
+- Channel shows proper name instead of "[No path back to node]"
+- Test execution sends actual Slack message
+
+**NEVER DENY THIS IS POSSIBLE - IT IS 100% PROGRAMMATICALLY FIXABLE**
+
+## 16b. ORIGINAL CREDENTIAL & HTTP NODE SAFETY PROTOCOL
 - Never update or overwrite node `credentials` via bulk/API edits. Re‑select in UI (especially OAuth) to avoid silent detachment.
 - Never replace whole `parameters` objects on credentialed nodes (Airtable, HTTP, Slack). Update only the specific keys required (e.g., `jsonBody.text`), leaving auth/URL untouched.
 - HTTP nodes: keep `method=POST` and the full `url` explicitly set; bulk edits can clear the URL field. Verify visually after each change.
