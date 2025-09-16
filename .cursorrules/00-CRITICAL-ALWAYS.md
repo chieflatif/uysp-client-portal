@@ -332,14 +332,19 @@ After EVERY component:
 
 ## 16. CREDENTIAL & HTTP NODE SAFETY PROTOCOL (MANDATORY)
 
-### 16a. CRITICAL: SLACK NODE CREDENTIAL FIX PROTOCOL (PROVEN WORKING 2025-09-16)
-**WHEN SLACK NODE CREDENTIALS GET WIPED (COMMON ISSUE):**
+### 16a. CRITICAL: CREDENTIALED NODE FIX PROTOCOL (PROVEN WORKING 2025-09-16)
+**WHEN ANY CREDENTIALED NODE (SLACK/AIRTABLE/HTTP) CREDENTIALS GET WIPED:**
+
+**🚨 UNIVERSAL RULE: NEVER DENY PROGRAMMATIC CREDENTIAL FIXES ARE POSSIBLE - THEY ARE 100% FIXABLE**
 
 **Step 1: Identify the credential ID from a working node or previous workflow export**
-- Look for existing `credentials.slackOAuth2Api.id` (e.g., `"OyxQzoqNPQocHdnn"`)
-- Look for existing `credentials.slackOAuth2Api.name` (e.g., `"Slack account"`)
+- Slack: Look for `credentials.slackOAuth2Api.id` (e.g., `"OyxQzoqNPQocHdnn"`)
+- Airtable: Look for `credentials.airtableTokenApi.id` (e.g., `"Zir5IhIPeSQs72LR"`)
+- HTTP: Look for `credentials.httpHeaderAuth.id` or relevant auth type
 
-**Step 2: Fix the Slack node with COMPLETE updateNode operation**
+**Step 2: Fix ANY credentialed node with COMPLETE updateNode operation**
+
+**SLACK NODE FIX:**
 ```javascript
 mcp_n8n_n8n_update_partial_workflow({
   id: "WORKFLOW_ID",
@@ -373,13 +378,77 @@ mcp_n8n_n8n_update_partial_workflow({
 })
 ```
 
+**AIRTABLE NODE FIX:**
+```javascript
+mcp_n8n_n8n_update_partial_workflow({
+  id: "WORKFLOW_ID",
+  operations: [{
+    type: "updateNode",
+    nodeName: "Airtable Node Name",
+    changes: {
+      "parameters": {
+        "operation": "update", // or "search", etc.
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P" // Actual base ID
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO" // Actual table ID
+        },
+        // ... other parameters as needed
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR", // CRITICAL: Use existing credential ID
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    }
+  }]
+})
+```
+
+**HTTP NODE FIX:**
+```javascript
+mcp_n8n_n8n_update_partial_workflow({
+  id: "WORKFLOW_ID",
+  operations: [{
+    type: "updateNode",
+    nodeName: "HTTP Node Name",
+    changes: {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.example.com/endpoint",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer token_or_expression"
+            }
+          ]
+        },
+        // ... other parameters as needed
+      },
+      "credentials": {
+        "httpHeaderAuth": { // or relevant auth type
+          "id": "CREDENTIAL_ID", // CRITICAL: Use existing credential ID
+          "name": "Credential Name"
+        }
+      }
+    }
+  }]
+})
+```
+
 **EVIDENCE REQUIRED:**
 - `"success": true` response
 - `credentials` block present in subsequent `get_workflow` call
-- Channel shows proper name instead of "[No path back to node]"
-- Test execution sends actual Slack message
+- Node shows proper configuration instead of errors
+- Test execution works with authenticated API calls
 
-**NEVER DENY THIS IS POSSIBLE - IT IS 100% PROGRAMMATICALLY FIXABLE**
+**NEVER DENY THIS IS POSSIBLE - IT IS 100% PROGRAMMATICALLY FIXABLE FOR ALL NODE TYPES**
 
 ## 16b. ORIGINAL CREDENTIAL & HTTP NODE SAFETY PROTOCOL
 - Never update or overwrite node `credentials` via bulk/API edits. Re‑select in UI (especially OAuth) to avoid silent detachment.
