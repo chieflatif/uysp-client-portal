@@ -25,7 +25,7 @@ Views:
 
 ## Leads (Processing Hub — cache-first linkage)
 Core:
-- Processing Status – Single select: [Backlog, Queued, Processing, Ready for SMS, Complete, Failed]
+- Processing Status – Single select: [Backlog, Queued, Processing, Ready for SMS, In Sequence, Stopped, Completed, Failed]
 - Source – Single select: [Backlog, Webhook, Manual]
 - Email – Email
 - Phone – Phone
@@ -48,7 +48,7 @@ Enrichment (from Companies link or Clay if missing):
 - Location Country – Text
 - Location Confidence – Number (0–1)
 - Enrichment Provider Used – Text
-- Enrichment Timestamp – Date/time
+- Enrichment Attempted At – Last modified time (watches `Enrichment Outcome`)
 - Raw Enrichment Data – Long text
 
 Scoring (uses linked Companies fields when available):
@@ -62,21 +62,23 @@ Scoring (uses linked Companies fields when available):
 - SMS Eligible (calc) – Formula (Boolean):
   AND(
     {Phone Valid},
-    {ICP Score} >= 70,
-    OR(
-      LOWER({Location Country}) = "united states",
-      LOWER({Location Country}) = "canada"
-    ),
-    {HRQ Status} != "Archive"
+    OR(LOWER({Location Country}) = "united states", LOWER({Location Country}) = "canada"),
+    {HRQ Status} != "Archive",
+    NOT({Current Coaching Client}),
+    NOT({SMS Stop}),
+    NOT({Booked})
   )
 
 SMS & Outreach:
 - SMS Status – Single select: [Not Sent, Queued, Sent, Delivered, Clicked, Replied, Meeting Booked]
-- SMS Campaign ID – Text
 - SMS Sequence Position – Number
 - SMS Sent Count – Number
 - SMS Cost – Currency
 - SMS Last Sent At – Date/time
+ - Short Link ID – Text
+ - Short Link URL – URL
+ - Click Count – Number
+ - Clicked Link – Checkbox
 
 HRQ & Quality:
 - HRQ Status – Single select: [None, Archive, Qualified, Manual Process]

@@ -4,9 +4,10 @@
 
 - **Purpose**: This workflow handles the critical business event of a lead booking a meeting via Calendly. Its primary function is to immediately stop any further automated SMS messages from being sent to that lead and to update their status to "Completed" in Airtable.
 - **Trigger**: It is triggered by a webhook from Calendly, which fires the moment an invitee schedules an event.
+    - Webhook subscription (active): scope=organization; events=[invitee.created, invitee.canceled]; callback `https://rebelhq.app.n8n.cloud/webhook/calendly`.
 - **Key Actions**:
-    - Parses the incoming Calendly data to extract the lead's email.
-    - Finds the corresponding lead in the Airtable `Leads` table.
+    - Parses the incoming Calendly data to extract the lead's email and phone (normalized digits).
+    - Finds the corresponding lead in the Airtable `Leads` table by email OR phone.
     - Sets the `Booked` flag to `true`.
     - Sets the `SMS Stop` flag to `true` to halt any future messages.
     - Updates the lead's `Processing Status` to "Completed".
@@ -17,7 +18,7 @@
 graph TD
     A[Calendly Event Booked] --> B(Webhook Node);
     B --> C(Parse Calendly);
-    C --> D[Find Lead by Email];
+    C --> D[Find Lead (Email or Phone)];
     D --> E[Mark Booked];
     E --> F(Respond 200);
 ```
@@ -26,15 +27,23 @@ graph TD
 
 1.  **`Webhook (Calendly)`**
     - **Purpose**: Catches the real-time `invitee.created` event from Calendly.
-    - **Details**: This node listens for `POST` requests on its unique URL, which is configured in the integration settings of the Calendly account. It's set to respond immediately after the last node, ensuring Calendly gets a quick confirmation.
+    - **Details**: Listens for `POST` on `/webhook/calendly`. Subscription is managed via Calendly API (org‑scoped) and returns 200 after the last node.
 
 2.  **`Parse Calendly`**
-    - **Purpose**: To extract the lead's email address and the meeting time from the detailed Calendly payload.
-    - **Details**: A Code node that navigates the nested JSON structure from Calendly to reliably find the invitee's email. This is the key piece of data used to identify the lead in our system. It also extracts the meeting start time to log when the booking occurred.
+    - **Purpose**: Extract the lead's email, phone, and meeting time from the Calendly payload.
+    - **Details**: Code node reads `payload.invitee.email` and phone from either `payload.invitee.phone_number` or from `payload.questions_and_answers` (question contains "phone"). Phone is normalized to digits (strip non‑digits; drop leading 1 for NANP 11‑digit inputs) to enable robust matching.
 
-3.  **`Find Lead by Email`**
-    - **Purpose**: Locates the correct lead record in the `Leads` table using their email address.
-    - **Details**: An Airtable node that performs a search on the `Leads` table. It uses a case-insensitive formula to match the `Email` field with the email extracted from the Calendly webhook.
+3.  **`Find Lead (Email or Phone)`**
+    - **Purpose**: Locate the correct lead record in `Leads` using email OR normalized phone digits.
+    - **Details**: Airtable Search using a case-insensitive email check OR a digits-only phone comparison.
+      - Filter by formula used:
+        ``
+        ={{`OR(
+          LOWER({Email})='${($json.email||'').toLowerCase()}',
+          REGEX_REPLACE({Phone}, '\\D', '')='${$json.phoneDigits||''}'
+        )`}}
+        ``
+      - Assumes `Phone` stores the lead’s phone. If using a different field, update the formula accordingly.
 
 4.  **`Mark Booked`**
     - **Purpose**: Updates the lead's record in Airtable to reflect the successful booking.
@@ -54,14 +63,23 @@ graph TD
 - **Immediate Funnel Exit**: The core logic is to provide an immediate and automated exit from the SMS funnel the moment a lead takes the desired action (booking a meeting). This prevents the awkward and unprofessional situation of sending follow-up messages to a lead who has already converted.
 - **Single Source of Truth**: By updating the lead's status directly in Airtable, it ensures that all other parts of the system (like the `SMS Scheduler`) have an up-to-date and accurate view of the lead's status without needing complex cross-workflow communication.
 
+### Matching Rules (Email OR Phone)
+- Email match is case‑insensitive exact match against `Leads.Email`.
+- Phone match compares digits only; Calendly phone is normalized to digits and matched to `REGEX_REPLACE({Phone}, '\\D', '')`.
+- Either condition matching is sufficient to update the record.
+
 ## 5. Maintenance & Troubleshooting
 
 - **Symptom**: Leads are booking meetings, but still receiving SMS messages.
-    - **Likely Cause**: The Calendly webhook may be misconfigured, or the workflow is inactive or failing.
+    - **Likely Causes**:
+        - Webhook not firing (no recent executions in n8n)
+        - Email and phone both missing or not captured from Calendly
+        - Phone field in Airtable differs from `{Phone}` used in the formula
     - **Solution**:
-        1.  Check the execution history for this workflow in n8n. If there are no new executions after a test booking, the issue is with the webhook configuration in Calendly.
-        2.  If executions are failing, inspect the `Find Lead by Email` node. The most common error is that the email used to book the Calendly meeting does not exist in the `Leads` table in Airtable.
-        3.  Ensure the Airtable credentials are valid and the `Mark Booked` node has the correct permissions to update records.
+        1.  Check n8n Executions. If none, re‑save the Calendly webhook (Invitee Created) to: `/webhook/calendly`.
+        2.  Confirm Calendly form includes a Phone Number question; verify payload shows `invitee.phone_number` or `questions_and_answers` with phone.
+        3.  If your phone is stored in another field, update the Airtable formula reference from `{Phone}` to that field.
+        4.  Ensure Airtable credentials are valid and `Mark Booked` can update records.
 
 ## 6. Related SOPs & System Documents
 

@@ -135,15 +135,33 @@ OR(
 - **Audit Trail:** Records booking timestamp and reason
 
 ### 5. Booked Notify - Slack Notification
-**Purpose:** Alert team of new booking  
+**Purpose:** Alert team of new booking with complete lead details  
 **Channel:** `#uysp-sales-daily`  
 **Authentication:** Slack OAuth2
 
-**Message Format:**
+**Enhanced Message Format:**
 ```
-CALENDLY BOOKED: {{email}} / {{phoneDigits}}
-At: {{bookedAt}}
+🎉 CALENDLY BOOKING CONFIRMED
+
+👤 LEAD DETAILS:
+• Name: {{First Name}} {{Last Name}}
+• Email: {{email}}
+• Phone: {{phone}}
+• Company: {{company}}
+• Job Title: {{job title}}
+
+📅 BOOKING INFO:
+• Booked At: {{bookedAt}}
+• Event ID: {{eventId}}
+
+🛑 SMS SEQUENCE STOPPED
+✅ Lead marked as COMPLETED
 ```
+
+**Data Sources:**
+- **Lead Info:** From `Find Lead by Email` node (Airtable data)
+- **Booking Info:** From `Parse Calendly` node (webhook payload)
+- **Visual Format:** Emojis and sections for easy scanning
 
 ### 6. Respond 200 - HTTP Response
 **Purpose:** Confirm webhook receipt to Calendly  
@@ -178,11 +196,28 @@ AND(
 
 ## Calendly Configuration Requirements
 
-### Webhook Setup in Calendly:
-1. **URL:** `https://rebelhq.app.n8n.cloud/webhook/calendly`
-2. **Events:** `invitee.created` (when someone books)
-3. **Scope:** All event types or specific event type
-4. **Authentication:** None required (public webhook)
+### Webhook Subscription Setup (via API):
+**Required:** Personal Access Token from Calendly Settings → Developer Tools
+
+**API Configuration:**
+```bash
+curl -X POST https://api.calendly.com/webhook_subscriptions \
+  -H "Authorization: Bearer YOUR_PERSONAL_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://rebelhq.app.n8n.cloud/webhook/calendly",
+    "events": ["invitee.created", "invitee.canceled"],
+    "organization": "https://api.calendly.com/organizations/YOUR_ORG_ID",
+    "scope": "organization"
+  }'
+```
+
+**Current Active Subscription:**
+- **URL:** `https://rebelhq.app.n8n.cloud/webhook/calendly`
+- **Events:** `invitee.created`, `invitee.canceled`
+- **State:** `active`
+- **Scope:** `organization`
+- **Created:** 2025-09-15T23:50:02.208340Z
 
 ### Event Type Configuration:
 - **Form Fields:** Must include email and phone number

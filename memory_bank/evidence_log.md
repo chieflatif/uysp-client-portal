@@ -208,3 +208,14 @@
 - **Change 1 (Link Fix)**: Replaced the `Prepare Text (A/B)` node with a clean version that has all link-rewriting logic permanently removed. The system now sends the direct Calendly URL from the Airtable `SMS_Templates` table.
 - **Change 2 (Slack Fix)**: Replaced the `SMS Test Notify` node and updated the `Parse SMS Response` node. The parser now reliably sets the campaign name, and the Slack node correctly references the parser's output to display "Status" and "Campaign".
 - **Evidence**: New workflow created `2025-09-05T04:46:36.250Z`. Final fixes applied and verified with user. The system is now stable and ready for production use.
+
+## 2025-09-11 — Scheduler v2: Airtable Partial‑Edit + Shortlink Path Fixed
+- **Workflow**: `UYSP-SMS-Scheduler-v2` (ID: `UAZWVFzMrJaVbvGM`)
+- **Changes**:
+  - Partial update applied to `Save Short Link v3` (Airtable) with `matchingColumns=["id"]`, `options.typecast=true`.
+  - `id` expression corrected to direct upstream item to eliminate "No path back" and Airtable 422 errors:
+    - `={{ $items('Generate Alias',0)[$itemIndex].json.id }}`
+  - Switchy link title simplified to a single expression.
+  - `SimpleTexting HTTP` jsonBody ensures text fallback order and sets `campaignId` and `contactPhone` explicitly.
+- **Rules Update**: `.cursorrules/00-CRITICAL-ALWAYS.md` updated with §16e Airtable Partial‑Edit Protocol (allowed keys only; never touch credentials or replace whole `parameters`).
+- **Validator**: Remaining non-blocking warnings on Slack `SMS Test Notify` nested expressions; to be simplified next.

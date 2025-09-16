@@ -3,7 +3,9 @@
 **Last Updated:** September 15, 2025  
 **Workflow ID:** `UAZWVFzMrJaVbvGM`  
 **Status:** ACTIVE and PRODUCTION READY  
-**Version:** `34d2a0ff-9b4c-48e9-944e-916aef297283`
+**Version:** `f7aaaff5-6ce7-4433-976b-107085491a2a`
+**Batch Control:** SMS Batch Control field implemented for staged processing
+**Enhanced Audit:** Complete audit trail with Kajabi tagging capability
 
 ## Overview
 
@@ -24,23 +26,36 @@ The UYSP SMS Scheduler v2 is a comprehensive automated SMS outreach system with 
 
 ### Phase 1: Lead Preparation
 1. **Manual Trigger** / **Schedule** → Initiates workflow
-2. **List Due Leads** → Queries Airtable for eligible leads
+2. **List Due Leads** → Queries Airtable for eligible leads with batch control filter
 3. **Get Settings** → Retrieves campaign settings and A/B testing ratios
 4. **List Templates** → Gets SMS message templates
 5. **Prepare Text (A/B)** → Generates personalized messages with A/B testing
+
+**Batch Control Logic:**
+- **Filter:** `OR(AND({Processing Status}='Ready for SMS',{SMS Batch Control}='Active'),{Processing Status}='In Sequence')`
+- **Purpose:** Allows manual control of lead batches for staged processing
+- **Usage:** Set `SMS Batch Control` to "Active" for leads to process immediately
 
 ### Phase 2: Click Tracking Setup
 6. **Generate Alias** → Creates unique 6-character aliases for tracking
 7. **Create Short Link (Switchy)** → Creates trackable links via Switchy.io REST API
 8. **Save Short Link** → Stores link IDs and URLs in Airtable
 
-### Phase 3: Message Delivery
-9. **Update ST Contact** → Adds contacts to SimpleTexting with campaign tags
+### Phase 3: Message Delivery & Audit
+9. **Update ST Contact** → Adds contacts to SimpleTexting with dynamic campaign tags
 10. **SimpleTexting HTTP** → Sends SMS with unique tracking links
 11. **Parse SMS Response** → Processes delivery status
 12. **Airtable Update** → Updates lead status and sequence position
-13. **Audit Sent** → Logs send attempts
+13. **Audit Sent** → Enhanced audit logging with complete lead details
 14. **SMS Test Notify** → Slack notification
+
+**Enhanced Audit Trail:**
+- **Campaign ID:** Dynamic campaign tracking per lead
+- **Contact Details:** Email, First Name, Last Name, Company Domain
+- **Message Content:** Full SMS text and tracking links
+- **Send Status:** Success/failure with error details
+- **Message Count:** Total messages sent to each phone number
+- **Kajabi Ready:** All data needed for retrospective Kajabi tagging
 
 ## Node Configurations
 
@@ -133,6 +148,35 @@ return items.map((it) => {
 ```
 
 **Key Feature:** The text expression replaces the fallback URL (`https://hi.switchy.io/UYSP`) with the unique tracking URL, preserving the full message content.
+
+#### 6. Audit Sent - Enhanced Audit Trail
+**Purpose:** Complete audit logging for Kajabi tagging and compliance  
+**Operation:** Create  
+**Table:** `SMS_Audit` (`tbl5TOGNGdWXTjhzP`)
+
+**Enhanced Field Mapping:**
+```json
+{
+  "Event": "Send Attempt",
+  "Campaign ID": "={{$items('Parse SMS Response', 0)[$itemIndex].json.campaign_id || ''}}",
+  "Phone": "={{$items('Parse SMS Response', 0)[$itemIndex].json.phone_digits || ''}}",
+  "Status": "={{$items('Parse SMS Response', 0)[$itemIndex].json.sms_status || ''}}",
+  "Lead Record ID": "={{$items('Parse SMS Response', 0)[$itemIndex].json.id || ''}}",
+  "Text": "={{$items('Parse SMS Response', 0)[$itemIndex].json.text || ''}}",
+  "Email": "={{$items('Parse SMS Response', 0)[$itemIndex].json.email || ''}}",
+  "First Name": "={{$items('Parse SMS Response', 0)[$itemIndex].json.first_name || ''}}",
+  "Last Name": "={{$items('Parse SMS Response', 0)[$itemIndex].json.last_name || ''}}",
+  "Company Domain": "={{$items('Parse SMS Response', 0)[$itemIndex].json.company_domain || ''}}",
+  "Total Messages To Phone": "={{$items('Parse SMS Response', 0)[$itemIndex].json.next_count || 1}}",
+  "Sent At": "={{$now}}"
+}
+```
+
+**Kajabi Tagging Capability:**
+- **Email Address:** Captured for retrospective Kajabi contact tagging
+- **Campaign ID:** Allows filtering by specific campaigns
+- **Complete Contact Info:** Full lead details for identification
+- **Send Verification:** Confirmed delivery status for accuracy
 
 ## Click Tracking System
 

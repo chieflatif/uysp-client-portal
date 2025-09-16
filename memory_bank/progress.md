@@ -112,6 +112,10 @@ Remaining: 3 critical bug fixes
 - Lessons: Don't waste time "fixing" normal security behaviors
 
 ## Progress Log
+2025-09-11: Scheduler v2 stabilized; Airtable partial‑edit rule codified
+- Updated `UYSP-SMS-Scheduler-v2` (`UAZWVFzMrJaVbvGM`): fixed shortlink save path and id mapping to upstream item; removed validator errors in Switchy title; ensured `SimpleTexting HTTP` body prioritizes short link and includes `campaignId`/`contactPhone`.
+- Added §16e Airtable Partial‑Edit Protocol to `.cursorrules/00-CRITICAL-ALWAYS.md` (allowed keys only, credentials untouched).
+- Docs updated: `active_context.md` and `SESSION-GUIDE.md` with status and rule addendum.
 2025-09-05: Final SMS Scheduler Fixes Deployed
 - Created new, clean SMS scheduler workflow (`UAZWVFzMrJaVbvGM`) to resolve persistent update issues.
 - Permanently disabled all link-rewriting logic to ensure direct Calendly links are sent.

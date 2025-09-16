@@ -1,75 +1,104 @@
-# SOP: Integration - Clay.com
+# SOP: Integration – Clay.com (Authoritative v2)
 
-## 1. Executive Summary
+## 1) What this does (plain English)
+- Enrich the person first (primary provider), then backfill with Dropcontact if anything is missing.
+- Create “Consolidated” fields so we never overwrite good data.
+- Write the consolidated domain to the companies table to trigger company enrichment.
+- Add a tiny lookup (“Company Ready”) so company lookups only run after enrichment finishes.
+- Write back one field to Airtable: `Enrichment Outcome` = Success / No Match.
 
-- **Purpose**: Clay.com is the primary data enrichment and company deduplication engine for the UYSP lead qualification system. It takes raw lead data (first name, last name, email) and transforms it into a fully enriched profile, providing the essential components needed for ICP scoring in Airtable.
-- **Scope**: This SOP covers the end-to-end process of how a lead is processed by Clay, what data it provides, and how to monitor its performance.
-- **Owner**: System Architect
+## 2) Source
+- Table: your Clay table (Raw Leads – v2 (Authoritative)).
+- Leftmost column is the Airtable source pulling: First Name, Last Name, Email, Phone, Processing Status, HRQ Status, etc.
 
-## 2. System Map
+## 3) Left-to-right flow (exact UI labels)
 
-```mermaid
-graph TD
-    A[Airtable: Leads Table<br/>(View: Clay Queue)] --> B(Clay.com: Monitored Table);
-    B --> C{1. Find or Enrich Company};
-    C --> D(Airtable: Companies Table);
-    B --> E{2. Enrich Person};
-    E --> F{3. Assemble Scoring Components};
-    F --> G(Airtable: Leads Table);
-```
+### A. Normalize + validate phone
+- Keep your existing phone normalization and validation columns at the start.
 
-## 3. The Clay Enrichment Waterfall (Step-by-Step)
+### B. Person enrichment (primary)
+- Click + Add column → Add Enrichment → select your primary Person enrichment.
+- Inputs: Email, First Name, Last Name (Company if available).
+- Keep outputs you use: Job Title, LinkedIn URL – Person, Location Country, Organization (Company), Primary Domain.
 
-The entire process is designed as a "waterfall" — a series of sequential enrichment steps. A lead must pass through each step. This process is semi-automated; Clay ingests new leads automatically but typically requires a user to click **"Run all"** within the Clay table to process the queue.
+### C. Person enrichment (Dropcontact backfill)
+- + Add column → Add Enrichment → Dropcontact (Person).
+- Run settings → Only run if → any of these are empty:
+  - Job Title OR LinkedIn URL – Person OR Company OR Primary Domain OR Country
+- Keep outputs that fill gaps only.
 
-### **Step 1: Ingestion from Airtable**
+### D. Person enrichment (final pass) – optional
+- A third enrichment using whatever fields you now have (title / company / domain / country) to improve matches.
 
-- **What's Happening**: Clay is configured to constantly monitor the `[Leads] Clay Queue` view in the Airtable `Leads` table. Any lead appearing in this view is automatically pulled into the Clay "⚡️ Enrich your data from Airtable" table.
-- **Key Fields**: Clay initially only pulls the `First Name`, `Last Name`, and `Email`.
+### E. Consolidated fields (prefer primary, else Dropcontact)
+- + Add column → Formula.
+- Create 5 formula columns:
+  - Consolidated Job Title
+  - Consolidated Company
+  - Consolidated Domain
+  - Consolidated LinkedIn URL – Person
+  - Consolidated Country
+- Rule for each: use your primary provider’s value; if empty, use Dropcontact’s. Insert field tokens via the picker (do not type names).
 
-### **Step 2: Company Deduplication & Enrichment**
+### F. Write company domain to companies table
+- + Add column → Add Enrichment → Airtable → Create/Update (your companies table, e.g., “companies to enrich”).
+- Map the domain field using `Consolidated Domain`.
+- Run settings → Only run if → `Consolidated Domain` is not empty (insert as token chip).
+- Enable de-duplication if available.
 
-- **What's Happening**: This is the first and most critical enrichment step. Clay uses the lead's email domain to identify the company.
-- **Logic**:
-    1.  Clay takes the domain (e.g., from `john.doe@acme.com`, it gets `acme.com`).
-    2.  It then runs a "Find Record" action against our Airtable `Companies` table, searching for a record with a matching `Domain`.
-    3.  **If a match is found**: Clay links the incoming lead to the existing company record. No new company data is needed.
-    4.  **If no match is found**: Clay triggers a "waterfall" of company enrichment providers (e.g., Apollo, Clearbit) to find the company's official name, description, industry, etc. It then **creates a new record** in our `Companies` table and links the lead to it.
-- **Outcome**: Every lead is guaranteed to be associated with a single, deduplicated company record.
+## 4) Company enrichment and safe lookup back
 
-### **Step 3: Person Enrichment**
+### G. Company Ready (tiny lookup to prevent early runs)
+- + Add column → Lookup Multiple Rows in Other Table.
+- Table to Search: your companies table (e.g., companies to enrich).
+- Target Column: the domain field used for matching (e.g., company_domain / primary_domain).
+- Filter Operator: Equals.
+- Row Value: insert `Consolidated Domain` (use the token chip; do not type).
+- Limit: On → 1.
+- Fields to return: `company_type` (only).
+- Column name: Company Ready.
+- Run settings: Auto-update On.
 
-- **What's Happening**: Once the company is identified, Clay focuses on enriching the individual lead.
-- **Logic**: It uses the person's name and company to find their LinkedIn profile, verified job title, and location (country). This is also a waterfall, trying multiple data sources if the first one fails.
+### H. Main company lookup (returns all company fields)
+- Open your existing “Lookup Multiple Rows in Other Table” that pulls company fields (e.g., Company Type, Company Description, Company LinkedIn, Industry, Company Score).
+- Click the gear icon (Run settings) → turn on “Only run if”.
+- Condition: `Company Ready` is not empty.
+- Auto-update: On → Save.
+- Optional: “Run on all rows” once to hydrate rows whose companies already finished enriching.
 
-### **Step 4: Data Assembly & Scoring Components**
+## 5) Outcome + Airtable write-back
 
-- **What's Happening**: This is where Clay prepares the data for our ICP score. **Crucially, Clay does not calculate the final score.** It provides the *raw ingredients* for the score.
-- **Logic**:
-    - **Role Score**: Clay uses a GPT-4 integration to analyze the lead's `Job Title` and classify their seniority (e.g., "Decision Maker", "Influencer", "Practitioner"). This classification is written to a field.
-    - **Company Score**: Clay uses another GPT-4 integration to analyze the `Company Description` and `Industry` to classify the company type (e.g., "B2B SaaS").
-    - **Location**: The `Location Country` is passed through directly.
-- **Outcome**: Clay assembles the three key components of our ICP score: Role, Company Type, and Location.
+### I. Outcome (Success / No Match)
+- + Add column → Formula.
+- Use your working rule that depends on company results (insert tokens via picker):
+  - If Company Type OR Company Score is missing → `No Match`, else `Success`.
 
-### **Step 5: Write Back to Airtable**
+### J. Airtable write-back (single field)
+- + Add column → Add Enrichment → Airtable → Update record (or Create/Update if you upsert).
+- Merge key: Record ID (preferred) or Email.
+- Fields to update: `Enrichment Outcome` = {{Outcome}} (insert as a token chip; do not type braces).
 
-- **What's Happening**: Once all enrichment and assembly steps are complete, Clay writes the data back to the original lead record and the associated company record in Airtable.
-- **Key Fields Written**:
-    - **To `Leads` Table**: `Job Title`, `Linkedin URL - Person`, `Location Country`, `Role Score Component`, `Company Score Component`.
-    - **To `Companies` Table** (if new): `Company Name`, `Industry`, `Company Description`, etc.
+## 6) Airtable expectations
+- `Enrichment Outcome` is a Single select with options exactly: `Success`, `No Match` (and `Error` only if you use it).
+- Your “Clay Queue” view in Airtable should filter by `Enrichment Outcome is empty` (not by an enrichment timestamp).
+- If you want a timestamp, use a `Last modified time` field watching `Enrichment Outcome`, or a simple automation when it changes.
 
-## 4. Maintenance & Troubleshooting
+## 7) Troubleshooting (quick checks)
+- Lookup returns nothing:
+  - Click “Refresh fields”, re-select “Table to Search” and “Target Column”, and make sure “Row Value” is the Consolidated Domain token chip (not typed text). Keep `Limit: 1`, `Auto-update: On`.
+- Companies table has blank rows and blank enrichments:
+  - Ensure the Create/Update column has Run settings → Only run if `Consolidated Domain` is not empty.
+  - One-time cleanup in Airtable: create a view filtering domain is empty → select all → delete.
+- Airtable shows `{{Success}}` as an option:
+  - You typed `{{Outcome}}` instead of inserting the token chip. Clear it and re-insert the token. Rename any literal options to `Success` / `No Match`.
+- Dropcontact runs for everyone:
+  - Open its column → Run settings → “Only run if” missing fields (title / LinkedIn / company / domain / country).
 
-- **Symptom**: Leads are in the `Clay Queue` in Airtable but not showing up in Clay.
-    - **Likely Cause**: The link between the Airtable view and the Clay table is broken or paused.
-    - **Solution**: In Clay, click the source settings for the table and refresh the connection to Airtable. Ensure it's pointing to the correct Base, Table, and View.
-- **Symptom**: Enrichment is failing for many leads.
-    - **Likely Cause**: One of the enrichment provider integrations (e.g., Apollo) may have an issue with its API key, or you may have run out of credits.
-    - **Solution**: Open the Clay table and look at the `Run History`. Find a failed run and click on it. Clay will show you exactly which column (which enrichment step) failed and provide an error message. This is the most effective way to diagnose issues.
-- **Symptom**: The ICP Score in Airtable is not updating even though Clay has run.
-    - **Likely Cause**: This is an issue in **Airtable**, not Clay. Clay's job is only to provide the components. If the components are present on the lead record but the score is wrong, the `ICP Score` formula field in the Airtable `Leads` table needs to be checked.
-
-## 5. Related SOPs & System Documents
-
-- **SOPs**: `SOP-Airtable-Leads-Table.md`, `SOP-Airtable-Companies-Table.md`
-- **Architecture**: `docs/architecture/AIRTABLE-SCHEMA.md`
+## 8) Done-when checklist
+- Person enrichment runs first; Dropcontact only fills blanks.
+- Consolidated Job Title / Company / Domain / LinkedIn / Country exist.
+- Consolidated Domain is written to companies table (Only run if not empty).
+- `Company Ready` returns `company_type`.
+- Main company lookup has “Only run if `Company Ready` is not empty”.
+- Outcome writes back to Airtable via a token (no literal braces).
+- Airtable views/automations key off `Enrichment Outcome` (not an enrichment timestamp).

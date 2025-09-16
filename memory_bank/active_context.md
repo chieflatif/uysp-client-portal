@@ -2,7 +2,7 @@
 
 **Session Status**: ✅ **ACTIVE**
 **Branch**: `feature/clay-sms-integration`
-**Date**: 2025-08-30
+**Date**: 2025-09-11
 
 ---
 
@@ -21,6 +21,19 @@
  - Enrichment: Clay is the enrichment provider of record. Clay writes back enrichment data (e.g., company/person fields).
  - **Enrichment Timestamp**: This is set by an Airtable Automation, not Clay. This is the intended permanent solution to keep logic within Airtable. The automation triggers when enrichment fields like `Job Title` or `Linkedin URL - Person` are populated.
 
+### 2025-09-11 Update — Scheduler v2 Stabilization
+- Workflow `UYSP-SMS-Scheduler-v2` (`UAZWVFzMrJaVbvGM`) updated and validated.
+- Shortlink path fixed and persisted:
+  - `Save Short Link v3` (Airtable) now matches on the direct upstream item id to avoid "No path back":
+    - id (using to match): `={{ $items('Generate Alias',0)[$itemIndex].json.id }}`
+  - Fields:
+    - `Short Link ID`: `={{ $items('Generate Alias',0)[$itemIndex].json.alias_candidate || $items('Create Short Link (Switchy)',0)[$itemIndex].json.id || $json.short_link_id || '' }}`
+    - `Short Link URL`: `={{ $items('Create Short Link (Switchy)',0)[$itemIndex].json.shortUrl || ('https://hi.switchy.io/' + ($items('Generate Alias',0)[$itemIndex].json.alias_candidate || '')) || $json.short_link_url || '' }}`
+- `SimpleTexting HTTP` JSON body prioritizes: saved short link → Switchy response → alias URL → prepared text; `campaignId` and `contactPhone` are explicitly set.
+- Switchy link title simplified to a single expression to remove nested-expression validator errors.
+- Rules codified: `.cursorrules/00-CRITICAL-ALWAYS.md` section 16e adds the Airtable Partial‑Edit Protocol (allowed keys: `operation/base/table/columns.*/matchingColumns/options.typecast`; never touch `credentials` or replace entire `parameters`).
+- Outstanding validator items (non-blocking): simplify Slack `SMS Test Notify` text to a single expression.
+
 ---
 
 ## 📌 Decisions
@@ -37,7 +50,7 @@
 
 - **3-Step Sequence**: ✅ COMPLETE - Executions 2967/2976/2980. Full A/B sequence Ryan+Chris, Position 0→1→2→3, Status "Completed"  
 - **STOP Processing**: ✅ COMPLETE - Executions 2989/2990. Real SMS STOP replies processed, leads marked stopped
-- **Calendly Integration**: ✅ COMPLETE - Execution 2965. Booking webhook sets Booked=true, stops sequences
+- **Calendly Integration**: ✅ COMPLETE - Execution 2965. Booking webhook sets Booked=true, stops sequences. Matching upgraded to email OR phone (digits-only) to handle alternate booking emails.
 - **Delivery Tracking**: ✅ COMPLETE - Real SimpleTexting delivery webhooks updating Status=Delivered
 - **Business Continuity**: ✅ PROVEN - System resumes sequences correctly after stop/restart
 

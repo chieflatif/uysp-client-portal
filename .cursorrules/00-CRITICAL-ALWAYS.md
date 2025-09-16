@@ -334,7 +334,7 @@ After EVERY component:
 - Never update or overwrite node `credentials` via bulk/API edits. Re‑select in UI (especially OAuth) to avoid silent detachment.
 - Never replace whole `parameters` objects on credentialed nodes (Airtable, HTTP, Slack). Update only the specific keys required (e.g., `jsonBody.text`), leaving auth/URL untouched.
 - HTTP nodes: keep `method=POST` and the full `url` explicitly set; bulk edits can clear the URL field. Verify visually after each change.
-- Airtable v2 (Cloud): use Resource=Record + Operation=Search for lists; do not toggle resource/operation through code on existing nodes or credentials may drop [[memory:7536884]].
+- Airtable v2 (Cloud): preferred UI selection for lists is Resource=Record + Operation=Search. When repairing an existing Airtable node via partial update, it is ALLOWED to set only these keys programmatically: `parameters.operation`, `parameters.base`, `parameters.table`, `parameters.columns.*`, `parameters.columns.matchingColumns`, and `parameters.options.typecast` — provided `credentials` are untouched and `parameters.resource` remains `'record'`. Do NOT replace entire `parameters` objects.
 - CRITICAL GOTCHA (n8n Cloud): Bulk/API updates to credentialed nodes (HTTP/Airtable/Slack) can clear credentials and URLs if entire parameter blocks are replaced. Only update specific keys (e.g., `jsonBody.text`). Never modify `credentials`, `resource`, `operation`, or `url` via API on existing nodes.
 - After ANY workflow update: immediately verify these nodes still show credentials in UI:
   - `SimpleTexting HTTP` (httpHeaderAuth)
@@ -342,3 +342,41 @@ After EVERY component:
   - `SMS Test Notify` (Slack OAuth)
 - If any auth/URL is missing, STOP. Rebind creds in UI, re‑run Manual Trigger, then commit a snapshot.
 - Evidence gate: include workflow ID, execution ID, and a screenshot/JSON confirming auth+URL fields before declaring success.
+
+### Save‑and‑Reopen Persistence Check (MANDATORY)
+- After ANY node or workflow edit (of any type):
+  1) Click Save.
+  2) Close the node panel.
+  3) Hard refresh the editor (Cmd+Shift+R) and reopen the workflow.
+  4) Reopen the edited node and visually confirm all parameters, expressions, URL, and authentication are still present.
+  5) Only then report the change as applied. If anything reverted, re‑apply in the UI (do NOT rely on API diffs) and repeat steps 1‑4.
+- For credentialed nodes (HTTP/Airtable/Slack): also Execute step with a safe test item and attach the raw response (or headers) as persistence evidence.
+
+### 16b. Credentialed Node Edit Playbook (MANDATORY ORDER)
+- Default (preferred): In‑place partial edits of existing node parameters. Never touch `credentials`, `authentication`, `resource`, `operation` (except the Airtable allowance below), or `url`. Update only specific leaf keys (e.g., `parameters.columns.value.*`, `parameters.columns.matchingColumns`, `parameters.options.typecast`, `parameters.jsonBody.text`).
+- Fallback (UI‑only): If an in‑place partial edit is not possible or causes auth/URL loss, open the node UI, re‑select credentials, re‑apply only the changed fields, Save, close, hard refresh, and re‑open to verify.
+- Last resort (new node): Create a NEW node only when changing auth type, changing `resource`/`operation` semantics, or when the node is corrupted. Bind creds in UI, copy only required parameters/expressions, wire in parallel, test, then disable the old.
+- JSON body edits: add/update only the specific keys (`jsonBody.text`, `jsonBody.campaignId`, etc.). Never replace the whole body object.
+- Evidence: include workflow ID and node name, the exact keys changed, and a post‑refresh UI verification.
+
+### 16c. Airtable Update Mapping Checklist (Cloud v2)
+- Resource=Record, Operation=Update.
+- Base: app ID (e.g., `app6cU9HecxLpgT0P`). Table: by list (`tbl...`).
+- Record selector: `Record ID` expression must resolve from an upstream connected node.
+- Fields mapping: use “Define below” → set only fields to update.
+- Always set `matchingColumns: ["id"]`. Enable `Typecast: true`.
+
+### 16d. Expression Path Rule
+- Avoid red "No path back to node" by referencing items from a directly connected upstream node: use `$items('<Upstream>',0)[$itemIndex].json.field` or when already in the stream, prefer `$json.field`.
+- If uncertain, add a bridging Code node to pass through required fields explicitly.
+
+### 16e. Airtable Partial‑Edit Protocol (Cloud v2)
+- Scope of allowed programmatic changes on existing Airtable nodes:
+  - `parameters.operation` (e.g., ensure `update`, no resource change)
+  - `parameters.base` (mode=id + app ID)
+  - `parameters.table` (mode=list + tbl ID)
+  - `parameters.columns.value.*` (field mappings only)
+  - `parameters.columns.matchingColumns` (e.g., `["id"]`)
+  - `parameters.options.typecast` (e.g., `true`)
+- Forbidden: modifying `credentials`, replacing entire `parameters`, changing `parameters.resource` away from `record`, or clearing the node `url` on HTTP nodes.
+- Post‑edit: perform Save‑and‑Reopen Persistence Check and execute a safe test item to confirm mappings persist.

@@ -3,7 +3,7 @@
 ## Requirements
 - 10DLC number configured
 - API Key available
-- Drip campaign (3 messages) created
+  
 
 ## API – Base & Endpoints (v2)
 Base: `https://api-app2.simpletexting.com/v2/api`
@@ -45,7 +45,6 @@ Body example (single send):
 - ID: `{{$json.id}}`
 - Map only writable fields:
   - `SMS Status`
-  - `SMS Campaign ID`
   - `SMS Cost`
   - `SMS Last Sent At` = `{{$now}}`
   - `SMS Sent Count` = `{{($json.fields['SMS Sent Count'] || 0) + 1}}`
@@ -61,8 +60,17 @@ if ($input.first().statusCode !== 200) {
 if (res.status === 'partial_success' && res.failed_numbers?.length) {
   return [{ json: { sms_status: 'Partial', failed_details: res.failed_numbers, retry_needed: true } }];
 }
-return [{ json: { sms_status: 'Sent', campaign_id: res.campaign_id } }];
+return [{ json: { sms_status: 'Sent' } }];
 ```
+
+## Contact Note marker (Segmentation in SimpleTexting UI)
+
+- Before sends, update the contact via: `PUT https://api-app2.simpletexting.com/v2/api/contacts/{phone}?upsert=true&listsReplacement=false`
+- Body example:
+```json
+{ "contactPhone": "14155550123", "comment": "[uysp:ai_webinar_bdr_2025q3]" }
+```
+- Create a Segment in the ST UI with: Segment is based on "All contacts" and condition "Note contains uysp:ai_webinar_bdr_2025q3".
 
 ## Webhooks (current endpoints)
 - Delivery (POST): `/webhook/simpletexting-delivery`

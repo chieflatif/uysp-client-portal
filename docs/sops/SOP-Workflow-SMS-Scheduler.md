@@ -1,7 +1,7 @@
 # SOP: UYSP SMS Scheduler Workflow
 
 ## 1. Executive Summary
-- **Workflow Name**: `UYSP-SMS-Scheduler-CLEAN`
+- **Workflow Name**: `UYSP-SMS-Scheduler-v2`
 - **ID**: `UAZWVFzMrJaVbvGM`
 - **Purpose**: This is the core engine for all outbound SMS communications. It runs automatically, finds leads who are ready to receive a text, selects the correct message template for their step in the sequence, and sends it via SimpleTexting. It then logs a complete audit trail of every action in Airtable and sends a notification to Slack.
 - **Trigger**: Runs automatically every hour during business hours (9 AM - 5 PM ET, Mon-Fri) via a Cron trigger, and can also be run manually for testing.
@@ -65,7 +65,7 @@ This workflow executes in a precise, linear sequence to ensure data integrity an
 ### **Nodes: Get Settings & List Templates**
 - **Action**: Fetches all records from the `Settings` and `SMS_Templates` tables in Airtable.
 - **Business Logic**: This provides the critical configuration for the run:
-    - From `Settings`: It gets the `Active Campaign` name for reporting and the `Fast Mode` toggle for testing.
+    - From `Settings`: It gets the `Fast Mode` toggle for testing.
     - From `SMS_Templates`: It gets the actual message body, A/B variant, and delay timing for each step of the sequence.
 
 ### **Node: Prepare Text (A/B)**
@@ -75,15 +75,15 @@ This workflow executes in a precise, linear sequence to ensure data integrity an
     2.  **Template Selection**: It finds the correct template for the lead's `SMS Variant` (A/B) and their `nextStep`.
     3.  **Personalization**: It replaces `{Name}` in the template body with the lead's first name.
     4.  **Direct Link Guarantee**: This node **does not** perform any link rewriting. It uses the exact text from the template, ensuring the direct Calendly link is preserved.
-    5.  **Campaign Assignment**: It sets the `campaign_id` that will be used for logging in Airtable and Slack, sourcing it from the template first, then falling back to the `Active Campaign` in Settings.
+    5.  **Segmentation Marker**: No campaign assignment. Contacts are marked in SimpleTexting by appending a Note token (e.g., `[uysp:ai_webinar_bdr_2025q3]`) prior to sending.
 
 ### **Nodes: Update ST Contact & SimpleTexting HTTP**
-- **Action**: First, it creates or updates a contact in SimpleTexting with the lead's name and phone number, assigning them to a list and tag. Then, it sends the prepared message.
-- **Business Logic**: This ensures that contacts exist and are properly organized in the SimpleTexting UI for manual review, and then sends the message.
+- **Action**: First, it upserts the SimpleTexting contact and appends the Note token via `PUT /v2/api/contacts/{phone}` with `{comment}`. Then, it sends the prepared message via `POST /v2/api/messages`.
+- **Business Logic**: Ensures contacts are marked for UI segmentation. No lists/tags or UI Campaigns are used.
 
 ### **Node: Parse SMS Response**
 - **Action**: Processes the success or failure response from the SimpleTexting API.
-- **Business Logic**: It sets the `sms_status` to "Sent" or "Failed" and carries forward all the prepared data (like `campaign_id`) for the next steps.
+- **Business Logic**: Sets `sms_status` and downstream counters/timestamps. No campaign identifiers are propagated.
 
 ### **Node: Airtable Update**
 - **Action**: Updates the original lead record in the `Leads` table.
@@ -96,11 +96,11 @@ This workflow executes in a precise, linear sequence to ensure data integrity an
 
 ### **Node: Audit Sent**
 - **Action**: Creates a new record in the `SMS_Audit` table.
-- **Business Logic**: This provides a permanent, unchangeable log of every single message sent. It records the lead ID, phone number, the exact text sent, the campaign name, and a timestamp.
+- **Business Logic**: Logs lead ID, phone number, text, and timestamp. No campaign field is written.
 
 ### **Node: SMS Test Notify**
 - **Action**: Posts a message to a designated Slack channel.
-- **Business Logic**: Provides real-time visibility into the outbound sending activity. The message now correctly includes the **Status** and **Campaign Name** for clear reporting.
+- **Business Logic**: Provides real-time visibility (status, identity). No campaign content.
 
 ---
 
@@ -111,4 +111,9 @@ This workflow executes in a precise, linear sequence to ensure data integrity an
     2. Check the `SMS Last Sent At` field for the leads. Has enough time passed for the next step?
     3. Check the execution log in n8n for this workflow. The error will usually be in the "SimpleTexting HTTP" node if it's a provider issue, or "Prepare Text (A/B)" if there's a data problem.
 - **If Slack/Audit is Wrong**: The issue is likely in the `Parse SMS Response` node, where the data for later steps is prepared.
+
+### Dependency: Calendly Bookings
+- Booking updates are applied by `UYSP-Calendly-Booked` (POST `/webhook/calendly`). Subscription is active via Calendly API (org‑scoped).
+- Matching logic: Email OR normalized phone digits (digits-only comparison against Airtable `{Phone}`) to handle alternate booking emails.
+- Expected fields updated on booking: `Booked` = true, `Booked At` set, `SMS Stop` = true, `SMS Stop Reason` = BOOKED, `Processing Status` = Completed.
 

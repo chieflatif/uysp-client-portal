@@ -32,4 +32,7 @@ return [{ json: { sms_status: 'Sent', campaign_id: res.campaign_id } }];
 ```
 
 Minimal set (current):
-- UYSP-SMS-Scheduler, UYSP-ST-Delivery V2, UYSP-SMS-Inbound-STOP, UYSP-Calendly-Booked, UYSP-Daily-Monitoring
+- UYSP-SMS-Scheduler, UYSP-ST-Delivery V2, UYSP-SMS-Inbound-STOP, UYSP-Calendly-Booked (email OR phone match), UYSP-Daily-Monitoring
+
+Note:
+- UYSP-Calendly-Booked now matches leads by email OR normalized phone digits from the Calendly payload to handle alternate booking emails.

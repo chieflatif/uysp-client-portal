@@ -58,14 +58,41 @@ This section details every critical field, explaining its purpose, who sets its 
 
 ### **Group: Enrichment & Scoring (Data from Clay & Airtable Formulas)**
 - **`Job Title`**, **`Linkedin URL - Person`**, **`Location Country`**, **`Company Type`**, etc.: These fields are populated exclusively by the **Clay.com** enrichment process.
-- **`Enrichment Timestamp`**: Set by a dedicated **Airtable Automation** that triggers when Clay populates fields like `Job Title`. This is the official timestamp marking the completion of enrichment.
+- **`Enrichment Attempted At`**: Last modified time that watches `Enrichment Outcome`. Replaces the legacy `Enrichment Timestamp`.
 - **`ICP Score`**: A formula field that calculates the lead's score (0-100) based on the component scores. It is the sum of the four component fields plus a bonus.
 - **`Company Score Component`**, **`Role Score Component`**, etc.: These numeric fields are set by Clay and represent the score for each individual aspect of the ICP model.
-- **`SMS Eligible`**: **(CRITICAL)** A formula-driven checkbox that acts as the final gate before a lead can be sent an SMS. The logic is:
-    - Phone must be valid, AND
-    - ICP Score must be >= 70, AND
-    - Location must be United States, AND
-    - Lead must not be in the "Archive" HRQ Status.
+- **`SMS Eligible`**: **(CRITICAL)** A formula-driven checkbox that acts as the final gate before a lead can be sent an SMS. Current logic (case-insensitive where applicable):
+    - Phone must be valid (`Phone Valid`)
+    - Country is United States or Canada
+    - `HRQ Status` is not `Archive`
+    - `Current Coaching Client` is unchecked
+    - `SMS Stop` is unchecked
+    - `Booked` is unchecked
+  This matches the live formula in the base and removes ICP gating.
+
+### **Group: Membership Detection (Current Clients)**
+- **`Current Coaching Client`**: Checkbox set by a formula that flags active members based on the text found in `Kajabi Tags` (case-insensitive). When this is true, the lead is excluded from SMS via the `SMS Eligible` gate.
+  - Tags treated as “current member” (12 total):
+    - Bronze Annual
+    - Bronze Split Pay
+    - Silver (3 Payment Plan)
+    - Silver (2 Payment plan)
+    - Silver Annual
+    - Silver Monthly
+    - Gold (3 Payment Plan)
+    - Gold Annual
+    - Gold Monthly
+    - Platinum (3 Payment Plan)
+    - Platinum Annual
+    - Platinum Monthly
+  - Reference formula pattern used (lowercased match):
+    ``
+    REGEX_MATCH(
+      LOWER({Kajabi Tags}),
+      "(bronze annual|bronze split pay|silver \\(.?3 payment plan\\)|silver \\(.?2 payment plan\\)|silver annual|silver monthly|gold \\(.?3 payment plan\\)|gold annual|gold monthly|platinum \\(.?3 payment plan\\)|platinum annual|platinum monthly)"
+    )
+    ``
+    Use the exact tag strings above; keep this list in sync with Kajabi.
 
 ### **Group: Human Review Queue (HRQ)**
 - **`HRQ Status`**: Controls whether a lead needs manual attention.
@@ -77,11 +104,11 @@ This section details every critical field, explaining its purpose, who sets its 
 
 ### **Group: SMS Outreach Tracking**
 - **`SMS Status`**: Tracks the status of the *last sent* SMS message (e.g., "Sent", "Delivered"). Set by the SMS Scheduler and Delivery Webhook workflows.
-- **`SMS Campaign ID`**: The name of the campaign the lead is a part of. Set by the SMS Scheduler.
 - **`SMS Sequence Position`**: The current step the lead is on in the sequence (0, 1, 2, or 3). Incremented by the SMS Scheduler.
 - **`SMS Sent Count`**: A running total of messages sent to the lead. Incremented by the SMS Scheduler.
 - **`SMS Last Sent At`**: A timestamp of when the last message was sent. Used by the scheduler to calculate delays.
 - **`SMS Stop` & `SMS Stop Reason`**: A checkbox and text field set by the STOP and Calendly webhooks to permanently halt messaging to a lead.
+ - **`Short Link ID` / `Short Link URL` / `Click Count` / `Clicked Link`**: Per‑lead Switchy tracking used by the Click Tracker workflow. The scheduler creates a short link if missing and uses it in SMS.
 
 ---
 

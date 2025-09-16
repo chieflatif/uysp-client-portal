@@ -34,11 +34,11 @@ graph TD
 
 2.  **`Parse Delivery`**
     - **Purpose**: To extract and standardize the key pieces of information from the webhook's JSON payload.
-    - **Details**: A Code node that pulls out the `messageId` (renamed to `campaign_id`), the recipient's phone number (`phone_digits`), the `carrier`, and determines the `delivery_status` ("Delivered" or "Undelivered"). This standardization simplifies the logic for all subsequent nodes.
+    - **Details**: A Code node that pulls out the recipient's phone number (`phone_digits`), the `carrier`, and determines the `delivery_status` ("Delivered" or "Undelivered"). No campaign identifier is parsed.
 
-3.  **`Find Lead (by Campaign/Phone)`**
+3.  **`Find Lead (by Phone)`**
     - **Purpose**: Locates the correct lead record in the `Leads` table that corresponds to the delivery receipt.
-    - **Details**: An Airtable node that searches the `Leads` table. It uses a formula to find a record where the `SMS Campaign ID` matches the incoming `campaign_id` OR the `Phone` number matches the incoming `phone_digits`. This dual-check is a robust way to find the correct lead even if one field is momentarily out of sync.
+    - **Details**: An Airtable node that searches by normalized phone only (digits or `+1` digits). Campaign fields are no longer used.
 
 4.  **`Update Lead Delivery`**
     - **Purpose**: Updates the `SMS Status` field on the lead's record in Airtable.
@@ -46,7 +46,7 @@ graph TD
 
 5.  **`Write Audit Row`**
     - **Purpose**: Creates a definitive log of the delivery event in the `SMS_Audit` table.
-    - **Details**: An Airtable "Create" node. It creates a new row in `SMS_Audit`, logging the `Campaign ID`, `Phone`, final `Status`, `Carrier`, the associated `Lead Record ID`, and the exact time of delivery. This provides an immutable record for reporting and troubleshooting.
+    - **Details**: Logs `Phone`, final `Status`, `Carrier`, `Lead Record ID`, and timestamp. No campaign fields are written.
 
 6.  **`If (Failed)`**
     - **Purpose**: Checks if the message was *not* successfully delivered.

@@ -35,11 +35,13 @@ graph TD
 - **Action**: This is the core intelligence of the ingestion process. It applies a series of business rules to each individual lead.
 - **Business Logic**:
     1.  **Email & Phone Sanitization**: Cleans and standardizes email addresses (lowercase, trimmed whitespace) and phone numbers (converts to E.164 format, e.g., +15551234567).
-    2.  **Personal Email Check**: It checks the lead's email domain against a list of common personal email providers (gmail.com, yahoo.com, etc.).
-        - **If Personal**: It sets `HRQ Status` to `Archive` and `Processing Status` to `Backlog`, effectively removing the lead from the active funnel immediately.
-    3.  **Invalid Email Check**: It validates the email format.
-        - **If Invalid**: It also sets `HRQ Status` to `Archive` and `Processing Status` to `Backlog`.
-    4.  **Default State**: For all other valid leads, it sets `HRQ Status` to `Qualified` and `Processing Status` to `Queued`, making them available for the Clay enrichment process.
+    2.  **Personal/Invalid Email → Archive**:
+        - If the domain is personal (gmail.com, yahoo.com, etc.) → set `HRQ Status` = "Archive", `Processing Status` = "Complete".
+        - If the email format is invalid → set `HRQ Status` = "Archive", `Processing Status` = "Complete".
+    3.  **Invalid Phone → Archive**:
+        - If the normalized 10-digit phone fails validation (wrong length or repeated digits like 1111111111) → set `HRQ Status` = "Archive", `Processing Status` = "Complete".
+    4.  **Default for Valid Leads → Clay**:
+        - For all other valid leads, set `HRQ Status` = "None" and `Processing Status` = "Queued" so Clay can pick them up from the Clay Queue.
 
 ### **Node: Airtable Upsert Leads**
 - **Action**: Takes the normalized and routed lead data and upserts it into the Airtable `Leads` table.
@@ -53,5 +55,5 @@ graph TD
 - **If Import Fails**:
     1.  The most common failure point is the `Fetch CSV` node. Double-check that the Google Sheet URL is correct and that its sharing permissions are set to "Anyone with the link can view". Test the URL in an incognito browser tab to confirm.
     2.  Check the `Parse CSV` node. If the CSV has unusual column headers that the normalizer doesn't recognize, it may fail to map the data correctly.
-- **If Leads are Incorrectly Routed**: The logic for this is entirely within the `Normalize` node. Review the `personalDomains` list or the validation rules in that node's code to make adjustments.
+- **If Leads are Incorrectly Routed**: The logic for this is entirely within the `Normalize` node. Review the `personalDomains` list, the email/phone validators, or the default state rules in that node's code.
 

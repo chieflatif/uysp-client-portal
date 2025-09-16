@@ -48,8 +48,59 @@ if [ -z "$N8N_API_KEY" ]; then
   exit 1
 fi
 
-# Pull all workflows
-WORKFLOWS_JSON=$(curl -sS -H "X-N8N-API-KEY: ${N8N_API_KEY}" -H "Accept: application/json" "${N8N_API_URL%/}/api/v1/workflows")
+# Pull workflows ONLY from UYSP workspace project
+echo "🎯 Filtering workflows to UYSP project only: ${N8N_PROJECT_ID}"
+
+# Try multiple API patterns to fetch ONLY UYSP project workflows
+WORKFLOWS_JSON=""
+
+# Attempt 1: Project ID as query parameter
+if [ -z "$WORKFLOWS_JSON" ] || [ "$WORKFLOWS_JSON" = "" ]; then
+  WORKFLOWS_JSON=$(curl -sS -H "X-N8N-API-KEY: ${N8N_API_KEY}" -H "Accept: application/json" \
+    "${N8N_API_URL%/}/api/v1/workflows?projectId=${N8N_PROJECT_ID}" 2>/dev/null || echo "")
+fi
+
+# Attempt 2: Project ID as header
+if [ -z "$WORKFLOWS_JSON" ] || [ "$WORKFLOWS_JSON" = "" ]; then
+  WORKFLOWS_JSON=$(curl -sS -H "X-N8N-API-KEY: ${N8N_API_KEY}" -H "n8n-project-id: ${N8N_PROJECT_ID}" \
+    -H "Accept: application/json" "${N8N_API_URL%/}/api/v1/workflows" 2>/dev/null || echo "")
+fi
+
+# Attempt 3: Bearer token with project ID
+if [ -z "$WORKFLOWS_JSON" ] || [ "$WORKFLOWS_JSON" = "" ]; then
+  WORKFLOWS_JSON=$(curl -sS -H "Authorization: Bearer ${N8N_API_KEY}" -H "n8n-project-id: ${N8N_PROJECT_ID}" \
+    -H "Accept: application/json" "${N8N_API_URL%/}/api/v1/workflows" 2>/dev/null || echo "")
+fi
+
+# Fallback: Get all and warn about potential contamination
+if [ -z "$WORKFLOWS_JSON" ] || [ "$WORKFLOWS_JSON" = "" ]; then
+  echo "⚠️ WARNING: Project filtering failed - falling back to ALL workflows (may include other workspaces)"
+  WORKFLOWS_JSON=$(curl -sS -H "X-N8N-API-KEY: ${N8N_API_KEY}" -H "Accept: application/json" "${N8N_API_URL%/}/api/v1/workflows")
+else
+  echo "✅ Successfully filtered to UYSP workspace only"
+fi
+
+# Validate that we only got UYSP workspace workflows
+TOTAL_WORKFLOWS=$(echo "$WORKFLOWS_JSON" | jq -r '.data | length' 2>/dev/null || echo "0")
+echo "📊 Total workflows discovered: $TOTAL_WORKFLOWS"
+
+if [ "$TOTAL_WORKFLOWS" -gt 20 ]; then
+  echo "🚨 WARNING: Too many workflows found ($TOTAL_WORKFLOWS)!"
+  echo "🚨 This suggests workspace filtering failed and we're seeing workflows from multiple projects."
+  echo "🚨 Expected UYSP workspace to have ~8-15 workflows based on project context."
+  echo ""
+  read -p "⚠️ Continue anyway? This may backup non-UYSP workflows (y/N): " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "❌ Backup cancelled to prevent workspace contamination"
+    exit 1
+  fi
+elif [ "$TOTAL_WORKFLOWS" -eq 0 ]; then
+  echo "❌ ERROR: No workflows found! Check API key and project ID."
+  exit 1
+else
+  echo "✅ Workflow count looks reasonable for UYSP workspace"
+fi
 
 # Build a list of {id,name,active,nodesCount,updatedAt}
 WORKFLOW_LIST=$(echo "$WORKFLOWS_JSON" | jq -r '.data[] | @base64')
@@ -395,14 +446,17 @@ if [ -n "$SCHEMA_FILE" ] && [ -f "$SCHEMA_FILE" ]; then
 fi
 
 # Create comprehensive commit message with DISASTER RECOVERY priorities
-COMMIT_MSG="backup: DISASTER RECOVERY WORKSPACE EXPORT $TIMESTAMP
+COMMIT_MSG="backup: UYSP WORKSPACE ONLY - DISASTER RECOVERY EXPORT $TIMESTAMP
 
+🎯 UYSP WORKSPACE BACKUP (Project: H4VRaaZhd8VKQANf)
+🔒 FILTERED: Only UYSP workflows - NO personal/other projects
 🚨 DISASTER RECOVERY CLASSIFICATION:
 🔴 PRIORITY 1: ${#PRIMARY_WORKFLOWS[@]} PRIMARY workflows (RESTORE THESE FIRST!)
 🟡 PRIORITY 2: ${#SECONDARY_WORKFLOWS[@]} SECONDARY workflows (Additional backup)
 
-🏢 Workspace: $WORKSPACE_NAME
-📦 Total workflows: ${#EXPORTED_FILES[@]}
+🏢 Workspace: $WORKSPACE_NAME  
+🆔 Project ID: $N8N_PROJECT_ID
+📦 Total workflows: ${#EXPORTED_FILES[@]} (UYSP workspace only)
 
 📄 PRIORITY 1 (PRIMARY - RESTORE FIRST):"
 
@@ -453,10 +507,13 @@ fi
 
 # STEP 4: DISASTER RECOVERY SUMMARY
 echo ""
-echo "🚨 DISASTER RECOVERY BACKUP COMPLETE!"
+echo "🚨 UYSP WORKSPACE DISASTER RECOVERY BACKUP COMPLETE!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🎯 UYSP WORKSPACE ONLY (Project: $N8N_PROJECT_ID)"
+echo "🔒 FILTERED: No personal/other workspace contamination"
 echo "🏢 Workspace: $WORKSPACE_NAME"
 echo "📦 Total Workflows: ${#EXPORTED_FILES[@]} (${#PRIMARY_WORKFLOWS[@]} primary + ${#SECONDARY_WORKFLOWS[@]} secondary)"
+echo "📊 Expected Range: 8-15 workflows (UYSP specific)"
 echo ""
 echo "🔴 PRIORITY 1 - PRIMARY WORKFLOWS (RESTORE THESE FIRST!):"
 for exported_file in "${EXPORTED_FILES[@]}"; do

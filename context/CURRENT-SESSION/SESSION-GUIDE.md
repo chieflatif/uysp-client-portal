@@ -9,7 +9,7 @@ Last Updated: 2025-09-02
 
 ## 🎯 **SESSION OVERVIEW**
 
-**Current Phase**: ✅ Core Complete - Critical Enhancements Phase
+**Current Phase**: ✅ Core Complete - Critical Enhancements Phase (Scheduler v2 stabilized 2025-09-11)
 **Session Start**: 2025-08-26
 **Prerequisites**: Full documentation reconstruction complete.
 
@@ -61,7 +61,7 @@ This session is guided by the suite of documents reconstructed after the data lo
 
 1. Use ST List/Tag “AI Webinar – Automation (System)” + `uysp-automation` for UI visibility (no logic impact). 
 2. Update integration to send `first_name`/`last_name` on ST contact create/update.
-3. Implement GET click proxy per `CLICK-TRACKING-WEBHOOK-SPEC.md` and enforce `campaign_id` on all sends/audits.
+3. Click proxy: deferred. For now, enforce `campaign_id` on all sends/audits with direct Calendly links; Switchy per‑lead links generated and saved (`Short Link ID/URL`).
 4. Verify monitoring/alerts and kill switches (ST manual pause + scheduler gating) and document the SOP.
 
 ---
@@ -69,6 +69,8 @@ This session is guided by the suite of documents reconstructed after the data lo
 ## References (SOPs & Specs)
 - SOP: `SOP-SimpleTexting-Campaign-Isolation-and-Reporting.md`
 - **SOP**: `SOP-Bulk-Import-End-to-End-Test.md` (COMPLETE - Ready for Testing)
+### Rule Addendum (2025-09-11)
+- Airtable Partial‑Edit Protocol is now canonical (see `.cursorrules/00-CRITICAL-ALWAYS.md` §16e). Allowed keys for in‑place fixes on existing Airtable nodes: `parameters.operation`, `parameters.base`, `parameters.table`, `parameters.columns.value.*`, `parameters.columns.matchingColumns`, `parameters.options.typecast`. Never touch `credentials` or replace entire `parameters`.
 - Dev Plan: `DEV-PLAN-SimpleTexting-Campaign-Isolation-and-Clicks.md`
 - Click Webhook Spec: `archive/CLICK-TRACKING-WEBHOOK-SPEC.md`
 
