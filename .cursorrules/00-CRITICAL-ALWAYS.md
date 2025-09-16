@@ -244,6 +244,33 @@ mcp_n8n_n8n_update_partial_workflow({
   }]
 })
 
+// CRITICAL NEW RULE: For full programmatic reset/fix of credentialed nodes (e.g., after credentials are wiped),
+// you MUST include the full `webhookId` and `credentials` block in the `changes` for `updateNode`.
+// Example for a Slack node (replace values with actual ones):
+/*
+mcp_n8n_n8n_update_partial_workflow({
+  id: "bA3vEZvfokE84AGY", // Target workflow ID
+  operations: [{
+    type: "updateNode",
+    nodeName: "New Click Notification", // Target node name
+    changes: {
+      "parameters.channel": "C09D6U5BLG6", // Explicit channel ID
+      "parameters.color": "good",
+      "parameters.iconEmoji": ":bell:",
+      "parameters.text": "={{ $json.slackMessage }}", // Reference to upstream Code node output
+      "parameters.username": "n8n Bot",
+      "webhookId": "b37a4e4a-df46-4df6-9f15-e6d7eb8aaa5d", // Crucial webhookId
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn", // Crucial credential ID
+          "name": "Slack account"
+        }
+      }
+    }
+  }]
+})
+*/
+
 // Step 3: ALWAYS track version progression
 // OLD → NEW version IDs for audit trail
 ```
