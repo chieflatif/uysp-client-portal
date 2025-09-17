@@ -73,7 +73,7 @@
         {"name": "routing", "type": "singleSelect", "options": ["auto_qualify", "phase1_fail", "phase2_fail", "data_gaps", "international", "human_review"]},
         {"name": "reviewed", "type": "checkbox"},
         {"name": "review_notes", "type": "richText"},
-        {"name": "processing_status", "type": "singleSelect", "options": ["Pending", "Qualified", "Failed", "Reviewed", "Archived"]},
+        {"name": "processing_status", "type": "singleSelect", "options": ["Backlog", "Queued", "Ready for SMS", "In Sequence", "Complete", "Stopped"]},
         
         // CRITICAL NEW FIELDS - Discovered during failure analysis
         {"name": "processing_started", "type": "dateTime", "description": "When lead entered system"},

@@ -54,19 +54,25 @@ echo "🎯 Filtering workflows to UYSP project only: ${N8N_PROJECT_ID}"
 # Try multiple API patterns to fetch ONLY UYSP project workflows
 WORKFLOWS_JSON=""
 
-# Attempt 1: Project ID as query parameter
+# Attempt 1: Project-specific path (CORRECT METHOD)
+if [ -z "$WORKFLOWS_JSON" ] || [ "$WORKFLOWS_JSON" = "" ]; then
+  WORKFLOWS_JSON=$(curl -sS -H "X-N8N-API-KEY: ${N8N_API_KEY}" -H "Accept: application/json" \
+    "${N8N_API_URL%/}/projects/${N8N_PROJECT_ID}/workflows" 2>/dev/null || echo "")
+fi
+
+# Attempt 2: Project ID as query parameter
 if [ -z "$WORKFLOWS_JSON" ] || [ "$WORKFLOWS_JSON" = "" ]; then
   WORKFLOWS_JSON=$(curl -sS -H "X-N8N-API-KEY: ${N8N_API_KEY}" -H "Accept: application/json" \
     "${N8N_API_URL%/}/api/v1/workflows?projectId=${N8N_PROJECT_ID}" 2>/dev/null || echo "")
 fi
 
-# Attempt 2: Project ID as header
+# Attempt 3: Project ID as header
 if [ -z "$WORKFLOWS_JSON" ] || [ "$WORKFLOWS_JSON" = "" ]; then
   WORKFLOWS_JSON=$(curl -sS -H "X-N8N-API-KEY: ${N8N_API_KEY}" -H "n8n-project-id: ${N8N_PROJECT_ID}" \
     -H "Accept: application/json" "${N8N_API_URL%/}/api/v1/workflows" 2>/dev/null || echo "")
 fi
 
-# Attempt 3: Bearer token with project ID
+# Attempt 4: Bearer token with project ID
 if [ -z "$WORKFLOWS_JSON" ] || [ "$WORKFLOWS_JSON" = "" ]; then
   WORKFLOWS_JSON=$(curl -sS -H "Authorization: Bearer ${N8N_API_KEY}" -H "n8n-project-id: ${N8N_PROJECT_ID}" \
     -H "Accept: application/json" "${N8N_API_URL%/}/api/v1/workflows" 2>/dev/null || echo "")

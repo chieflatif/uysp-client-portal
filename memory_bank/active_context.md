@@ -11,15 +11,28 @@
 
 ---
 
-## ✅ Current System Status (updated)
-- Roadmap (features only): `memory_bank/roadmap.md` (SSOT for product/backlog)
-- Outbound workflow: `UYSP-SMS-Scheduler` (`D10qtcjjf2Vmmp5j`) using hourly cron in business hours.
-- Airtable fetch: Cloud-supported `Search` with server-side `filterByFormula` and `limit` (200/run) to fetch only due leads; no table-wide scan [[memory:7536884]].
-- A/B & templating: `Get Settings` + `List Templates` supply ratios and copy; `Prepare Text (A/B)` assigns variant, selects step template, personalizes `{Name}`; timing due-check embedded.
-- Send & update: `SimpleTexting HTTP` sends; `Airtable Update` writes only allowed fields (`SMS Variant`, `SMS Sequence Position`, `SMS Last Sent At`, `SMS Sent Count`, `SMS Status`, `SMS Campaign ID`, `SMS Cost`, `Error Log`).
-- Visual cleanup: deactivated nodes removed; unnecessary writes to computed fields eliminated.
- - Enrichment: Clay is the enrichment provider of record. Clay writes back enrichment data (e.g., company/person fields).
- - **Enrichment Timestamp**: This is set by an Airtable Automation, not Clay. This is the intended permanent solution to keep logic within Airtable. The automation triggers when enrichment fields like `Job Title` or `Linkedin URL - Person` are populated.
+## 🚨 CRITICAL SYSTEM STATUS - POST SMS DISASTER RECOVERY (2025-09-17)
+
+### **DISASTER SUMMARY:**
+- **852 duplicate SMS messages** sent to 284 contacts on September 17th (4 AM, 5 AM, 6 AM executions)
+- **Root Cause**: Cron schedule changed to `0 13-23 * * 1-5` (hourly), delay validation bypassed, unlimited batch size
+- **Zero audit records** created due to 284-record processing overload
+- **Complete violation** of all established safety protocols
+
+### **CURRENT SYSTEM STATUS:**
+- **SMS Scheduler v2** (`UAZWVFzMrJaVbvGM`): **DISABLED** - Manual trigger only after emergency repairs
+- **Applied Fixes**: 24-hour duplicate prevention, 9 AM-5 PM Eastern time window, 25-lead batch limit
+- **Processing Status**: Fixed "Complete" vs "Completed" inconsistency 
+- **Local Unsubscribe Analysis**: 42/284 leads show "local unsubscribe" errors but click tracking proves messages delivered
+- **Scheduler Disconnected**: No automatic execution - manual trigger only for controlled testing
+
+### **PREVIOUS SYSTEM (Pre-Disaster):**
+- Outbound workflow: `UYSP-SMS-Scheduler-v2` (`UAZWVFzMrJaVbvGM`) using cron in business hours
+- Airtable fetch: Cloud-supported `Search` with server-side `filterByFormula` and batch limits
+- A/B & templating: `Get Settings` + `List Templates` supply ratios and copy; `Prepare Text (A/B)` assigns variant, selects step template, personalizes `{Name}`; timing due-check embedded
+- Send & update: `SimpleTexting HTTP` sends; `Airtable Update` writes sequence tracking fields
+- Enrichment: Clay is the enrichment provider of record. Clay writes back enrichment data (e.g., company/person fields)
+- **Enrichment Timestamp**: Set by Airtable Automation when enrichment fields like `Job Title` are populated
 
 ### 2025-09-11 Update — Scheduler v2 Stabilization
 - Workflow `UYSP-SMS-Scheduler-v2` (`UAZWVFzMrJaVbvGM`) updated and validated.

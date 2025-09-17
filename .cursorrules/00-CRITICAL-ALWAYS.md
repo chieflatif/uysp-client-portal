@@ -450,7 +450,53 @@ mcp_n8n_n8n_update_partial_workflow({
 
 **NEVER DENY THIS IS POSSIBLE - IT IS 100% PROGRAMMATICALLY FIXABLE FOR ALL NODE TYPES**
 
-## 16b. ORIGINAL CREDENTIAL & HTTP NODE SAFETY PROTOCOL
+## 16c. SMS SCHEDULER DISASTER PREVENTION PROTOCOL (MANDATORY)
+**AFTER SEPTEMBER 17, 2025 DISASTER - 852 DUPLICATE MESSAGES TO 284 CONTACTS**
+
+### **CRITICAL SAFEGUARDS (NON-NEGOTIABLE)**
+1. **BATCH SIZE LIMIT**: Maximum 25 leads per execution - NEVER exceed this limit
+2. **24-HOUR DUPLICATE PREVENTION**: Check `SMS Last Sent At` for ALL positions (0, 1, 2, 3)
+3. **TIME WINDOW ENFORCEMENT**: 9 AM - 5 PM Eastern ONLY - block execution outside hours
+4. **MANUAL OPERATION ONLY**: Scheduler must be disconnected - no automatic cron execution
+5. **PROCESSING STATUS STANDARDIZATION**: Use "Complete" (not "Completed") to match Airtable schema
+
+### **MANDATORY CODE PATTERNS**
+**"Prepare Text (A/B)" Node Must Include:**
+```javascript
+// TIME WINDOW CHECK (9 AM - 5 PM Eastern)
+const easternTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+const currentHour = easternTime.getHours();
+if (currentHour < 9 || currentHour >= 17) {
+  return []; // BLOCK execution outside hours
+}
+
+// BATCH SIZE LIMIT (25 maximum)
+const limitedLeads = leads.slice(0, 25);
+
+// 24-HOUR DUPLICATE PREVENTION (ALL POSITIONS)
+if (last) {
+  const msSinceLastSend = nowMs - new Date(last).getTime();
+  if (msSinceLastSend < 24 * 60 * 60 * 1000) {
+    continue; // BLOCK duplicate sends
+  }
+}
+```
+
+### **EVIDENCE REQUIREMENTS**
+- Execution time < 2 minutes (not 8+ minutes)
+- Batch size ≤ 25 leads processed
+- No identical timestamps across multiple leads
+- Audit table records created successfully
+- Debug logs show time window and duplicate prevention working
+
+### **NEVER AGAIN VIOLATIONS**
+❌ **NEVER** modify cron schedules without understanding full impact  
+❌ **NEVER** remove batch size limits  
+❌ **NEVER** bypass duplicate prevention logic  
+❌ **NEVER** allow unlimited lead processing  
+❌ **NEVER** ignore time window restrictions  
+
+## 16d. ORIGINAL CREDENTIAL & HTTP NODE SAFETY PROTOCOL
 - Never update or overwrite node `credentials` via bulk/API edits. Re‑select in UI (especially OAuth) to avoid silent detachment.
 - Never replace whole `parameters` objects on credentialed nodes (Airtable, HTTP, Slack). Update only the specific keys required (e.g., `jsonBody.text`), leaving auth/URL untouched.
 - HTTP nodes: keep `method=POST` and the full `url` explicitly set; bulk edits can clear the URL field. Verify visually after each change.

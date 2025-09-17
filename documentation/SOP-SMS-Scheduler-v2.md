@@ -1,9 +1,9 @@
 # SOP: UYSP SMS Scheduler v2 with Click Tracking
 
-**Document Version:** 2.0  
-**Last Updated:** September 15, 2025  
+**Document Version:** 2.1 - POST-DISASTER RECOVERY  
+**Last Updated:** September 17, 2025  
 **Workflow ID:** `UAZWVFzMrJaVbvGM`  
-**Status:** PRODUCTION ACTIVE
+**Status:** DISABLED - MANUAL OPERATION ONLY AFTER DISASTER
 
 ## Purpose and Scope
 
@@ -11,10 +11,11 @@ This SOP provides step-by-step procedures for operating, monitoring, and maintai
 
 ## System Overview
 
-**Primary Function:** Automated SMS outreach with per-lead click tracking  
-**Schedule:** Weekdays 2PM-9PM EST  
-**Capacity:** 2-10 leads per execution  
-**Integration:** Airtable + SimpleTexting + Switchy.io + Slack
+**Primary Function:** Manual SMS outreach with per-lead click tracking (automated scheduling disabled after disaster)  
+**Schedule:** MANUAL TRIGGER ONLY - 9 AM-5 PM Eastern (previously weekdays 2PM-9PM EST)  
+**Capacity:** 25 leads maximum per execution (increased from 2-10 after disaster recovery)  
+**Integration:** Airtable + SimpleTexting + Switchy.io + Slack  
+**🚨 CRITICAL**: After September 17, 2025 disaster (852 duplicate messages), enhanced safeguards implemented
 
 ## Prerequisites
 
