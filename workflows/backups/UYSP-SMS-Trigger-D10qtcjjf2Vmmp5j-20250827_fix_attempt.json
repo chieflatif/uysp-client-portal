@@ -19,7 +19,7 @@
         "baseId": {
           "__rl": true,
           "mode": "id",
-          "value": "app6cU9HecxLpgT0P"
+          "value": "app4wIsBfpJTg7pWS"
         },
         "tableId": {
           "__rl": true,
@@ -64,8 +64,9 @@
     {
       "parameters": {
         "base": {
-          "mode": "id",
-          "value": "app6cU9HecxLpgT0P"
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
         },
         "table": {
           "mode": "list",

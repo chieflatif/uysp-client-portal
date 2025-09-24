@@ -26,7 +26,11 @@
     {
       "parameters": {
         "operation": "upsert",
-        "base": {"mode": "id", "value": "app6cU9HecxLpgT0P"},
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
         "table": {"__rl": true, "mode": "list", "value": "tblYUvhGADerbD8EO", "cachedResultName": "Leads", "cachedResultUrl": "https://airtable.com/app6cU9HecxLpgT0P/tblYUvhGADerbD8EO"},
         "columns": {
           "mappingMode": "defineBelow",

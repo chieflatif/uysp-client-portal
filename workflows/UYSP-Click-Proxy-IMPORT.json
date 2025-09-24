@@ -39,8 +39,9 @@
         "resource": "record",
         "operation": "get",
         "base": {
-          "mode": "id",
-          "value": "app6cU9HecxLpgT0P"
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
         },
         "table": {
           "mode": "list", 
@@ -67,8 +68,9 @@
         "resource": "record",
         "operation": "update",
         "base": {
-          "mode": "id",
-          "value": "app6cU9HecxLpgT0P"
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
         },
         "table": {
           "mode": "list",
@@ -104,8 +106,9 @@
         "resource": "record",
         "operation": "create",
         "base": {
-          "mode": "id",
-          "value": "app6cU9HecxLpgT0P"
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
         },
         "table": {
           "mode": "list",

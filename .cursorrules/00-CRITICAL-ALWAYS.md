@@ -1,5 +1,12 @@
 # CRITICAL RULES - ALWAYS ACTIVE
 
+## 0. THE GOLDEN RULE: RESEARCH FIRST, ACT LAST (MANDATORY FOR ALL PHASES)
+- **FORENSIC ANALYSIS IS NON-NEGOTIABLE**: Before proposing any plan or action, you must first conduct a deep, read-only forensic analysis of the current state of all relevant components (n8n workflows, nodes, code, Airtable fields, formulas, etc.).
+- **STATE YOUR FINDINGS**: You must present the verified "current state" to the user as the foundation for your plan. Every proposal must be justified by this fresh, evidence-based understanding.
+- **LASER FOCUS - ONE TASK AT A TIME**: Do not touch, edit, analyze, or even reference any workflow or system component that is not directly part of the approved, active task. Any deviation from the laser-focused objective is a critical failure.
+
+---
+
 ## GLOBAL ANTI-HALLUCINATION PROTOCOL (ALL AGENTS)
 
 ### **MANDATORY UNCERTAINTY QUANTIFICATION**

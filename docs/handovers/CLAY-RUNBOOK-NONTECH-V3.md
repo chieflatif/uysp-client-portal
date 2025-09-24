@@ -41,22 +41,16 @@ This runbook provides field-tested, step-by-step instructions for Clay enrichmen
 2. Import CSV during creation or use Import button
 3. Map columns: email, first_name, last_name, phone, company_name
 
-### Step 2: Extract & Classify Domains
+### Step 2: Extract Domain (Skip Email Type)
 1. In Raw Leads → Add column → Add enrichment
-2. Search: "Identify Email Type and Extract Company Domain from Email"
+2. Search: "Extract Company Domain from Email"
 3. Configure:
    - Email or Domain = /email
-4. Run → Creates columns:
+4. Run → Creates column:
    - Domain
-   - IsLikelyCompanyEmail
-   - IsLikelyPersonalEmail
 
-### Step 2.5: HRQ Routing for Personal Emails (Skip Enrichment)
-1. Goal: avoid spending credits on personal emails.
-2. When `IsLikelyPersonalEmail = true`, set fields for Airtable mapping:
-   - `HRQ Status` → "Archive"
-   - `HRQ Reason` → "Personal email"
-3. Exclude these rows from company/person enrichments (or only write the HRQ fields back).
+### Step 2.5: No HRQ routing by email type
+Email type is ignored. Proceed to enrichment based on phone-only gating upstream.
 
 ### Step 3: Create Companies List with Unique Domains (Cache‑First)
 1. **Method: Write to Other Table**
@@ -249,7 +243,7 @@ description_final: [10-15 words about what they do]
 ## 9. Testing Checklist
 
 - [ ] 10 test leads imported successfully
-- [ ] Domains extracted, personal emails identified
+- [ ] Domains extracted
 - [ ] Companies to Enrich has unique domains only
 - [ ] Apollo enrichment returns data
 - [ ] GPT classification assigns correct categories

@@ -43,18 +43,15 @@ Workflow used: n8n “UYSP Backlog Ingestion” (id `qMXmmw4NUCh1qu8r`)
    - Click “Execute workflow” (this runs Manual Trigger → Fetch CSV → Parse CSV → Normalize → Airtable Upsert).
 
 7) Verify Normalize output
-   - Fields should include: Email, Phone, First Name, Last Name, Company, Title, Company Domain, HRQ Status, HRQ Reason, Source = Backlog, Processing Status = Queued (or Complete for personal emails).
-   - Note: Personal email domains (gmail.com, yahoo.com, outlook.com, icloud.com, etc.) are auto-routed to HRQ:
-     - `HRQ Status = "Archive"`
-     - `HRQ Reason = "Personal email"`
-     - `Processing Status = "Complete"` (skips enrichment)
+   - Fields should include: Email, Phone, First Name, Last Name, Company, Title, Company Domain, HRQ Status, HRQ Reason, Source = Backlog, Processing Status = Queued (or Complete only when there is no valid phone).
+   - Note: Email type (personal vs company) is ignored for routing. Only leads with no valid phone are archived at ingestion.
 
 8) Verify Airtable Upsert mappings
    - Match on: Email
    - Mapped: Phone, First Name, Last Name, Company Domain, Processing Status, Source, HRQ Status, HRQ Reason.
 
 9) Airtable view for Clay intake (Cache‑First)
-   - Create/confirm view “Clay Queue” on `Leads` with filter: `Processing Status = Queued AND HRQ Status != "Archive"`.
+   - Create/confirm view “Clay Queue” on `Leads` with filter: `Processing Status = Queued` (email type ignored).
    - Optional helper views (HRQ monitoring):
      - "HRQ — Manual Process": `HRQ Status = "Manual Process" AND Booked is unchecked`
      - "HRQ — Enrichment Failed (No Person Data)": `Enrichment Timestamp is not empty AND Job Title is empty AND Linkedin URL - Person is empty AND HRQ Status != "Archive"`

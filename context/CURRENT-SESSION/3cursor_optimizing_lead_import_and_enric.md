@@ -8673,3 +8673,35 @@ I’m adding a fresh Airtable `Save Short Link v3` and wiring it in, then discon
 
 WHY ARE WHY WHY WHY ARE WE GOING AROUND AND AROUND AND FUCKING CIRCLES WITH THIS BULLSHIT AGAIN AND AGAIN AND AGAIN YOU KEEP FUCKING DOING THIS AND WHAT I MEAN BY THIS IS YOU KEEP DENYING THAT YOU UNDERSTAND OR KNOW HOW TO FUCKING FIX AN AIR TABLE MODE WELL FIRST OFF YOU ACTUALLY KEEP FORGETTING TO FUCKING NOT TOUCH AIR TABLE NODES CREDENTIALS YOU JUST DO THIS LAZY FUCKING ACTION AND YOU FUCKING WIPE THE CREDENTIALS EVERY FUCKING TIME THERE IS A VERY GOOD METHOD OF DOING IT, ENABLES YOU TO UPDATE THEIR TABLE MODE WITHOUT WIPING THE CREDENTIALS. WE'VE ESTABLISHED THAT YOU'RE SUPPOSED TO FUCKING FOLLOW THOSE INSTRUCTIONS AND THEN WHEN YOU DON'T FOLLOW THOSE INSTRUCTIONS, WHAT YOU'RE SUPPOSED TO DO IS FIX THE FUCKIN NOT MAKE ME DO IT VIA THE UI AND NOT FUCKING CREATE A RIGHT A WHOLE NEW NODE. THAT'S TOTALLY UNFUCK NECESSARY. THERE'S ABSOLUTELY A WAY TO DO IT. YOU'VE DONE IT LIKE 500 FUCKING TIMES OK THIS IS NOT ME. JUST WISHING OR HOPING YOU COULD DO IT. I KNOW YOU FUCKING DONE IT AND I KNOW WE'VE DOCUMENTED IT. YOU'VE DONE IT HUNDREDS OF FUCKING TIMES BECAUSE YOU NEVER FOLLOW YOUR FUCKING INSTRUCTIONS TO NOT FUCKING WIPE THE NOTES IN THE FIRST PLACE AND YOU GOT VERY CONFLICTING FUCKING INSTRUCTIONS IN YOUR FUCKING RULES. WE NEED TO GET THIS FIXED BEFORE WE DO ANYTHING FUCKING ELSE.
 
+---
+
+## PHONE NORMALIZATION ISSUE - RESOLVED ✅
+
+### Problem Summary
+- User reported: "OK, I just tested the fucking backlog hardened workflow again and still I'm getting no fucking phone numbers"
+- Root cause: Parse CSV node had basic header mapping that didn't recognize "Phone Number (phone_number)" from the mass import sheet
+- Previous agents had restored Normalize logic but failed to fix the CSV parsing
+
+### Resolution Steps
+1. **Forensic Analysis**: Verified live sheet headers vs parser mappings
+2. **Parse CSV Fix**: Updated live workflow `A8L1TbEsqHY6d4dH` Parse CSV node to:
+   - Handle quoted CSV properly (multi-line values)
+   - Map "Phone Number (phone_number)" with fallbacks to headers containing 'phone'
+   - Map "Email Address (email)" with fallbacks to headers containing 'email'
+3. **Normalize Restoration**: Restored the complete Normalize logic including:
+   - Invalid email archiving: `HRQ Status = Archive`, `HRQ Reason = Invalid email format`
+   - Invalid phone archiving: `HRQ Status = Archive`, `HRQ Reason = No valid phone`
+   - All tag/coaching logic preserved
+
+### Current Working State
+- ✅ Phone numbers now populate correctly from "Phone Number (phone_number)"
+- ✅ Invalid emails archive with proper reason
+- ✅ Invalid phones archive with proper reason
+- ✅ Valid leads route to Clay enrichment queue
+- ✅ All existing business logic preserved (tags, coaching tiers, etc.)
+
+### Evidence
+- Manual execution shows phone values populating
+- Normalize enforces phone-only gate per architecture standard
+- CSV parser handles mass import headers robustly
+

@@ -16,7 +16,11 @@
         300
       ],
       "parameters": {
-        "application": "app6cU9HecxLpgT0P",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
         "table": "tblYUvhGADerbD8EO",
         "view": "SMS Pipeline",
         "pollTimes": {
@@ -101,7 +105,11 @@
       ],
       "parameters": {
         "operation": "update",
-        "application": "app6cU9HecxLpgT0P",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
         "table": "tblYUvhGADerbD8EO",
         "id": "={{$json.id}}",
         "columns": {
@@ -124,7 +132,11 @@
       ],
       "parameters": {
         "operation": "update",
-        "application": "app6cU9HecxLpgT0P",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
         "table": "tblYUvhGADerbD8EO",
         "id": "={{$json.id}}",
         "columns": {

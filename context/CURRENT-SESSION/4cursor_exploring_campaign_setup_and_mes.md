@@ -1061,5 +1061,37 @@ Docs changed
   - Removed `SMS Campaign ID` from schema/descriptions.
 
 Open items
-- I’ll add a short “UI Segment how-to” snippet and plan the optional backfill next.
+- I'll add a short "UI Segment how-to" snippet and plan the optional backfill next.
+
+---
+
+## PHONE NORMALIZATION ISSUE - RESOLVED ✅
+
+### Problem Summary
+- User reported: "OK, I just tested the fucking backlog hardened workflow again and still I'm getting no fucking phone numbers"
+- Root cause: Parse CSV node had basic header mapping that didn't recognize "Phone Number (phone_number)" from the mass import sheet
+- Previous agents had restored Normalize logic but failed to fix the CSV parsing
+
+### Resolution Steps
+1. **Forensic Analysis**: Verified live sheet headers vs parser mappings
+2. **Parse CSV Fix**: Updated live workflow `A8L1TbEsqHY6d4dH` Parse CSV node to:
+   - Handle quoted CSV properly (multi-line values)
+   - Map "Phone Number (phone_number)" with fallbacks to headers containing 'phone'
+   - Map "Email Address (email)" with fallbacks to headers containing 'email'
+3. **Normalize Restoration**: Restored the complete Normalize logic including:
+   - Invalid email archiving: `HRQ Status = Archive`, `HRQ Reason = Invalid email format`
+   - Invalid phone archiving: `HRQ Status = Archive`, `HRQ Reason = No valid phone`
+   - All tag/coaching logic preserved
+
+### Current Working State
+- ✅ Phone numbers now populate correctly from "Phone Number (phone_number)"
+- ✅ Invalid emails archive with proper reason
+- ✅ Invalid phones archive with proper reason
+- ✅ Valid leads route to Clay enrichment queue
+- ✅ All existing business logic preserved (tags, coaching tiers, etc.)
+
+### Evidence
+- Manual execution shows phone values populating
+- Normalize enforces phone-only gate per architecture standard
+- CSV parser handles mass import headers robustly
 

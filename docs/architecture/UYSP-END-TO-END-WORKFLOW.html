@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UYSP — End‑to‑End System Workflow</title>
+    <style>
+      html, body { height: 100%; margin: 0; background: #0b1220; color: #e8eefc; font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+      .container { height: 100%; display: grid; grid-template-rows: auto 1fr; }
+      header { padding: 14px 18px; border-bottom: 1px solid #223; display: flex; align-items: center; gap: 10px; }
+      header h1 { font-size: 18px; margin: 0; font-weight: 600; }
+      #graph { overflow: auto; }
+      .mermaid { width: 100%; height: 100%; }
+      a { color: #8ab4ff; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'dark',
+        securityLevel: 'loose',
+        themeVariables: {
+          primaryColor: '#0b1220',
+          primaryTextColor: '#e8eefc',
+          primaryBorderColor: '#223',
+          lineColor: '#7aa2f7',
+          nodeTextColor: '#e8eefc',
+          tertiaryColor: '#0b1220',
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>UYSP — End‑to‑End System Workflow</h1>
+        <div style="opacity:.8">Open this file directly to view the live diagram. Source: docs/architecture/UYSP-END-TO-END-WORKFLOW.md</div>
+      </header>
+      <div id="graph" class="mermaid">
+flowchart TB
+
+    classDef source fill:#0e7490,stroke:#083344,color:#ffffff;
+    classDef ingest fill:#1d4ed8,stroke:#0b1957,color:#ffffff;
+    classDef hub fill:#334155,stroke:#111827,color:#e5e7eb;
+    classDef enrich fill:#7c3aed,stroke:#3b0764,color:#ffffff;
+    classDef qualify fill:#8b5cf6,stroke:#3b0764,color:#ffffff;
+    classDef sms fill:#047857,stroke:#052e1b,color:#ffffff;
+    classDef track fill:#b45309,stroke:#3f1f0b,color:#ffffff;
+    classDef alert fill:#0f172a,stroke:#0b1220,color:#93c5fd;
+    classDef ops fill:#0369a1,stroke:#0a3147,color:#ffffff;
+
+    subgraph Lead_Sources[Sources]
+        A[Manual Import]:::source
+        B[CRM Dynamic Link]:::source
+    end
+
+    subgraph Intake[Intake Workflow]
+        D[Intake and Normalize]:::ingest
+        E[Upsert to Airtable]:::ingest
+        D --> E
+    end
+    A --> D
+    B --> D
+
+    subgraph Hub[Central Hub]
+        F[(Leads)]:::hub
+        G[(Companies)]:::hub
+    end
+    E --> F
+    F --> G
+    G --> F
+
+    subgraph ClayWF[Clay Enrichment Workflow]
+        Cq[Pull Clay Queue view]:::enrich
+        Ce[Enrich company and person]:::enrich
+        Cs[Clay scoring]:::enrich
+        Cw[Write results to Airtable]:::enrich
+        Cq --> Ce --> Cs --> Cw
+    end
+    F --> Cq
+    Cw --> F
+
+    subgraph QualifyHub[Qualification in Hub]
+        Hf[Final ICP score in hub]:::qualify
+        L1{Qualified for campaign}:::qualify
+        Hmark[Mark SMS eligible]:::qualify
+        Hreject[Archive or HRQ]:::qualify
+        Hf --> L1
+        L1 -- yes --> Hmark
+        L1 -- no --> Hreject
+    end
+    Cw --> Hf
+    Hmark --> F
+    Hreject --> F
+
+    subgraph SMS[Scheduler and SMS]
+        O[Scheduler window]:::sms
+        P[Read eligible leads]:::sms
+        Q[Select template A or B]:::sms
+        R[Create tracking link]:::sms
+        S[Send via SimpleTexting]:::sms
+        T[Write log and set In Sequence]:::sms
+        O --> P --> Q --> R --> S --> T
+    end
+    Hmark --> O
+    T --> F
+
+    subgraph Tracking[Tracking and Events]
+        U[Click tracker cron]:::track
+        V[Click redirect webhook]:::track
+        W[Delivery webhook]:::track
+        X[Inbound STOP webhook]:::track
+        Y[Calendly booking webhook]:::track
+        Z[Slack alerts]:::alert
+    end
+    R --> V --> F
+    U --> F
+    S -- delivery --> W --> F
+    S -- stop --> X --> F
+    Y --> F
+    F --> Z
+
+    %% Ops Hub
+    subgraph Ops[Reporting & Messaging Hub]
+        OA[Collect events and errors]:::ops
+        OB[(Audit Log table)]:::ops
+        OC[Aggregate metrics and reports]:::ops
+        OD[Notify via Slack and Email]:::ops
+        OA --> OB --> OC --> OD
+    end
+
+    D --> OA
+    Ce --> OA
+    O --> OA
+    W --> OA
+    X --> OA
+    Y --> OA
+    V --> OA
+      </div>
+    </div>
+  </body>
+  </html>
+
+

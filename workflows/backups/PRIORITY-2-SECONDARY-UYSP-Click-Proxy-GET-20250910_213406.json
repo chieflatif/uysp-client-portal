@@ -39,8 +39,9 @@
       "parameters": {
         "operation": "search",
         "base": {
-          "mode": "id",
-          "value": "app6cU9HecxLpgT0P"
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
         },
         "table": {
           "mode": "list",
@@ -68,8 +69,9 @@
       "parameters": {
         "operation": "update",
         "base": {
-          "mode": "id",
-          "value": "app6cU9HecxLpgT0P"
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
         },
         "table": {
           "mode": "list",

@@ -10,19 +10,19 @@
 
 **Purpose**: Route leads that require human review before SMS campaigns or enrichment processing.
 
-**Core Principle**: Prevent wasted costs on personal emails and low-quality leads while allowing human override for edge cases.
+**Core Principle**: Gate only on phone quality at ingestion; email type is ignored. Allow human override for edge cases.
 
 ---
 
 ## 📥 **ROUTING TO HRQ (2 Paths)**
 
-### **Path 1: Personal Email Detection** ✅ IMPLEMENTED
-- **Trigger**: Personal email domains (gmail.com, yahoo.com, hotmail.com, outlook.com, icloud.com, etc.)
+### **Path 1: Phone Missing/Invalid (Only Ingestion Path)** ✅ IMPLEMENTED
+- **Trigger**: Phone missing or invalid (non US/CA length after basic cleanup)
 - **When**: During initial ingestion (Bulk Import & Real-time)
 - **Action**: 
   - `HRQ Status = "Archive"`
-  - `HRQ Reason = "Personal email"`
-  - `Processing Status = "Complete"` (skip all enrichment)
+  - `HRQ Reason = "No valid phone"`
+  - `Processing Status = "Complete"`
 
 ### **Path 2: Post-Enrichment (No Person Data) — View-Only Detection** ✅ IMPLEMENTED (no node changes)
 - **Trigger (view filter only, no field writes)**: After enrichment attempt, both person-only fields are still empty:
@@ -58,7 +58,7 @@
 ## 🔄 **HRQ REASON TAXONOMY**
 
 ### **Inbound Reasons** (During Ingestion)
-- **"Personal email"** - gmail.com, yahoo.com, etc. detected at ingestion
+- Remove: "Personal email" as an inbound reason at ingestion
 - **"Data quality error"** - missing phone, invalid email, incomplete data
 
 ### **Post-Enrichment Indicators** (After Clay Processing)

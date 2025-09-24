@@ -82,7 +82,7 @@ SMS & Outreach:
 
 HRQ & Quality:
 - HRQ Status – Single select: [None, Archive, Qualified, Manual Process]
-- HRQ Reason – Text (e.g., "Personal email")
+- HRQ Reason – Text (e.g., "No valid phone", "Enrichment failed")
 - Phone Valid – Checkbox (from Clay normalization)
 - Data Quality Score – Number (1–5)
 - Validation Errors – Long text

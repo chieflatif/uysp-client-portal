@@ -20,7 +20,7 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const item = $json || {};\nfunction sanitizeEmail(v){ if(!v) return ''; const s=String(v).trim().toLowerCase(); return s.replace(/[\\s]+/g,'').replace(/[\\.,;:]+$/, ''); }\nfunction normalizePhone(v){ if(!v) return ''; let s=String(v).trim(); if (s.startsWith('+')) s = '+'+s.slice(1).replace(/[^0-9]/g,''); else s=s.replace(/[^0-9]/g,''); if (s.startsWith('+')) return s; if (s.length===11 && s.startsWith('1')) return '+1'+s.slice(1); if (s.length===10) return '+1'+s; return s; }\nfunction deriveDomain(email, company){ if(email){ const at=email.split('@')[1]; if(at) return at; } if(company){ return String(company).toLowerCase().replace(/[^a-z0-9-]/g,'') + '.com'; } return ''; }\nconst personalDomains = ['gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com','aol.com','proton.me','protonmail.com','msn.com','live.com','me.com','mac.com','yandex.com','gmx.com','zoho.com','mail.com','fastmail.com','pm.me'];\nconst email = sanitizeEmail(item.email || item.Email || '');\nconst phone = normalizePhone(item.phone || item.Phone || '');\nconst first = item.first_name || item.firstName || item.first || '';\nconst last = item.last_name || item.lastName || item.last || '';\nconst company = item.company || item.Company || '';\nconst title = item.title || item.job_title || '';\nconst domain = deriveDomain(email, company);\nconst isPersonal = personalDomains.some(pd => domain === pd || domain.endsWith('.' + pd));\nreturn { json: {\n  Email: email,\n  Phone: phone,\n  'First Name': first,\n  'Last Name': last,\n  Company: company,\n  Title: title,\n  'Company Domain': domain,\n  'HRQ Status': isPersonal ? 'Archive' : 'None',\n  'HRQ Reason': isPersonal ? 'Personal email' : '',\n  Source: 'Backlog',\n  'Processing Status': isPersonal ? 'Complete' : 'Queued'\n}};"
+        "jsCode": "const x=$json||{};\nfunction sanitizeEmail(v){ if(!v) return ''; return String(v).trim().toLowerCase().replace(/[\\s]+/g,'').replace(/[\\.,;:]+$/, ''); }\nfunction normalizePhone(v){ if(!v) return ''; let s=String(v).trim(); if(s.startsWith('+')) s='+'+s.slice(1).replace(/[^0-9]/g,''); else s=s.replace(/[^0-9]/g,''); if(s.startsWith('+')) return s; if(s.length===11 && s.startsWith('1')) return '+1'+s.slice(1); if(s.length===10) return '+1'+s; return s; }\nfunction deriveDomain(email){ const at=String(email||'').split('@')[1]; return at||''; }\nconst email=sanitizeEmail(x.email || x.Email || '');\nconst phone=normalizePhone(x.phone || x.Phone || '');\nconst first=x.first_name || x.firstName || x.first || '';\nconst last=x.last_name || x.lastName || x.last || '';\nconst company=String(x.company || x.Company || '');\nconst title=String(x.title || x.job_title || '');\nconst domain=deriveDomain(email);\nconst phoneDigits=phone.replace(/\\D/g,'').replace(/^1/,'');\nconst invalidPhone=phoneDigits.length!==10 || /^(.)\\1+$/.test(phoneDigits) || phoneDigits==='0000000000';\nlet hrqStatus='None', hrqReason='', processing='Queued';\nif(invalidPhone){ hrqStatus='Archive'; hrqReason='No valid phone'; processing='Complete'; }\nreturn { json: {\n  Email: email,\n  Phone: phone,\n  'First Name': first,\n  'Last Name': last,\n  Company: company,\n  Title: title,\n  'Company Domain': domain,\n  'HRQ Status': hrqStatus,\n  'HRQ Reason': hrqReason,\n  Source: 'Backlog',\n  'Processing Status': processing\n}};"
       },
       "id": "norm",
       "name": "Normalize",
@@ -35,8 +35,9 @@
       "parameters": {
         "operation": "upsert",
         "base": {
-          "mode": "id",
-          "value": "app6cU9HecxLpgT0P"
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
         },
         "table": {
           "__rl": true,

@@ -21,7 +21,7 @@ const LIST_DUE_LEADS_CONFIG = {
     // Airtable Base ID (UYSP Lead Qualification)
     base: {
       mode: "id",
-      value: "app6cU9HecxLpgT0P"
+      value: "app4wIsBfpJTg7pWS"
     },
     
     // Table ID (Leads table)

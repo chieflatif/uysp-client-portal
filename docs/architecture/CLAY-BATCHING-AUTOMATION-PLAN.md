@@ -9,7 +9,7 @@
 
 ### What We're Doing Today
 1. **Manual Clay batches** of 200-500 leads
-2. **Personal email pre-filter** in n8n (30 min setup)
+2. Phone-only prefilter in n8n (archive only when no valid phone)
 3. **Simple monitoring** via Slack notifications
 4. **Phone normalization** in Clay (see below)
 5. **Backlog Import is started via n8n Manual Trigger** (activate per run)
@@ -47,9 +47,9 @@ Automate batching and monitoring while keeping Clay's manual "Run" requirement. 
 ```mermaid
 graph TD
     A[New Leads Arrive] --> B[n8n Ingestion]
-    B --> C{Personal Email?}
-    C -->|Yes| D[HRQ Status + Skip Clay]
-    C -->|No| E[Batch Splitter]
+    B --> C{Valid Phone?}
+    C -->|No| D[HRQ Status + Complete]
+    C -->|Yes| E[Batch Splitter]
     E --> F[Assign Batch ID]
     F --> G[Airtable: Queued]
     G --> H[Clay Auto-Refresh View]
@@ -64,33 +64,13 @@ graph TD
 
 ### Components
 
-#### 1. n8n Personal Email Filter (30 min)
+#### 1. n8n Phone-Only Prefilter (30 min)
 ```javascript
-// Personal email domains to filter
-const personalDomains = [
-  'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com',
-  'icloud.com', 'aol.com', 'proton.me', 'protonmail.com',
-  'msn.com', 'live.com', 'me.com', 'mac.com',
-  'yandex.com', 'gmx.com', 'zoho.com', 'mail.com',
-  'fastmail.com', 'pm.me'
-];
-
-// Extract domain from email
-const email = $json.email.toLowerCase();
-const domain = email.split('@')[1];
-
-// Check if personal
-if (personalDomains.includes(domain)) {
-  // Route to HRQ
-  $json.processing_status = 'HRQ';
-  $json.hrq_reason = 'Personal email domain';
-  $json.skip_enrichment = true;
-} else {
-  // Continue to enrichment
-  $json.processing_status = 'Queued';
-  $json.skip_enrichment = false;
-}
-
+const digits = String($json.phone||'').replace(/\D/g,'').replace(/^1/,'');
+const invalidPhone = digits.length !== 10 || /^(.)\1+$/.test(digits) || digits === '0000000000';
+$json.processing_status = invalidPhone ? 'Complete' : 'Queued';
+$json.hrq_status = invalidPhone ? 'Archive' : 'None';
+$json.hrq_reason = invalidPhone ? 'No valid phone' : '';
 return $json;
 ```
 
@@ -256,10 +236,7 @@ Clay → Airtable:
 ## HRQ Routing (Complete Business Logic)
 
 ### Inbound Routing (Two Paths to HRQ)
-**Path 1: Personal Emails** (Immediate HRQ)
-- **Trigger**: Personal email domains (gmail.com, yahoo.com, etc.)
-- **Action**: `HRQ Status = "Archive"`, `HRQ Reason = "Personal email"`
-- **Skip**: All enrichment (cost savings)
+Remove personal-email path; email type is ignored at ingestion.
 
 **Path 2: Business Emails Not Meeting SMS Criteria** (Post-Enrichment HRQ)
 - **Trigger**: `ICP Score < 70` OR `Location != US` OR `Phone Invalid`

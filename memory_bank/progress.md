@@ -233,3 +233,14 @@ Remaining: 3 critical bug fixes
 - **Detail Level**: Field-by-field verification with exact expected values
 - **Documentation Cleanup**: Old incomplete versions removed, all references updated
 - **Status**: Documentation is pristine and aligned - system ready for final end-to-end test
+
+## 2025-09-24: Phone Normalization Issue RESOLVED
+- **Problem**: User reported "no fucking phone numbers" in backlog workflow despite previous Normalize fixes
+- **Root Cause**: Parse CSV node had basic header mapping that didn't recognize "Phone Number (phone_number)" from mass import sheet
+- **Resolution**:
+  - ✅ Updated live workflow `A8L1TbEsqHY6d4dH` Parse CSV node with robust quoted-CSV parser
+  - ✅ Added fallback mapping for headers containing 'phone' or 'email'
+  - ✅ Restored complete Normalize logic including invalid email/phone archiving
+  - ✅ Verified phone numbers now populate correctly from "Phone Number (phone_number)"
+- **Current State**: Phone-only gate working per architecture standard; all business logic preserved
+- **Evidence**: Manual execution shows phone values populating; invalid leads archive correctly

@@ -2,6 +2,11 @@
 
 Status: Authoritative • Scope: Realtime + Backlog ingress only • Owner: n8n
 
+## ✅ 2025-09-24: Phone Normalization Issue RESOLVED
+- **Problem**: Parse CSV node couldn't map "Phone Number (phone_number)" from mass import sheets
+- **Resolution**: Updated live workflow `A8L1TbEsqHY6d4dH` with robust header mapping and fallbacks
+- **Current State**: All mass import headers now map correctly; phone-only gate working per standard
+
 Purpose
 - Ensure any inbound spreadsheet/webhook can be safely ingested into Airtable `Leads` without schema drift, typos, or formatting issues.
 - Keep heavy normalization/enrichment/scoring in Clay; ingress is light, deterministic, and idempotent.
@@ -58,41 +63,33 @@ Parser fallback note
 - When parsing CSV in a Code node, prefer: `const text = String($input.first().json?.data ?? $input.first().json?.body ?? '').trim(); if (!text) return [];`
 
 
-## HRQ Prefilter (Single-Path, No IF Nodes)
+## HRQ Prefilter (Phone-Only Gate)
 
 Purpose
-- Route personal emails to HRQ before Clay; avoid fragile IF nodes by computing all values in one Code step and doing a single Airtable upsert.
+- Archive only when there is no valid phone; email type (personal vs company) is ignored.
 
 Placement
 - In the Bulk Import workflow: after CSV Parse → Normalize, before any Clay-facing steps.
 
 n8n Code node (classify + prepare fields)
 ```javascript
-const personalDomains = [
-  'gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com','aol.com',
-  'proton.me','protonmail.com','msn.com','live.com','me.com','mac.com',
-  'yandex.com','gmx.com','zoho.com','mail.com','fastmail.com','pm.me'
-];
+function sanitizeEmail(v){ if(!v) return ''; const s=String(v).trim().toLowerCase(); return s.replace(/\s+/g,'').replace(/[.,;:]+$/,''); }
+function normalizePhone(v){ if(!v) return ''; let s=String(v).trim(); if (s.startsWith('+')) s='+'+s.slice(1).replace(/[^0-9]/g,''); else s=s.replace(/[^0-9]/g,''); if (s.startsWith('+')) return s; if (s.length===11 && s.startsWith('1')) return '+1'+s.slice(1); if (s.length===10) return '+1'+s; return s; }
 
-const email = String($json.email || '').toLowerCase().trim();
+const email = sanitizeEmail($json.email);
+const phone = normalizePhone($json.phone);
 const domain = email.includes('@') ? email.split('@')[1] : '';
-const isPersonal = personalDomains.some(pd => domain === pd || domain.endsWith('.' + pd));
+const digits = String(phone||'').replace(/\D/g,'').replace(/^1/,'');
+const invalidPhone = digits.length !== 10 || /^(.)\1+$/.test(digits) || digits === '0000000000';
 
 return {
   ...$json,
   email,
   company_domain: domain,
-  hrq_status: isPersonal ? 'Archive' : 'None',
-  hrq_reason: isPersonal ? 'Personal email' : '',
-  processing_status: isPersonal ? 'Complete' : 'Queued',
-  skip_enrichment: isPersonal
+  processing_status: invalidPhone ? 'Complete' : 'Queued',
+  hrq_status: invalidPhone ? 'Archive' : 'None',
+  hrq_reason: invalidPhone ? 'No valid phone' : ''
 };
-
-// HRQ Actions (Human Reviewer Options):
-// 1. "Archive" - Dead end, no further action
-// 2. "Manual Outreach" - Human-driven outreach (not SMS)
-// 3. "Approved" - Override criteria, send directly to SMS campaign  
-// 4. "Enrich" - Trigger Clay waterfall enrichment process
 ```
 
 Airtable Upsert (single node)
@@ -100,7 +97,7 @@ Airtable Upsert (single node)
 - Map: `company_domain`, `processing_status`, `hrq_status`, `hrq_reason`, and other normalized fields
 
 Clay intake view (required)
-- Filter: `Processing Status = Queued AND HRQ Status != "Archive"`
+- Filter: `Processing Status = Queued`
 
 Optional midstream catcher
 - Scheduled n8n workflow that re-checks domain list (or Clay `IsLikelyPersonalEmail`) and updates HRQ fields, moving records out of the queue.

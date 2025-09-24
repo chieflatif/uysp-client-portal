@@ -5,7 +5,7 @@
 > - SOP: `docs/handovers/SMS-SEQUENCER-V1-SOP.md`
 
 - **Project**: H4VRaaZhd8VKQANf
-- **Airtable**: Base `app6cU9HecxLpgT0P`, Table `tblYUvhGADerbD8EO` ("Leads")
+- **Airtable**: Base `app4wIsBfpJTg7pWS`, Table `tblYUvhGADerbD8EO` ("Leads")
 - **Workflows**:
   - **UYSP-Realtime-Ingestion** (`2cdgp1qr9tXlONVL`) – active
   - **UYSP Backlog Ingestion** (`qMXmmw4NUCh1qu8r`) – manual
@@ -14,7 +14,7 @@
 
 ### Current design (key nodes)
 - **Trigger**: Airtable Trigger
-  - Base=`app6cU9HecxLpgT0P`, Table=`Leads`, View=`SMS Pipeline`, Trigger Field=`Last Updated Auto` (Airtable last-modified)
+  - Base=`app4wIsBfpJTg7pWS`, Table=`Leads`, View=`SMS Pipeline`, Trigger Field=`Last Updated Auto` (Airtable last-modified)
 - **Airtable Get Record**: fetches the triggered record by id
 - **SimpleTexting HTTP (v2)**: POST `https://api-app2.simpletexting.com/v2/api/messages`
   - Body: `accountPhone=9094988474`, `contactPhone={{ digits-only, strip leading 1 }}`, `mode=AUTO`
@@ -37,7 +37,7 @@
 ### What changed this session (edits applied)
 - Added `Error Log` to `Airtable Update` mapping to persist failure reasons.
 - Rewired Slack to run after Parse so it sees `sms_status/campaign_id/error_reason`.
-- Restored and locked the `Airtable Update` node atomically after wipes (auth `airtableTokenApi`, base `app6cU9HecxLpgT0P`, table `tblYUvhGADerbD8EO`).
+- Restored and locked the `Airtable Update` node atomically after wipes (auth `airtableTokenApi`, base `app4wIsBfpJTg7pWS`, table `tblYUvhGADerbD8EO`).
 - Switched `Airtable Update` record id to a per-item safe source:
   - Preferred: `$item(0).$node["Airtable Get Record"].json.id` (guaranteed alignment with the fetched item)
   - Parse now emits only status/campaign/cost; it does not set id

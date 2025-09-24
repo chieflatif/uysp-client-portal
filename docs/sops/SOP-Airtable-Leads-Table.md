@@ -48,7 +48,7 @@ This section details every critical field, explaining its purpose, who sets its 
 
 ### **Group: Processing & State Management**
 - **`Processing Status`**: **(CRITICAL)** This is the master state field.
-    - `Backlog`: Set by ingestion if a lead is invalid (e.g., personal email) and should not be processed.
+    - `Backlog`: Set by ingestion if a lead is invalid (e.g., no valid phone) and should not be processed.
     - `Queued`: The default state for new, valid leads. This makes them eligible for enrichment.
     - `Ready for SMS`: Set by an Airtable Automation when enrichment is complete and the lead is SMS-eligible.
     - `In Sequence`: Set by the SMS Scheduler after the first SMS is sent. The lead remains in this state until the sequence is finished.
@@ -86,21 +86,21 @@ This section details every critical field, explaining its purpose, who sets its 
     - Platinum Annual
     - Platinum Monthly
   - Reference formula pattern used (lowercased match):
-    ``
-    REGEX_MATCH(
-      LOWER({Kajabi Tags}),
-      "(bronze annual|bronze split pay|silver \\(.?3 payment plan\\)|silver \\(.?2 payment plan\\)|silver annual|silver monthly|gold \\(.?3 payment plan\\)|gold annual|gold monthly|platinum \\(.?3 payment plan\\)|platinum annual|platinum monthly)"
-    )
-    ``
-    Use the exact tag strings above; keep this list in sync with Kajabi.
+  ``
+  REGEX_MATCH(
+    LOWER({Kajabi Tags}),
+    "(bronze annual|bronze split pay|silver \\(.?3 payment plan\\)|silver \\(.?2 payment plan\\)|silver annual|silver monthly|gold \\(.?3 payment plan\\)|gold annual|gold monthly|platinum \\(.?3 payment plan\\)|platinum annual|platinum monthly)"
+  )
+  ``
+  Use the exact tag strings above; keep this list in sync with Kajabi.
 
 ### **Group: Human Review Queue (HRQ)**
 - **`HRQ Status`**: Controls whether a lead needs manual attention.
     - `Qualified`: The lead is valid and progressing automatically.
-    - `Archive`: The lead is invalid (e.g., personal email) and has been permanently removed from the active funnel.
+    - `Archive`: The lead is invalid (e.g., no valid phone) and has been permanently removed from the active funnel.
     - `Review`: Set by an Airtable Automation when enrichment fails. This places the lead in the `HRQ — Review` view for a human to make a decision.
     - `Manual Process`: A status that can be manually set by a team member to indicate they are handling the lead outside the automated system.
-- **`HRQ Reason`**: A text field explaining *why* a lead was sent to the HRQ (e.g., "Enrichment failed", "Personal email").
+- **`HRQ Reason`**: A text field explaining *why* a lead was sent to the HRQ (e.g., "No valid phone", "Enrichment failed").
 
 ### **Group: SMS Outreach Tracking**
 - **`SMS Status`**: Tracks the status of the *last sent* SMS message (e.g., "Sent", "Delivered"). Set by the SMS Scheduler and Delivery Webhook workflows.
