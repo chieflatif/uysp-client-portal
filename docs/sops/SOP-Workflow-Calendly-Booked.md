@@ -61,6 +61,9 @@ graph TD
 ## 4. Business Logic
 
 - **Immediate Funnel Exit**: The core logic is to provide an immediate and automated exit from the SMS funnel the moment a lead takes the desired action (booking a meeting). This prevents the awkward and unprofessional situation of sending follow-up messages to a lead who has already converted.
+- **`{SMS Stop}` vs. `{Processing Status}`**: It is important to understand that both fields are updated intentionally.
+    - Setting the `Processing Status` to "Completed" handles the lead's journey from a sales operations perspective.
+    - Setting the `{SMS Stop}` checkbox is a hard, system-level safeguard. It is the definitive flag that the SMS Scheduler workflow checks to ensure a message is never sent by mistake to someone who has booked. This provides a robust layer of protection for compliance and user experience.
 - **Single Source of Truth**: By updating the lead's status directly in Airtable, it ensures that all other parts of the system (like the `SMS Scheduler`) have an up-to-date and accurate view of the lead's status without needing complex cross-workflow communication.
 
 ### Matching Rules (Email OR Phone)

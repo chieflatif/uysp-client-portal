@@ -110,12 +110,24 @@ This section details every critical field, explaining its purpose, who sets its 
 - **`SMS Stop` & `SMS Stop Reason`**: A checkbox and text field set by the STOP and Calendly webhooks to permanently halt messaging to a lead.
  - **`Short Link ID` / `Short Link URL` / `Click Count` / `Clicked Link`**: Per‑lead Switchy tracking used by the Click Tracker workflow. The scheduler creates a short link if missing and uses it in SMS.
 
+### **Group: Manual Operations & Handoff**
+- **`SMS Batch Control`**: A single-select field used to manually trigger the SMS Scheduler workflow. Setting this to "Active" makes a lead eligible for processing on the next manual run. This field is automatically cleared by Airtable automations when a lead is "Completed" or "Stopped".
+- **`Notes`**: A rich text field intended for manual updates by Account Executives via the "High-Score Lead Follow-up" Interface. This is where they log call outcomes and other interaction details.
+
 ---
 
 ## 4. Key Views & Their Purpose
 - **`Clay Queue`**: Shows leads with `Processing Status = "Queued"`. This is the view that the Clay.com integration monitors to find new leads to enrich.
 - **`SMS Pipeline`**: Shows leads with `Processing Status = "Ready for SMS"` or `"In Sequence"`. This is the view the n8n SMS Scheduler monitors to find leads who are due for a message.
 - **`HRQ — Review`**: Shows leads with `HRQ Status = "Review"`. This is the primary inbox for the team to handle leads that failed enrichment or require a manual decision.
+
+## 5. Account Executive (AE) Follow-up Process
+- **Handoff**: High-value leads (ICP Score >= 75) that are not stopped or archived are made available to Account Executives in the "High-Score Lead Follow-up" Airtable Interface.
+- **AE Actions**: AEs are responsible for manual outreach (calls, emails) to these leads. They use the interface to:
+    1.  Review the lead's enriched data.
+    2.  Add detailed notes about their interactions in the `{Notes}` field.
+    3.  Update the `{Processing Status}` to reflect the outcome (e.g., "Booked", "Archived").
+- **Reference**: For a detailed guide on using the interface, see `SOP-AE-Lead-Follow-up.md`.
 
 ---
 

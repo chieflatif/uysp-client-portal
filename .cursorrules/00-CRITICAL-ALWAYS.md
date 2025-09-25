@@ -461,11 +461,11 @@ mcp_n8n_n8n_update_partial_workflow({
 **AFTER SEPTEMBER 17, 2025 DISASTER - 852 DUPLICATE MESSAGES TO 284 CONTACTS**
 
 ### **CRITICAL SAFEGUARDS (NON-NEGOTIABLE)**
-1. **BATCH SIZE LIMIT**: Maximum 25 leads per execution - NEVER exceed this limit
-2. **24-HOUR DUPLICATE PREVENTION**: Check `SMS Last Sent At` for ALL positions (0, 1, 2, 3)
-3. **TIME WINDOW ENFORCEMENT**: 9 AM - 5 PM Eastern ONLY - block execution outside hours
-4. **MANUAL OPERATION ONLY**: Scheduler must be disconnected - no automatic cron execution
-5. **PROCESSING STATUS STANDARDIZATION**: Use "Complete" (not "Completed") to match Airtable schema
+1.  **MANUAL BATCH CONTROL**: The batch size and selection of leads is controlled **manually and exclusively** in Airtable via the `{SMS Batch Control}` field. The n8n workflow has no hard-coded limit and will process all leads marked "Active".
+2.  **24-HOUR DUPLICATE PREVENTION**: The system checks `{SMS Last Sent At}` for any lead with a sequence position > 0, preventing rapid duplicate sends to leads already in a sequence.
+3.  **TIME WINDOW ENFORCEMENT**: 9 AM - 5 PM Eastern ONLY - block execution outside hours.
+4.  **MANUAL OPERATION ONLY**: The scheduler workflow must remain disconnected from any automatic cron/schedule trigger.
+5.  **AUTOMATED PIPELINE CLEANUP**: Two Airtable automations are in place to automatically clear the `{SMS Batch Control}` field for leads that are "Complete" or "Stopped", ensuring the pipeline remains clean.
 
 ### **MANDATORY CODE PATTERNS**
 **"Prepare Text (A/B)" Node Must Include:**
@@ -473,15 +473,12 @@ mcp_n8n_n8n_update_partial_workflow({
 // TIME WINDOW CHECK (9 AM - 5 PM Eastern)
 const easternTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
 const currentHour = easternTime.getHours();
-if (currentHour < 9 || currentHour >= 17) {
+if (!isTestMode && (currentHour < 9 || currentHour >= 17)) {
   return []; // BLOCK execution outside hours
 }
 
-// BATCH SIZE LIMIT (25 maximum)
-const limitedLeads = leads.slice(0, 25);
-
-// 24-HOUR DUPLICATE PREVENTION (ALL POSITIONS)
-if (last) {
+// 24-HOUR DUPLICATE PREVENTION (ONLY FOR POS > 0)
+if (pos > 0 && last) {
   const msSinceLastSend = nowMs - new Date(last).getTime();
   if (msSinceLastSend < 24 * 60 * 60 * 1000) {
     continue; // BLOCK duplicate sends
@@ -491,17 +488,17 @@ if (last) {
 
 ### **EVIDENCE REQUIREMENTS**
 - Execution time < 2 minutes (not 8+ minutes)
-- Batch size ≤ 25 leads processed
+- Batch size corresponds exactly to the number of "Active" leads in Airtable.
 - No identical timestamps across multiple leads
 - Audit table records created successfully
-- Debug logs show time window and duplicate prevention working
+- Debug logs show time window and duplicate prevention working.
 
 ### **NEVER AGAIN VIOLATIONS**
-❌ **NEVER** modify cron schedules without understanding full impact  
-❌ **NEVER** remove batch size limits  
-❌ **NEVER** bypass duplicate prevention logic  
-❌ **NEVER** allow unlimited lead processing  
-❌ **NEVER** ignore time window restrictions  
+❌ **NEVER** enable a cron or schedule trigger on this workflow.  
+❌ **NEVER** re-introduce a hard-coded batch size limit to the code.  
+❌ **NEVER** bypass the corrected duplicate prevention logic.  
+❌ **NEVER** allow unlimited lead processing by changing the Airtable view.  
+❌ **NEVER** ignore time window restrictions.  
 
 ## 16d. ORIGINAL CREDENTIAL & HTTP NODE SAFETY PROTOCOL
 - Never update or overwrite node `credentials` via bulk/API edits. Re‑select in UI (especially OAuth) to avoid silent detachment.

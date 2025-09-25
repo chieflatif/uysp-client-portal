@@ -3,8 +3,8 @@
 ## 1. Executive Summary
 - **Workflow Name**: `UYSP-SMS-Scheduler-v2`
 - **ID**: `UAZWVFzMrJaVbvGM`
-- **Purpose**: This is the core engine for all outbound SMS communications. It runs automatically, finds leads who are ready to receive a text, selects the correct message template for their step in the sequence, and sends it via SimpleTexting. It then logs a complete audit trail of every action in Airtable and sends a notification to Slack.
-- **Trigger**: Runs automatically every hour during business hours (9 AM - 5 PM ET, Mon-Fri) via a Cron trigger, and can also be run manually for testing.
+- **Purpose**: This is the core engine for all outbound SMS communications. It finds leads who have been manually selected for outreach, selects the correct message template for their step in the sequence, and sends it via SimpleTexting. It then logs a complete audit trail of every action in Airtable and sends a notification to Slack.
+- **Trigger**: This workflow is run **manually**. It is activated on-demand for a specific batch of leads. The batch is defined in Airtable by setting the `{SMS Batch Control}` field to "Active" for the desired leads. **This workflow MUST NOT be set to run on an automatic Cron schedule.**
 
 ---
 
@@ -13,7 +13,7 @@
 ```mermaid
 graph TD
     subgraph Airtable
-        A[Leads Table<br/>(SMS Pipeline View)]
+        A[Leads Table<br/>(Manual Batch Selection)]
         B[Settings Table]
         C[SMS_Templates Table]
         D[SMS_Audit Table]
@@ -60,7 +60,7 @@ This workflow executes in a precise, linear sequence to ensure data integrity an
 
 ### **Node: List Due Leads**
 - **Action**: Searches the `Leads` table in Airtable.
-- **Business Logic**: It specifically looks at the `SMS Pipeline` view. This is the **single source of truth** for who is eligible to receive a message right now. A lead only appears in this view if they are either "Ready for SMS" or already "In Sequence". This prevents sending messages to unqualified or stopped leads.
+- **Business Logic**: It searches for all records where the **`{SMS Batch Control}`** field is set to "Active". This is the **single source of truth** for who will be processed in a given run. This manual, explicit selection process is a critical safeguard to prevent accidental messaging and ensure full control over the outreach process.
 
 ### **Nodes: Get Settings & List Templates**
 - **Action**: Fetches all records from the `Settings` and `SMS_Templates` tables in Airtable.
@@ -76,6 +76,8 @@ This workflow executes in a precise, linear sequence to ensure data integrity an
     3.  **Personalization**: It replaces `{Name}` in the template body with the lead's first name.
     4.  **Direct Link Guarantee**: This node **does not** perform any link rewriting. It uses the exact text from the template, ensuring the direct Calendly link is preserved.
     5.  **Segmentation Marker**: No campaign assignment. Contacts are marked in SimpleTexting by appending a Note token (e.g., `[uysp:ai_webinar_bdr_2025q3]`) prior to sending.
+    6.  **Time Window Enforcement (CRITICAL)**: The code in this node strictly enforces that messages can only be sent between 9 AM and 5 PM Eastern Time. It will not process any leads outside of this window.
+    7.  **Duplicate Prevention (CRITICAL)**: The code also contains a safeguard that prevents sending a follow-up message to the same lead within a 24-hour period.
 
 ### **Nodes: Update ST Contact & SimpleTexting HTTP**
 - **Action**: First, it upserts the SimpleTexting contact and appends the Note token via `PUT /v2/api/contacts/{phone}` with `{comment}`. Then, it sends the prepared message via `POST /v2/api/messages`.
@@ -105,11 +107,11 @@ This workflow executes in a precise, linear sequence to ensure data integrity an
 ---
 
 ## 4. Maintenance & Troubleshooting
-- **To Stop All Sending**: The fastest way is to uncheck the `Active` box on this workflow in the n8n dashboard.
+- **To Stop All Sending**: The fastest way is to uncheck the `Active` box on this workflow in the n8n dashboard. Alternatively, ensure no leads have their `{SMS Batch Control}` field set to "Active" in Airtable.
 - **If Messages Don't Send**:
-    1. Check the `SMS Pipeline` view in Airtable. Are there any leads there?
+    1. Check the `Leads` table in Airtable. Are there any leads with `{SMS Batch Control}` set to "Active"?
     2. Check the `SMS Last Sent At` field for the leads. Has enough time passed for the next step?
-    3. Check the execution log in n8n for this workflow. The error will usually be in the "SimpleTexting HTTP" node if it's a provider issue, or "Prepare Text (A/B)" if there's a data problem.
+    3. Check the execution log in n8n for this workflow. The error will usually be in the "SimpleTexting HTTP" node if it's a provider issue, or "Prepare Text (A/B)" if there's a data or time window issue.
 - **If Slack/Audit is Wrong**: The issue is likely in the `Parse SMS Response` node, where the data for later steps is prepared.
 
 ### Dependency: Calendly Bookings

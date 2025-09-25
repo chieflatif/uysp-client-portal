@@ -43,7 +43,7 @@ This section details which Airtable fields are read from and written to by the a
 | `Phone Valid` (`fldCpTGfssWof1iNb`) | `UYSP-SMS-Scheduler-v2` | |
 | `SMS Eligible` (`fldPDAHzTnXo9enLj`) | `UYSP-SMS-Scheduler-v2` | |
 | `Current Coaching Client` (`fldyCaBCQIqbzwEeM`) | `UYSP-SMS-Scheduler-v2` | |
-| `SMS Batch Control` (`fldqsBx3ZiuPC0bv3`) | `UYSP-SMS-Scheduler-v2` | |
+| `SMS Batch Control` (`fldqsBx3ZiuPC0bv3`) | `UYSP-SMS-Scheduler-v2` | Airtable Automation |
 | `SMS Sequence Position` (`fldIm565bl2kNw48c`) | `UYSP-SMS-Scheduler-v2` | `UYSP-SMS-Scheduler-v2` |
 | `SMS Last Sent At` (`fldjHyUk48hUwUq6O`) | `UYSP-SMS-Scheduler-v2` | `UYSP-SMS-Scheduler-v2` |
 | `SMS Variant` (`fldT24jVcEhyYS6iH`) | `UYSP-SMS-Scheduler-v2` | `UYSP-SMS-Scheduler-v2` |
@@ -91,7 +91,58 @@ This section details which Airtable fields are read from and written to by the a
 
 ---
 
-## Section 3: External System Integration Points
+## Section 3: n8n Workflow Logic
+
+This section provides a detailed breakdown of the critical logic contained within the code nodes of the `UYSP-SMS-Scheduler-v2` workflow.
+
+### Node: `Prepare Text (A/B)`
+
+This node is the primary brain of the SMS sending operation. It is responsible for selecting and preparing leads for dispatch.
+
+**Key Logic & Business Rules:**
+1.  **Gathers Inputs**: Collects all due leads from `List Due Leads`, settings from `Get Settings`, and templates from `List Templates`.
+2.  **Time Window Enforcement**: The workflow will **only** execute between 9 AM and 5 PM Eastern Time. If run outside this window, it will immediately stop and process zero leads.
+3.  **Batch Control**: The node processes **every single lead** passed to it from the `List Due Leads` node. Batch sizing is controlled **exclusively** within Airtable by manually setting the `{SMS Batch Control}` field to "Active" for the desired leads. There is no hard-coded batch limit in the workflow.
+4.  **Country & Phone Validation**: It performs a basic check to ensure a lead is in the "United States" or "Canada" and has a 10-digit phone number.
+5.  **24-Hour Duplicate Prevention**: This is a critical safety feature.
+    *   It checks the `{SMS Last Sent At}` timestamp for each lead.
+    *   **Crucially, this check only applies if a lead's `{SMS Sequence Position}` is greater than 0.**
+    *   This ensures new leads (position 0) are never blocked, while preventing follow-up messages from being sent less than 24 hours apart.
+6.  **Sequence & Delay Progression**: For leads with a position > 0, it checks if enough time has passed based on the `{Delay Days}` in the `SMS_Templates` table before allowing them to proceed.
+7.  **A/B Variant Assignment**: Assigns a variant ("A" or "B") to new leads based on the ratio set in the `Settings` table.
+8.  **Output**: Produces a final list of lead objects, each containing the formatted message text and all necessary data for the subsequent nodes.
+
+### Node: `Parse SMS Response`
+
+This node processes the results from the SimpleTexting API call.
+
+**Key Logic & Business Rules:**
+1.  **Determines Success/Failure**: Checks the API response to see if the message was sent successfully.
+2.  **Permanent Failure Detection**: It contains specific logic to identify permanent, unrecoverable failures. It checks the error message for keywords like "invalid contact", "local unsubscribe", or "not a valid phone number".
+3.  **Status Update Logic**:
+    *   On a successful send, it increments the `{SMS Sequence Position}` and `{SMS Sent Count}`, and updates the `{SMS Last Sent At}` timestamp. If the new position is 3 or more, it sets `{Processing Status}` to "Complete".
+    *   On a temporary failure, it leaves the position and count unchanged and logs the error.
+    *   On a **permanent failure**, it sets the `{Processing Status}` directly to **"Complete"**, effectively removing the lead from the active pipeline.
+
+---
+
+## Section 4: Airtable Automations
+
+The system uses native Airtable automations to automatically clean the pipeline and deactivate leads that no longer require processing.
+
+### Automation 1: System: Deactivate Complete Leads
+-   **Trigger**: When a record in the `Leads` table has its `{Processing Status}` field set to "Complete".
+-   **Action**: It updates the record and clears the value in the `{SMS Batch Control}` field.
+-   **Purpose**: To automatically remove successfully messaged or permanently failed leads from the active sending queue.
+
+### Automation 2: System: Deactivate Stopped Leads
+-   **Trigger**: When the `{SMS Stop}` checkbox is checked on a record in the `Leads` table.
+-   **Action**: It updates the record and clears the value in the `{SMS Batch Control}` field.
+-   **Purpose**: To ensure compliance by immediately and automatically removing any lead who has opted out from all future SMS batches.
+
+---
+
+## Section 5: External System Integration Points
 
 This section documents the external APIs and services that the active UYSP workflows depend on.
 
@@ -117,28 +168,30 @@ This section documents the external APIs and services that the active UYSP workf
 
 ---
 
-## Section 4: Workflow Interdependencies (Data-Driven)
+## Section 6: Workflow Interdependencies (Data-Driven)
 
 The active workflows are tightly coupled through their shared use of the **Airtable `Leads` table**. Changes made by one workflow directly impact the behavior of others.
 
 ### Key Interdependency Points:
 
 - **`SMS Stop` Field (`fldtzEwzW2Z07g3Kl`)**: This is a critical control field.
-  - **Written by**: `UYSP-Calendly-Booked`, `UYSP-SMS-Inbound-STOP`.
-  - **Implicitly Read by**: Any SMS sending workflow, which must check this field to remain compliant.
+  - **Written by**: `UYSP-Calendly-Booked`, `UYSP-SMS-Inbound-STOP`, and the "Deactivate Stopped Leads" Airtable Automation.
+  - **Implicitly Read by**: `UYSP-SMS-Scheduler-v2`, which must check this field to remain compliant.
 
 - **`Processing Status` Field (`fldAVrpORl3DMqTYu`)**: This field tracks a lead's journey.
-  - **Written by**: `UYSP-Calendly-Booked`, `UYSP-SMS-Inbound-STOP`.
-  - **Implicitly Read by**: Any workflow that processes leads in a specific state (e.g., sending workflows would only select leads with a status of "Ready for SMS").
+  - **Written by**: `UYSP-Calendly-Booked`, `UYSP-SMS-Inbound-STOP`, and crucially, `UYSP-SMS-Scheduler-v2` (which now sets it to "Complete" on permanent failure). It also triggers the "Deactivate Complete Leads" Airtable Automation.
+  - **Implicitly Read by**: Any workflow that processes leads in a specific state.
 
-- **`SMS Status` Field (`fldiWpXT7gyOeoenD`)**: Tracks the state of the last SMS message.
-  - **Written by**: `UYSP-ST-Delivery V2`.
-  - **Implicitly Read by**: Follow-up logic and other workflows like `UYSP-Switchy-Click-Tracker` that might act based on this status.
+- **`SMS Batch Control` Field (`fldqsBx3ZiuPC0bv3`)**: This is the primary manual control for the SMS pipeline.
+  - **Read by**: `UYSP-SMS-Scheduler-v2`. This is the *only* thing that determines which leads are included in a run.
+  - **Written to by**: The two new Airtable automations, which clear this field to remove leads from the pipeline automatically.
 
 ### Summary of Data Flow:
 
 The system operates as a state machine with Airtable as the central state store.
-1.  **Events** (SMS replies, bookings, clicks, deliveries) are captured by independent webhook workflows.
-2.  Each workflow **mutates the state** of a record in the `Leads` table.
-3.  Other workflows **read this state** to determine their own actions.
+1.  **Manual Action**: A user manually sets the `{SMS Batch Control}` field to "Active" to queue up leads.
+2.  **Events** (SMS replies, bookings, clicks, deliveries) are captured by independent webhook workflows.
+3.  Each workflow **mutates the state** of a record in the `Leads` table.
+4.  **Automated Cleanup**: Airtable Automations monitor for "Complete" or "Stopped" states and automatically clear the `{SMS Batch Control}` field, ensuring the pipeline remains clean.
+5.  Other workflows **read this state** to determine their own actions.
 This architecture makes the integrity of the `Leads` table data paramount to the entire system's operation.
