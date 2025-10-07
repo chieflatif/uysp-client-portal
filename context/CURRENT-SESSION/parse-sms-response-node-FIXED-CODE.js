@@ -37,3 +37,7 @@ for (let i = 0; i < stItems.length; i++) {
   out.push({ json: { ...prepared, is_test: isTestMode, sms_status, error_reason, next_pos, next_count, next_last_sent_at, next_processing, campaign_id } });
 }
 return out;
+
+
+
+

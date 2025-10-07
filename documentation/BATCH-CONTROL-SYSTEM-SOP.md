@@ -1,8 +1,8 @@
 # SOP: SMS Batch Control System
 
-**Document Version:** 1.0  
-**Last Updated:** September 15, 2025  
-**Purpose:** Staged lead processing for large-scale campaigns
+**Document Version:** 2.0  
+**Last Updated:** October 6, 2025  
+**Purpose:** Manual batch control for safe, scalable SMS campaigns with automated pipeline cleanup
 
 ## Overview
 
@@ -74,9 +74,11 @@ AND(
 ## Safety Controls
 
 ### Rate Limiting
-- **Recommended batch size:** 100 leads at a time
+- **NO HARD-CODED LIMIT:** The workflow processes ALL leads marked "Active" in `{SMS Batch Control}`
+- **Recommended batch size:** Start with 25-50 leads, scale gradually to 100-200 based on carrier acceptance
 - **Processing interval:** Wait for batch completion before next activation
-- **Monitor delivery rates:** Check for carrier throttling
+- **Monitor delivery rates:** Check for carrier throttling and spam flags
+- **Automated Cleanup:** Airtable automations automatically deactivate completed/stopped leads
 
 ### Error Handling
 - **Failed sends:** Leads remain in "Ready for SMS" status

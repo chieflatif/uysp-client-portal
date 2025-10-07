@@ -93,9 +93,9 @@ This section details which Airtable fields are read from and written to by the a
 
 ## Section 3: n8n Workflow Logic
 
-This section provides a detailed breakdown of the critical logic contained within the code nodes of the `UYSP-SMS-Scheduler-v2` workflow.
+This section provides a detailed breakdown of the critical logic contained within the code nodes of the `UYSP-SMS-Scheduler-v2` and `UYSP Backlog Ingestion - Hardened Test` workflows.
 
-### Node: `Prepare Text (A/B)`
+### SMS Scheduler: Node `Prepare Text (A/B)`
 
 This node is the primary brain of the SMS sending operation. It is responsible for selecting and preparing leads for dispatch.
 
@@ -112,7 +112,7 @@ This node is the primary brain of the SMS sending operation. It is responsible f
 7.  **A/B Variant Assignment**: Assigns a variant ("A" or "B") to new leads based on the ratio set in the `Settings` table.
 8.  **Output**: Produces a final list of lead objects, each containing the formatted message text and all necessary data for the subsequent nodes.
 
-### Node: `Parse SMS Response`
+### SMS Scheduler: Node `Parse SMS Response`
 
 This node processes the results from the SimpleTexting API call.
 
@@ -123,6 +123,20 @@ This node processes the results from the SimpleTexting API call.
     *   On a successful send, it increments the `{SMS Sequence Position}` and `{SMS Sent Count}`, and updates the `{SMS Last Sent At}` timestamp. If the new position is 3 or more, it sets `{Processing Status}` to "Complete".
     *   On a temporary failure, it leaves the position and count unchanged and logs the error.
     *   On a **permanent failure**, it sets the `{Processing Status}` directly to **"Complete"**, effectively removing the lead from the active pipeline.
+
+### Bulk Import: Node `Normalize` (Current Client Detection)
+
+This node in the `UYSP Backlog Ingestion - Hardened Test` workflow contains critical business logic for identifying current coaching clients during import.
+
+**Key Logic & Business Rules:**
+1.  **Current Coaching Client Detection**: Uses a comprehensive regex pattern to identify active clients based on their Kajabi tags.
+2.  **Membership Tags Detected** (20 total patterns):
+    *   **Active Memberships**: Bronze Annual, Bronze Split Pay, Silver (3 Payment Plan), Silver (2 Payment Plan), Silver Annual, Silver Monthly, Gold (3 Payment Plan), Gold Annual, Gold Monthly, Platinum (3 Payment Plan), Platinum Annual, Platinum Monthly
+    *   **Deposit Holders**: Bronze Deposit, Silver Deposit, Gold Deposit, Platinum Deposit
+    *   **Lifetime Members**: Bronze Lifetime Access, Silver Lifetime Access, Gold Lifetime Access, Platinum Lifetime Access
+3.  **Alumni Exclusion**: Explicitly excludes leads with "alumni" tags from being marked as current clients (they are past clients).
+4.  **Purpose**: Ensures that current coaching clients and deposit holders are automatically marked with `{Current Coaching Client}` = true on import, preventing them from entering SMS campaigns.
+5.  **Fallback Safety**: The `{SMS Eligible}` Airtable formula also checks this field as a secondary safety layer.
 
 ---
 

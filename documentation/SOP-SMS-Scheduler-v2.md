@@ -1,9 +1,9 @@
 # SOP: UYSP SMS Scheduler v2 with Click Tracking
 
-**Document Version:** 2.1 - POST-DISASTER RECOVERY  
-**Last Updated:** September 17, 2025  
+**Document Version:** 3.0 - HARDENED PRODUCTION SYSTEM  
+**Last Updated:** October 6, 2025  
 **Workflow ID:** `UAZWVFzMrJaVbvGM`  
-**Status:** DISABLED - MANUAL OPERATION ONLY AFTER DISASTER
+**Status:** ACTIVE - MANUAL OPERATION ONLY
 
 ## Purpose and Scope
 
@@ -11,17 +11,17 @@ This SOP provides step-by-step procedures for operating, monitoring, and maintai
 
 ## System Overview
 
-**Primary Function:** Manual SMS outreach with per-lead click tracking (automated scheduling disabled after disaster)  
-**Schedule:** MANUAL TRIGGER ONLY - 9 AM-5 PM Eastern (previously weekdays 2PM-9PM EST)  
-**Capacity:** 25 leads maximum per execution (increased from 2-10 after disaster recovery)  
+**Primary Function:** Manual SMS outreach with per-lead click tracking and intelligent batch control  
+**Schedule:** MANUAL TRIGGER ONLY - 9 AM-5 PM Eastern Time  
+**Capacity:** NO HARD-CODED LIMIT - Batch size controlled manually via Airtable `{SMS Batch Control}` field  
 **Integration:** Airtable + SimpleTexting + Switchy.io + Slack  
-**🚨 CRITICAL**: After September 17, 2025 disaster (852 duplicate messages), enhanced safeguards implemented
+**🚨 CRITICAL**: Enhanced safeguards after September 17, 2025 disaster (852 duplicate messages) + October 6, 2025 hardening (batch control + permanent failure handling + current client protection)
 
 ## Prerequisites
 
 ### Required Access:
 - [ ] n8n Cloud account with workflow access
-- [ ] Airtable base access (`app6cU9HecxLpgT0P`)
+- [ ] Airtable base access (`app4wIsBfpJTg7pWS`)
 - [ ] SimpleTexting account with API access
 - [ ] Switchy.io account with API access
 - [ ] Slack workspace access

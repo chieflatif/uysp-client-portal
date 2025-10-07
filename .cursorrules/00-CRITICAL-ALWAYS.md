@@ -466,6 +466,7 @@ mcp_n8n_n8n_update_partial_workflow({
 3.  **TIME WINDOW ENFORCEMENT**: 9 AM - 5 PM Eastern ONLY - block execution outside hours.
 4.  **MANUAL OPERATION ONLY**: The scheduler workflow must remain disconnected from any automatic cron/schedule trigger.
 5.  **AUTOMATED PIPELINE CLEANUP**: Two Airtable automations are in place to automatically clear the `{SMS Batch Control}` field for leads that are "Complete" or "Stopped", ensuring the pipeline remains clean.
+6.  **CURRENT CLIENT PROTECTION**: Bulk import workflow detects 20 membership/deposit/lifetime tag patterns to prevent current clients from entering SMS campaigns (updated Oct 6, 2025).
 
 ### **MANDATORY CODE PATTERNS**
 **"Prepare Text (A/B)" Node Must Include:**

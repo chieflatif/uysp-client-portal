@@ -35,10 +35,16 @@ graph TD
 - **Action**: This is the core intelligence of the ingestion process. It applies a series of business rules to each individual lead.
 - **Business Logic**:
     1.  **Email & Phone Sanitization**: Cleans and standardizes email addresses (lowercase, trimmed whitespace) and phone numbers (converts to E.164 format when possible, e.g., +15551234567).
-    2.  **Phone-Only Gate → Archive if No Valid Phone**:
-        - If the phone is blank or clearly invalid after normalization (e.g., not US/CA length after basic cleanup), set `HRQ Status` = "Archive", `HRQ Reason` = "No valid phone", and `Processing Status` = "Complete".
-    3.  **Default Route → Clay Queue**:
-        - For all other leads, set `HRQ Status` = "None" and `Processing Status` = "Queued`. Personal vs company email is ignored for routing.
+    2.  **Current Coaching Client Detection**: Automatically identifies current clients based on Kajabi tags using comprehensive pattern matching:
+        - **Active Memberships** (12 patterns): Bronze/Silver/Gold/Platinum Annual, Monthly, Split Pay, Payment Plans
+        - **Deposit Holders** (4 patterns): Bronze/Silver/Gold/Platinum Deposit
+        - **Lifetime Members** (4 patterns): Bronze/Silver/Gold/Platinum Lifetime Access
+        - **Alumni Exclusion**: Explicitly excludes alumni from being marked as current clients
+        - Sets `{Current Coaching Client}` = true for all matches, preventing SMS campaigns
+    3.  **Phone-Only Gate → Archive if No Valid Phone**:
+        - If the phone is blank or clearly invalid after normalization (e.g., not US/CA length after basic cleanup), set `HRQ Status` = "Archive", `HRQ Reason` = "Invalid phone", and `Processing Status` = "Complete".
+    4.  **Default Route → Clay Queue**:
+        - For all other leads, set `HRQ Status` = "None" and `Processing Status` = "Queued".
 
 ### **Node: Airtable Upsert Leads**
 - **Action**: Takes the normalized and routed lead data and upserts it into the Airtable `Leads` table.
