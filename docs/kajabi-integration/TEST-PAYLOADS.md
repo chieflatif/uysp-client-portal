@@ -360,3 +360,4 @@ curl -X POST https://rebelhq.app.n8n.cloud/webhook/kajabi-leads \
 **Last Updated**: October 17, 2025  
 **Status**: Ready for testing once manual configuration complete
 
+
