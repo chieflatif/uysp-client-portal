@@ -29,14 +29,16 @@ Even if they registered for both, we know which one they just submitted because 
 
 ## 📋 WHAT YOU NEED FROM IAN
 
-### 1. OAuth Credentials
-Kajabi Admin → Settings → API → Create API Key
+### 1. ✅ API Credentials - DONE
+You already have:
+- API Key (= client_id in OAuth terms)
+- API Secret (= client_secret in OAuth terms)
 
-You'll get:
-- `client_id` (looks like: kajabi_abc123)
-- `client_secret` (looks like: secret_xyz789)
-
-Paste these into your `.env` file.
+Paste these into your `.env` file:
+```bash
+KAJABI_CLIENT_ID=your_api_key_here
+KAJABI_CLIENT_SECRET=your_api_secret_here
+```
 
 ### 2. Forms List
 Either:
@@ -177,7 +179,7 @@ Active: ✓
 ## 🚨 WHAT'S STILL NEEDED
 
 ### From Ian:
-1. OAuth credentials (client_id + client_secret)
+1. ✅ API credentials - **DONE**
 2. Forms list (which forms to capture)
 3. Campaign mappings (which form → which campaign)
 4. Message templates (what to send per campaign)
@@ -204,9 +206,10 @@ Active: ✓
 ## 📞 NEXT STEPS
 
 **Today**:
-1. Get OAuth credentials from Ian
-2. Update `.env` file
-3. Share with Gabriel
+1. ✅ Got API credentials - DONE
+2. Update `.env` file with API key + secret
+3. Share credentials with Gabriel
+4. Get forms list from Ian
 
 **Week 1** (Once credentials received):
 1. Gabriel builds Airtable schema (Day 1)
