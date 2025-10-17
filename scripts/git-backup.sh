@@ -13,9 +13,9 @@ CURRENT_BRANCH=$(git branch --show-current)
 echo "🔄 Starting UYSP Git Backup..."
 echo "🧪 Running documentation guardrails before backup..."
 (
-  bash "UYSP Lead Qualification V1/scripts/add-doc-headers.sh" "$(date +%F)"
-  bash "UYSP Lead Qualification V1/scripts/validate-docs.sh"
-  python3 "UYSP Lead Qualification V1/scripts/check-links.py"
+  bash "scripts/add-doc-headers.sh" "$(date +%F)"
+  bash "scripts/validate-docs.sh"
+  python3 "scripts/check-links.py"
 ) || { echo "❌ Docs validation failed. Aborting backup."; exit 1; }
 echo "📅 Timestamp: $DATE"
 echo "🌿 Current branch: $CURRENT_BRANCH"
