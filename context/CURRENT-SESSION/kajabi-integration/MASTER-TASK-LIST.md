@@ -28,37 +28,44 @@
 
 ## 🎯 IMMEDIATE PRIORITIES (This Week)
 
-### Priority 1: Investigation (BLOCKING)
-Status: 🔴 **BLOCKED - Waiting for credentials**
+### Priority 1: Investigation ✅ **COMPLETE - Read-Only Research Done!**
+Status: 🟢 **MAJOR BREAKTHROUGH**
 
-- [ ] **Get Kajabi API credentials from Ian**
-  - API key
-  - Site ID
-  - Test account access
+- [✅] **API Documentation Research** (NEW - Completed Oct 17, 2025)
+  - ✅ Analyzed official Kajabi API documentation
+  - ✅ Discovered OAuth 2.0 authentication (not simple Bearer)
+  - ✅ **SOLVED LEAD SOURCE PROBLEM**: Form submission includes form.id!
+  - ✅ Documented all needed endpoints
+  - ✅ Found webhook sample endpoint
+  - **Owner**: Claude (AI-assisted research)
+  - **Time**: 1 hour
+  - **Deliverable**: `API-INVESTIGATION-FINDINGS.md` (complete)
+
+- [✅] **Solve lead source tracking problem** ✅ **SOLVED!**
+  - ✅ Webhook includes form relationship with form ID
+  - ✅ Can call GET /form_submissions/{id}?include=form
+  - ✅ Form ID → Campaign mapping is the solution
+  - ✅ No need for tag timestamps (form ID is better!)
+  - **Owner**: Claude (based on API docs)
+  - **Time**: Included in research above
+  - **Deliverable**: Solution documented in findings
+
+- [ ] **Get OAuth credentials from Ian** (UPDATED)
+  - ⚠️ Need: `client_id` (not just "API key")
+  - ⚠️ Need: `client_secret` (not just "API secret")  
+  - These are OAuth credentials, not Bearer tokens
   - **Owner**: Latif
   - **Time**: 5 minutes (client provides)
-  - **Blocks**: All other tasks
+  - **Blocks**: Live API testing only (not implementation planning)
 
-- [ ] **Run API investigation** (See: `KAJABI-API-INVESTIGATION-GUIDE.md`)
-  - Test authentication
-  - Capture webhook payloads (3 different forms)
-  - Analyze tag structure
-  - Test contact endpoints
-  - Document rate limits
-  - **Owner**: Gabriel
-  - **Time**: 2.5 hours
-  - **Depends on**: API credentials
-  - **Deliverable**: Completed investigation summary in guide
-
-- [ ] **Solve lead source tracking problem** (See: `LEAD-SOURCE-TRACKING-INVESTIGATION.md`)
-  - Determine if webhook contains `target_source`
-  - Check if tags have timestamps
-  - Choose primary detection method
-  - Design fallback strategy
-  - **Owner**: Latif + Gabriel
-  - **Time**: 30 minutes (after investigation)
-  - **Depends on**: API investigation complete
-  - **Deliverable**: Decision documented, spec updated
+- [ ] **Get forms list from Ian** (NEW - High Priority)
+  - Need form IDs and names for all active forms
+  - Will build form → campaign mapping table
+  - Can be done via API once credentials received OR
+  - Ian can provide list manually from Kajabi UI
+  - **Owner**: Latif (from Ian) OR Gabriel (via API)
+  - **Time**: 15 minutes
+  - **Deliverable**: Form mapping table
 
 ---
 
@@ -516,19 +523,27 @@ Week 3:          ░░░░░░░░░░░░░░░░░░░░   
 
 ## 🔄 UPDATE LOG
 
-### October 17, 2025
+### October 17, 2025 - Session 1 (Planning & Research)
 - ✅ Created all planning documentation (81+ pages)
-- ✅ Analyzed transcript with Gabriel
+- ✅ Analyzed transcript with Gabriel  
 - ✅ Created lead source tracking investigation doc
 - ✅ Created API investigation guide
 - ✅ Created this master task list
 - ✅ Created new git branch: feature/kajabi-integration
-- ⏸️ **BLOCKED**: Waiting for Kajabi API credentials from Ian
+- ✅ **COMPLETED READ-ONLY API INVESTIGATION**:
+  - ✅ Analyzed official Kajabi API documentation
+  - ✅ **SOLVED LEAD SOURCE TRACKING**: Form ID in submission webhook!
+  - ✅ Discovered OAuth 2.0 authentication method
+  - ✅ Documented all API endpoints needed
+  - ✅ Created complete API findings document
+  - ✅ Updated .env template with client_id/client_secret
+- ✅ Created secrets management system (templates + guide)
+- 🟢 **STATUS**: Investigation complete, ready for credentials + build
 
 ### Next Update:
-- After API credentials received
-- After API investigation complete
-- After lead source solution chosen
+- After OAuth credentials received from Ian
+- After forms list obtained
+- After Week 1 Day 1 complete (schema updates)
 
 ---
 
