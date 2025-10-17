@@ -1,0 +1,67 @@
+# Kajabi Integration - Environment Variables Template
+# 
+# INSTRUCTIONS:
+# 1. Copy this file to .env in the project root
+# 2. Fill in your actual values (get from Ian)
+# 3. The .env file is already in .gitignore and will NEVER be committed
+#
+# Usage:
+# - I (Claude) can read .env to help with documentation and testing
+# - Gabriel can use .env values for API testing via curl/Postman
+# - n8n credentials are entered manually in the n8n UI (not from .env)
+
+# ============================================================================
+# KAJABI API CREDENTIALS
+# ============================================================================
+
+# Your Kajabi API key (Bearer token)
+# Get from: Kajabi Admin → Settings → API
+KAJABI_API_KEY=your_kajabi_api_key_here
+
+# Your Kajabi site ID
+# Get from: Kajabi Admin → Settings → API or from API response
+KAJABI_SITE_ID=your_kajabi_site_id_here
+
+# ============================================================================
+# TESTING & DEVELOPMENT
+# ============================================================================
+
+# Test contact ID for API investigation
+# Use a real contact from Ian's Kajabi for testing
+KAJABI_TEST_CONTACT_ID=
+
+# Test email for webhook testing
+KAJABI_TEST_EMAIL=test-kajabi@example.com
+
+# n8n webhook URL (once created)
+N8N_KAJABI_WEBHOOK_URL=https://rebelhq.app.n8n.cloud/webhook/kajabi-leads
+
+# ============================================================================
+# CLIENT INFORMATION (for reference)
+# ============================================================================
+
+CLIENT_NAME=Ian
+CLIENT_COMPANY=
+CLIENT_KAJABI_URL=
+
+# ============================================================================
+# FORM IDS (fill in during investigation)
+# ============================================================================
+
+# Document all form IDs here as you discover them
+KAJABI_FORM_JB_WEBINAR=
+KAJABI_FORM_SALES_WEBINAR=
+KAJABI_FORM_AI_WEBINAR=
+KAJABI_FORM_NEWSLETTER=
+
+# ============================================================================
+# CAMPAIGN MAPPINGS (for documentation)
+# ============================================================================
+
+# Document tag → campaign mappings here
+# Format: KAJABI_TAG_{NAME}=campaign_id
+KAJABI_TAG_JB_WEBINAR=webinar_jb_2024
+KAJABI_TAG_SALES_WEBINAR=webinar_sales_2024
+KAJABI_TAG_AI_WEBINAR=webinar_ai_2024
+KAJABI_TAG_DEFAULT=default_nurture
+
