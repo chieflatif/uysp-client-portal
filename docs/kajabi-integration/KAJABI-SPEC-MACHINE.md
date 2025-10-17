@@ -1,7 +1,25 @@
 # Kajabi Integration - Machine-Readable Specification
 **For**: AI Agent (Claude) reference during build  
 **Format**: Structured data for code generation  
-**Version**: 1.0
+**Version**: 1.1 (Updated with API investigation findings)
+
+---
+
+## N8N PROJECT WORKSPACE
+
+**CRITICAL**: All workflows MUST be created in this workspace:
+- **Project ID**: `H4VRaaZhd8VKQANf`
+- **Project URL**: https://rebelhq.app.n8n.cloud/projects/H4VRaaZhd8VKQANf/workflows
+- **Airtable Base**: `app4wIsBfpJTg7pWS`
+- **Credential**: "Airtable UYSP Option C" (ID: Zir5IhIPeSQs72LR)
+
+---
+
+## CREDENTIALS STATUS
+
+- ✅ Kajabi API Key + Secret: OBTAINED from Ian
+- ✅ Airtable credential: EXISTS in n8n
+- ⏳ Kajabi OAuth2 credential: TO BE CREATED by Gabriel
 
 ---
 
@@ -55,43 +73,53 @@
 
 ---
 
-## WEBHOOK PAYLOAD STRUCTURE
+## WEBHOOK PAYLOAD STRUCTURE (VERIFIED FROM KAJABI API DOCS)
 
 ```json
 {
   "form_submission_webhook": {
     "type": "array",
+    "note": "Webhook sends array with single submission object",
     "items": {
       "id": "string (submission_id)",
       "type": "form_submissions",
       "attributes": {
-        "name": "string",
-        "email": "string",
-        "phone_number": "string",
-        "business_number": "string",
+        "name": "string (full name)",
+        "email": "string (email address)",
+        "phone_number": "string (phone)",
+        "business_number": "string (optional)",
         "address_line_1": "string",
+        "address_line_2": "string",
         "address_city": "string",
-        "custom_1": "string",
-        "custom_2": "string",
-        "custom_3": "string"
+        "address_state": "string",
+        "address_country": "string",
+        "address_zip": "string",
+        "custom_1": "string (client-specific: LinkedIn URL)",
+        "custom_2": "string (client-specific: Coaching Interest)",
+        "custom_3": "string (client-specific: TBD)"
       },
       "relationships": {
         "form": {
           "data": {
             "id": "string (form_id)",
             "type": "forms"
-          }
+          },
+          "note": "CRITICAL: This is how we determine lead source!"
         },
         "tags": {
           "data": [
-            {"id": "string", "type": "tags"}
-          ]
+            {"id": "string (tag_id)", "type": "tags"}
+          ],
+          "note": "Tag IDs only, need lookup for names"
         }
       }
     }
   }
 }
 ```
+
+**KEY FINDING**: Form relationship includes form.id which uniquely identifies triggering form.
+**SOLUTION**: Map form_id → campaign_assignment (NOT tags)
 
 ---
 
@@ -122,7 +150,8 @@
         "method": "GET",
         "url": "https://api.kajabi.com/v1/form_submissions/{{ $json.submission_id }}?include=form",
         "authentication": "oAuth2",
-        "credentialName": "Kajabi OAuth2"
+        "credentialName": "Kajabi OAuth2",
+        "note": "Returns form.id in relationships and included[] with form.attributes.name"
       }
     },
     {
