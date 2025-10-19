@@ -49,10 +49,14 @@ export default function DashboardPage() {
         const data = await response.json();
         const leadsData = data.leads || [];
 
-        const highIcp = leadsData.filter((l: any) => l.icpScore >= 70).length;
-        const claimed = leadsData.filter((l: any) => l.claimedBy).length;
+        interface Lead {
+          icpScore: number;
+          claimedBy?: string | null;
+        }
+        const highIcp = (leadsData as Lead[]).filter((l: Lead) => l.icpScore >= 70).length;
+        const claimed = (leadsData as Lead[]).filter((l: Lead) => l.claimedBy).length;
         const avgScore = leadsData.length > 0
-          ? Math.round((leadsData.reduce((sum: number, l: any) => sum + l.icpScore, 0) / leadsData.length) * 10) / 10
+          ? Math.round(((leadsData as Lead[]).reduce((sum: number, l: Lead) => sum + l.icpScore, 0) / leadsData.length) * 10) / 10
           : 0;
 
         setStats({
@@ -105,7 +109,7 @@ export default function DashboardPage() {
             Welcome Back
           </h1>
           <p className={theme.core.bodyText}>
-            Here's an overview of your lead pipeline
+            Here&apos;s an overview of your lead pipeline
           </p>
         </div>
 

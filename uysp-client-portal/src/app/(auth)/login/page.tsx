@@ -32,7 +32,7 @@ export default function LoginPage() {
       } else if (result?.ok) {
         router.push('/dashboard');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Login failed. Please try again.');
     } finally {
       setLoading(false);
@@ -123,7 +123,7 @@ export default function LoginPage() {
           {/* Register Link */}
           <div className="mt-6 pt-6 border-t border-gray-700 text-center">
             <p className={theme.core.bodyText}>
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link
                 href="/register"
                 className={`${theme.accents.tertiary.class} hover:text-cyan-300 font-medium`}
