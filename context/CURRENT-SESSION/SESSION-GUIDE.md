@@ -1,107 +1,13 @@
-[AUTHORITATIVE]
-Last Updated: 2025-09-02
+# Frontend Visualization Docs Created
 
-# CURRENT SESSION GUIDE: Post-Recovery Implementation
+- FRONTEND-VISUALIZATION-SOLUTIONS.md
+- QUICK-START-PREVIEW-SETUP.md
+- VISUALIZATION-WORKFLOW-DIAGRAM.md
 
-> Scope note: This guide is session-only. Project-wide status and roadmap live here:
-> - SSOT: `memory_bank/active_context.md`
-> - Roadmap (features): `memory_bank/roadmap.md`
+Location: context/CURRENT-SESSION/frontend-visualization
 
-## 🎯 **SESSION OVERVIEW**
+How to use:
+1. Follow QUICK-START to run dev and preview.
+2. Refer to SOLUTIONS for options & troubleshooting.
+3. Use DIAGRAM for the feedback loop overview.
 
-**Current Phase**: ✅ Core Complete - Critical Enhancements Phase (Scheduler v2 stabilized 2025-09-11)
-**Session Start**: 2025-08-26
-**Prerequisites**: Full documentation reconstruction complete.
-
----
-
-## 📋 **CURRENT SESSION OBJECTIVES**
-
-### **PRIMARY GOAL**: Bring the UYSP Lead Qualification system to full operational status by executing the final implementation roadmap.
-
-### **SUCCESS CRITERIA**:
-✅ All n8n workflows are activated and running automatically.
-✅ SimpleTexting integration is fully configured and tested (scheduler send + delivery + STOP inbound).
-✅ Bulk company enrichment process has been executed.
-✅ Lead backlog has been processed.
-✅ A robust, automated backup system is in place.
-
----
-
-## 🏗️ **SESSION TECHNICAL ARCHITECTURE**
-
-The system is built on the **"Option C"** architecture. For a complete architectural breakdown, refer to the master plan.
-
--   **Master Plan**: `context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/MAJOR-REFACTOR-CLAY-COM-PLAN.md`
-
----
-
-## 📚 **SESSION DOCUMENTATION**
-
-This session is guided by the suite of documents reconstructed after the data loss event.
-
-### **Primary Documents**:
--   **Master Plan**: `context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/MAJOR-REFACTOR-CLAY-COM-PLAN.md`
--   **Implementation Roadmap**: `context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/IMPLEMENTATION-ROADMAP.md`
--   **Verified System State**: `context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/CURRENT-SYSTEM-STATE.md`
--   **Clay Runbook**: `context/CURRENT-SESSION/MAJOR-REFACTOR-CLAY-COM/CLAY-RUNBOOK-NONTECH.md`
-
----
-
-## Customer Call Takeaways (2025-09-03 – SimpleTexting)
-
-- Campaign/Tag isolation: Use a dedicated ST Campaign or Tag for automated sends to isolate reporting from manual campaigns.
-- Names on contacts: Include first/last name when creating/upserting ST contacts via API for UI parity and personalization.
-- Click tracking: DEFERRED. Reverted to direct Calendly link. Bitly integration added to roadmap.
-- Safeguards: Maintain NA-only gating, batch cap (e.g., 200/run), Slack monitoring, and a clear kill switch in both ST and our scheduler.
-- Access: Isaac to provision admin access (via Jen); LATIF to supply alias if needed and validate dashboards.
-- Compliance (Texas): Await written guidance; avoid premature geo filtering beyond NA gating.
-
-### Next Steps (Session)
-
-1. Use ST List/Tag “AI Webinar – Automation (System)” + `uysp-automation` for UI visibility (no logic impact). 
-2. Update integration to send `first_name`/`last_name` on ST contact create/update.
-3. Click proxy: deferred. For now, enforce `campaign_id` on all sends/audits with direct Calendly links; Switchy per‑lead links generated and saved (`Short Link ID/URL`).
-4. Verify monitoring/alerts and kill switches (ST manual pause + scheduler gating) and document the SOP.
-
----
-
-## References (SOPs & Specs)
-- SOP: `SOP-SimpleTexting-Campaign-Isolation-and-Reporting.md`
-- **SOP**: `SOP-Bulk-Import-End-to-End-Test.md` (COMPLETE - Ready for Testing)
-### Rule Addendum (2025-09-11)
-- Airtable Partial‑Edit Protocol is now canonical (see `.cursorrules/00-CRITICAL-ALWAYS.md` §16e). Allowed keys for in‑place fixes on existing Airtable nodes: `parameters.operation`, `parameters.base`, `parameters.table`, `parameters.columns.value.*`, `parameters.columns.matchingColumns`, `parameters.options.typecast`. Never touch `credentials` or replace entire `parameters`.
-- Dev Plan: `DEV-PLAN-SimpleTexting-Campaign-Isolation-and-Clicks.md`
-- Click Webhook Spec: `archive/CLICK-TRACKING-WEBHOOK-SPEC.md`
-
----
-
-## 🚀 **SESSION COMPLETION CRITERIA**
-
-### **This Session is Complete When**:
-1.  All tasks in the `IMPLEMENTATION-ROADMAP.md` are marked as complete.
-2.  The system is processing new leads in real-time without manual intervention.
-3.  The Health Monitor is active and sending regular reports.
-4.  The automated backup system is operational.
-
----
-
-## ✅ Done vs Pending (Session Tracker)
-
-Done:
-- Clay enrichment pipeline configured; company/person fields mapped ✅
-- Company Type/Score, Role Score (from Job Title AI), Location Score (US-only), ICP formula (+5 Prime Fit Bonus) ✅
-- Phone normalization mapped; Phone Valid checkbox in Airtable ✅
-- SMS Eligible field populating correctly (ICP Score 70+ threshold working) ✅
-- SimpleTexting integration complete and active (Scheduler + Delivery + Inbound STOP) ✅
-- Documentation updated: runbook HRQ routing, schema, batching plan, A/B testing note ✅
-- Bulk Upload SOP created; Parse CSV fix documented; Manual Trigger added to SOP ✅
-- Clay → Airtable writeback pipeline fully operational ✅
-
-Pending:
-- ✅ HRQ routing for personal emails implemented (both ingestion workflows updated)
-- Create `SMS Eligible (calc)` formula and set SMS Eligible view filter to it
-- Optional: automation to mirror calc → checkbox if needed by n8n
-- Optional: n8n monitoring (Option A); later Option B batch orchestrator
- - Calendly `invitee.created` webhook activation
- - Click tracking v1 (HMAC proxy) enablement and tests

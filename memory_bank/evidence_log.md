@@ -219,3 +219,4 @@
   - `SimpleTexting HTTP` jsonBody ensures text fallback order and sets `campaignId` and `contactPhone` explicitly.
 - **Rules Update**: `.cursorrules/00-CRITICAL-ALWAYS.md` updated with §16e Airtable Partial‑Edit Protocol (allowed keys only; never touch credentials or replace whole `parameters`).
 - **Validator**: Remaining non-blocking warnings on Slack `SMS Test Notify` nested expressions; to be simplified next.
+[] Evidence: ls/wc/head outputs captured in terminal.
