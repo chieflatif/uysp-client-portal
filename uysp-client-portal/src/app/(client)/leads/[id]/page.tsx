@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { theme } from '@/lib/theme';
-import { ArrowLeft, Loader2, AlertCircle, CheckCircle2, Mail, Phone, Building2 } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, CheckCircle2, Mail, Phone, Building2, XCircle } from 'lucide-react';
+import { NotesList } from '@/components/notes/NotesList';
 
 interface Lead {
   id: string;
@@ -33,6 +34,9 @@ export default function LeadDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [claiming, setClaiming] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [removeReason, setRemoveReason] = useState('');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -113,6 +117,49 @@ export default function LeadDetailPage() {
       setError(err instanceof Error ? err.message : 'Error unclaiming lead');
     } finally {
       setClaiming(false);
+    }
+  };
+
+  const handleRemoveFromCampaign = async () => {
+    if (!lead || !removeReason.trim()) {
+      setError('Please provide a reason for removing this lead from the campaign');
+      return;
+    }
+    
+    try {
+      setRemoving(true);
+      setError(null);
+      setSuccess(null);
+
+      const response = await fetch(`/api/leads/${id}/remove-from-campaign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reason: removeReason,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to remove lead from campaign');
+      }
+
+      setSuccess('Lead removed from campaign successfully. Status updated in Airtable.');
+      setShowRemoveDialog(false);
+      setRemoveReason('');
+      
+      // Refresh lead data
+      const leadRes = await fetch(`/api/leads/${id}`);
+      if (leadRes.ok) {
+        const data = await leadRes.json();
+        setLead(data.lead);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error removing lead from campaign');
+    } finally {
+      setRemoving(false);
     }
   };
 
@@ -199,7 +246,7 @@ export default function LeadDetailPage() {
               </div>
             </div>
 
-            <div>
+            <div className="flex gap-3">
               {isClaimed ? (
                 <button
                   onClick={handleUnclaim}
@@ -219,6 +266,14 @@ export default function LeadDetailPage() {
                   {claiming ? 'Processing...' : 'Claim Lead'}
                 </button>
               )}
+              
+              <button
+                onClick={() => setShowRemoveDialog(true)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white disabled:opacity-50`}
+              >
+                <XCircle className="w-4 h-4" />
+                Remove from Campaign
+              </button>
             </div>
           </div>
         </div>
@@ -276,14 +331,58 @@ export default function LeadDetailPage() {
           </div>
         </div>
 
-        <div className={`${theme.components.card} border-t-2 border-t-indigo-600`}>
-          <h2 className={`text-xl font-bold ${theme.core.white} mb-4`}>
-            <span className={theme.accents.secondary.class}>Notes</span> (Coming Soon)
-          </h2>
-          <p className={theme.core.bodyText}>
-            Notes feature will be available in the next update.
-          </p>
-        </div>
+        <NotesList leadId={lead.id} />
+
+        {/* Remove from Campaign Dialog */}
+        {showRemoveDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className={`${theme.components.card} max-w-md w-full`}>
+              <h2 className={`text-xl font-bold ${theme.core.white} mb-4`}>
+                Remove from Campaign
+              </h2>
+              <p className={`${theme.core.bodyText} mb-4`}>
+                This will stop all automated messages to {lead.firstName} {lead.lastName} and update their status in Airtable.
+              </p>
+              
+              <div className="mb-4">
+                <label className={`block text-sm font-medium ${theme.core.white} mb-2`}>
+                  Reason for removal *
+                </label>
+                <textarea
+                  value={removeReason}
+                  onChange={(e) => setRemoveReason(e.target.value)}
+                  placeholder="e.g., Lead requested to stop, Not interested, etc."
+                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-md text-white placeholder-gray-400 min-h-[100px]"
+                  maxLength={500}
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  {removeReason.length}/500 characters
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowRemoveDialog(false);
+                    setRemoveReason('');
+                    setError(null);
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg font-semibold ${theme.components.button.ghost}`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRemoveFromCampaign}
+                  disabled={removing || !removeReason.trim()}
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50`}
+                >
+                  {removing && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {removing ? 'Removing...' : 'Confirm Removal'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

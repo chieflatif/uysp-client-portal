@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { theme } from '@/lib/theme';
-import { AlertCircle, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, Loader2, Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();

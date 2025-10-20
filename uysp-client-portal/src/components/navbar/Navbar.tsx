@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { theme } from '@/lib/theme';
-import { Menu, X, LogOut, Settings, Home } from 'lucide-react';
+import { Menu, X, LogOut, Settings, Home, BarChart3 } from 'lucide-react';
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -19,6 +19,7 @@ export function Navbar() {
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/leads', label: 'Leads', icon: null },
+    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/settings', label: 'Settings', icon: Settings },
   ];
 

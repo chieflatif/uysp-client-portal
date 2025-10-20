@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
-import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { users, clients } from '@/lib/db/schema';
+import { eq, like } from 'drizzle-orm';
 
 // Validation schema for registration
 const registerSchema = z.object({
@@ -15,8 +15,23 @@ const registerSchema = z.object({
 
 type RegisterRequest = z.infer<typeof registerSchema>;
 
+// Environment check - disable registration in production unless explicitly enabled
+const REGISTRATION_ENABLED = process.env.ALLOW_PUBLIC_REGISTRATION === 'true' || process.env.NODE_ENV === 'development';
+
 export async function POST(request: NextRequest) {
   try {
+    // Check if registration is enabled
+    if (!REGISTRATION_ENABLED) {
+      console.log('🚫 Registration disabled in production');
+      return NextResponse.json(
+        { 
+          error: 'Registration is disabled. Please contact your administrator to create an account.',
+          code: 'REGISTRATION_DISABLED'
+        },
+        { status: 403 }
+      );
+    }
+
     console.log('📝 Register request received');
     
     const body = await request.json();
@@ -37,6 +52,27 @@ export async function POST(request: NextRequest) {
 
     const { email, password, firstName, lastName }: RegisterRequest = validation.data;
 
+    // SECURITY: Verify email domain matches an existing client
+    console.log('🔍 Verifying email domain against authorized clients...');
+    const emailDomain = email.split('@')[1].toLowerCase();
+    
+    const matchingClient = await db.query.clients.findFirst({
+      where: (clients, { sql }) => sql`LOWER(${clients.email}) LIKE ${`%@${emailDomain}`}`,
+    });
+
+    if (!matchingClient) {
+      console.log('⚠️ Email domain not authorized:', emailDomain);
+      return NextResponse.json(
+        { 
+          error: 'Email domain not authorized. Please contact your administrator.',
+          code: 'UNAUTHORIZED_DOMAIN'
+        },
+        { status: 403 }
+      );
+    }
+
+    console.log('✅ Email domain authorized for client:', matchingClient.companyName);
+
     // Check if user already exists
     console.log('🔍 Checking if user exists:', email);
     const existingUser = await db.query.users.findFirst({
@@ -55,14 +91,15 @@ export async function POST(request: NextRequest) {
     console.log('🔐 Hashing password');
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create new user
-    console.log('👤 Creating new user:', { email, firstName, lastName });
+    // Create new user with clientId from matching client
+    console.log('👤 Creating new user:', { email, firstName, lastName, clientId: matchingClient.id });
     const newUser = await db.insert(users).values({
       email,
       passwordHash,
       firstName,
       lastName,
       role: 'CLIENT',
+      clientId: matchingClient.id, // SECURITY: Assign correct clientId
       isActive: true,
     }).returning();
 
