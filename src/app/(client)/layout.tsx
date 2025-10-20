@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { theme } from '@/theme';
+import { theme } from 'src/theme';
 import { Loader2 } from 'lucide-react';
 
 export default function ClientLayout({

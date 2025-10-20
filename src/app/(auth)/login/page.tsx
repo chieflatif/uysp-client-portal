@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { theme } from '@/theme';
+import { theme } from 'src/theme';
 import { AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {

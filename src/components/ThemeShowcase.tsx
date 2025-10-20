@@ -3,7 +3,7 @@
  * Demonstrates all available themed components
  */
 
-import { theme } from '@/theme';
+import { theme } from 'src/theme';
 
 export function ThemeShowcase() {
   return (

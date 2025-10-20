@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { BarChart3, TrendingUp, Users, MousePointerClick, Calendar, ChevronRight } from 'lucide-react';
-import { theme } from '@/theme';
+import { theme } from 'src/theme';
 
 interface DashboardStats {
   overview: {

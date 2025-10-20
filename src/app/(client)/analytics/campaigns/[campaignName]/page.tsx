@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Users, Search, ArrowUpDown } from 'lucide-react';
-import { theme } from '@/theme';
+import { theme } from 'src/theme';
 
 interface Lead {
   id: string;

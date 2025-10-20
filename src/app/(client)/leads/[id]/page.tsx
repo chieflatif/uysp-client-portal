@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { theme } from '@/theme';
+import { theme } from 'src/theme';
 import { ArrowLeft, Loader2, AlertCircle, CheckCircle2, Mail, Phone, Building2, XCircle } from 'lucide-react';
 import { NotesList } from '@/components/notes/NotesList';
 

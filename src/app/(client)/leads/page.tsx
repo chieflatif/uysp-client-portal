@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Search, ArrowUpDown } from 'lucide-react';
-import { theme } from '@/theme';
+import { theme } from 'src/theme';
 
 interface Lead {
   id: string;

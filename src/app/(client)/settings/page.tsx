@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { theme } from '@/theme';
+import { theme } from 'src/theme';
 import Link from 'next/link';
 import { ArrowLeft, Bell, Lock, Palette } from 'lucide-react';
 
