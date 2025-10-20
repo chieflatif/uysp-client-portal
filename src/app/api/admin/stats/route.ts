@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
     const allUsers = await db.query.users.findMany();
 
     // Get total leads
-    const leadsCount = await db.execute(sql`SELECT COUNT(*) as count FROM leads`);
-    const totalLeads = Number(leadsCount.rows[0]?.count || 0);
+    const leadsCount = await db.execute<{count: string}>(sql`SELECT COUNT(*) as count FROM leads`);
+    const totalLeads = Number(leadsCount[0]?.count || 0);
 
     // Get leads and users per client
     const leadsByClient = await db.execute(sql`
