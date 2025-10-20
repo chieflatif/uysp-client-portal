@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       activeClients: allClients.filter(c => c.isActive).length,
       totalUsers: allUsers.length,
       totalLeads,
-      leadsByClient: leadsByClient.rows.map((row: any) => ({
+      leadsByClient: leadsByClient.map((row: any) => ({
         clientId: row.client_id,
         clientName: row.client_name,
         leadCount: Number(row.lead_count),
