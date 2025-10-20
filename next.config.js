@@ -6,6 +6,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   webpack: (config) => {
+    config.resolve.extensions = ['.ts', '.tsx', '.js', '.jsx', '.json'];
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, 'src'),

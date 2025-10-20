@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { theme } from 'src/theme';
+import { theme } from '@/theme';
 import { 
   TrendingUp, 
   Users, 
