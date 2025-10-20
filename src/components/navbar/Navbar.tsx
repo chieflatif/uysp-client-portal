@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { theme } from '@/lib/theme';
+import { theme } from '@/theme';
 import { Menu, X, LogOut, Settings, Home, BarChart3, Shield } from 'lucide-react';
 
 export function Navbar() {

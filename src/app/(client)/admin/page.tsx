@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   XCircle
 } from 'lucide-react';
-import { theme } from '@/lib/theme';
+import { theme } from '@/theme';
 
 interface Client {
   id: string;
