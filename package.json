@@ -39,12 +39,13 @@
     "shadcn-ui": "^0.9.5",
     "zod": "^4.1.12",
     "@tailwindcss/postcss": "^4.1.14",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "@types/node": "^20.19.22"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/jest": "^30.0.0",
-    "@types/node": "^20.19.22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.5",
@@ -54,7 +55,6 @@
     "jest-environment-jsdom": "^30.2.0",
     "postgres": "^3.4.7",
     "ts-jest": "^29.4.5",
-    "tsx": "^4.20.6",
-    "typescript": "^5"
+    "tsx": "^4.20.6"
   }
 }
