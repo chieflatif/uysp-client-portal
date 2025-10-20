@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { theme } from '@/lib/theme';
-import { Menu, X, LogOut, Settings, Home, BarChart3 } from 'lucide-react';
+import { Menu, X, LogOut, Settings, Home, BarChart3, Shield } from 'lucide-react';
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -16,10 +16,13 @@ export function Navbar() {
     return null;
   }
 
+  const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN';
+  
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/leads', label: 'Leads', icon: null },
     { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+    ...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: Shield }] : []),
     { href: '/settings', label: 'Settings', icon: Settings },
   ];
 
