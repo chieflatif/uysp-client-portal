@@ -434,3 +434,5 @@ ALTER TABLE leads ADD COLUMN booked_at TIMESTAMP;
 **Status**: Contracts defined, ready for TDD implementation per SOP§1.1
 **Next Step**: Update schema and write failing tests
 
+
+

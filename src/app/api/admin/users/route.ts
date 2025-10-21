@@ -3,13 +3,15 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { users } from '@/lib/db/schema';
+import { users, activityLog } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 /**
  * POST /api/admin/users
  * 
- * Create a new user for a client (ADMIN only)
+ * Create a new user for a client (SUPER_ADMIN ONLY)
+ * TDD: Implementation to pass tests
+ * Endpoint #3 from ADMIN-AUTOMATION-BUILD-TASK.md
  */
 
 const createUserSchema = z.object({
@@ -32,10 +34,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Authorization - Only ADMIN or SUPER_ADMIN
-    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
+    // Authorization - SUPER_ADMIN ONLY
+    if (session.user.role !== 'SUPER_ADMIN') {
       return NextResponse.json(
-        { error: 'Forbidden - Admin access required', code: 'FORBIDDEN' },
+        { error: 'Forbidden - SUPER_ADMIN access required', code: 'FORBIDDEN' },
         { status: 403 }
       );
     }
@@ -95,6 +97,18 @@ export async function POST(request: NextRequest) {
       isActive: true,
     }).returning();
 
+    // Log activity
+    await db.insert(activityLog).values({
+      userId: session.user.id,
+      clientId: clientId,
+      action: 'USER_CREATED',
+      details: `Created user: ${email} (${firstName} ${lastName}) with role ${role}`,
+      ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+    }).catch(err => {
+      console.warn('Failed to log activity:', err);
+      // Don't fail the request if logging fails
+    });
+
     // Return without password
     return NextResponse.json(
       {
@@ -123,7 +137,7 @@ export async function POST(request: NextRequest) {
 /**
  * GET /api/admin/users
  * 
- * Get all users (ADMIN only)
+ * Get all users (ADMIN or SUPER_ADMIN)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -136,7 +150,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Authorization - Only ADMIN or SUPER_ADMIN
+    // Authorization - ADMIN or SUPER_ADMIN
     if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required', code: 'FORBIDDEN' },

@@ -165,3 +165,5 @@ cd "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1/uysp-client-por
 
 **Status**: 90% complete, just need SMS_Audit sync to enable campaign analytics
 
+
+

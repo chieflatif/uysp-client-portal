@@ -404,22 +404,23 @@ export class AirtableClient {
 }
 
 /**
- * Singleton instance
+ * Get Airtable client for a specific base ID
+ * If baseId not provided, uses AIRTABLE_BASE_ID from env
  */
-let instance: AirtableClient | null = null;
+export function getAirtableClient(baseId?: string): AirtableClient {
+  const apiKey = process.env.AIRTABLE_API_KEY;
+  const finalBaseId = baseId || process.env.AIRTABLE_BASE_ID;
 
-export function getAirtableClient(): AirtableClient {
-  if (!instance) {
-    const apiKey = process.env.AIRTABLE_API_KEY;
-    const baseId = process.env.AIRTABLE_BASE_ID;
-
-    if (!apiKey || !baseId) {
-      throw new Error('AIRTABLE_API_KEY and AIRTABLE_BASE_ID must be set');
-    }
-
-    instance = new AirtableClient(baseId, apiKey);
+  if (!apiKey) {
+    throw new Error('AIRTABLE_API_KEY must be set in environment variables');
   }
 
-  return instance;
+  if (!finalBaseId) {
+    throw new Error('AIRTABLE_BASE_ID must be set in environment variables or provided as parameter');
+  }
+
+  // Return a new instance for the specified base ID
+  // This allows multi-tenant support (different clients = different bases)
+  return new AirtableClient(finalBaseId, apiKey);
 }
 

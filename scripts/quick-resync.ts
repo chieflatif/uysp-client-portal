@@ -108,3 +108,5 @@ import { sql } from 'drizzle-orm';
 
 quickResync();
 
+
+
