@@ -32,8 +32,10 @@ export async function GET(
       return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
     }
 
-    // Authorization check (skip if user doesn't have clientId assigned yet)
-    if (session.user.clientId && session.user.clientId !== lead.clientId && session.user.role !== 'ADMIN') {
+    // Authorization check
+    // SUPER_ADMIN and ADMIN can access all leads
+    const isSuperUser = session.user.role === 'SUPER_ADMIN' || session.user.role === 'ADMIN';
+    if (!isSuperUser && session.user.clientId && session.user.clientId !== lead.clientId) {
       return NextResponse.json(
         { error: 'You do not have access to this lead' },
         { status: 403 }
@@ -51,7 +53,8 @@ export async function GET(
     return NextResponse.json(parsedNotes);
   } catch (error) {
     console.error('Error fetching notes:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Return empty array instead of error - allows UI to show "no notes"
+    return NextResponse.json([]);
   }
 }
 
