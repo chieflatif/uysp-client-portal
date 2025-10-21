@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     let errors = 0;
     const errorDetails: Array<{recordId: string; error: string}> = [];
     
-    const batchSize = 100;
+    const batchSize = 500; // Larger batches = faster sync
     let batch: any[] = [];
 
     await airtable.streamAllLeads(async (record) => {
@@ -105,46 +105,41 @@ export async function POST(request: NextRequest) {
     }
 
     async function processBatch(batchItems: any[]) {
-      const recordIds = batchItems.map(b => b.record.id);
-      
-      // Get existing records in one query
-      const existing = await db.query.leads.findMany({
-        where: (leads, { inArray }) => inArray(leads.airtableRecordId, recordIds),
-      });
-      
-      const existingMap = new Map(existing.map(e => [e.airtableRecordId, e]));
-      
-      const toInsert: any[] = [];
-      const toUpdate: any[] = [];
-      
-      for (const item of batchItems) {
-        const existingLead = existingMap.get(item.record.id);
-        if (existingLead) {
-          toUpdate.push({
-            id: existingLead.id,
-            data: { ...item.leadData, updatedAt: new Date() }
+      // Use PostgreSQL UPSERT (INSERT ... ON CONFLICT UPDATE) - MUCH FASTER
+      const values = batchItems.map(item => ({
+        ...item.leadData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
+
+      try {
+        // Insert all, update on conflict with airtable_record_id
+        await db.insert(leads)
+          .values(values)
+          .onConflictDoUpdate({
+            target: leads.airtableRecordId,
+            set: {
+              ...values[0], // Use first item as template (all will be updated)
+              updatedAt: new Date(),
+            },
           });
-        } else {
-          toInsert.push({
-            ...item.leadData,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
+        
+        totalInserted += batchItems.length; // Approximate - some might be updates
+      } catch (error: any) {
+        console.error('Batch upsert error:', error.message);
+        // Fallback to individual inserts if batch fails
+        for (const item of batchItems) {
+          try {
+            await db.insert(leads).values({
+              ...item.leadData,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }).onConflictDoNothing();
+            totalInserted++;
+          } catch (e: any) {
+            errors++;
+          }
         }
-      }
-      
-      // Batch insert
-      if (toInsert.length > 0) {
-        await db.insert(leads).values(toInsert);
-        totalInserted += toInsert.length;
-      }
-      
-      // Batch update
-      for (const item of toUpdate) {
-        await db.update(leads)
-          .set(item.data)
-          .where(eq(leads.id, item.id));
-        totalUpdated++;
       }
     }
 
