@@ -16,6 +16,7 @@ declare module 'next-auth' {
       image: string | null;
       role: string;
       clientId: string | null;
+      mustChangePassword: boolean;
     };
   }
   
@@ -25,6 +26,7 @@ declare module 'next-auth' {
     name: string | null;
     role: string;
     clientId: string | null;
+    mustChangePassword: boolean;
   }
 }
 
@@ -33,6 +35,7 @@ declare module 'next-auth/jwt' {
     id: string;
     role: string;
     clientId: string | null;
+    mustChangePassword: boolean;
   }
 }
 
@@ -88,6 +91,7 @@ export const authOptions: NextAuthOptions = {
               : user.firstName || user.email,
             role: user.role,
             clientId: user.clientId,
+            mustChangePassword: user.mustChangePassword || false,
           };
         } catch (error) {
           console.error('Auth error:', error instanceof Error ? error.message : 'Unknown error');
@@ -106,6 +110,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as { role?: string }).role || 'CLIENT';
         token.clientId = (user as { clientId?: string | null }).clientId || null;
+        token.mustChangePassword = (user as { mustChangePassword?: boolean }).mustChangePassword || false;
       }
       return token;
     },
@@ -114,6 +119,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.clientId = token.clientId as string | null;
+        session.user.mustChangePassword = token.mustChangePassword as boolean;
       }
       return session;
     },

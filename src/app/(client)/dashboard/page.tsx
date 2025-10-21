@@ -35,7 +35,7 @@ interface ActivityEntry {
 }
 
 export default function DashboardPage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     totalLeads: 0,
@@ -51,8 +51,15 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
+      return;
     }
-  }, [status, router]);
+    
+    // Redirect to password change if required
+    if (session?.user?.mustChangePassword) {
+      router.push('/change-password');
+      return;
+    }
+  }, [status, session, router]);
 
   useEffect(() => {
     if (status !== 'authenticated') return;

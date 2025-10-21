@@ -23,6 +23,7 @@ export const users = pgTable(
     role: varchar('role', { length: 50 }).notNull().default('CLIENT'), // SUPER_ADMIN, ADMIN, CLIENT
     clientId: uuid('client_id'),
     isActive: boolean('is_active').notNull().default(true),
+    mustChangePassword: boolean('must_change_password').notNull().default(false),
     lastLoginAt: timestamp('last_login_at'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
