@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { clients } from '@/lib/db/schema';
 
 /**
  * GET /api/analytics/dashboard
@@ -26,8 +27,23 @@ export async function GET(request: NextRequest) {
 
     // Authorization
     let clientId = session.user.clientId;
-    if (session.user.role === 'ADMIN' && requestedClientId) {
+    
+    // SUPER_ADMIN can see all clients or specify one
+    if (session.user.role === 'SUPER_ADMIN') {
+      clientId = requestedClientId || null; // null = show all
+    } else if (session.user.role === 'ADMIN' && requestedClientId) {
       clientId = requestedClientId;
+    }
+    
+    // For SUPER_ADMIN without clientId specified, default to UYSP for now
+    if (session.user.role === 'SUPER_ADMIN' && !clientId) {
+      // Get UYSP client ID
+      const uyspClient = await db.query.clients.findFirst({
+        where: (clients, { eq }) => eq(clients.companyName, 'UYSP'),
+      });
+      if (uyspClient) {
+        clientId = uyspClient.id;
+      }
     }
 
     // Calculate time boundaries

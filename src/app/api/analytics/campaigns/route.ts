@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { clients } from '@/lib/db/schema';
 
 /**
  * GET /api/analytics/campaigns
@@ -27,9 +28,21 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    // Authorization: non-admins can only see their own client data
+    // Authorization
     let clientId = session.user.clientId;
-    if (session.user.role === 'ADMIN' && requestedClientId) {
+    
+    // SUPER_ADMIN can see any client or all clients
+    if (session.user.role === 'SUPER_ADMIN') {
+      clientId = requestedClientId || null;
+      
+      // Default to UYSP if no client specified
+      if (!clientId) {
+        const uyspClient = await db.query.clients.findFirst({
+          where: (clients, { eq }) => eq(clients.companyName, 'UYSP'),
+        });
+        if (uyspClient) clientId = uyspClient.id;
+      }
+    } else if (session.user.role === 'ADMIN' && requestedClientId) {
       clientId = requestedClientId;
     } else if (session.user.role !== 'ADMIN' && requestedClientId) {
       return NextResponse.json(
