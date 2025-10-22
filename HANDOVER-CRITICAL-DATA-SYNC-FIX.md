@@ -160,3 +160,6 @@ curl -X POST http://localhost:3006/api/admin/sync \
 **One command needed**: `POST /api/admin/sync with UYSP's clientId`  
 **Result**: 11,046 UYSP leads populate in database + 2 campaigns show with real metrics
 
+
+
+

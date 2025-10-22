@@ -13,3 +13,6 @@ WHERE last_login_at IS NULL
 
 COMMENT ON COLUMN users.must_change_password IS 'TRUE if user must change password on next login (auto-generated or reset)';
 
+
+
+
