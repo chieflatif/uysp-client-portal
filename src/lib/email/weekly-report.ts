@@ -4,7 +4,7 @@
  */
 
 import { db } from '@/lib/db';
-import { clientProjectTasks, clientProjectBlockers, clientProjectStatus, users } from '@/lib/db/schema';
+import { clientProjectTasks, clientProjectBlockers, clientProjectStatus, users, clients } from '@/lib/db/schema';
 import { eq, and, desc, sql, gte } from 'drizzle-orm';
 import { sendEmail } from './mailer';
 
@@ -60,11 +60,10 @@ async function gatherReportData(clientId: string): Promise<WeeklyReportData> {
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
   // SECURITY: Get client info for this specific client ONLY
-  const { clients: clientsTable } = await import('@/lib/db/schema');
   const [client] = await db
     .select()
-    .from(clientsTable)
-    .where(eq(clientsTable.id, clientId))
+    .from(clients)
+    .where(eq(clients.id, clientId))
     .limit(1);
 
   if (!client) {
@@ -706,11 +705,10 @@ export async function sendWeeklyReport(clientId: string): Promise<void> {
 export async function sendAllWeeklyReports(): Promise<void> {
   try {
     // Get all active clients
-    const { clients: clientsTable } = await import('@/lib/db/schema');
     const allClients = await db
       .select()
-      .from(clientsTable)
-      .where(eq(clientsTable.isActive, true));
+      .from(clients)
+      .where(eq(clients.isActive, true));
 
     console.log(`📊 Sending weekly reports for ${allClients.length} client(s)...`);
 

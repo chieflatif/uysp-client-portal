@@ -24,6 +24,24 @@ export default withAuth(
     const token = req.nextauth.token;
     const pathname = req.nextUrl.pathname;
 
+    // ANALYTICS: Track page views for authenticated users (fire and forget)
+    if (token && !pathname.startsWith('/api/')) {
+      fetch(`${req.nextUrl.origin}/api/analytics/track`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventType: 'page_view',
+          eventCategory: 'navigation',
+          pageUrl: pathname,
+          referrer: req.headers.get('referer') || null,
+        }),
+      }).catch(() => {
+        // Silently fail - don't break the app for analytics
+      });
+    }
+
     // If user is authenticated and must change password
     if (token && token.mustChangePassword) {
       // Allow access to change password page and API

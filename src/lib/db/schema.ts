@@ -1,12 +1,15 @@
-import { 
-  pgTable, 
-  text, 
-  varchar, 
-  integer, 
-  boolean, 
+import {
+  pgTable,
+  text,
+  varchar,
+  integer,
+  boolean,
   timestamp,
   uuid,
   index,
+  date,
+  jsonb,
+  inet,
 } from 'drizzle-orm/pg-core';
 
 // ==============================================================================
@@ -362,3 +365,98 @@ export type NewClientProjectBlocker = typeof clientProjectBlockers.$inferInsert;
 
 export type ClientProjectStatus = typeof clientProjectStatus.$inferSelect;
 export type NewClientProjectStatus = typeof clientProjectStatus.$inferInsert;
+
+// ==============================================================================
+// USER ACTIVITY TRACKING TABLES
+// ==============================================================================
+
+export const userActivityLogs = pgTable(
+  'user_activity_logs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull(),
+    clientId: uuid('client_id'),
+    eventType: varchar('event_type', { length: 100 }).notNull(),
+    eventCategory: varchar('event_category', { length: 50 }),
+    eventData: jsonb('event_data'),
+    pageUrl: varchar('page_url', { length: 500 }),
+    referrer: varchar('referrer', { length: 500 }),
+    sessionId: varchar('session_id', { length: 100 }),
+    ipAddress: inet('ip_address'),
+    userAgent: text('user_agent'),
+    browser: varchar('browser', { length: 50 }),
+    deviceType: varchar('device_type', { length: 50 }),
+    os: varchar('os', { length: 50 }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('idx_activity_logs_user_id').on(table.userId, table.createdAt),
+    clientIdIdx: index('idx_activity_logs_client_id').on(table.clientId, table.createdAt),
+    eventTypeIdx: index('idx_activity_logs_event_type').on(table.eventType),
+    eventCategoryIdx: index('idx_activity_logs_event_category').on(table.eventCategory),
+    sessionIdIdx: index('idx_activity_logs_session_id').on(table.sessionId),
+    createdAtIdx: index('idx_activity_logs_created_at').on(table.createdAt),
+  })
+);
+
+export const userSessions = pgTable(
+  'user_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sessionId: varchar('session_id', { length: 100 }).notNull().unique(),
+    userId: uuid('user_id').notNull(),
+    clientId: uuid('client_id'),
+    sessionStart: timestamp('session_start').notNull().defaultNow(),
+    sessionEnd: timestamp('session_end'),
+    lastActivity: timestamp('last_activity').notNull().defaultNow(),
+    pageViews: integer('page_views').default(0),
+    durationSeconds: integer('duration_seconds'),
+    deviceType: varchar('device_type', { length: 50 }),
+    browser: varchar('browser', { length: 50 }),
+    os: varchar('os', { length: 50 }),
+    ipAddress: inet('ip_address'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('idx_sessions_user_id').on(table.userId, table.sessionStart),
+    clientIdIdx: index('idx_sessions_client_id').on(table.clientId, table.sessionStart),
+    sessionIdIdx: index('idx_sessions_session_id').on(table.sessionId),
+    startIdx: index('idx_sessions_start').on(table.sessionStart),
+    endIdx: index('idx_sessions_end').on(table.sessionEnd),
+  })
+);
+
+export const userActivitySummary = pgTable(
+  'user_activity_summary',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull(),
+    clientId: uuid('client_id'),
+    activityDate: date('activity_date').notNull(),
+    totalSessions: integer('total_sessions').default(0),
+    totalPageViews: integer('total_page_views').default(0),
+    totalEvents: integer('total_events').default(0),
+    totalDurationSeconds: integer('total_duration_seconds').default(0),
+    firstActivity: timestamp('first_activity'),
+    lastActivity: timestamp('last_activity'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userDateIdx: index('idx_summary_user_date').on(table.userId, table.activityDate),
+    clientDateIdx: index('idx_summary_client_date').on(table.clientId, table.activityDate),
+    dateIdx: index('idx_summary_date').on(table.activityDate),
+  })
+);
+
+// Type exports for activity tracking
+export type UserActivityLog = typeof userActivityLogs.$inferSelect;
+export type NewUserActivityLog = typeof userActivityLogs.$inferInsert;
+
+export type UserSession = typeof userSessions.$inferSelect;
+export type NewUserSession = typeof userSessions.$inferInsert;
+
+export type UserActivitySummary = typeof userActivitySummary.$inferSelect;
+export type NewUserActivitySummary = typeof userActivitySummary.$inferInsert;
