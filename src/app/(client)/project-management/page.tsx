@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useClient } from '@/contexts/ClientContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, ArrowUpDown, AlertCircle, TrendingUp, Clock, Target, RefreshCw, X, Calendar, Plus, Save } from 'lucide-react';
+import { Search, ArrowUpDown, AlertCircle, TrendingUp, Clock, Target, RefreshCw, X, Calendar, Plus, Save, Mail } from 'lucide-react';
 import { theme } from '@/theme';
 
 interface Task {
@@ -89,6 +89,7 @@ export default function ProjectManagementPage() {
     dependencies: '',
   });
   const [creatingTask, setCreatingTask] = useState(false);
+  const [sendingReport, setSendingReport] = useState(false);
 
   // React Query: Fetch project data with aggressive caching for instant navigation
   const { data: projectData, isLoading: loading, error: projectError, isFetching } = useQuery({
@@ -380,6 +381,32 @@ export default function ProjectManagementPage() {
     }
   };
 
+  const handleSendWeeklyReport = async () => {
+    if (!selectedClientId) return;
+
+    const confirmed = confirm('Send weekly project report to all administrators?');
+    if (!confirmed) return;
+
+    try {
+      setSendingReport(true);
+      const response = await fetch(`/api/reports/weekly?clientId=${selectedClientId}&test=true`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send report');
+      }
+
+      const data = await response.json();
+      alert(data.message || 'Weekly report sent successfully!');
+    } catch (err) {
+      console.error('Failed to send report:', err);
+      alert('Failed to send report. Please try again.');
+    } finally {
+      setSendingReport(false);
+    }
+  };
+
   // Only show loading screen if there's no data AND we're loading (first load)
   if (loading && !projectData) {
     return (
@@ -432,6 +459,22 @@ export default function ProjectManagementPage() {
                 <RefreshCw className="w-4 h-4 animate-spin" />
                 <span>Updating...</span>
               </div>
+            )}
+            {/* SECURITY: Only show Send Report button to admins */}
+            {session?.user && (session.user.role === 'CLIENT_ADMIN' || session.user.role === 'SUPER_ADMIN') && (
+              <button
+                onClick={handleSendWeeklyReport}
+                disabled={sendingReport}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+                  sendingReport
+                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white'
+                }`}
+                title="Send weekly project report to administrators"
+              >
+                <Mail className="w-4 h-4" />
+                {sendingReport ? 'Sending...' : 'Send Report'}
+              </button>
             )}
             <div className={`text-right ${theme.core.bodyText}`}>
               <p className="text-sm font-semibold">
