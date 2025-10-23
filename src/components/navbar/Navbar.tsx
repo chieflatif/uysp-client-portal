@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { theme } from '@/theme';
-import { Menu, X, LogOut, Settings, Home, BarChart3, Shield, Briefcase, Users } from 'lucide-react';
+import { Menu, X, LogOut, Settings, Home, BarChart3, Shield, Briefcase, Users, Activity } from 'lucide-react';
 import { ClientSelector } from './ClientSelector';
 import { canManageUsers } from '@/lib/auth/permissions-client';
 
@@ -21,6 +21,7 @@ export function Navbar() {
   // Check if user has admin privileges (using new role system)
   const hasAdminAccess = session?.user?.role === 'SUPER_ADMIN' || session?.user?.role === 'CLIENT_ADMIN';
   const hasUserManagement = canManageUsers(session?.user?.role || '');
+  const isSuperAdmin = session?.user?.role === 'SUPER_ADMIN';
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -28,6 +29,7 @@ export function Navbar() {
     { href: '/analytics', label: 'Analytics', icon: BarChart3 },
     ...(hasAdminAccess ? [{ href: '/project-management', label: 'Project Management', icon: Briefcase }] : []),
     ...(hasUserManagement ? [{ href: '/admin/users', label: 'Users', icon: Shield }] : []),
+    ...(isSuperAdmin ? [{ href: '/admin/user-activity', label: 'User Activity', icon: Activity }] : []),
   ];
 
   const isActive = (href: string) => pathname === href;
