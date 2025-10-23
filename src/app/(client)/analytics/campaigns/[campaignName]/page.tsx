@@ -33,13 +33,21 @@ interface CampaignDetail {
 export default function CampaignDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const campaignName = decodeURIComponent(params.campaignName as string);
+  const [campaignName, setCampaignName] = useState<string>('');
   const [campaign, setCampaign] = useState<CampaignDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('all');
 
   useEffect(() => {
-    fetchCampaignDetail();
+    if (params.campaignName) {
+      setCampaignName(decodeURIComponent(params.campaignName as string));
+    }
+  }, [params]);
+
+  useEffect(() => {
+    if (campaignName) {
+      fetchCampaignDetail();
+    }
   }, [campaignName, period]);
 
   const fetchCampaignDetail = async () => {
