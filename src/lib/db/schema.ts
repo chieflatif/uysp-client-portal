@@ -20,7 +20,7 @@ export const users = pgTable(
     passwordHash: text('password_hash').notNull(),
     firstName: varchar('first_name', { length: 255 }),
     lastName: varchar('last_name', { length: 255 }),
-    role: varchar('role', { length: 50 }).notNull().default('CLIENT'), // SUPER_ADMIN, ADMIN, CLIENT
+    role: varchar('role', { length: 50 }).notNull().default('CLIENT_USER'), // SUPER_ADMIN, CLIENT_ADMIN, CLIENT_USER
     clientId: uuid('client_id'),
     isActive: boolean('is_active').notNull().default(true),
     mustChangePassword: boolean('must_change_password').notNull().default(false),
@@ -259,6 +259,75 @@ export const activityLog = pgTable(
 );
 
 // ==============================================================================
+// PROJECT MANAGEMENT TABLES (Synced from Airtable)
+// ==============================================================================
+export const clientProjectTasks = pgTable(
+  'client_project_tasks',
+  {
+    id: varchar('id', { length: 50 }).primaryKey(),
+    clientId: uuid('client_id').notNull(),
+    airtableRecordId: varchar('airtable_record_id', { length: 255 }).notNull().unique(),
+    task: varchar('task', { length: 500 }).notNull(),
+    status: varchar('status', { length: 50 }).notNull(),
+    priority: varchar('priority', { length: 50 }).notNull(),
+    taskType: varchar('task_type', { length: 50 }).notNull().default('Task'), // Feature, Bug, Task, Improvement, Documentation, Research
+    owner: varchar('owner', { length: 100 }),
+    dueDate: timestamp('due_date'),
+    notes: text('notes'),
+    dependencies: text('dependencies'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    clientIdIdx: index('idx_project_tasks_client_id').on(table.clientId),
+    statusIdx: index('idx_project_tasks_status').on(table.status),
+    priorityIdx: index('idx_project_tasks_priority').on(table.priority),
+    typeIdx: index('idx_project_tasks_type').on(table.taskType),
+    airtableRecordIdx: index('idx_project_tasks_airtable_record').on(table.airtableRecordId),
+  })
+);
+
+export const clientProjectBlockers = pgTable(
+  'client_project_blockers',
+  {
+    id: varchar('id', { length: 50 }).primaryKey(),
+    clientId: uuid('client_id').notNull(),
+    airtableRecordId: varchar('airtable_record_id', { length: 255 }).notNull().unique(),
+    blocker: varchar('blocker', { length: 500 }).notNull(),
+    severity: varchar('severity', { length: 50 }).notNull(),
+    actionToResolve: text('action_to_resolve'),
+    status: varchar('status', { length: 50 }).notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    resolvedAt: timestamp('resolved_at'),
+  },
+  (table) => ({
+    clientIdIdx: index('idx_project_blockers_client_id').on(table.clientId),
+    severityIdx: index('idx_project_blockers_severity').on(table.severity),
+    statusIdx: index('idx_project_blockers_status').on(table.status),
+    airtableRecordIdx: index('idx_project_blockers_airtable_record').on(table.airtableRecordId),
+  })
+);
+
+export const clientProjectStatus = pgTable(
+  'client_project_status',
+  {
+    id: varchar('id', { length: 50 }).primaryKey(),
+    clientId: uuid('client_id').notNull(),
+    airtableRecordId: varchar('airtable_record_id', { length: 255 }).notNull().unique(),
+    metric: varchar('metric', { length: 200 }).notNull(),
+    value: text('value').notNull(),
+    category: varchar('category', { length: 50 }).notNull(),
+    displayOrder: integer('display_order'),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    clientIdIdx: index('idx_project_status_client_id').on(table.clientId),
+    categoryIdx: index('idx_project_status_category').on(table.category),
+    airtableRecordIdx: index('idx_project_status_airtable_record').on(table.airtableRecordId),
+  })
+);
+
+// ==============================================================================
 // TYPES EXPORTS
 // ==============================================================================
 export type User = typeof users.$inferSelect;
@@ -284,3 +353,12 @@ export type NewSmsAudit = typeof smsAudit.$inferInsert;
 
 export type SmsTemplate = typeof smsTemplates.$inferSelect;
 export type NewSmsTemplate = typeof smsTemplates.$inferInsert;
+
+export type ClientProjectTask = typeof clientProjectTasks.$inferSelect;
+export type NewClientProjectTask = typeof clientProjectTasks.$inferInsert;
+
+export type ClientProjectBlocker = typeof clientProjectBlockers.$inferSelect;
+export type NewClientProjectBlocker = typeof clientProjectBlockers.$inferInsert;
+
+export type ClientProjectStatus = typeof clientProjectStatus.$inferSelect;
+export type NewClientProjectStatus = typeof clientProjectStatus.$inferInsert;

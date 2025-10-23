@@ -115,21 +115,28 @@ export default function AnalyticsPage() {
     try {
       setIsLoading(true);
 
-      // Fetch dashboard stats (with clientId for SUPER_ADMIN)
-      const dashboardUrl = selectedClientId 
+      // PERFORMANCE FIX: Fetch both endpoints in parallel instead of sequentially
+      const dashboardUrl = selectedClientId
         ? `/api/analytics/dashboard?period=${period}&clientId=${selectedClientId}`
         : `/api/analytics/dashboard?period=${period}`;
-      const dashboardRes = await fetch(dashboardUrl);
+
+      const campaignsUrl = selectedClientId
+        ? `/api/analytics/campaigns?clientId=${selectedClientId}`
+        : '/api/analytics/campaigns';
+
+      // Fetch both in parallel using Promise.all
+      const [dashboardRes, campaignsRes] = await Promise.all([
+        fetch(dashboardUrl),
+        fetch(campaignsUrl)
+      ]);
+
+      // Process dashboard response
       if (dashboardRes.ok) {
         const dashboardData = await dashboardRes.json();
         setDashboardStats(dashboardData);
       }
 
-      // Fetch campaign stats (with clientId for SUPER_ADMIN)
-      const campaignsUrl = selectedClientId
-        ? `/api/analytics/campaigns?clientId=${selectedClientId}`
-        : '/api/analytics/campaigns';
-      const campaignsRes = await fetch(campaignsUrl);
+      // Process campaigns response
       if (campaignsRes.ok) {
         const campaignsData = await campaignsRes.json();
         setCampaignStats(campaignsData.campaigns || []);

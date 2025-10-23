@@ -683,11 +683,11 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setNewUser({ ...newUser, role: e.target.value as 'CLIENT' | 'ADMIN' })}
                   className={theme.components.input}
                 >
-                  <option value="CLIENT">Client User (Standard Access)</option>
+                  <option value="CLIENT">User (Standard Access)</option>
                   <option value="ADMIN">Admin (Full Access)</option>
                 </select>
                 <p className={`text-xs ${theme.core.bodyText} mt-1`}>
-                  Client users see only their client&apos;s data. Admins see all clients.
+                  Users see only their client&apos;s data. Admins see all clients.
                 </p>
               </div>
 

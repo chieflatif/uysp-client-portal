@@ -15,6 +15,13 @@
       "when": 1760939583519,
       "tag": "0001_familiar_rage",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1761201981305,
+      "tag": "0002_clammy_vermin",
+      "breakpoints": true
     }
   ]
 }

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { clients, leads } from '@/lib/db/schema';
+import { clients, leads, clientProjectTasks, clientProjectBlockers, clientProjectStatus } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getAirtableClient } from '@/lib/airtable/client';
 
@@ -143,6 +143,88 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ========================================================================
+    // SYNC PROJECT MANAGEMENT DATA
+    // ========================================================================
+    
+    let tasksFetched = 0;
+    let tasksInserted = 0;
+    let blockersFetched = 0;
+    let blockersInserted = 0;
+    let statusFetched = 0;
+    let statusInserted = 0;
+
+    // Sync Tasks
+    try {
+      await airtable.streamAllProjectTasks(async (record) => {
+        tasksFetched++;
+        try {
+          const taskData = airtable.mapToDatabaseTask(record, clientId);
+          await db.insert(clientProjectTasks)
+            .values(taskData)
+            .onConflictDoUpdate({
+              target: clientProjectTasks.airtableRecordId,
+              set: {
+                ...taskData,
+                updatedAt: new Date(),
+              },
+            });
+          tasksInserted++;
+        } catch (error: any) {
+          console.error(`Error syncing task ${record.id}:`, error.message);
+        }
+      });
+    } catch (error: any) {
+      console.error('Tasks table not found or error syncing:', error.message);
+    }
+
+    // Sync Blockers
+    try {
+      await airtable.streamAllProjectBlockers(async (record) => {
+        blockersFetched++;
+        try {
+          const blockerData = airtable.mapToDatabaseBlocker(record, clientId);
+          await db.insert(clientProjectBlockers)
+            .values(blockerData)
+            .onConflictDoUpdate({
+              target: clientProjectBlockers.airtableRecordId,
+              set: {
+                ...blockerData,
+              },
+            });
+          blockersInserted++;
+        } catch (error: any) {
+          console.error(`Error syncing blocker ${record.id}:`, error.message);
+        }
+      });
+    } catch (error: any) {
+      console.error('Blockers table not found or error syncing:', error.message);
+    }
+
+    // Sync Project Status
+    try {
+      await airtable.streamAllProjectStatus(async (record) => {
+        statusFetched++;
+        try {
+          const statusData = airtable.mapToDatabaseProjectStatus(record, clientId);
+          await db.insert(clientProjectStatus)
+            .values(statusData)
+            .onConflictDoUpdate({
+              target: clientProjectStatus.airtableRecordId,
+              set: {
+                ...statusData,
+                updatedAt: new Date(),
+              },
+            });
+          statusInserted++;
+        } catch (error: any) {
+          console.error(`Error syncing status ${record.id}:`, error.message);
+        }
+      });
+    } catch (error: any) {
+      console.error('Project_Status table not found or error syncing:', error.message);
+    }
+
     // Update client's last sync timestamp
     await db.update(clients)
       .set({ lastSyncAt: new Date() })
@@ -156,13 +238,27 @@ export async function POST(request: NextRequest) {
         airtableBaseId: client.airtableBaseId,
       },
       results: {
-        totalFetched,
-        totalInserted,
-        totalUpdated,
-        errors,
-        errorDetails: errors > 0 ? errorDetails.slice(0, 10) : [], // Return first 10 errors
+        leads: {
+          totalFetched,
+          totalInserted,
+          totalUpdated,
+          errors,
+          errorDetails: errors > 0 ? errorDetails.slice(0, 10) : [],
+        },
+        tasks: {
+          fetched: tasksFetched,
+          synced: tasksInserted,
+        },
+        blockers: {
+          fetched: blockersFetched,
+          synced: blockersInserted,
+        },
+        projectStatus: {
+          fetched: statusFetched,
+          synced: statusInserted,
+        },
       },
-      message: `Sync complete for ${client.companyName}! Fetched ${totalFetched}, inserted ${totalInserted}, updated ${totalUpdated}, errors: ${errors}`
+      message: `Sync complete for ${client.companyName}! Leads: ${totalFetched}, Tasks: ${tasksFetched}, Blockers: ${blockersFetched}, Status: ${statusFetched}`
     });
 
   } catch (error: any) {

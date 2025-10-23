@@ -14,7 +14,8 @@ import {
   ArrowRight, 
   Loader2, 
   AlertCircle,
-  Clock
+  Clock,
+  Briefcase
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -277,7 +278,7 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div className={theme.components.card}>
           <h2 className={`text-xl font-bold ${theme.core.white} mb-4`}>Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <Link
               href="/leads"
               className={`flex items-center justify-between p-4 rounded-lg border border-gray-700 hover:border-cyan-400 hover:bg-gray-800 transition ${theme.core.bodyText}`}
@@ -298,6 +299,18 @@ export default function DashboardPage() {
               </div>
               <ArrowRight className="w-5 h-5 text-cyan-400" />
             </Link>
+            {session?.user?.role === 'ADMIN' && (
+              <Link
+                href="/project-management"
+                className={`flex items-center justify-between p-4 rounded-lg border border-gray-700 hover:border-indigo-600 hover:bg-gray-800 transition ${theme.core.bodyText}`}
+              >
+                <div>
+                  <p className={`font-medium ${theme.core.white}`}>Project Management</p>
+                  <p className={`text-sm ${theme.core.bodyText}`}>Tasks, blockers & progress</p>
+                </div>
+                <Briefcase className="w-5 h-5 text-indigo-600" />
+              </Link>
+            )}
             <Link
               href="/settings"
               className={`flex items-center justify-between p-4 rounded-lg border border-gray-700 hover:border-cyan-400 hover:bg-gray-800 transition ${theme.core.bodyText}`}

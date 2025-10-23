@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { SessionProvider } from '@/components/providers/SessionProvider';
+import { QueryProvider } from '@/components/providers/QueryProvider';
+import { ClientProvider } from '@/contexts/ClientContext';
 import { Navbar } from '@/components/navbar/Navbar';
 import './globals.css';
 
@@ -17,8 +19,12 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-gray-900">
         <SessionProvider>
-          <Navbar />
-          <main>{children}</main>
+          <QueryProvider>
+            <ClientProvider>
+              <Navbar />
+              <main>{children}</main>
+            </ClientProvider>
+          </QueryProvider>
         </SessionProvider>
       </body>
     </html>

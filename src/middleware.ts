@@ -10,7 +10,42 @@ import { NextResponse } from 'next/server';
 
 
 export default withAuth(
-  function middleware() {
+  function middleware(req) {
+    // SECURITY: Enforce HTTPS in production
+    if (process.env.NODE_ENV === 'production') {
+      const protocol = req.headers.get('x-forwarded-proto');
+      if (protocol !== 'https') {
+        const host = req.headers.get('host');
+        const secureUrl = new URL(`https://${host}${req.nextUrl.pathname}${req.nextUrl.search}`);
+        return NextResponse.redirect(secureUrl);
+      }
+    }
+
+    const token = req.nextauth.token;
+    const pathname = req.nextUrl.pathname;
+
+    // If user is authenticated and must change password
+    if (token && token.mustChangePassword) {
+      // Allow access to change password page and API
+      if (
+        pathname === '/force-change-password' ||
+        pathname === '/api/auth/change-password' ||
+        pathname === '/api/auth/signout'
+      ) {
+        return NextResponse.next();
+      }
+
+      // Redirect to force change password page
+      const url = new URL('/force-change-password', req.url);
+      return NextResponse.redirect(url);
+    }
+
+    // If user doesn't need to change password but is on change password page
+    if (token && !token.mustChangePassword && pathname === '/force-change-password') {
+      const url = new URL('/dashboard', req.url);
+      return NextResponse.redirect(url);
+    }
+
     // If user is accessing protected route without auth, they get redirected by withAuth
     // This function runs only for authenticated requests or allowed public routes
     return NextResponse.next();

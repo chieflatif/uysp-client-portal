@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { Search, ArrowUpDown } from 'lucide-react';
 import { theme } from '@/theme';
 
@@ -27,8 +28,6 @@ type SortDirection = 'asc' | 'desc';
 export default function LeadsPage() {
   const { status } = useSession();
   const router = useRouter();
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'high' | 'medium'>('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -38,35 +37,31 @@ export default function LeadsPage() {
 
   const itemsPerPage = 50;
 
+  // React Query: Fetch leads with aggressive caching for instant navigation
+  const { data: leadsData, isLoading: loading } = useQuery({
+    queryKey: ['leads'],
+    queryFn: async () => {
+      const response = await fetch('/api/leads');
+      if (!response.ok) throw new Error('Failed to fetch leads');
+      const data = await response.json();
+      return data.leads || [];
+    },
+    enabled: status === 'authenticated',
+    // Use global defaults (5 min stale, 10 min cache)
+  });
+
+  const leads = leadsData || [];
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
     }
   }, [status, router]);
 
-  useEffect(() => {
-    if (status !== 'authenticated') return;
-
-    const fetchLeads = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/leads');
-        const data = await response.json();
-        setLeads(data.leads || []);
-      } catch (error) {
-        console.error('Error fetching leads:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLeads();
-  }, [status]);
-
   // Filter, search, and sort leads (MOVED BEFORE EARLY RETURN)
   const processedLeads = useMemo(() => {
     // Apply ICP filter
-    let filtered = leads.filter((lead) => {
+    let filtered = leads.filter((lead: Lead) => {
       if (filter === 'high') return lead.icpScore >= 70;
       if (filter === 'medium') return lead.icpScore >= 40 && lead.icpScore < 70;
       return true;
@@ -75,7 +70,7 @@ export default function LeadsPage() {
     // Apply search
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(lead =>
+      filtered = filtered.filter((lead: Lead) =>
         `${lead.firstName} ${lead.lastName}`.toLowerCase().includes(query) ||
         (lead.company?.toLowerCase() || '').includes(query) ||
         (lead.title?.toLowerCase() || '').includes(query) ||
@@ -85,7 +80,7 @@ export default function LeadsPage() {
     }
 
     // Apply sort
-    const sorted = [...filtered].sort((a, b) => {
+    const sorted = [...filtered].sort((a: Lead, b: Lead) => {
       let aVal, bVal;
       
       switch (sortField) {
@@ -152,8 +147,8 @@ export default function LeadsPage() {
     return 'bg-gray-700';
   };
 
-  // Early return AFTER all hooks
-  if (status === 'loading' || loading) {
+  // Only show loading screen if there's no data AND we're loading (first load)
+  if ((status === 'loading' || loading) && leads.length === 0) {
     return (
       <div className={`flex items-center justify-center min-h-screen ${theme.core.darkBg}`}>
         <div className="flex flex-col items-center gap-4">
@@ -453,7 +448,7 @@ export default function LeadsPage() {
               High ICP
             </p>
             <p className={`text-2xl font-bold ${theme.core.white}`}>
-              {leads.filter((l) => l.icpScore >= 70).length}
+              {leads.filter((l: Lead) => l.icpScore >= 70).length}
             </p>
           </div>
           <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
@@ -461,7 +456,7 @@ export default function LeadsPage() {
               Avg Score
             </p>
             <p className={`text-2xl font-bold ${theme.core.white}`}>
-              {Math.round((leads.reduce((sum, l) => sum + l.icpScore, 0) / leads.length) * 10) / 10}
+              {Math.round((leads.reduce((sum: number, l: Lead) => sum + l.icpScore, 0) / leads.length) * 10) / 10}
             </p>
           </div>
         </div>

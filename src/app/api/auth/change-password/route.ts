@@ -1,52 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
+import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import bcrypt from 'bcryptjs';
-import { z } from 'zod';
+import { validatePassword } from '@/lib/utils/password';
 
-const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password required'),
-  newPassword: z.string().min(8, 'New password must be at least 8 characters'),
-});
-
+/**
+ * POST /api/auth/change-password
+ * Change user password (for forced password change flow)
+ */
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
     const session = await getServerSession(authOptions);
-    
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: 'Unauthorized', code: 'UNAUTHORIZED' },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
+    // Parse request body
     const body = await request.json();
-    const validation = changePasswordSchema.safeParse(body);
-    
-    if (!validation.success) {
+    const { currentPassword, newPassword } = body;
+
+    if (!currentPassword || !newPassword) {
       return NextResponse.json(
-        {
-          error: 'Validation failed',
-          code: 'VALIDATION_ERROR',
-          details: validation.error.flatten(),
-        },
+        { error: 'Current password and new password are required' },
         { status: 400 }
       );
     }
 
-    const { currentPassword, newPassword } = validation.data;
+    // Validate new password
+    const validation = validatePassword(newPassword);
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { error: validation.error || 'Invalid password format' },
+        { status: 400 }
+      );
+    }
 
-    // Get current user
+    // Get user from database
     const user = await db.query.users.findFirst({
       where: eq(users.id, session.user.id),
     });
 
     if (!user) {
       return NextResponse.json(
-        { error: 'User not found', code: 'USER_NOT_FOUND' },
+        { error: 'User not found' },
         { status: 404 }
       );
     }
@@ -55,16 +58,18 @@ export async function POST(request: NextRequest) {
     const passwordMatch = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!passwordMatch) {
       return NextResponse.json(
-        { error: 'Current password is incorrect', code: 'INVALID_PASSWORD' },
+        { error: 'Current password is incorrect' },
         { status: 401 }
       );
     }
 
     // Hash new password
-    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    const saltRounds = 10;
+    const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
 
     // Update password and clear mustChangePassword flag
-    await db.update(users)
+    await db
+      .update(users)
       .set({
         passwordHash: newPasswordHash,
         mustChangePassword: false,
@@ -74,20 +79,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Password updated successfully',
+      message: 'Password changed successfully',
     });
-
   } catch (error) {
-    console.error('Error changing password:', error);
+    console.error('Change password error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', code: 'SERVER_ERROR' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-
-
-
-
-
-

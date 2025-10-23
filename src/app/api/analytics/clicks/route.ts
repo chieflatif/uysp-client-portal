@@ -27,11 +27,23 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    // Authorization
+    // Authorization - SECURITY FIX: Strict client isolation for CLIENT_ADMIN/CLIENT_USER
     let clientId = session.user.clientId;
-    if (session.user.role === 'ADMIN' && requestedClientId) {
+
+    // SUPER_ADMIN can see any client
+    if (session.user.role === 'SUPER_ADMIN' && requestedClientId) {
       clientId = requestedClientId;
-    } else if (session.user.role !== 'ADMIN' && requestedClientId) {
+    } else if (session.user.role === 'CLIENT_ADMIN' || session.user.role === 'CLIENT_USER') {
+      // SECURITY FIX: CLIENT_ADMIN/USER can ONLY access their own client data
+      if (requestedClientId && requestedClientId !== session.user.clientId) {
+        return NextResponse.json(
+          { error: 'Forbidden - can only access your own client data', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
+      clientId = session.user.clientId;
+    } else if (requestedClientId) {
+      // Other roles cannot request different client data
       return NextResponse.json(
         { error: 'Access denied', code: 'FORBIDDEN' },
         { status: 403 }
