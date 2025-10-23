@@ -82,7 +82,13 @@ export default function ClientDetailPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
-  const clientId = params.id as string;
+  const [clientId, setClientId] = useState<string>('');
+
+  useEffect(() => {
+    if (params.id) {
+      setClientId(params.id as string);
+    }
+  }, [params]);
 
   const [client, setClient] = useState<Client | null>(null);
   const [users, setUsers] = useState<User[]>([]);

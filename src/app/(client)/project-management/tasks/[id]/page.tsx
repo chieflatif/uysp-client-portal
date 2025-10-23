@@ -24,7 +24,13 @@ export default function TaskDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
-  const taskId = params.id as string;
+  const [taskId, setTaskId] = useState<string>('');
+
+  useEffect(() => {
+    if (params.id) {
+      setTaskId(params.id as string);
+    }
+  }, [params]);
 
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);

@@ -27,7 +27,7 @@ export default function LeadDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { status } = useSession();
-  const id = params.id as string;
+  const [id, setId] = useState<string>('');
 
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,6 +39,12 @@ export default function LeadDetailPage() {
   const [removeReason, setRemoveReason] = useState('');
 
   useEffect(() => {
+    if (params.id) {
+      setId(params.id as string);
+    }
+  }, [params]);
+
+  useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
       return;
@@ -48,12 +54,12 @@ export default function LeadDetailPage() {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await fetch(`/api/leads/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch lead');
         }
-        
+
         const data = await response.json();
         setLead(data.lead);
       } catch (err) {
