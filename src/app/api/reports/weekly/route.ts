@@ -97,8 +97,23 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error sending weekly report:', error);
+
+    // Check if SMTP is configured
+    const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASSWORD && process.env.SMTP_FROM_EMAIL);
+
+    let errorMessage = 'Failed to send report';
+    if (!smtpConfigured) {
+      errorMessage = 'SMTP not configured - check SMTP_USER, SMTP_PASSWORD, and SMTP_FROM_EMAIL environment variables in Render';
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
     return NextResponse.json(
-      { error: 'Failed to send report', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: errorMessage,
+        details: error instanceof Error ? error.message : 'Unknown error',
+        smtpConfigured
+      },
       { status: 500 }
     );
   }

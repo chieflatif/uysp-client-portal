@@ -394,14 +394,16 @@ export default function ProjectManagementPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send report');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send report');
       }
 
       const data = await response.json();
       alert(data.message || 'Weekly report sent successfully!');
     } catch (err) {
       console.error('Failed to send report:', err);
-      alert('Failed to send report. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send report. Please try again.';
+      alert(errorMessage);
     } finally {
       setSendingReport(false);
     }
