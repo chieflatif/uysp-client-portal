@@ -14,6 +14,7 @@ import { z } from 'zod';
 import { db } from '../db';
 import { users } from '../db/schema';
 import { eq, sql } from 'drizzle-orm';
+import { getGlobalPool, executeWithTimeout } from '../db/pool';
 
 // Type augmentation for NextAuth
 declare module 'next-auth' {
@@ -109,19 +110,18 @@ class DrizzleORMProvider implements AuthProvider {
  * PROVIDER 2: Direct PostgreSQL (Fallback)
  * Bypasses Drizzle completely - uses pg library directly
  * Most reliable, works even if Drizzle is completely broken
+ *
+ * Uses singleton connection pool with timeout and retry
  */
 class DirectPostgresProvider implements AuthProvider {
   name = 'Direct PostgreSQL';
   priority = 2;
 
   async fetchUser(email: string): Promise<UserData | null> {
-    const { Pool } = require('pg');
-    const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-    });
+    const pool = getGlobalPool();
 
-    try {
-      const result = await pool.query(
+    const result = await executeWithTimeout(
+      async () => pool.query(
         `SELECT
           id,
           email,
@@ -137,26 +137,26 @@ class DirectPostgresProvider implements AuthProvider {
         AND is_active = true
         LIMIT 1`,
         [email]
-      );
+      ),
+      5000,  // 5 second timeout
+      3      // 3 retries
+    );
 
-      if (result.rows.length === 0) return null;
+    if (result.rows.length === 0) return null;
 
-      const row = result.rows[0];
+    const row = result.rows[0];
 
-      return {
-        id: row.id,
-        email: row.email,
-        passwordHash: row.password_hash,
-        firstName: row.first_name,
-        lastName: row.last_name,
-        role: row.role,
-        clientId: row.client_id,
-        isActive: row.is_active,
-        mustChangePassword: row.must_change_password || false,
-      };
-    } finally {
-      await pool.end();
-    }
+    return {
+      id: row.id,
+      email: row.email,
+      passwordHash: row.password_hash,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      role: row.role,
+      clientId: row.client_id,
+      isActive: row.is_active,
+      mustChangePassword: row.must_change_password || false,
+    };
   }
 }
 
