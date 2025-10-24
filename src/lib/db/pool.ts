@@ -18,12 +18,16 @@ export function getGlobalPool(): Pool {
       throw new Error('DATABASE_URL environment variable is not set');
     }
 
+    // CRITICAL: Render requires SSL/TLS for all connections
+    // pg library needs ssl object, not string
     globalPool = new Pool({
       connectionString: process.env.DATABASE_URL,
       max: 20,                    // Maximum pool size
       idleTimeoutMillis: 30000,   // Close idle connections after 30s
       connectionTimeoutMillis: 10000, // Timeout if can't get connection in 10s
-      ssl: process.env.DATABASE_URL.includes('sslmode=require') ? { rejectUnauthorized: false } : undefined,
+      ssl: {
+        rejectUnauthorized: false, // Required for Render PostgreSQL
+      },
     });
 
     // Log pool events
