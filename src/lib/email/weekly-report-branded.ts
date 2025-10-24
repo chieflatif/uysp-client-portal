@@ -72,16 +72,27 @@ export function generateBrandedReportHTML(data: WeeklyReportData): string {
       border-bottom: 2px solid ${c.pink};
       padding: 24px 0;
       margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .logo {
       font-size: 20px;
       font-weight: 700;
       color: ${c.white};
-      margin-bottom: 4px;
+    }
+    .logo .hq {
+      color: ${c.pink};
+    }
+    .client-name {
+      font-size: 20px;
+      font-weight: 400;
+      color: ${c.white};
     }
     .week {
       font-size: 14px;
       color: ${c.textMuted};
+      margin-top: 16px;
     }
     .section {
       margin-bottom: 32px;
@@ -183,9 +194,10 @@ export function generateBrandedReportHTML(data: WeeklyReportData): string {
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <div class="logo">Rebel HQ</div>
-      <div class="week">${data.clientName} · Weekly Report · ${data.weekOf}</div>
+      <div class="logo">Rebel <span class="hq">HQ</span></div>
+      <div class="client-name">${data.clientName}</div>
     </div>
+    <div class="week">Weekly Report · ${data.weekOf}</div>
 
     <!-- Task Stats -->
     <div class="section">
