@@ -90,6 +90,8 @@ export default function ProjectManagementPage() {
   });
   const [creatingTask, setCreatingTask] = useState(false);
   const [sendingReport, setSendingReport] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<number>(0);
+  const [syncCooldown, setSyncCooldown] = useState<number>(0);
 
   // React Query: Fetch project data with aggressive caching for instant navigation
   const { data: projectData, isLoading: loading, error: projectError, isFetching } = useQuery({
@@ -292,11 +294,35 @@ export default function ProjectManagementPage() {
     });
   };
 
+  // Sync cooldown effect - countdown timer
+  useEffect(() => {
+    if (syncCooldown > 0) {
+      const timer = setTimeout(() => {
+        setSyncCooldown(syncCooldown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [syncCooldown]);
+
   const handleSync = async () => {
     if (!selectedClientId) return;
 
+    // Check cooldown period (30 seconds since last sync)
+    const now = Date.now();
+    const timeSinceLastSync = now - lastSyncTime;
+    const COOLDOWN_PERIOD = 30000; // 30 seconds
+
+    if (timeSinceLastSync < COOLDOWN_PERIOD) {
+      const remainingSeconds = Math.ceil((COOLDOWN_PERIOD - timeSinceLastSync) / 1000);
+      alert(`Please wait ${remainingSeconds} seconds before syncing again. This prevents data loss from overwriting recent updates.`);
+      return;
+    }
+
     try {
       setSyncing(true);
+      setLastSyncTime(now);
+      setSyncCooldown(30); // Start 30 second countdown
+
       const response = await fetch(`/api/admin/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -697,11 +723,12 @@ export default function ProjectManagementPage() {
             </button>
             <button
               onClick={handleSync}
-              disabled={syncing}
+              disabled={syncing || syncCooldown > 0}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${theme.components.button.secondary} hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed`}
+              title={syncCooldown > 0 ? `Wait ${syncCooldown}s before syncing again` : 'Sync with Airtable'}
             >
               <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-              {syncing ? 'Syncing...' : 'Sync'}
+              {syncing ? 'Syncing...' : syncCooldown > 0 ? `Wait ${syncCooldown}s` : 'Sync'}
             </button>
           </div>
         </div>

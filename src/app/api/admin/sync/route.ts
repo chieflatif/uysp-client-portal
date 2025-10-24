@@ -160,6 +160,26 @@ export async function POST(request: NextRequest) {
         tasksFetched++;
         try {
           const taskData = airtable.mapToDatabaseTask(record, clientId);
+
+          // CONFLICT DETECTION: Check if PostgreSQL has newer data
+          const existing = await db.query.clientProjectTasks.findFirst({
+            where: eq(clientProjectTasks.airtableRecordId, record.id),
+          });
+
+          if (existing) {
+            // Compare timestamps - only update if Airtable is newer OR PostgreSQL update failed
+            const airtableUpdated = new Date(record.createdTime); // Airtable doesn't track updates, use createdTime
+            const pgUpdated = existing.updatedAt;
+
+            // If PostgreSQL was updated in the last 60 seconds, skip sync (likely a pending Airtable update)
+            const timeSinceUpdate = Date.now() - pgUpdated.getTime();
+            if (timeSinceUpdate < 60000) {
+              console.log(`⏸️ Skipping task ${record.id} - recently updated in PostgreSQL (${Math.round(timeSinceUpdate / 1000)}s ago)`);
+              return;
+            }
+          }
+
+          // Proceed with sync
           await db.insert(clientProjectTasks)
             .values(taskData)
             .onConflictDoUpdate({

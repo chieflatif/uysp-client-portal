@@ -402,6 +402,7 @@ export class AirtableClient {
       task: (fields['Task'] as string) || '',
       status: (fields['Status'] as string) || 'Pending',
       priority: (fields['Priority'] as string) || 'Medium',
+      taskType: (fields['Type'] as string) || 'Task', // FIXED: Added taskType mapping from Airtable 'Type' field
       owner: fields['Owner'] as string | undefined,
       dueDate: fields['Due Date'] ? new Date(fields['Due Date'] as string) : undefined,
       notes: fields['Notes'] as string | undefined,
