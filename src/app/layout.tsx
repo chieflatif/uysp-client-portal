@@ -3,6 +3,7 @@ import { SessionProvider } from '@/components/providers/SessionProvider';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { ClientProvider } from '@/contexts/ClientContext';
 import { Navbar } from '@/components/navbar/Navbar';
+import { ActivityTracker } from '@/components/ActivityTracker';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
         <SessionProvider>
           <QueryProvider>
             <ClientProvider>
+              <ActivityTracker />
               <Navbar />
               <main>{children}</main>
             </ClientProvider>

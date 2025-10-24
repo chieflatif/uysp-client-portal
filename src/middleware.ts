@@ -24,25 +24,9 @@ export default withAuth(
     const token = req.nextauth.token;
     const pathname = req.nextUrl.pathname;
 
-    // ANALYTICS: Track page views for authenticated users (fire and forget)
-    // Only track in production to avoid development server issues
-    if (token && !pathname.startsWith('/api/') && process.env.NODE_ENV === 'production') {
-      // Fire and forget - don't await, don't block the response
-      fetch(`${req.nextUrl.origin}/api/analytics/track`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          eventType: 'page_view',
-          eventCategory: 'navigation',
-          pageUrl: pathname,
-          referrer: req.headers.get('referer') || null,
-        }),
-      }).catch(() => {
-        // Silently fail - don't break the app for analytics
-      });
-    }
+    // ANALYTICS: Activity tracking is now handled client-side via ActivityTracker component
+    // See: src/components/ActivityTracker.tsx and src/hooks/useActivityTracking.ts
+    // This approach works better with NextAuth sessions and avoids middleware auth issues
 
     // If user is authenticated and must change password
     if (token && token.mustChangePassword) {
