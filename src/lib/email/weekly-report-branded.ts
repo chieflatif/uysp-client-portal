@@ -14,6 +14,7 @@ export { sendWeeklyReport, sendTestReport, sendAllWeeklyReports } from './weekly
 interface WeeklyReportData {
   weekOf: string;
   clientName: string;
+  clientId: string;
   tasks: {
     total: number;
     completedThisWeek: number;
@@ -24,6 +25,14 @@ interface WeeklyReportData {
     total: number;
     critical: number;
   };
+  callSummary?: {
+    callDate: string | null;
+    executiveSummary: string;
+    topPriorities: string;
+    keyDecisions: string;
+    nextSteps: string;
+    attendees: string;
+  } | null;
   metrics: Array<{
     label: string;
     value: string;
@@ -47,6 +56,8 @@ export function generateBrandedReportHTML(data: WeeklyReportData): string {
     indigo: '#4f46e5',
     cyan: '#22d3ee',
   };
+
+  const dashboardUrl = `${process.env.NEXTAUTH_URL || 'https://uysp-portal-v2.onrender.com'}/project-management?clientId=${data.clientId}`;
 
   return `
 <!DOCTYPE html>
@@ -86,7 +97,7 @@ export function generateBrandedReportHTML(data: WeeklyReportData): string {
     }
     .client-name {
       font-size: 20px;
-      font-weight: 400;
+      font-weight: 700;
       color: ${c.white};
     }
     .week {
@@ -188,6 +199,41 @@ export function generateBrandedReportHTML(data: WeeklyReportData): string {
       font-weight: 600;
     }
     .footer-link:hover { color: ${c.indigo}; }
+    .call-summary {
+      background: ${c.card};
+      border: 1px solid ${c.border};
+      border-left: 3px solid ${c.indigo};
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .call-summary-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: ${c.indigo};
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .call-summary-text {
+      font-size: 14px;
+      color: ${c.text};
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .call-summary-text:last-child {
+      margin-bottom: 0;
+    }
+    .call-date {
+      font-size: 12px;
+      color: ${c.textMuted};
+      margin-bottom: 12px;
+    }
+    a.email-wrapper {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -198,6 +244,39 @@ export function generateBrandedReportHTML(data: WeeklyReportData): string {
       <div class="client-name">${data.clientName}</div>
     </div>
     <div class="week">Weekly Report · ${data.weekOf}</div>
+
+    <a href="${dashboardUrl}" class="email-wrapper">
+    <!-- Call Summary -->
+    ${data.callSummary ? `
+    <div class="section">
+      <div class="section-title">Last Call Summary</div>
+      <div class="call-summary">
+        ${data.callSummary.callDate ? `<div class="call-date">📞 ${new Date(data.callSummary.callDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>` : ''}
+
+        ${data.callSummary.executiveSummary ? `
+        <div class="call-summary-title">Executive Summary</div>
+        <div class="call-summary-text">${data.callSummary.executiveSummary}</div>
+        ` : ''}
+
+        ${data.callSummary.topPriorities ? `
+        <div class="call-summary-title">Top Priorities</div>
+        <div class="call-summary-text">${data.callSummary.topPriorities}</div>
+        ` : ''}
+
+        ${data.callSummary.keyDecisions ? `
+        <div class="call-summary-title">Key Decisions</div>
+        <div class="call-summary-text">${data.callSummary.keyDecisions}</div>
+        ` : ''}
+
+        ${data.callSummary.nextSteps ? `
+        <div class="call-summary-title">Next Steps</div>
+        <div class="call-summary-text">${data.callSummary.nextSteps}</div>
+        ` : ''}
+
+        ${data.callSummary.attendees ? `<div class="call-date">👥 ${data.callSummary.attendees}</div>` : ''}
+      </div>
+    </div>
+    ` : ''}
 
     <!-- Task Stats -->
     <div class="section">
@@ -248,10 +327,12 @@ export function generateBrandedReportHTML(data: WeeklyReportData): string {
     </div>
     ` : ''}
 
+    </a>
+
     <!-- Footer -->
     <div class="footer">
       <div class="footer-text">Automated weekly report from Rebel HQ</div>
-      <a href="${process.env.NEXTAUTH_URL}/project-management" class="footer-link">View Dashboard →</a>
+      <div class="footer-text" style="margin-top: 8px; font-size: 11px;">Click anywhere to view full dashboard</div>
     </div>
   </div>
 </body>
