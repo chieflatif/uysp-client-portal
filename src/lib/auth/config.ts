@@ -222,12 +222,18 @@ class ResilientAuth {
 
     // All providers failed
     console.error('[Auth] ❌ All authentication providers failed');
-    console.error('[Auth] Errors:', errors);
+    console.error('[Auth] Errors:', JSON.stringify(errors.map(e => ({
+      provider: e.provider,
+      error: e.error.message,
+      stack: e.error.stack
+    })), null, 2));
 
     // TODO: Alert ops team - CRITICAL
     // await this.alertAuthSystemFailure(errors);
 
-    throw new Error('Authentication system failure - all providers unavailable');
+    // Include error details in exception for debugging
+    const errorDetails = errors.map(e => `${e.provider}: ${e.error.message}`).join('; ');
+    throw new Error(`Authentication system failure - all providers unavailable. Details: ${errorDetails}`);
   }
 }
 
