@@ -4,6 +4,8 @@
  */
 
 import nodemailer from 'nodemailer';
+import { db } from '@/lib/db';
+import { emailAuditLog } from '@/lib/db/schema';
 
 // Email configuration
 const EMAIL_CONFIG = {
@@ -36,12 +38,16 @@ interface SendEmailParams {
   subject: string;
   html: string;
   text?: string;
+  emailType?: string; // For audit log
+  sentByUserId?: string; // For audit log
+  clientId?: string; // For audit log
+  metadata?: Record<string, any>; // For audit log
 }
 
 /**
  * Send an email
  */
-export async function sendEmail({ to, subject, html, text }: SendEmailParams): Promise<void> {
+export async function sendEmail({ to, subject, html, text, emailType, sentByUserId, clientId, metadata }: SendEmailParams): Promise<void> {
   try {
     const transporter = getTransporter();
 
@@ -54,8 +60,40 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams): P
     });
 
     console.log(`✅ Email sent to ${to}: ${subject}`);
+
+    // Log to audit table
+    await db.insert(emailAuditLog).values({
+      emailType: emailType || 'general',
+      recipient: to,
+      subject,
+      sentByUserId,
+      clientId,
+      status: 'sent',
+      metadata,
+    }).catch(err => {
+      // Don't fail email send if audit log fails
+      console.error('Failed to log email audit:', err);
+    });
+
   } catch (error) {
     console.error('❌ Error sending email:', error);
+
+    // Log failure to audit table
+    try {
+      await db.insert(emailAuditLog).values({
+        emailType: emailType || 'general',
+        recipient: to,
+        subject,
+        sentByUserId,
+        clientId,
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        metadata,
+      });
+    } catch (auditError) {
+      console.error('Failed to log email failure:', auditError);
+    }
+
     throw new Error('Failed to send email');
   }
 }

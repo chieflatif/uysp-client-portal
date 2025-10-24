@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     if (isTest) {
       // Send test report to requesting user
-      await sendTestReport(clientId, session.user.email!);
+      await sendTestReport(clientId, session.user.email!, session.user.id);
       return NextResponse.json({
         success: true,
         message: `Test report sent to ${session.user.email}`,

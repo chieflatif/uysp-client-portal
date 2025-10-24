@@ -460,3 +460,35 @@ export type NewUserActivitySession = typeof userActivitySessions.$inferInsert;
 
 export type UserActivitySummary = typeof userActivitySummary.$inferSelect;
 export type NewUserActivitySummary = typeof userActivitySummary.$inferInsert;
+
+// ==============================================================================
+// EMAIL AUDIT LOG
+// ==============================================================================
+
+export const emailAuditLog = pgTable(
+  'email_audit_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    emailType: varchar('email_type', { length: 100 }).notNull(),
+    recipient: varchar('recipient', { length: 255 }).notNull(),
+    subject: varchar('subject', { length: 500 }).notNull(),
+    sentByUserId: uuid('sent_by_user_id'),
+    clientId: uuid('client_id'),
+    status: varchar('status', { length: 50 }).notNull().default('sent'),
+    errorMessage: text('error_message'),
+    metadata: jsonb('metadata'),
+    sentAt: timestamp('sent_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    recipientIdx: index('idx_email_audit_recipient').on(table.recipient, table.sentAt),
+    typeIdx: index('idx_email_audit_type').on(table.emailType, table.sentAt),
+    clientIdx: index('idx_email_audit_client').on(table.clientId, table.sentAt),
+    userIdx: index('idx_email_audit_user').on(table.sentByUserId, table.sentAt),
+    statusIdx: index('idx_email_audit_status').on(table.status, table.sentAt),
+    sentAtIdx: index('idx_email_audit_sent_at').on(table.sentAt),
+  })
+);
+
+export type EmailAuditLog = typeof emailAuditLog.$inferSelect;
+export type NewEmailAuditLog = typeof emailAuditLog.$inferInsert;

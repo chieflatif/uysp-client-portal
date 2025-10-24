@@ -684,6 +684,13 @@ export async function sendWeeklyReport(clientId: string): Promise<void> {
         to: email,
         subject: `📊 Weekly Project Report - ${reportData.clientName} - Week of ${reportData.weekOf}`,
         html,
+        emailType: 'weekly_report',
+        clientId,
+        metadata: {
+          weekOf: reportData.weekOf,
+          clientName: reportData.clientName,
+          testMode: false,
+        },
       });
     }
 
@@ -753,7 +760,7 @@ export async function sendAllWeeklyReports(): Promise<void> {
 /**
  * Send test report (for development/testing)
  */
-export async function sendTestReport(clientId: string, testEmail: string): Promise<void> {
+export async function sendTestReport(clientId: string, testEmail: string, sentByUserId?: string): Promise<void> {
   try {
     const reportData = await gatherReportData(clientId);
     const html = generateReportHTML(reportData);
@@ -762,6 +769,14 @@ export async function sendTestReport(clientId: string, testEmail: string): Promi
       to: testEmail,
       subject: `📊 [TEST] Weekly Project Report - Week of ${reportData.weekOf}`,
       html,
+      emailType: 'weekly_report',
+      sentByUserId,
+      clientId,
+      metadata: {
+        weekOf: reportData.weekOf,
+        clientName: reportData.clientName,
+        testMode: true,
+      },
     });
 
     console.log(`✅ Test report sent to ${testEmail}`);
