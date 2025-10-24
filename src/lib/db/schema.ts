@@ -399,8 +399,8 @@ export const userActivityLogs = pgTable(
   })
 );
 
-export const userSessions = pgTable(
-  'user_sessions',
+export const userActivitySessions = pgTable(
+  'user_activity_sessions',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     sessionId: varchar('session_id', { length: 100 }).notNull().unique(),
@@ -420,11 +420,11 @@ export const userSessions = pgTable(
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
   (table) => ({
-    userIdIdx: index('idx_sessions_user_id').on(table.userId, table.sessionStart),
-    clientIdIdx: index('idx_sessions_client_id').on(table.clientId, table.sessionStart),
-    sessionIdIdx: index('idx_sessions_session_id').on(table.sessionId),
-    startIdx: index('idx_sessions_start').on(table.sessionStart),
-    endIdx: index('idx_sessions_end').on(table.sessionEnd),
+    userIdIdx: index('idx_activity_sessions_user_id').on(table.userId, table.sessionStart),
+    clientIdIdx: index('idx_activity_sessions_client_id').on(table.clientId, table.sessionStart),
+    sessionIdIdx: index('idx_activity_sessions_session_id').on(table.sessionId),
+    startIdx: index('idx_activity_sessions_start').on(table.sessionStart),
+    endIdx: index('idx_activity_sessions_end').on(table.sessionEnd),
   })
 );
 
@@ -455,8 +455,8 @@ export const userActivitySummary = pgTable(
 export type UserActivityLog = typeof userActivityLogs.$inferSelect;
 export type NewUserActivityLog = typeof userActivityLogs.$inferInsert;
 
-export type UserSession = typeof userSessions.$inferSelect;
-export type NewUserSession = typeof userSessions.$inferInsert;
+export type UserActivitySession = typeof userActivitySessions.$inferSelect;
+export type NewUserActivitySession = typeof userActivitySessions.$inferInsert;
 
 export type UserActivitySummary = typeof userActivitySummary.$inferSelect;
 export type NewUserActivitySummary = typeof userActivitySummary.$inferInsert;

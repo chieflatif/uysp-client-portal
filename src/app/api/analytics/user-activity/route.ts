@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { userActivityLogs, userSessions, users } from '@/lib/db/schema';
+import { userActivityLogs, userActivitySessions, users } from '@/lib/db/schema';
 import { eq, and, gte, lte, desc, sql, count } from 'drizzle-orm';
 import { isSuperAdmin } from '@/lib/auth/permissions';
 
@@ -154,29 +154,29 @@ export async function GET(request: NextRequest) {
 
     // 7. Get recent sessions
     const sessionConditions = [
-      gte(userSessions.sessionStart, startDate),
+      gte(userActivitySessions.sessionStart, startDate),
     ];
     if (targetClientId) {
-      sessionConditions.push(eq(userSessions.clientId, targetClientId));
+      sessionConditions.push(eq(userActivitySessions.clientId, targetClientId));
     }
 
     const recentSessionsResult = await db
       .select({
-        sessionId: userSessions.sessionId,
-        userId: userSessions.userId,
+        sessionId: userActivitySessions.sessionId,
+        userId: userActivitySessions.userId,
         userName: users.firstName,
         userEmail: users.email,
-        sessionStart: userSessions.sessionStart,
-        sessionEnd: userSessions.sessionEnd,
-        pageViews: userSessions.pageViews,
-        durationSeconds: userSessions.durationSeconds,
-        browser: userSessions.browser,
-        deviceType: userSessions.deviceType,
+        sessionStart: userActivitySessions.sessionStart,
+        sessionEnd: userActivitySessions.sessionEnd,
+        pageViews: userActivitySessions.pageViews,
+        durationSeconds: userActivitySessions.durationSeconds,
+        browser: userActivitySessions.browser,
+        deviceType: userActivitySessions.deviceType,
       })
-      .from(userSessions)
-      .leftJoin(users, eq(userSessions.userId, users.id))
+      .from(userActivitySessions)
+      .leftJoin(users, eq(userActivitySessions.userId, users.id))
       .where(and(...sessionConditions))
-      .orderBy(desc(userSessions.sessionStart))
+      .orderBy(desc(userActivitySessions.sessionStart))
       .limit(20);
 
     const recentSessions = recentSessionsResult.map(row => ({
@@ -194,9 +194,9 @@ export async function GET(request: NextRequest) {
     // 8. Calculate average session duration
     const avgDurationResult = await db
       .select({
-        avgDuration: sql<number>`AVG(${userSessions.durationSeconds})`,
+        avgDuration: sql<number>`AVG(${userActivitySessions.durationSeconds})`,
       })
-      .from(userSessions)
+      .from(userActivitySessions)
       .where(and(...sessionConditions));
 
     const avgSessionDuration = Math.round(Number(avgDurationResult[0]?.avgDuration || 0));

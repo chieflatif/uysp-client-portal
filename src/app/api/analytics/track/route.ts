@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { userActivityLogs, userSessions } from '@/lib/db/schema';
+import { userActivityLogs, userActivitySessions } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 
@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
     // Update or create session
     if (sessionId) {
       // Update existing session
-      const existingSession = await db.query.userSessions.findFirst({
-        where: eq(userSessions.sessionId, sessionId),
+      const existingSession = await db.query.userActivitySessions.findFirst({
+        where: eq(userActivitySessions.sessionId, sessionId),
       });
 
       if (existingSession) {
@@ -86,18 +86,18 @@ export async function POST(request: NextRequest) {
         );
 
         await db
-          .update(userSessions)
+          .update(userActivitySessions)
           .set({
             lastActivity: now,
             pageViews: (existingSession.pageViews || 0) + (eventType === 'page_view' ? 1 : 0),
             durationSeconds: duration,
             updatedAt: now,
           })
-          .where(eq(userSessions.sessionId, sessionId));
+          .where(eq(userActivitySessions.sessionId, sessionId));
       }
     } else {
       // Create new session
-      await db.insert(userSessions).values({
+      await db.insert(userActivitySessions).values({
         sessionId: currentSessionId,
         userId: session.user.id,
         clientId: session.user.clientId || null,
