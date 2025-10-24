@@ -22,6 +22,13 @@
       "when": 1761201981305,
       "tag": "0002_clammy_vermin",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1761346039802,
+      "tag": "0003_easy_micromacro",
+      "breakpoints": true
     }
   ]
 }

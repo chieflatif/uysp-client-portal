@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { clientProjectTasks, clients } from '@/lib/db/schema';
+import { clientProjectTasks, clients, airtableSyncQueue } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getAirtableClient } from '@/lib/airtable/client';
 
@@ -92,7 +92,7 @@ export async function PATCH(
 
     // 2. Sync to Airtable in background (don't block response)
     const airtable = getAirtableClient(client.airtableBaseId);
-    airtable.updateRecord('Tasks', existingTask.airtableRecordId, {
+    const airtablePayload = {
       'Task': task,
       'Status': status,
       'Priority': priority,
@@ -101,9 +101,31 @@ export async function PATCH(
       'Due Date': dueDate || null,
       'Notes': notes || '',
       'Dependencies': dependencies || '',
-    } as any).catch(err => {
+    };
+
+    airtable.updateRecord('Tasks', existingTask.airtableRecordId, airtablePayload as any).catch(async (err) => {
       console.error('Background Airtable sync failed:', err);
-      // TODO: Add to retry queue
+
+      // Add to retry queue with exponential backoff
+      const nextRetryAt = new Date(Date.now() + 5 * 60 * 1000); // Retry in 5 minutes
+
+      try {
+        await db.insert(airtableSyncQueue).values({
+          clientId: existingTask.clientId,
+          tableName: 'Tasks',
+          recordId: existingTask.airtableRecordId,
+          operation: 'update',
+          payload: airtablePayload,
+          status: 'pending',
+          attempts: 0,
+          maxAttempts: 5,
+          lastError: err instanceof Error ? err.message : 'Unknown error',
+          nextRetryAt,
+        });
+        console.log(`✅ Added failed sync to retry queue (task ${params.id})`);
+      } catch (queueError) {
+        console.error('Failed to add to retry queue:', queueError);
+      }
     });
 
     return NextResponse.json({

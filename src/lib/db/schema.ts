@@ -492,3 +492,36 @@ export const emailAuditLog = pgTable(
 
 export type EmailAuditLog = typeof emailAuditLog.$inferSelect;
 export type NewEmailAuditLog = typeof emailAuditLog.$inferInsert;
+
+// ==============================================================================
+// AIRTABLE SYNC QUEUE (Retry Failed Updates)
+// ==============================================================================
+
+export const airtableSyncQueue = pgTable(
+  'airtable_sync_queue',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
+    tableName: varchar('table_name', { length: 100 }).notNull(), // 'Tasks', 'Blockers', etc.
+    recordId: varchar('record_id', { length: 100 }).notNull(), // Airtable record ID
+    operation: varchar('operation', { length: 20 }).notNull(), // 'update', 'create', 'delete'
+    payload: jsonb('payload').notNull(), // Data to sync to Airtable
+    status: varchar('status', { length: 50 }).notNull().default('pending'), // 'pending', 'processing', 'failed', 'completed'
+    attempts: integer('attempts').notNull().default(0),
+    maxAttempts: integer('max_attempts').notNull().default(5),
+    lastError: text('last_error'),
+    lastAttemptAt: timestamp('last_attempt_at'),
+    nextRetryAt: timestamp('next_retry_at'),
+    completedAt: timestamp('completed_at'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    statusIdx: index('idx_sync_queue_status').on(table.status, table.nextRetryAt),
+    clientIdx: index('idx_sync_queue_client').on(table.clientId, table.status),
+    createdIdx: index('idx_sync_queue_created').on(table.createdAt),
+  })
+);
+
+export type AirtableSyncQueue = typeof airtableSyncQueue.$inferSelect;
+export type NewAirtableSyncQueue = typeof airtableSyncQueue.$inferInsert;
