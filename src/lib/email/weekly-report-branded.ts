@@ -11,20 +11,28 @@ import { sendEmail } from './mailer';
 // Re-export types and data gathering from original file
 export { sendWeeklyReport, sendTestReport, sendAllWeeklyReports } from './weekly-report';
 
+interface Task {
+  task: string;
+  status: string;
+  priority: string;
+  taskType?: string;
+  owner?: string;
+  dueDate?: Date | null;
+}
+
+interface Blocker {
+  blocker: string;
+  severity: string;
+  actionToResolve?: string;
+  status: string;
+}
+
 interface WeeklyReportData {
   weekOf: string;
   clientName: string;
   clientId: string;
-  tasks: {
-    total: number;
-    completedThisWeek: number;
-    inProgress: number;
-    upcoming: number;
-  };
-  blockers: {
-    total: number;
-    critical: number;
-  };
+  tasks: Task[];
+  blockers: Blocker[];
   callSummary?: {
     callDate: string | null;
     executiveSummary: string;
@@ -33,10 +41,6 @@ interface WeeklyReportData {
     nextSteps: string;
     attendees: string;
   } | null;
-  metrics: Array<{
-    label: string;
-    value: string;
-  }>;
 }
 
 /**
@@ -58,6 +62,42 @@ export function generateBrandedReportHTML(data: WeeklyReportData): string {
   };
 
   const dashboardUrl = `${process.env.NEXTAUTH_URL || 'https://uysp-portal-v2.onrender.com'}/project-management?clientId=${data.clientId}`;
+
+  // Helper: Get priority badge class
+  const getPriorityClass = (priority: string): string => {
+    const p = priority.toLowerCase();
+    if (p.includes('critical') || p.includes('🔴')) return 'priority-critical';
+    if (p.includes('high') || p.includes('🟠')) return 'priority-high';
+    if (p.includes('medium') || p.includes('🟡')) return 'priority-medium';
+    return 'priority-low';
+  };
+
+  // Helper: Get status badge class
+  const getStatusClass = (status: string): string => {
+    const s = status.toLowerCase();
+    if (s.includes('done') || s.includes('complete')) return 'status-done';
+    if (s.includes('progress')) return 'status-progress';
+    if (s.includes('blocked')) return 'status-blocked';
+    return 'status-todo';
+  };
+
+  // Helper: Get severity class
+  const getSeverityClass = (severity: string): string => {
+    const s = severity.toLowerCase();
+    if (s.includes('critical')) return 'severity-critical';
+    if (s.includes('high')) return 'severity-high';
+    return 'severity-medium';
+  };
+
+  // Helper: Format date
+  const formatDate = (date: Date | null | undefined): string => {
+    if (!date) return 'No due date';
+    try {
+      return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return 'No due date';
+    }
+  };
 
   return `
 <!DOCTYPE html>
@@ -192,6 +232,80 @@ export function generateBrandedReportHTML(data: WeeklyReportData): string {
       color: ${c.textMuted};
       margin-bottom: 12px;
     }
+    .task-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .task-row {
+      border-bottom: 1px solid ${c.border};
+    }
+    .task-row:last-child {
+      border-bottom: none;
+    }
+    .task-cell {
+      padding: 12px 8px;
+      vertical-align: top;
+    }
+    .task-name {
+      color: ${c.white};
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .task-meta {
+      font-size: 12px;
+      color: ${c.textMuted};
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .task-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .priority-critical { background: #dc2626; color: white; }
+    .priority-high { background: #ea580c; color: white; }
+    .priority-medium { background: #f59e0b; color: white; }
+    .priority-low { background: #10b981; color: white; }
+    .status-done { background: #10b981; color: white; }
+    .status-progress { background: #3b82f6; color: white; }
+    .status-blocked { background: #ef4444; color: white; }
+    .status-todo { background: #6b7280; color: white; }
+    .blocker-list {
+      margin-top: 12px;
+    }
+    .blocker-item {
+      background: ${c.card};
+      border-left: 3px solid #ef4444;
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+    }
+    .blocker-item:last-child {
+      margin-bottom: 0;
+    }
+    .blocker-header {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .blocker-text {
+      color: ${c.white};
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .blocker-action {
+      color: ${c.textMuted};
+      font-size: 12px;
+    }
+    .severity-critical { background: #dc2626; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+    .severity-high { background: #ea580c; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+    .severity-medium { background: #f59e0b; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
     .footer-link {
       font-size: 13px;
       color: ${c.cyan};
@@ -278,49 +392,45 @@ export function generateBrandedReportHTML(data: WeeklyReportData): string {
     </div>
     ` : ''}
 
-    <!-- Task Stats -->
+    <!-- Tasks -->
     <div class="section">
-      <div class="section-title">Tasks</div>
-      <div class="stats">
-        <div class="stat primary">
-          <div class="stat-value">${data.tasks.total}</div>
-          <div class="stat-label">Total</div>
-        </div>
-        <div class="stat tertiary">
-          <div class="stat-value">${data.tasks.completedThisWeek}</div>
-          <div class="stat-label">Completed</div>
-        </div>
-        <div class="stat secondary">
-          <div class="stat-value">${data.tasks.inProgress}</div>
-          <div class="stat-label">In Progress</div>
-        </div>
-        <div class="stat tertiary">
-          <div class="stat-value">${data.tasks.upcoming}</div>
-          <div class="stat-label">Due Next 7 Days</div>
-        </div>
-      </div>
+      <div class="section-title">Tasks (${data.tasks.length})</div>
+      ${data.tasks.length > 0 ? `
+        <table class="task-table">
+          ${data.tasks.map(task => `
+            <tr class="task-row">
+              <td class="task-cell">
+                <div class="task-name">${task.task}</div>
+                <div class="task-meta">
+                  <span class="task-badge ${getPriorityClass(task.priority)}">${task.priority}</span>
+                  <span class="task-badge ${getStatusClass(task.status)}">${task.status}</span>
+                  ${task.taskType ? `<span style="color: ${c.textMuted};">${task.taskType}</span>` : ''}
+                  ${task.owner ? `<span style="color: ${c.textMuted};">👤 ${task.owner}</span>` : ''}
+                  ${task.dueDate ? `<span style="color: ${c.textMuted};">📅 ${formatDate(task.dueDate)}</span>` : ''}
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </table>
+      ` : `
+        <div style="color: ${c.textMuted}; text-align: center; padding: 20px;">No tasks yet</div>
+      `}
     </div>
 
     <!-- Blockers -->
-    ${data.blockers.total > 0 ? `
+    ${data.blockers.length > 0 ? `
     <div class="section">
-      <div class="section-title">Blockers</div>
-      <div class="alert">
-        <div class="alert-title">${data.blockers.total} Active ${data.blockers.total === 1 ? 'Blocker' : 'Blockers'}</div>
-        <div class="alert-text">${data.blockers.critical} critical · Requires immediate attention</div>
-      </div>
-    </div>
-    ` : ''}
-
-    <!-- Metrics -->
-    ${data.metrics.length > 0 ? `
-    <div class="section">
-      <div class="section-title">Metrics</div>
-      <div class="metrics">
-        ${data.metrics.map(m => `
-          <div class="metric-row">
-            <div class="metric-label">${m.label}</div>
-            <div class="metric-value">${m.value}</div>
+      <div class="section-title">Blockers (${data.blockers.length})</div>
+      <div class="blocker-list">
+        ${data.blockers.map(blocker => `
+          <div class="blocker-item">
+            <div class="blocker-header">
+              <span class="${getSeverityClass(blocker.severity)}">${blocker.severity.toUpperCase()}</span>
+            </div>
+            <div class="blocker-text">${blocker.blocker}</div>
+            ${blocker.actionToResolve ? `
+              <div class="blocker-action">→ ${blocker.actionToResolve}</div>
+            ` : ''}
           </div>
         `).join('')}
       </div>

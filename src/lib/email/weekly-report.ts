@@ -711,26 +711,43 @@ export async function sendWeeklyReport(clientId: string): Promise<void> {
     // Gather report data - ONLY for this client
     const reportData = await gatherReportData(clientId);
 
+    // Fetch all tasks for this client (not just summary stats)
+    const allTasks = await db
+      .select()
+      .from(clientProjectTasks)
+      .where(eq(clientProjectTasks.clientId, clientId));
+
+    // Fetch all active blockers
+    const allBlockers = await db
+      .select()
+      .from(clientProjectBlockers)
+      .where(
+        and(
+          eq(clientProjectBlockers.clientId, clientId),
+          eq(clientProjectBlockers.status, 'Active')
+        )
+      );
+
     // Transform data for branded template
     const brandedData = {
       weekOf: reportData.weekOf,
       clientName: reportData.clientName,
       clientId: reportData.clientId,
-      tasks: {
-        total: reportData.tasks.total,
-        completedThisWeek: reportData.tasks.completedThisWeek,
-        inProgress: reportData.tasks.byStatus['In Progress'] || 0,
-        upcoming: reportData.tasks.upcoming.length,
-      },
-      blockers: {
-        total: reportData.blockers.total,
-        critical: reportData.blockers.critical,
-      },
-      callSummary: reportData.callSummary,
-      metrics: reportData.metrics.statusMetrics.map(m => ({
-        label: m.metric,
-        value: m.value,
+      tasks: allTasks.map(t => ({
+        task: t.task,
+        status: t.status,
+        priority: t.priority,
+        taskType: t.taskType || undefined,
+        owner: t.owner || undefined,
+        dueDate: t.dueDate || undefined,
       })),
+      blockers: allBlockers.map(b => ({
+        blocker: b.blocker,
+        severity: b.severity,
+        actionToResolve: b.actionToResolve || undefined,
+        status: b.status,
+      })),
+      callSummary: reportData.callSummary,
     };
 
     // Generate HTML using branded template
@@ -822,26 +839,43 @@ export async function sendTestReport(clientId: string, testEmail: string, sentBy
   try {
     const reportData = await gatherReportData(clientId);
 
+    // Fetch all tasks for this client (not just summary stats)
+    const allTasks = await db
+      .select()
+      .from(clientProjectTasks)
+      .where(eq(clientProjectTasks.clientId, clientId));
+
+    // Fetch all active blockers
+    const allBlockers = await db
+      .select()
+      .from(clientProjectBlockers)
+      .where(
+        and(
+          eq(clientProjectBlockers.clientId, clientId),
+          eq(clientProjectBlockers.status, 'Active')
+        )
+      );
+
     // Transform data for branded template
     const brandedData = {
       weekOf: reportData.weekOf,
       clientName: reportData.clientName,
       clientId: reportData.clientId,
-      tasks: {
-        total: reportData.tasks.total,
-        completedThisWeek: reportData.tasks.completedThisWeek,
-        inProgress: reportData.tasks.byStatus['In Progress'] || 0,
-        upcoming: reportData.tasks.upcoming.length,
-      },
-      blockers: {
-        total: reportData.blockers.total,
-        critical: reportData.blockers.critical,
-      },
-      callSummary: reportData.callSummary,
-      metrics: reportData.metrics.statusMetrics.map(m => ({
-        label: m.metric,
-        value: m.value,
+      tasks: allTasks.map(t => ({
+        task: t.task,
+        status: t.status,
+        priority: t.priority,
+        taskType: t.taskType || undefined,
+        owner: t.owner || undefined,
+        dueDate: t.dueDate || undefined,
       })),
+      blockers: allBlockers.map(b => ({
+        blocker: b.blocker,
+        severity: b.severity,
+        actionToResolve: b.actionToResolve || undefined,
+        status: b.status,
+      })),
+      callSummary: reportData.callSummary,
     };
 
     const html = generateBrandedReportHTML(brandedData);
