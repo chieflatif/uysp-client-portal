@@ -82,24 +82,38 @@ export async function DELETE(request: NextRequest) {
     const status = searchParams.get('status');
 
     if (status === 'completed') {
-      const { rowCount } = await db
+      // First count the items
+      const itemsToDelete = await db
+        .select()
+        .from(airtableSyncQueue)
+        .where(eq(airtableSyncQueue.status, 'completed'));
+
+      // Then delete them
+      await db
         .delete(airtableSyncQueue)
         .where(eq(airtableSyncQueue.status, 'completed'));
 
       return NextResponse.json({
         success: true,
-        deleted: rowCount,
-        message: `Cleared ${rowCount} completed items`,
+        deleted: itemsToDelete.length,
+        message: `Cleared ${itemsToDelete.length} completed items`,
       });
     } else if (status === 'failed') {
-      const { rowCount } = await db
+      // First count the items
+      const itemsToDelete = await db
+        .select()
+        .from(airtableSyncQueue)
+        .where(eq(airtableSyncQueue.status, 'failed'));
+
+      // Then delete them
+      await db
         .delete(airtableSyncQueue)
         .where(eq(airtableSyncQueue.status, 'failed'));
 
       return NextResponse.json({
         success: true,
-        deleted: rowCount,
-        message: `Cleared ${rowCount} failed items`,
+        deleted: itemsToDelete.length,
+        message: `Cleared ${itemsToDelete.length} failed items`,
       });
     } else {
       return NextResponse.json(

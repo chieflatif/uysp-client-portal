@@ -143,8 +143,11 @@ export async function POST(request: NextRequest) {
 
     // Clean up old completed items (older than 7 days)
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const { rowCount } = await db
-      .delete(airtableSyncQueue)
+
+    // First count items to delete
+    const oldItems = await db
+      .select()
+      .from(airtableSyncQueue)
       .where(
         and(
           eq(airtableSyncQueue.status, 'completed'),
@@ -152,7 +155,20 @@ export async function POST(request: NextRequest) {
         )
       );
 
-    console.log(`🗑️ [Sync Queue] Cleaned up ${rowCount} old completed items`);
+    // Then delete them
+    if (oldItems.length > 0) {
+      await db
+        .delete(airtableSyncQueue)
+        .where(
+          and(
+            eq(airtableSyncQueue.status, 'completed'),
+            lte(airtableSyncQueue.completedAt, sevenDaysAgo)
+          )
+        );
+    }
+
+    const cleanedUpCount = oldItems.length;
+    console.log(`🗑️ [Sync Queue] Cleaned up ${cleanedUpCount} old completed items`);
 
     const result = {
       success: true,
@@ -160,7 +176,7 @@ export async function POST(request: NextRequest) {
       succeeded,
       failed,
       maxAttemptsReached,
-      cleanedUp: rowCount,
+      cleanedUp: cleanedUpCount,
       timestamp: new Date().toISOString(),
     };
 
