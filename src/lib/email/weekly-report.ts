@@ -7,6 +7,8 @@ import { db } from '@/lib/db';
 import { clientProjectTasks, clientProjectBlockers, clientProjectStatus, users, clients } from '@/lib/db/schema';
 import { eq, and, desc, sql, gte } from 'drizzle-orm';
 import { sendEmail } from './mailer';
+import { getAirtableClient } from '@/lib/airtable/client';
+import { generateBrandedReportHTML } from './weekly-report-branded';
 
 interface TaskSummary {
   total: number;
@@ -46,10 +48,19 @@ interface ProjectMetrics {
 interface WeeklyReportData {
   weekOf: string;
   clientName: string;
+  clientId: string;
   tasks: TaskSummary;
   blockers: BlockerSummary;
   metrics: ProjectMetrics;
   insights: string[];
+  callSummary?: {
+    callDate: string | null;
+    executiveSummary: string;
+    topPriorities: string;
+    keyDecisions: string;
+    nextSteps: string;
+    attendees: string;
+  } | null;
 }
 
 /**
@@ -165,17 +176,41 @@ async function gatherReportData(clientId: string): Promise<WeeklyReportData> {
   }
 
   // Determine overall health
-  const overallHealth = critical > 0 ? '🔴 Needs Attention' : 
-                       high > 0 ? '🟡 On Track with Issues' : 
+  const overallHealth = critical > 0 ? '🔴 Needs Attention' :
+                       high > 0 ? '🟡 On Track with Issues' :
                        '🟢 Healthy';
 
+  // Fetch latest call summary from Airtable
+  let callSummary = null;
+  try {
+    if (client.airtableBaseId) {
+      const airtable = getAirtableClient(client.airtableBaseId);
+      const latestCallSummary = await airtable.getLatestCallSummary();
+
+      if (latestCallSummary) {
+        callSummary = {
+          callDate: latestCallSummary.callDate,
+          executiveSummary: latestCallSummary.executiveSummary,
+          topPriorities: latestCallSummary.topPriorities,
+          keyDecisions: latestCallSummary.keyDecisions,
+          nextSteps: latestCallSummary.nextSteps,
+          attendees: latestCallSummary.attendees,
+        };
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching call summary for report:', error);
+    // Continue without call summary if fetch fails
+  }
+
   return {
-    weekOf: new Date().toLocaleDateString('en-US', { 
-      month: 'long', 
-      day: 'numeric', 
-      year: 'numeric' 
+    weekOf: new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
     }),
     clientName: client.companyName,
+    clientId: client.id,
     tasks: {
       total: allTasks.length,
       byStatus: tasksByStatus,
@@ -204,6 +239,7 @@ async function gatherReportData(clientId: string): Promise<WeeklyReportData> {
       })),
     },
     insights,
+    callSummary,
   };
 }
 
@@ -675,8 +711,30 @@ export async function sendWeeklyReport(clientId: string): Promise<void> {
     // Gather report data - ONLY for this client
     const reportData = await gatherReportData(clientId);
 
-    // Generate HTML
-    const html = generateReportHTML(reportData);
+    // Transform data for branded template
+    const brandedData = {
+      weekOf: reportData.weekOf,
+      clientName: reportData.clientName,
+      clientId: reportData.clientId,
+      tasks: {
+        total: reportData.tasks.total,
+        completedThisWeek: reportData.tasks.completedThisWeek,
+        inProgress: reportData.tasks.byStatus['In Progress'] || 0,
+        upcoming: reportData.tasks.upcoming.length,
+      },
+      blockers: {
+        total: reportData.blockers.total,
+        critical: reportData.blockers.critical,
+      },
+      callSummary: reportData.callSummary,
+      metrics: reportData.metrics.statusMetrics.map(m => ({
+        label: m.metric,
+        value: m.value,
+      })),
+    };
+
+    // Generate HTML using branded template
+    const html = generateBrandedReportHTML(brandedData);
 
     // Send to each admin
     for (const email of adminEmails) {
@@ -763,7 +821,30 @@ export async function sendAllWeeklyReports(): Promise<void> {
 export async function sendTestReport(clientId: string, testEmail: string, sentByUserId?: string): Promise<void> {
   try {
     const reportData = await gatherReportData(clientId);
-    const html = generateReportHTML(reportData);
+
+    // Transform data for branded template
+    const brandedData = {
+      weekOf: reportData.weekOf,
+      clientName: reportData.clientName,
+      clientId: reportData.clientId,
+      tasks: {
+        total: reportData.tasks.total,
+        completedThisWeek: reportData.tasks.completedThisWeek,
+        inProgress: reportData.tasks.byStatus['In Progress'] || 0,
+        upcoming: reportData.tasks.upcoming.length,
+      },
+      blockers: {
+        total: reportData.blockers.total,
+        critical: reportData.blockers.critical,
+      },
+      callSummary: reportData.callSummary,
+      metrics: reportData.metrics.statusMetrics.map(m => ({
+        label: m.metric,
+        value: m.value,
+      })),
+    };
+
+    const html = generateBrandedReportHTML(brandedData);
 
     await sendEmail({
       to: testEmail,
