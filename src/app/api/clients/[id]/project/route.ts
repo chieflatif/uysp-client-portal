@@ -78,10 +78,11 @@ export async function GET(
     ]);
 
     // Group tasks by priority/status for table view
+    // IMPORTANT: Exclude completed tasks from priority buckets to avoid duplicates
     const tasksByStatus = {
-      critical: tasks.filter(t => t.priority === '🔴 Critical' || t.priority === 'Critical'),
-      high: tasks.filter(t => t.priority === '🟠 High' || t.priority === 'High'),
-      medium: tasks.filter(t => t.priority === '🟡 Medium' || t.priority === 'Medium'),
+      critical: tasks.filter(t => (t.priority === '🔴 Critical' || t.priority === 'Critical') && t.status !== 'Complete'),
+      high: tasks.filter(t => (t.priority === '🟠 High' || t.priority === 'High') && t.status !== 'Complete'),
+      medium: tasks.filter(t => (t.priority === '🟡 Medium' || t.priority === 'Medium') && t.status !== 'Complete'),
       complete: tasks.filter(t => t.status === 'Complete'),
     };
 
