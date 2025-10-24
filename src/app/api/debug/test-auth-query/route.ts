@@ -13,15 +13,15 @@ export async function GET(request: Request) {
     tests: {},
   };
 
-  // Test 1: Direct SQL
+  // Test 1: Direct SQL using sql template
   try {
-    const directResult = await db.execute({
-      sql: 'SELECT email FROM users WHERE email = $1 LIMIT 1',
-      args: [email],
-    });
+    const { sql: sqlTag } = await import('drizzle-orm');
+    const directResult = await db.execute(
+      sqlTag`SELECT email FROM users WHERE email = ${email} LIMIT 1`
+    );
     results.tests.direct_sql = {
       success: true,
-      result: directResult,
+      rowCount: directResult.length,
     };
   } catch (error) {
     results.tests.direct_sql = {
