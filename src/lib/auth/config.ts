@@ -66,9 +66,9 @@ export const authOptions: NextAuthOptions = {
           // Add timeout to database query
           const startTime = Date.now();
 
-          // Query user from database
+          // Query user from database (case-insensitive email lookup)
           const user = await db.query.users.findFirst({
-            where: eq(users.email, email),
+            where: eq(users.email, email.toLowerCase()),
           });
 
           console.log(`[Auth] DB query took ${Date.now() - startTime}ms`);
