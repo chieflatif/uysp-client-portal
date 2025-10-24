@@ -29,8 +29,7 @@ export function Navbar() {
     { href: '/analytics', label: 'Analytics', icon: BarChart3 },
     ...(hasAdminAccess ? [{ href: '/project-management', label: 'Project Management', icon: Briefcase }] : []),
     ...(hasUserManagement ? [{ href: '/admin/users', label: 'Users', icon: Shield }] : []),
-    // TODO: Re-enable after running user activity migration in production
-    // ...(isSuperAdmin ? [{ href: '/admin/user-activity', label: 'User Activity', icon: Activity }] : []),
+    ...(isSuperAdmin ? [{ href: '/admin/user-activity', label: 'User Activity', icon: Activity }] : []),
   ];
 
   const isActive = (href: string) => pathname === href;
