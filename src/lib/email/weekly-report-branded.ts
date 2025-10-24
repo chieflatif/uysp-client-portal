@@ -41,6 +41,14 @@ interface WeeklyReportData {
     nextSteps: string;
     attendees: string;
   } | null;
+  dashboard?: {
+    currentPhase: string;
+    progressPercentage: number;
+    totalTasks: number;
+    completedTasks: number;
+    activeTasks: number;
+    activeBlockers: number;
+  };
 }
 
 /**
@@ -389,6 +397,39 @@ export function generateBrandedReportHTML(data: WeeklyReportData): string {
 
         ${data.callSummary.attendees ? `<div class="call-date">👥 ${data.callSummary.attendees}</div>` : ''}
       </div>
+    </div>
+    ` : ''}
+
+    <!-- Dashboard Stats -->
+    ${data.dashboard ? `
+    <div class="section">
+      <div class="section-title">Project Overview</div>
+      <div class="stats">
+        <div class="stat primary">
+          <div class="stat-value">${data.dashboard.progressPercentage}%</div>
+          <div class="stat-label">Progress</div>
+        </div>
+        <div class="stat secondary">
+          <div class="stat-value">${data.dashboard.activeTasks}</div>
+          <div class="stat-label">Active Tasks</div>
+        </div>
+        <div class="stat tertiary">
+          <div class="stat-value">${data.dashboard.completedTasks}/${data.dashboard.totalTasks}</div>
+          <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat primary">
+          <div class="stat-value">${data.dashboard.activeBlockers}</div>
+          <div class="stat-label">Active Blockers</div>
+        </div>
+      </div>
+      ${data.dashboard.currentPhase ? `
+      <div class="metrics" style="margin-top: 12px;">
+        <div class="metric-row" style="border-bottom: none;">
+          <div class="metric-label">Current Phase</div>
+          <div class="metric-value">${data.dashboard.currentPhase}</div>
+        </div>
+      </div>
+      ` : ''}
     </div>
     ` : ''}
 

@@ -728,6 +728,25 @@ export async function sendWeeklyReport(clientId: string): Promise<void> {
         )
       );
 
+    // Calculate dashboard stats
+    const completedTasks = allTasks.filter(t => t.status === 'Complete' || t.status === 'Done').length;
+    const activeTasks = allTasks.filter(t => t.status !== 'Complete' && t.status !== 'Done').length;
+    const progressPercentage = allTasks.length > 0 ? Math.round((completedTasks / allTasks.length) * 100) : 0;
+
+    // Get current phase from project status
+    const currentPhaseMetric = await db
+      .select()
+      .from(clientProjectStatus)
+      .where(
+        and(
+          eq(clientProjectStatus.clientId, clientId),
+          eq(clientProjectStatus.metric, 'Current Phase')
+        )
+      )
+      .limit(1);
+
+    const currentPhase = currentPhaseMetric.length > 0 ? currentPhaseMetric[0].value : 'In Progress';
+
     // Transform data for branded template
     const brandedData = {
       weekOf: reportData.weekOf,
@@ -748,6 +767,14 @@ export async function sendWeeklyReport(clientId: string): Promise<void> {
         status: b.status,
       })),
       callSummary: reportData.callSummary,
+      dashboard: {
+        currentPhase,
+        progressPercentage,
+        totalTasks: allTasks.length,
+        completedTasks,
+        activeTasks,
+        activeBlockers: allBlockers.length,
+      },
     };
 
     // Generate HTML using branded template
@@ -856,6 +883,25 @@ export async function sendTestReport(clientId: string, testEmail: string, sentBy
         )
       );
 
+    // Calculate dashboard stats
+    const completedTasks = allTasks.filter(t => t.status === 'Complete' || t.status === 'Done').length;
+    const activeTasks = allTasks.filter(t => t.status !== 'Complete' && t.status !== 'Done').length;
+    const progressPercentage = allTasks.length > 0 ? Math.round((completedTasks / allTasks.length) * 100) : 0;
+
+    // Get current phase from project status
+    const currentPhaseMetric = await db
+      .select()
+      .from(clientProjectStatus)
+      .where(
+        and(
+          eq(clientProjectStatus.clientId, clientId),
+          eq(clientProjectStatus.metric, 'Current Phase')
+        )
+      )
+      .limit(1);
+
+    const currentPhase = currentPhaseMetric.length > 0 ? currentPhaseMetric[0].value : 'In Progress';
+
     // Transform data for branded template
     const brandedData = {
       weekOf: reportData.weekOf,
@@ -876,6 +922,14 @@ export async function sendTestReport(clientId: string, testEmail: string, sentBy
         status: b.status,
       })),
       callSummary: reportData.callSummary,
+      dashboard: {
+        currentPhase,
+        progressPercentage,
+        totalTasks: allTasks.length,
+        completedTasks,
+        activeTasks,
+        activeBlockers: allBlockers.length,
+      },
     };
 
     const html = generateBrandedReportHTML(brandedData);
