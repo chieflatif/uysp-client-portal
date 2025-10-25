@@ -648,7 +648,22 @@ export class AirtableClient {
    */
   async deleteRecord(tableName: string, recordId: string): Promise<void> {
     try {
-      await this.base(tableName).destroy([recordId]);
+      const response = await fetch(
+        `${this.baseUrl}/${this.baseId}/${tableName}/${recordId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Airtable delete failed: ${response.status} ${JSON.stringify(errorData)}`);
+      }
+
       console.log(`✅ Deleted record ${recordId} from ${tableName}`);
     } catch (error) {
       console.error(`Error deleting record ${recordId} from ${tableName}:`, error);
