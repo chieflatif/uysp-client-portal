@@ -29,7 +29,7 @@ export async function GET(
 
     // SECURITY: Verify user has access to this lead's client
     // SUPER_ADMIN and ADMIN can see all leads
-    const isSuperUser = session.user?.role === 'SUPER_ADMIN' || session.user?.role === 'ADMIN';
+    const isSuperUser = session.user?.role === 'SUPER_ADMIN' || session.user?.role === 'CLIENT_ADMIN';
     if (!isSuperUser && session.user?.clientId && session.user.clientId !== lead.clientId) {
       return NextResponse.json(
         { error: 'You do not have access to this lead' },

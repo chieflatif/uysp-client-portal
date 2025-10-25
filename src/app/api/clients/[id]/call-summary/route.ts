@@ -29,7 +29,7 @@ export async function GET(
     }
 
     // Authorization check
-    if (session.user.role === 'ADMIN') {
+    if (session.user.role === 'CLIENT_ADMIN') {
       // ADMIN can only see their own client
       if (session.user.clientId !== params.id) {
         return NextResponse.json(

@@ -24,8 +24,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Only SUPER_ADMIN and ADMIN can reset passwords
-    if (session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'ADMIN') {
+    // SECURITY: Only SUPER_ADMIN and CLIENT_ADMIN can reset passwords
+    if (session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'CLIENT_ADMIN') {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
         { status: 403 }
@@ -44,8 +44,8 @@ export async function POST(
       );
     }
 
-    // Authorization check: ADMIN can only reset passwords for their own client
-    if (session.user.role === 'ADMIN') {
+    // SECURITY: Authorization check - CLIENT_ADMIN can only reset passwords for their own client
+    if (session.user.role === 'CLIENT_ADMIN') {
       if (session.user.clientId !== targetUser.clientId) {
         return NextResponse.json(
           { error: 'Forbidden - Can only reset passwords for your own client' },
@@ -53,7 +53,7 @@ export async function POST(
         );
       }
 
-      // ADMIN cannot reset SUPER_ADMIN passwords
+      // CLIENT_ADMIN cannot reset SUPER_ADMIN passwords
       if (targetUser.role === 'SUPER_ADMIN') {
         return NextResponse.json(
           { error: 'Forbidden - Cannot reset SUPER_ADMIN password' },
@@ -61,6 +61,7 @@ export async function POST(
         );
       }
     }
+    // SUPER_ADMIN can reset any password (except other SUPER_ADMINs)
 
     const body = await request.json();
     const { newPassword } = body;

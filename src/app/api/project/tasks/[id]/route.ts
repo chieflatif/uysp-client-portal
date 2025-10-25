@@ -41,7 +41,7 @@ export async function PATCH(
     }
 
     // Authorization check
-    if (session.user.role === 'ADMIN') {
+    if (session.user.role === 'CLIENT_ADMIN') {
       // ADMIN can only edit their own client's tasks
       if (session.user.clientId !== existingTask.clientId) {
         return NextResponse.json(
@@ -175,7 +175,7 @@ export async function GET(
     }
 
     // Authorization check
-    if (session.user.role === 'ADMIN') {
+    if (session.user.role === 'CLIENT_ADMIN') {
       // ADMIN can only view their own client's tasks
       if (session.user.clientId !== task.clientId) {
         return NextResponse.json(
@@ -236,7 +236,7 @@ export async function DELETE(
     }
 
     // Authorization check
-    if (session.user.role === 'ADMIN') {
+    if (session.user.role === 'CLIENT_ADMIN') {
       // ADMIN can only delete their own client's tasks
       if (session.user.clientId !== existingTask.clientId) {
         return NextResponse.json(

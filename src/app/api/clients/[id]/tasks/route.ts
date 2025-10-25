@@ -30,7 +30,7 @@ export async function POST(
     }
 
     // Authorization check
-    if (session.user.role === 'ADMIN') {
+    if (session.user.role === 'CLIENT_ADMIN') {
       // ADMIN can only create tasks for their own client
       if (session.user.clientId !== params.id) {
         return NextResponse.json(

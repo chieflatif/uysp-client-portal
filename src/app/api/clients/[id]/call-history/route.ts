@@ -28,7 +28,7 @@ export async function GET(
     }
 
     // Authorization check
-    if (session.user.role === 'ADMIN') {
+    if (session.user.role === 'CLIENT_ADMIN') {
       if (session.user.clientId !== params.id) {
         return NextResponse.json(
           { error: 'Forbidden' },

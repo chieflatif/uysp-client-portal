@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // For ADMIN users, verify they can only pause their own client
-    if (session.user.role === 'ADMIN' && session.user.clientId !== clientId) {
+    if (session.user.role === 'CLIENT_ADMIN' && session.user.clientId !== clientId) {
       return NextResponse.json(
         { error: 'Forbidden - Can only pause campaigns for your own client', code: 'FORBIDDEN' },
         { status: 403 }

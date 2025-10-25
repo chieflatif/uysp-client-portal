@@ -29,9 +29,9 @@ export async function GET(
       );
     }
 
-    // Authorization check
-    if (session.user.role === 'ADMIN') {
-      // ADMIN can only see their own client
+    // SECURITY: Authorization check - enforce client isolation
+    if (session.user.role === 'CLIENT_ADMIN') {
+      // CLIENT_ADMIN can only see their own client
       if (session.user.clientId !== params.id) {
         return NextResponse.json(
           { error: 'Forbidden - can only view your own client data', code: 'FORBIDDEN' },
@@ -39,12 +39,13 @@ export async function GET(
         );
       }
     } else if (session.user.role !== 'SUPER_ADMIN') {
-      // Only SUPER_ADMIN and ADMIN allowed
+      // Only SUPER_ADMIN and CLIENT_ADMIN allowed
       return NextResponse.json(
         { error: 'Forbidden', code: 'FORBIDDEN' },
         { status: 403 }
       );
     }
+    // SUPER_ADMIN can view any client - no restriction
 
     // Verify client exists
     const client = await db.query.clients.findFirst({
