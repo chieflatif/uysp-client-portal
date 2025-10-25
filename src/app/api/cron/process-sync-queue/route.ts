@@ -8,11 +8,6 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 minutes
 
-// SECURITY FIX: Validate CRON_SECRET in production (no fallback)
-if (process.env.NODE_ENV === 'production' && !process.env.CRON_SECRET) {
-  throw new Error('CRON_SECRET must be set in production environment');
-}
-
 /**
  * POST /api/cron/process-sync-queue
  *
