@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Authorization - SUPER_ADMIN or ADMIN
-    if (session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'ADMIN') {
+    // Authorization - SUPER_ADMIN or CLIENT_ADMIN
+    if (session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'CLIENT_ADMIN') {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required', code: 'FORBIDDEN' },
         { status: 403 }

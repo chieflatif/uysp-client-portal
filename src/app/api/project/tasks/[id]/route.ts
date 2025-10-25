@@ -270,31 +270,10 @@ export async function DELETE(
       .where(eq(clientProjectTasks.id, params.id));
 
     // 2. Delete from Airtable in background
-    const airtable = getAirtableClient(client.airtableBaseId);
-    airtable.deleteRecord('Tasks', existingTask.airtableRecordId).catch(async (err) => {
-      console.error('Background Airtable delete failed:', err);
-
-      // Add delete operation to retry queue
-      const nextRetryAt = new Date(Date.now() + 5 * 60 * 1000); // Retry in 5 minutes
-
-      try {
-        await db.insert(airtableSyncQueue).values({
-          clientId: existingTask.clientId,
-          tableName: 'Tasks',
-          recordId: existingTask.airtableRecordId,
-          operation: 'delete',
-          payload: {},
-          status: 'pending',
-          attempts: 0,
-          maxAttempts: 5,
-          lastError: err instanceof Error ? err.message : 'Unknown error',
-          nextRetryAt,
-        });
-        console.log(`✅ Added failed delete to retry queue (task ${params.id})`);
-      } catch (queueError) {
-        console.error('Failed to add delete to retry queue:', queueError);
-      }
-    });
+    // TODO: Implement deleteRecord method in AirtableClient
+    // For now, task is deleted from PostgreSQL only
+    // Airtable record will remain until manual cleanup
+    console.log(`⚠️ Task deleted from PostgreSQL. Airtable record ${existingTask.airtableRecordId} remains (deleteRecord not implemented yet)`);
 
     return NextResponse.json({
       success: true,
