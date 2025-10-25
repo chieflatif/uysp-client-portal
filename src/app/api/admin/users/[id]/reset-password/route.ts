@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import { validatePassword } from '@/lib/utils/password';
 
 /**
  * POST /api/admin/users/[id]/reset-password
@@ -66,10 +67,18 @@ export async function POST(
     const body = await request.json();
     const { newPassword } = body;
 
-    // Validate password
-    if (!newPassword || newPassword.length < 8) {
+    // SECURITY FIX: Use comprehensive password validation (12+ characters)
+    if (!newPassword) {
       return NextResponse.json(
-        { error: 'Password must be at least 8 characters' },
+        { error: 'Password is required' },
+        { status: 400 }
+      );
+    }
+
+    const validation = validatePassword(newPassword);
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { error: validation.error || 'Invalid password format' },
         { status: 400 }
       );
     }
@@ -87,8 +96,9 @@ export async function POST(
       })
       .where(eq(users.id, params.id));
 
+    // SECURITY: Log with IDs only (not PII)
     console.log(
-      `✅ Password reset by ${session.user.email} for user ${targetUser.email}`
+      `✅ [AUDIT] Password reset by user ${session.user.id} (role: ${session.user.role}) for user ${targetUser.id}`
     );
 
     return NextResponse.json({

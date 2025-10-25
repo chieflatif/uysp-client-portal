@@ -8,21 +8,30 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 minutes
 
+// SECURITY FIX: Validate CRON_SECRET in production (no fallback)
+if (process.env.NODE_ENV === 'production' && !process.env.CRON_SECRET) {
+  throw new Error('CRON_SECRET must be set in production environment');
+}
+
 /**
  * POST /api/cron/process-sync-queue
  *
  * Background job to retry failed Airtable syncs
  * Should be called every 5 minutes by a cron job or Render cron
  *
- * SECURITY: This endpoint should be protected by a cron secret or IP whitelist
+ * SECURITY: This endpoint is protected by a cron secret
  */
 export async function POST(request: NextRequest) {
   try {
     // SECURITY: Verify cron secret
     const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET || 'dev-cron-secret-change-in-production';
+    const cronSecret = process.env.CRON_SECRET ||
+      (process.env.NODE_ENV === 'development'
+        ? 'dev-cron-secret-change-in-production'
+        : undefined); // No fallback in production
 
-    if (authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+      console.error('🚨 [Sync Queue] Unauthorized cron attempt');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
