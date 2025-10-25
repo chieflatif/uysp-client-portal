@@ -269,11 +269,17 @@ export async function DELETE(
       .delete(clientProjectTasks)
       .where(eq(clientProjectTasks.id, params.id));
 
-    // 2. Delete from Airtable in background
-    // TODO: Implement deleteRecord method in AirtableClient
-    // For now, task is deleted from PostgreSQL only
-    // Airtable record will remain until manual cleanup
-    console.log(`⚠️ Task deleted from PostgreSQL. Airtable record ${existingTask.airtableRecordId} remains (deleteRecord not implemented yet)`);
+    // 2. Delete from Airtable (push to source of truth)
+    const airtable = getAirtableClient(client.airtableBaseId);
+    try {
+      await airtable.deleteRecord('Tasks', existingTask.airtableRecordId);
+      console.log(`✅ Deleted task from both PostgreSQL and Airtable`);
+    } catch (err) {
+      console.error('Failed to delete from Airtable:', err);
+      // Don't fail the request - task is already deleted from PostgreSQL
+      // TODO: Add to retry queue if needed
+      console.warn(`⚠️ Task deleted from PostgreSQL but Airtable delete failed. May reappear on next sync.`);
+    }
 
     return NextResponse.json({
       success: true,

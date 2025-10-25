@@ -643,6 +643,20 @@ export class AirtableClient {
   }
 
   /**
+   * Delete a record from Airtable
+   * Used when deleting tasks/blockers from portal
+   */
+  async deleteRecord(tableName: string, recordId: string): Promise<void> {
+    try {
+      await this.base(tableName).destroy([recordId]);
+      console.log(`✅ Deleted record ${recordId} from ${tableName}`);
+    } catch (error) {
+      console.error(`Error deleting record ${recordId} from ${tableName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Get the latest project call summary
    * Fetches the record where "Is Latest" checkbox is true
    */
