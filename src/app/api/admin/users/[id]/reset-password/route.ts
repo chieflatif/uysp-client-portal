@@ -6,6 +6,7 @@ import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { validatePassword } from '@/lib/utils/password';
+import { logSecurityAudit } from '@/lib/audit/logger';
 
 /**
  * POST /api/admin/users/[id]/reset-password
@@ -96,10 +97,20 @@ export async function POST(
       })
       .where(eq(users.id, params.id));
 
-    // SECURITY: Log with IDs only (not PII)
-    console.log(
-      `✅ [AUDIT] Password reset by user ${session.user.id} (role: ${session.user.role}) for user ${targetUser.id}`
-    );
+    // AUDIT: Log security-sensitive operation
+    await logSecurityAudit({
+      userId: session.user.id,
+      userRole: session.user.role,
+      action: 'PASSWORD_RESET',
+      resourceType: 'USER',
+      resourceId: targetUser.id,
+      clientId: session.user.clientId,
+      request,
+      metadata: {
+        targetUserRole: targetUser.role,
+        resetByAdmin: true,
+      },
+    });
 
     return NextResponse.json({
       success: true,

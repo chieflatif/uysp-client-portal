@@ -525,3 +525,35 @@ export const airtableSyncQueue = pgTable(
 
 export type AirtableSyncQueue = typeof airtableSyncQueue.$inferSelect;
 export type NewAirtableSyncQueue = typeof airtableSyncQueue.$inferInsert;
+
+// ==============================================================================
+// SECURITY AUDIT LOG TABLE
+// ==============================================================================
+export const securityAuditLog = pgTable(
+  'security_audit_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull(), // Who performed the action
+    userRole: varchar('user_role', { length: 50 }).notNull(), // Role at time of action
+    action: varchar('action', { length: 100 }).notNull(), // 'PASSWORD_RESET', 'USER_CREATED', 'USER_DEACTIVATED', etc.
+    resourceType: varchar('resource_type', { length: 50 }).notNull(), // 'USER', 'CLIENT', 'LEAD', etc.
+    resourceId: uuid('resource_id').notNull(), // ID of affected resource
+    clientId: uuid('client_id'), // Client context (null for SUPER_ADMIN actions)
+    ipAddress: inet('ip_address'), // IP address of request
+    userAgent: text('user_agent'), // Browser/client info
+    metadata: jsonb('metadata'), // Additional context (non-sensitive)
+    success: boolean('success').notNull().default(true), // Was action successful?
+    errorMessage: text('error_message'), // If failed, why?
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index('idx_audit_user').on(table.userId),
+    actionIdx: index('idx_audit_action').on(table.action),
+    resourceIdx: index('idx_audit_resource').on(table.resourceType, table.resourceId),
+    clientIdx: index('idx_audit_client').on(table.clientId),
+    createdIdx: index('idx_audit_created').on(table.createdAt),
+  })
+);
+
+export type SecurityAuditLog = typeof securityAuditLog.$inferSelect;
+export type NewSecurityAuditLog = typeof securityAuditLog.$inferInsert;
