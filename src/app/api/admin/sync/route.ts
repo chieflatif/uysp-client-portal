@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { clients, leads, clientProjectTasks, clientProjectBlockers, clientProjectStatus } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { clients, leads, clientProjectTasks, clientProjectBlockers, clientProjectStatus, airtableSyncQueue } from '@/lib/db/schema';
+import { eq, and } from 'drizzle-orm';
 import { getAirtableClient } from '@/lib/airtable/client';
 
 export const runtime = 'nodejs';
@@ -167,16 +167,42 @@ export async function POST(request: NextRequest) {
           });
 
           if (existing) {
-            // Compare timestamps - only update if Airtable is newer OR PostgreSQL update failed
-            const airtableUpdated = new Date(record.createdTime); // Airtable doesn't track updates, use createdTime
-            const pgUpdated = existing.updatedAt;
+            // CRITICAL FIX 1: Check if there's a pending sync in the retry queue
+            const pendingSync = await db.query.airtableSyncQueue.findFirst({
+              where: and(
+                eq(airtableSyncQueue.recordId, record.id),
+                eq(airtableSyncQueue.tableName, 'Tasks'),
+                eq(airtableSyncQueue.status, 'pending')
+              ),
+            });
 
-            // If PostgreSQL was updated in the last 60 seconds, skip sync (likely a pending Airtable update)
+            if (pendingSync) {
+              console.log(`⏸️ Skipping task ${record.id} - pending Airtable sync in retry queue (${pendingSync.attempts} attempts)`);
+              return; // Don't overwrite - local changes haven't reached Airtable yet
+            }
+
+            // CRITICAL FIX 2: Use 5-minute conflict window instead of 60 seconds
+            // This prevents overwrites when Airtable sync is delayed
+            const pgUpdated = existing.updatedAt;
             const timeSinceUpdate = Date.now() - pgUpdated.getTime();
-            if (timeSinceUpdate < 60000) {
+
+            if (timeSinceUpdate < 300000) { // 5 minutes = 300,000ms
               console.log(`⏸️ Skipping task ${record.id} - recently updated in PostgreSQL (${Math.round(timeSinceUpdate / 1000)}s ago)`);
               return;
             }
+
+            // CRITICAL FIX 3: Use Airtable's Last Modified timestamp if available
+            const airtableModified = record.fields['Last Modified Time']
+              ? new Date(record.fields['Last Modified Time'])
+              : new Date(record.createdTime);
+
+            // Only overwrite if Airtable data is NEWER than PostgreSQL
+            if (airtableModified <= pgUpdated) {
+              console.log(`⏸️ Skipping task ${record.id} - PostgreSQL is newer (PG: ${pgUpdated.toISOString()}, AT: ${airtableModified.toISOString()})`);
+              return;
+            }
+
+            console.log(`✅ Syncing task ${record.id} - Airtable is newer (PG: ${pgUpdated.toISOString()}, AT: ${airtableModified.toISOString()})`);
           }
 
           // Proceed with sync

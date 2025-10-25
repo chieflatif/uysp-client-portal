@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useClient } from '@/contexts/ClientContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, ArrowUpDown, AlertCircle, TrendingUp, Clock, Target, RefreshCw, X, Calendar, Plus, Save, Mail } from 'lucide-react';
+import { Search, ArrowUpDown, AlertCircle, TrendingUp, Clock, Target, RefreshCw, X, Calendar, Plus, Save, Mail, Trash2 } from 'lucide-react';
 import { theme } from '@/theme';
 
 interface Task {
@@ -435,6 +435,31 @@ export default function ProjectManagementPage() {
     }
   };
 
+  const handleDeleteTask = async (taskId: string, taskName: string) => {
+    const confirmed = confirm(`Are you sure you want to delete "${taskName}"?\n\nThis will delete the task from both the database and Airtable.`);
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/project/tasks/${taskId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete task');
+      }
+
+      // Invalidate React Query cache to refetch
+      await queryClient.invalidateQueries({ queryKey: ['project', selectedClientId] });
+
+      alert('Task deleted successfully!');
+    } catch (err) {
+      console.error('Failed to delete task:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete task. Please try again.';
+      alert(errorMessage);
+    }
+  };
+
   // Only show loading screen if there's no data AND we're loading (first load)
   if (loading && !projectData) {
     return (
@@ -778,7 +803,7 @@ export default function ProjectManagementPage() {
                     Owner {getSortIcon('owner')}
                   </div>
                 </th>
-                <th 
+                <th
                   className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
                   onClick={() => handleSort('dueDate')}
                 >
@@ -786,12 +811,17 @@ export default function ProjectManagementPage() {
                     Due Date {getSortIcon('dueDate')}
                   </div>
                 </th>
+                <th
+                  className={`px-6 py-4 text-center text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
               {processedTasks.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className={`px-6 py-12 text-center ${theme.core.bodyText}`}>
+                  <td colSpan={7} className={`px-6 py-12 text-center ${theme.core.bodyText}`}>
                     {searchQuery || filter !== 'all' ? 'No tasks match your filters' : 'No tasks yet'}
                   </td>
                 </tr>
@@ -987,6 +1017,20 @@ export default function ProjectManagementPage() {
                           {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : <span className="text-gray-500 italic">Click to set</span>}
                         </div>
                       )}
+                    </td>
+
+                    {/* Actions - DELETE BUTTON */}
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteTask(task.id, task.task);
+                        }}
+                        className="p-2 rounded-lg bg-red-900/20 hover:bg-red-900/40 text-red-400 hover:text-red-300 transition-all"
+                        title="Delete task"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))

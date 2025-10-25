@@ -200,3 +200,111 @@ export async function GET(
     );
   }
 }
+
+/**
+ * DELETE /api/project/tasks/[id]
+ *
+ * Delete a project task
+ * Deletes from both PostgreSQL and Airtable
+ *
+ * Auth: SUPER_ADMIN or ADMIN (must own the task's client)
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Get task to verify ownership
+    const existingTask = await db.query.clientProjectTasks.findFirst({
+      where: eq(clientProjectTasks.id, params.id),
+    });
+
+    if (!existingTask) {
+      return NextResponse.json(
+        { error: 'Task not found' },
+        { status: 404 }
+      );
+    }
+
+    // Authorization check
+    if (session.user.role === 'ADMIN') {
+      // ADMIN can only delete their own client's tasks
+      if (session.user.clientId !== existingTask.clientId) {
+        return NextResponse.json(
+          { error: 'Forbidden - can only delete your own tasks' },
+          { status: 403 }
+        );
+      }
+    } else if (session.user.role !== 'SUPER_ADMIN') {
+      // Only SUPER_ADMIN and ADMIN allowed
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+
+    // Get client to access their Airtable base
+    const client = await db.query.clients.findFirst({
+      where: eq(clients.id, existingTask.clientId),
+    });
+
+    if (!client) {
+      return NextResponse.json(
+        { error: 'Client not found' },
+        { status: 404 }
+      );
+    }
+
+    // 1. Delete from PostgreSQL FIRST
+    await db
+      .delete(clientProjectTasks)
+      .where(eq(clientProjectTasks.id, params.id));
+
+    // 2. Delete from Airtable in background
+    const airtable = getAirtableClient(client.airtableBaseId);
+    airtable.deleteRecord('Tasks', existingTask.airtableRecordId).catch(async (err) => {
+      console.error('Background Airtable delete failed:', err);
+
+      // Add delete operation to retry queue
+      const nextRetryAt = new Date(Date.now() + 5 * 60 * 1000); // Retry in 5 minutes
+
+      try {
+        await db.insert(airtableSyncQueue).values({
+          clientId: existingTask.clientId,
+          tableName: 'Tasks',
+          recordId: existingTask.airtableRecordId,
+          operation: 'delete',
+          payload: {},
+          status: 'pending',
+          attempts: 0,
+          maxAttempts: 5,
+          lastError: err instanceof Error ? err.message : 'Unknown error',
+          nextRetryAt,
+        });
+        console.log(`✅ Added failed delete to retry queue (task ${params.id})`);
+      } catch (queueError) {
+        console.error('Failed to add delete to retry queue:', queueError);
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Task deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
