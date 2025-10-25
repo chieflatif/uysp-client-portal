@@ -15,6 +15,7 @@ import {
   Check,
   Trash2,
   UserX,
+  Key,
 } from 'lucide-react';
 import { canManageUsers, isSuperAdmin, getRoleBadgeColor, getRoleName } from '@/lib/auth/permissions-client';
 
@@ -41,6 +42,9 @@ export default function UsersPage() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [error, setError] = useState('');
   const [deleteModalUser, setDeleteModalUser] = useState<{ id: string; name: string; action: 'deactivate' | 'delete' } | null>(null);
+  const [resetPasswordUser, setResetPasswordUser] = useState<{ id: string; email: string } | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   // Check permissions
   useEffect(() => {
@@ -113,6 +117,39 @@ export default function UsersPage() {
       }
     } catch (err) {
       alert('An unexpected error occurred');
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser) return;
+    
+    if (!newPassword || newPassword.length < 8) {
+      alert('Password must be at least 8 characters');
+      return;
+    }
+
+    try {
+      setResettingPassword(true);
+      const response = await fetch(`/api/admin/users/${resetPasswordUser.id}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`Password reset successfully for ${resetPasswordUser.email}`);
+        setResetPasswordUser(null);
+        setNewPassword('');
+        await loadUsers();
+      } else {
+        alert(data.error || 'Failed to reset password');
+      }
+    } catch (err) {
+      alert('An unexpected error occurred');
+    } finally {
+      setResettingPassword(false);
     }
   };
 
@@ -262,17 +299,26 @@ export default function UsersPage() {
                         {user.id !== session?.user?.id && (
                           <>
                             {user.isActive && (
-                              <button
-                                onClick={() => setDeleteModalUser({
-                                  id: user.id,
-                                  name: `${user.firstName} ${user.lastName}`,
-                                  action: 'deactivate'
-                                })}
-                                className="text-yellow-400 hover:text-yellow-300 p-2 rounded hover:bg-yellow-900/20"
-                                title="Deactivate user (temporary)"
-                              >
-                                <UserX className="w-4 h-4" />
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => setResetPasswordUser({ id: user.id, email: user.email })}
+                                  className="text-cyan-400 hover:text-cyan-300 p-2 rounded hover:bg-cyan-900/20"
+                                  title="Reset password"
+                                >
+                                  <Key className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteModalUser({
+                                    id: user.id,
+                                    name: `${user.firstName} ${user.lastName}`,
+                                    action: 'deactivate'
+                                  })}
+                                  className="text-yellow-400 hover:text-yellow-300 p-2 rounded hover:bg-yellow-900/20"
+                                  title="Deactivate user (temporary)"
+                                >
+                                  <UserX className="w-4 h-4" />
+                                </button>
+                              </>
                             )}
                             <button
                               onClick={() => setDeleteModalUser({
@@ -335,6 +381,20 @@ export default function UsersPage() {
             }
           }}
           onCancel={() => setDeleteModalUser(null)}
+        />
+      )}
+
+      {resetPasswordUser && (
+        <ResetPasswordModal
+          user={resetPasswordUser}
+          newPassword={newPassword}
+          setNewPassword={setNewPassword}
+          onConfirm={handleResetPassword}
+          onCancel={() => {
+            setResetPasswordUser(null);
+            setNewPassword('');
+          }}
+          loading={resettingPassword}
         />
       )}
     </div>
@@ -707,6 +767,99 @@ function DeleteConfirmModal({
             }`}
           >
             {isDelete ? 'Delete Permanently' : 'Deactivate User'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Reset Password Modal
+function ResetPasswordModal({
+  user,
+  newPassword,
+  setNewPassword,
+  onConfirm,
+  onCancel,
+  loading,
+}: {
+  user: { id: string; email: string };
+  newPassword: string;
+  setNewPassword: (password: string) => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-800 border border-gray-700 rounded-lg max-w-md w-full p-6">
+        {/* Header */}
+        <div className="flex items-start gap-3 mb-4">
+          <div className="p-3 rounded-lg bg-cyan-900/30">
+            <Key className="w-6 h-6 text-cyan-400" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-white mb-1">
+              Reset Password
+            </h2>
+            <p className="text-gray-400 text-sm">
+              Set a new password for this user
+            </p>
+          </div>
+        </div>
+
+        {/* User Info */}
+        <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-4 mb-6">
+          <p className="text-white font-medium">{user.email}</p>
+          <p className="text-gray-400 text-sm mt-1">
+            The user will be able to login with the new password immediately
+          </p>
+        </div>
+
+        {/* Password Input */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            New Password
+          </label>
+          <input
+            type="text"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Enter new password (min 8 characters)"
+            className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            disabled={loading}
+          />
+          <p className="text-xs text-gray-400 mt-2">
+            Minimum 8 characters required
+          </p>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className={`${theme.components.button.ghost} flex-1`}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading || !newPassword || newPassword.length < 8}
+            className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+              loading || !newPassword || newPassword.length < 8
+                ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                : 'bg-cyan-600 hover:bg-cyan-700 text-white'
+            }`}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                Resetting...
+              </>
+            ) : (
+              'Reset Password'
+            )}
           </button>
         </div>
       </div>
