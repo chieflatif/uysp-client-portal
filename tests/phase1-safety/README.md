@@ -19,8 +19,11 @@
 **Why Decisions Were Made**:
 6. **AUDIT-TRAIL.md** - What happened, mistakes, design decisions, lessons
 
+**Before Day 2** (Review First):
+7. **CRITICAL-ASSUMPTIONS.md** - Risks, assumptions to verify
+
 **Navigation**:
-7. **README.md** - This file
+8. **README.md** - This file
 
 **That's it. 7 files. Everything else is bloat.**
 
