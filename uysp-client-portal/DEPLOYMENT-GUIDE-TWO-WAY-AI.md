@@ -550,6 +550,8 @@ Document:
 
 **⛔ DO NOT PROCEED TO PHASE 2 UNTIL PHASE 1 APPROVED**
 
+**READ NEXT**: Phase 2 section below (after sign-off)
+
 ---
 
 ## 🤖 PHASE 2: AI CONVERSATION ENGINE (Week 2 - 21 hours)
@@ -949,9 +951,24 @@ Document all test results, get approval.
 
 **⛔ DO NOT PROCEED TO PHASE 3 UNTIL PHASE 2 APPROVED**
 
+**READ NEXT**: Phase 3 section below (after sign-off)
+
 ---
 
 ## 💻 PHASE 3: FRONTEND CONVERSATION VIEW (Week 3 - 18 hours)
+
+**SYSTEM MESSAGE:**
+```
+PREREQUISITE: Phase 2 AI engine working
+
+BUILD: Conversation UI
+DESIGN: REBEL-HQ-DESIGN-SYSTEM.md
+SPEC: PRD → "Feature Specifications"
+
+TDD: API tests → Component tests → Integration
+```
+
+---
 
 ### Day 1-2: Conversation API (6 hours)
 
