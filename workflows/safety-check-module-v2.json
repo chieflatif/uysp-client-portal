@@ -1,0 +1,236 @@
+{
+  "name": "safety-check-module-v2",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "safety-check",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-safety-check",
+      "name": "Safety Check Input",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "safety-check-module"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse safety check request\nconst input = $input.first().json;\n\nreturn {\n  json: {\n    lead_id: input.lead_id,\n    trigger_type: input.trigger_type || 'inbound_reply',\n    client_id: input.client_id || 'uysp_001',\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "parse-input",
+      "name": "Parse Safety Check Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "id": "={{ $json.lead_id }}",
+        "options": {}
+      },
+      "id": "load-lead",
+      "name": "Load Lead Data",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblpM32X4ezKUV9Wj"
+        },
+        "filterByFormula": "={client_id} = 'uysp_001'",
+        "options": {
+          "maxRecords": 1
+        }
+      },
+      "id": "load-safety-config",
+      "name": "Load Client Safety Config",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [680, 500],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Run comprehensive safety checks\nconst lead = $items('Load Lead Data')[0]?.json || null;\nconst config = $items('Load Client Safety Config')[0]?.json || null;\n\nif (!lead) {\n  return {\n    json: {\n      decision: 'BLOCK',\n      decision_reason: 'Lead not found in database',\n      safety_checks: {\n        lead_found: false\n      }\n    }\n  };\n}\n\nif (!config) {\n  return {\n    json: {\n      decision: 'BLOCK',\n      decision_reason: 'Safety configuration not found - system error',\n      safety_checks: {\n        config_found: false\n      }\n    }\n  };\n}\n\nconst checks = {\n  lead_found: true,\n  config_found: true\n};\n\nlet blockReasons = [];\n\n// CHECK 1: Global messaging pause\nif (config.global_messaging_paused === true) {\n  checks.global_pause = false;\n  blockReasons.push(`Global messaging paused: ${config.pause_reason || 'Unknown reason'}`);\n} else {\n  checks.global_pause = true;\n}\n\n// CHECK 2: Lead opted out\nif (lead['SMS Stop'] === true) {\n  checks.opt_out = false;\n  blockReasons.push(`Lead opted out: ${lead['SMS Stop Reason'] || 'STOP'}`);\n} else {\n  checks.opt_out = true;\n}\n\n// CHECK 3: AI status (active/paused/human_takeover)\nconst aiStatus = lead['🤖 ai_status'];\nif (aiStatus === 'paused') {\n  checks.ai_status = false;\n  const pauseUntil = lead['🤖 pause_until'];\n  const pauseReason = lead['🤖 pause_reason'] || 'AI paused';\n  blockReasons.push(`AI paused until ${pauseUntil || 'unknown'}: ${pauseReason}`);\n} else if (aiStatus === 'human_takeover') {\n  checks.ai_status = false;\n  const humanAssigned = lead['🤖 human_assigned_to'] || 'team';\n  blockReasons.push(`Human takeover - assigned to: ${humanAssigned}`);\n} else if (aiStatus !== 'active') {\n  checks.ai_status = false;\n  blockReasons.push(`AI status not active: ${aiStatus || 'unknown'}`);\n} else {\n  checks.ai_status = true;\n}\n\n// CHECK 4: Conversation locked by human\nif (lead['🤖 conversation_locked_by_human'] === true) {\n  checks.human_locked = false;\n  const humanAssigned = lead['🤖 human_assigned_to'] || 'team';\n  blockReasons.push(`Conversation locked by human: ${humanAssigned}`);\n} else {\n  checks.human_locked = true;\n}\n\n// CHECK 5: Last word check (AI shouldn't double-message)\nconst lastDirection = lead['🤖 last_message_direction'];\nif (lastDirection === 'outbound') {\n  checks.last_word = false;\n  blockReasons.push('AI already has last word - waiting for prospect reply');\n} else if (lastDirection === 'inbound' || !lastDirection) {\n  checks.last_word = true;\n} else {\n  checks.last_word = true;  // Unknown state = allow\n}\n\n// CHECK 6: Runaway conversation detection\nconst messagesLast2Hours = lead['🤖 messages_in_last_2_hours'] || 0;\nconst runawayLimit = config.max_messages_per_2_hours || 10;\nif (messagesLast2Hours >= runawayLimit) {\n  checks.runaway = false;\n  blockReasons.push(`Runaway conversation detected: ${messagesLast2Hours} messages in 2 hours (limit: ${runawayLimit})`);\n  // CIRCUIT BREAKER TRIGGER\n  checks.circuit_breaker_triggered = true;\n} else {\n  checks.runaway = true;\n  checks.circuit_breaker_triggered = false;\n}\n\n// CHECK 7: Daily message limit\nconst messagesToday = lead['🤖 ai_message_count_today'] || 0;\nconst dailyLimit = config.max_new_conversations_per_day || 200; // Using conversation limit as proxy\nif (messagesToday >= dailyLimit) {\n  checks.daily_limit = false;\n  blockReasons.push(`Daily message limit reached: ${messagesToday}/${dailyLimit}`);\n} else {\n  checks.daily_limit = true;\n}\n\n// FINAL DECISION\nlet decision = 'SEND';\nlet decisionReason = 'All safety checks passed';\n\nif (checks.circuit_breaker_triggered) {\n  decision = 'CIRCUIT_BREAKER';\n  decisionReason = blockReasons.join('; ');\n} else if (blockReasons.length > 0) {\n  decision = 'BLOCK';\n  decisionReason = blockReasons.join('; ');\n}\n\nconsole.log('=== SAFETY CHECK RESULTS ===');\nconsole.log(`Lead: ${lead['First Name']} ${lead['Last Name']}`);\nconsole.log(`Decision: ${decision}`);\nconsole.log(`Reason: ${decisionReason}`);\nconsole.log(`Checks: ${JSON.stringify(checks, null, 2)}`);\nconsole.log('=== END ===');\n\nreturn {\n  json: {\n    decision: decision,\n    decision_reason: decisionReason,\n    safety_checks: checks,\n    lead_id: lead.id,\n    lead_phone: lead['Phone'],\n    lead_name: `${lead['First Name'] || ''} ${lead['Last Name'] || ''}`.trim(),\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "run-safety-checks",
+      "name": "Run Safety Checks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.decision }}",
+              "operation": "equals",
+              "value2": "CIRCUIT_BREAKER"
+            }
+          ]
+        }
+      },
+      "id": "check-circuit-breaker",
+      "name": "Circuit Breaker?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1120, 300],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.lead_id }}",
+            "🤖 ai_status": "paused",
+            "🤖 pause_reason": "Circuit breaker: runaway conversation",
+            "🤖 pause_until": "={{ $now.plus(1, 'days').toISO() }}",
+            "🤖 last_safety_block_reason": "={{ $json.decision_reason }}",
+            "🤖 safety_violations_count": "={{ ($items('Load Lead Data')[0].json['🤖 safety_violations_count'] || 0) + 1 }}"
+          },
+          "matchingColumns": ["id"]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "update-circuit-breaker",
+      "name": "Update Lead - Circuit Breaker",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [1340, 200],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tbl09qmd60wivdby2"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "client_id": "uysp_001",
+            "lead_id": "={{ $json.lead_id }}",
+            "trigger_type": "={{ $items('Parse Safety Check Request')[0].json.trigger_type }}",
+            "decision": "={{ $json.decision }}",
+            "decision_reason": "={{ $json.decision_reason }}",
+            "safety_checks_results": "={{ JSON.stringify($json.safety_checks) }}"
+          }
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "log-decision",
+      "name": "Log Decision to Decision Log",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [1560, 300],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "return-decision",
+      "name": "Return Safety Decision",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1780, 300]
+    }
+  ],
+  "connections": {
+    "Safety Check Input": {
+      "main": [[{"node": "Parse Safety Check Request", "type": "main", "index": 0}]]
+    },
+    "Parse Safety Check Request": {
+      "main": [[
+        {"node": "Load Lead Data", "type": "main", "index": 0},
+        {"node": "Load Client Safety Config", "type": "main", "index": 0}
+      ]]
+    },
+    "Load Lead Data": {
+      "main": [[{"node": "Run Safety Checks", "type": "main", "index": 0}]]
+    },
+    "Load Client Safety Config": {
+      "main": [[{"node": "Run Safety Checks", "type": "main", "index": 0}]]
+    },
+    "Run Safety Checks": {
+      "main": [[{"node": "Circuit Breaker?", "type": "main", "index": 0}]]
+    },
+    "Circuit Breaker?": {
+      "main": [
+        [{"node": "Update Lead - Circuit Breaker", "type": "main", "index": 0}],
+        [{"node": "Log Decision to Decision Log", "type": "main", "index": 0}]
+      ]
+    },
+    "Update Lead - Circuit Breaker": {
+      "main": [[{"node": "Log Decision to Decision Log", "type": "main", "index": 0}]]
+    },
+    "Log Decision to Decision Log": {
+      "main": [[{"node": "Return Safety Decision", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "tags": []
+}
+
