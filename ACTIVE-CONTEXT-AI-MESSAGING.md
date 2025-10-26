@@ -1,6 +1,6 @@
 # ACTIVE CONTEXT: Two-Way AI Messaging Implementation
 
-**Last Updated**: October 26, 2025 - 12:00 AM  
+**Last Updated**: October 26, 2025 - 12:05 AM  
 **Current Branch**: `feature/two-way-ai-messaging`  
 **Current Phase**: Phase 1 - Safety Infrastructure  
 **Current Task**: Day 1 COMPLETE - Ready for Day 2 (Safety Workflows)  
@@ -46,10 +46,18 @@
 6. ✅ Populate Client_Safety_Config with defaults - DONE
 7. ⏸️ Update frontend TypeScript types (optional, can do Day 2)
 
+### DESIGN CHANGE (Just Made)
+🔧 **Cost Limit Removed** (User feedback):
+- Removed `max_ai_cost_per_day` from Client_Safety_Config
+- Rationale: Over-engineered, unnecessary compute
+- Replacement: Message count limits naturally cap costs
+- Impact: Simpler safety checks, faster performance
+- Evidence: /tests/phase1-safety/DESIGN-CHANGE-COST-LIMIT-REMOVED.md
+
 ### Next Phase Tasks
 📋 **Day 2-5: Safety Module & Testing** (12 hours estimated):
-- Build safety check workflow in n8n
-- Implement circuit breakers
+- Build safety check workflow in n8n (SIMPLIFIED - no cost checking)
+- Implement circuit breakers (message count based)
 - Test 20 safety scenarios
 - Sign-off documentation
 

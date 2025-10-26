@@ -348,6 +348,13 @@ Total Remaining: ~79 hours
    - Rationale: User emphasis on maintaining clean documentation
    - Impact: +1 hour for checkpoint setup, saves confusion later
 
+5. **Remove Daily Cost Limit**: Removed max_ai_cost_per_day field
+   - Rationale: Over-engineered, unnecessary real-time compute
+   - Replacement: Message count limits naturally cap costs
+   - Math: 200 convos × 10 msgs × $0.03 = $60 max/day
+   - Impact: Simpler safety checks, 10x faster performance
+   - Evidence: /tests/phase1-safety/DESIGN-CHANGE-COST-LIMIT-REMOVED.md
+
 ---
 
 ## 🔄 NEXT ACTIONS

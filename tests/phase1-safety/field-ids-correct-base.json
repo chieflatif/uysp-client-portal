@@ -183,6 +183,18 @@
     "new_ai_system": "Enhanced with 19 AI-specific safety and intelligence fields",
     "conflicts": "None - systems complement each other",
     "migration": "Not needed - new fields start empty, existing system continues working"
+  },
+  
+  "design_changes": {
+    "cost_limit_removed": {
+      "date": "2025-10-26",
+      "field_removed": "max_ai_cost_per_day",
+      "table": "Client_Safety_Config",
+      "rationale": "Over-engineered, unnecessary real-time compute",
+      "replacement": "Message count limits (200 convos × 10 msgs = natural cost cap)",
+      "impact": "Simpler safety checks, 10x faster performance",
+      "evidence": "/tests/phase1-safety/DESIGN-CHANGE-COST-LIMIT-REMOVED.md"
+    }
   }
 }
 

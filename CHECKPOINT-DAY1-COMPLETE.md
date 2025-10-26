@@ -16,7 +16,7 @@ AI tracking fields added
 
 ### ✅ 3 New Tables Created
 1. AI_Config (13 fields)
-2. Client_Safety_Config (12 fields)
+2. Client_Safety_Config (11 fields) ← Cost field removed
 3. Message_Decision_Log (11 fields)
 
 ### ✅ All Documentation Updated

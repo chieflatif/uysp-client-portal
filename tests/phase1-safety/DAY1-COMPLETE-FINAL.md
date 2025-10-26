@@ -109,14 +109,14 @@
 
 ---
 
-### Client_Safety_Config Table (12 fields) - NEW
+### Client_Safety_Config Table (11 fields) - NEW
 **Table ID**: tblpM32X4ezKUV9Wj
 
 **Fields**:
 1. client_id (primary)
 2. max_messages_per_conversation (default 10)
 3. max_new_conversations_per_day (default 200)
-4. max_ai_cost_per_day (default $50)
+4. ~~max_ai_cost_per_day~~ ❌ REMOVED (over-engineered)
 5. global_messaging_paused (emergency stop)
 6. pause_reason
 7. paused_by
@@ -125,6 +125,8 @@
 10. alert_email
 11. last_circuit_breaker_triggered
 12. circuit_breaker_count_30d
+
+**Design Change**: Removed real-time cost checking. Message limits provide equivalent protection with better performance.
 
 ---
 
