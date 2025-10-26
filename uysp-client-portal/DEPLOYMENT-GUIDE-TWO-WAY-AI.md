@@ -57,6 +57,33 @@ node scripts/export-airtable-schema.js
 
 # Save with timestamp
 mv airtable-schema.json backups/airtable-schema-pre-safety-$(date +%Y%m%d).json
+
+# Also create Airtable backup via UI:
+# Airtable → [Your Base] → Extensions → Backups → Create Backup
+# Name: "Pre-AI-Messaging-Safety-Fields-[date]"
+```
+
+**Step 1.1b: Setup Test Environment** (30 min)
+
+```bash
+# 1. Duplicate UYSP base in Airtable
+# Base name: "UYSP_TEST"
+# Remove all lead data
+# Keep schema only
+
+# 2. Add test leads (via Airtable UI)
+# Create 10 records in People table with:
+# - test_mode_lead = TRUE
+# - Valid email/phone (use test numbers)
+# - Various campaign stages for testing
+
+# 3. Get Twilio test credentials
+# Twilio Console → Get test Account SID and Auth Token
+# These don't send real SMS (perfect for testing)
+
+# 4. Configure test OpenAI key
+# Create separate OpenAI key with $10 budget limit
+# For testing only
 ```
 
 **Step 1.2: Add Safety Fields to People Table** (2 hours)
@@ -122,15 +149,28 @@ SAFETY TRACKING:
     
 15. last_safety_block_reason
     Type: Long Text
+    
+16. test_mode_lead
+    Type: Checkbox
+    Default: FALSE
+    Description: If TRUE, skips all rate limits and safety checks (testing only)
 ```
 
 **Step 1.3: Create Client_Safety_Config Table** (30 min)
+
+**Option A: Master Base** (If you have one for multi-tenant)
+- Create table in master registry base
+- One record per client
+
+**Option B: Each Client Base** (Simpler for now)
+- Create table in UYSP base
+- One record (the client's own config)
 
 ```
 Table Name: Client_Safety_Config
 
 Fields:
-1. client_id (Single Line Text, Primary)
+1. client_id (Single Line Text, Primary) = "uysp_001"
 2. max_messages_per_conversation (Number, default: 10)
 3. max_new_conversations_per_day (Number, default: 200)
 4. max_ai_cost_per_day (Currency USD, default: 50.00)
@@ -139,13 +179,14 @@ Fields:
 7. paused_by (Single Line Text)
 8. paused_at (DateTime)
 9. conversation_ends_after_hours (Number, default: 4)
-10. alert_email (Email)
+10. alert_email (Email) = [Your admin email]
 11. last_circuit_breaker_triggered (DateTime)
 12. circuit_breaker_count_30d (Number, default: 0)
 
-Add one record:
-- client_id: "uysp_001"
-- Use defaults for all other fields
+Add one record with UYSP values:
+- client_id: "uysp_001"  
+- alert_email: "rebel@rebelhq.ai"
+- All others: use defaults
 ```
 
 **Step 1.4: Create Message_Decision_Log Table** (30 min)
@@ -218,6 +259,16 @@ const client_config = $input.all()[1].json[0];
 const trigger_type = $json.trigger_type; // "inbound_reply" or "scheduled"
 
 const now = new Date();
+
+// TEST MODE OVERRIDE (Skip all safety for test leads)
+if (lead.test_mode_lead === true) {
+  return {
+    decision: "SEND",
+    decision_reason: "Test mode - all safety checks bypassed",
+    safety_checks: { test_mode: true },
+    proceed: true
+  };
+}
 
 const safety_checks = {
   // PRIMARY: Last Word Check
@@ -500,10 +551,12 @@ Add fields:
 ```
 1. ai_generated (Checkbox)
 2. ai_confidence (Number, 0-100)
-3. ai_model_used (Single Line Text)
+3. ai_model_used (Single Line Text) - Will always be "gpt-4o-mini"
 4. ai_cost (Currency USD)
 5. tokens_used (Number)
 6. conversation_turn_number (Number)
+7. twilio_message_sid (Single Line Text) - Twilio's message ID
+8. delivery_status (Single Select: queued, sent, delivered, failed)
 ```
 
 ---
@@ -623,19 +676,23 @@ Import safety-check-module as subflow.
 **Key Implementation Notes:**
 
 ```javascript
-// NODE 11: Call OpenAI (Dynamic)
+// NODE 11: Call OpenAI (Fixed Model)
 Type: HTTP Request
 Method: POST
 URL: https://api.openai.com/v1/chat/completions
 Headers:
   Authorization: Bearer {{ $credentials.openai_api_key }}
   Content-Type: application/json
+Timeout: 15000 (15 seconds)
+Retry On Fail: TRUE
+Max Tries: 2
+Wait Between Tries: 2000ms
 
 Body:
 {
-  "model": "{{ $json.ai_config.ai_model }}",
-  "temperature": {{ $json.ai_config.temperature }},
-  "max_tokens": {{ $json.ai_config.max_tokens }},
+  "model": "gpt-4o-mini",
+  "temperature": {{ $json.ai_config.temperature || 0.7 }},
+  "max_tokens": 300,
   "messages": [
     {
       "role": "system",
@@ -647,6 +704,33 @@ Body:
     }
   ]
 }
+
+// NODE 11a: Error Handler for AI Call
+Type: IF (Error Trigger)
+If OpenAI call fails after retries:
+  
+// Send default response
+const default_msg = "Thanks for your message! Let me get you the right information. Someone from our team will follow up within 24 hours.";
+
+await sendSMS(default_msg);
+
+// Log error
+await logError({
+  error_type: "openai_failure",
+  lead_id: lead_id,
+  error_details: $error,
+  fallback_used: true
+});
+
+// Update state (still update, even though AI failed)
+await updateLead({
+  last_message_sent_at: NOW(),
+  last_message_direction: "outbound",
+  next_scheduled_contact: addDays(NOW(), 7),  // Default 7 days
+  last_safety_block_reason: "AI call failed - default response sent"
+});
+
+return "AI_ERROR_HANDLED";
 
 // NODE 12: Parse Response + Extract Actions
 const ai_response = $json.choices[0].message.content;
@@ -665,8 +749,19 @@ const clean_message = ai_response
   .replace(/\[STOP\]/g, '')
   .trim();
 
-// Calculate next contact
-const delay_days = delay_match ? parseInt(delay_match[1]) : 7; // Default 7 days
+// Calculate next contact (ONLY standard delays allowed)
+const STANDARD_DELAYS = [7, 14, 30, 60, 90];
+let delay_days = delay_match ? parseInt(delay_match[1]) : 7;
+
+// Validate delay is one of standard options
+if (!STANDARD_DELAYS.includes(delay_days)) {
+  // AI picked non-standard delay, use closest match
+  delay_days = STANDARD_DELAYS.reduce((prev, curr) => 
+    Math.abs(curr - delay_days) < Math.abs(prev - delay_days) ? curr : prev
+  );
+  console.log(`AI suggested ${delay_match[1]} days, using closest standard: ${delay_days}`);
+}
+
 const next_contact = new Date(Date.now() + delay_days * 24 * 60 * 60 * 1000);
 
 return {
@@ -684,22 +779,34 @@ return {
 
 **Step 2.6: Test AI Workflow** (3 hours)
 
-Test scenarios:
+**Use test_mode_lead = TRUE for all these tests**
+
+Test scenarios with test phone numbers:
 ```javascript
 // Test 1: Simple Reply
 Inbound: "Yes, send me content"
 Expected: AI responds with resource link + [DELAY:7days]
-Verify: next_scheduled_contact updated
+Verify: 
+  - next_scheduled_contact = 7 days from now
+  - conversation_thread has 2 messages
+  - last_message_direction = "outbound"
 
 // Test 2: Booking Intent
 Inbound: "Can I schedule a call?"
 Expected: AI sends Calendly link + [BOOK]
-Verify: booking_intent flagged
+Verify: 
+  - Calendly link in message
+  - booking_intent flagged
 
-// Test 3: Delay Request
-Inbound: "Check back in 3 months"
+// Test 3: Delay Request (Standard Options)
+Inbound: "Check back in a few months"
 Expected: AI says "No problem!" + [DELAY:90days]
 Verify: next_scheduled_contact = 90 days from now
+
+// Test 3b: Vague Delay (AI picks safe default)
+Inbound: "Maybe check in sometime later"
+Expected: AI picks [DELAY:30days] (safe default)
+Verify: next_scheduled_contact = 30 days
 
 // Test 4: Escalation
 Inbound: "What's your competitor analysis on [Competitor X]?"
@@ -709,7 +816,22 @@ Verify: ai_status = "human_takeover", admin alerted
 // Test 5: Stop Request
 Inbound: "Please don't contact me again"
 Expected: AI confirms + [STOP]
-Verify: ai_status = "paused", no future messages
+Verify: ai_status = "paused", opted_out = true
+
+// Test 6: Content Request (No Match)
+Inbound: "Send me info on enterprise contract negotiation"
+Expected: AI says "Let me connect you with team..." (no content on that)
+Verify: Escalated or sent default response
+
+// Test 7: OpenAI Error (Simulate)
+Simulate: Disconnect OpenAI API temporarily
+Expected: Default response sent, error logged
+Verify: Conversation doesn't break
+
+// Test 8: Multi-Message Conversation
+Send 4 messages back-and-forth rapidly
+Expected: All go through (active conversation)
+Verify: No blocks, all logged correctly
 ```
 
 **Step 2.7: Integration Testing** (1 hour)
@@ -1025,7 +1147,56 @@ Create: `src/app/api/admin/content/route.ts`
 
 **Step 4.3: Build Content Search in n8n** (2 hours)
 
-Module for AI to search content by topics.
+Create n8n function node: `search-content-by-topic`
+
+```javascript
+// Input: topic (from AI or user input)
+// Output: Top 3 matching content items
+
+const topic = $json.topic.toLowerCase().trim();
+const client_base = $json.client_airtable_base;
+
+// STEP 1: Try topic matching
+const matches = await airtable.search({
+  base: client_base,
+  table: "Content_Library",
+  filterByFormula: `
+    AND(
+      {active} = TRUE(),
+      OR(
+        FIND("${topic}", LOWER({topics}))
+      )
+    )
+  `,
+  sort: [{ field: "engagement_score", direction: "desc" }],
+  maxRecords: 3
+});
+
+if (matches.length > 0) {
+  return { content: matches, match_type: "topic" };
+}
+
+// STEP 2: Fallback to most popular
+const popular = await airtable.search({
+  base: client_base,
+  table: "Content_Library",
+  filterByFormula: `{active} = TRUE()`,
+  sort: [{ field: "engagement_score", direction: "desc" }],
+  maxRecords: 3
+});
+
+if (popular.length > 0) {
+  return { content: popular, match_type: "popular" };
+}
+
+// STEP 3: Library is empty
+return { 
+  content: [], 
+  match_type: "empty",
+  escalate: true,
+  message: "Let me connect you with our team who can share relevant resources."
+};
+```
 
 ---
 

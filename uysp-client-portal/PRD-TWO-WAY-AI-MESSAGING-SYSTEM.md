@@ -261,10 +261,12 @@ Table: Client_Registry
 ```sql
 -- CONVERSATION STATE
 conversation_thread          (Long Text - JSON array of full conversation)
+                            (See "Conversation Thread Schema" below for exact format)
 last_message_direction       (Single Select: "outbound" | "inbound")
 last_message_sent_at         (DateTime)
 last_message_received_at     (DateTime)
 active_conversation          (Checkbox - TRUE if back-and-forth in last 4 hours)
+test_mode_lead              (Checkbox - TRUE for testing, skips all rate limits)
 
 -- MESSAGING CONTROL
 ai_status                    (Single Select: "active" | "paused" | "human_takeover")
@@ -385,11 +387,10 @@ company_name                (Single Line Text)
 product_name                (Single Line Text)
 target_audience             (Long Text)
 
--- AI MODEL CONFIGURATION
-ai_provider                 (Single Select: "openai" | "anthropic")
-ai_model                    (Single Select: "gpt-4o-mini" | "gpt-4o" | "claude-3-5-sonnet")
-temperature                 (Number - 0.0 to 1.0)
-max_tokens                  (Number - 150 to 500 for SMS)
+-- AI MODEL CONFIGURATION (Simplified - One Model for All)
+ai_model                    (Single Select: "gpt-4o-mini" - FIXED for all clients)
+temperature                 (Number - 0.7 default, 0.5-0.9 range)
+max_tokens                  (Number - 300 default for SMS)
 
 -- CAPABILITIES
 can_send_content            (Checkbox - default TRUE)
@@ -429,43 +430,55 @@ updated_by                  (Link to Users)
 
 ---
 
-### Table 5: Campaign_Timing_Rules (NEW)
+### Table 5: Standard_Timing_Delays (SIMPLIFIED)
+
+**Instead of complex timing rules, use standard delays:**
 
 ```sql
--- Defines default timing between stages
-campaign_id                 (Link to Campaigns)
-from_stage                  (Single Select)
-to_stage                    (Single Select)
-default_delay_days          (Number)
-trigger_type                (Single Select: "scheduled" | "immediate" | "reply_based")
+-- Simple lookup table (can be hardcoded in workflow)
+stage_name                  (Single Line Text - primary)
+default_delay_days          (Single Select: 7 | 14 | 30 | 60 | 90)
+ai_objective                (Long Text)
 
--- PROSPECT CONTROL
-prospect_can_delay          (Checkbox - can they request different timing?)
-min_delay_days              (Number - shortest they can request)
-max_delay_days              (Number - longest they can request)
-
--- AI OBJECTIVE
-ai_objective                (Long Text - "Ask if interested in content or coaching")
-success_criteria            (Long Text - "Booking intent detected" or "Interest type identified")
-
-active                      (Checkbox)
+-- Just 5-7 standard stages with fixed delays
 ```
 
-**Example Records:**
-```
-campaign_id: webinar_jb_2024
-from_stage: "confirmation"
-to_stage: "intent_qualify"
-default_delay_days: 2
-ai_objective: "Ask if they're interested in content or coaching"
+**Standard Delays (Hardcoded in Workflow):**
+```javascript
+const STANDARD_DELAYS = {
+  'confirmation': 0,           // Immediate
+  'intent_qualify': 2,         // 2 days before event
+  'sent_content': 7,           // 1 week after sending resource
+  'content_followup': 14,      // 2 weeks check-in
+  'content_nurture': 30,       // Monthly check-in
+  'long_term_nurture': 90,     // Quarterly check-in
+  'hot_lead': 1                // Next day for hot leads
+};
 
-campaign_id: webinar_jb_2024
-from_stage: "sent_content"
-to_stage: "content_followup"
-default_delay_days: 7
-prospect_can_delay: TRUE
-ai_objective: "Check if content was helpful, offer more or booking"
+// AI can override with action tags: [DELAY:7days] or [DELAY:30days]
+// If AI says [DELAY:Xdays], use that instead of default
 ```
+
+**Prospect Delay Requests:**
+```javascript
+// AI extracts delay, picks from standard options:
+Prospect says: "Check back in a few months"
+AI picks: 90 days (closest match)
+Action tag: [DELAY:90days]
+
+Prospect says: "Hit me up next week"  
+AI picks: 7 days
+Action tag: [DELAY:7days]
+
+Prospect says: "Not sure, maybe sometime?"
+AI picks: 30 days (default/safe choice)
+Action tag: [DELAY:30days]
+
+// If AI is uncertain or gets it wrong:
+Falls back to default for current stage
+```
+
+**This eliminates the need for Campaign_Timing_Rules table (simpler!).**
 
 ---
 
@@ -564,6 +577,119 @@ workflow_execution_id       (Single Line Text - n8n execution ID)
 
 ---
 
+## 📐 DATA STRUCTURE SPECIFICATIONS
+
+### Conversation Thread Schema (EXACT FORMAT)
+
+**Field**: `conversation_thread` (Long Text field in Airtable)  
+**Format**: JSON array (stringified)  
+**Max Size**: ~100KB (handles ~500 messages)
+
+**Message Object Schema:**
+```typescript
+interface ConversationMessage {
+  // REQUIRED FIELDS
+  message_id: string;           // UUID (e.g., "msg_abc123")
+  direction: "inbound" | "outbound";
+  content: string;              // The actual message text
+  timestamp: string;            // ISO 8601 (e.g., "2024-11-15T10:23:45.123Z")
+  sender: "ai" | "human" | "prospect";
+  
+  // AI-GENERATED MESSAGES
+  ai_generated?: boolean;       // TRUE if AI wrote this
+  ai_model?: string;            // "gpt-4o-mini"
+  ai_provider?: string;         // "openai"
+  ai_cost?: number;             // USD (e.g., 0.03)
+  ai_confidence?: number;       // 0-100
+  tokens_used?: number;         // Token count
+  
+  // SMS DELIVERY
+  twilio_message_sid?: string;  // Twilio's message ID
+  delivery_status?: "queued" | "sent" | "delivered" | "failed" | "undelivered";
+  delivery_timestamp?: string;  // When delivered (ISO 8601)
+  error_code?: number;          // Twilio error code if failed
+  
+  // METADATA
+  campaign_stage_at_send?: string;  // What stage was lead in when sent
+  action_tags_detected?: string[];  // ["DELAY:7days", "ESCALATE"]
+  
+  // ERROR HANDLING
+  error?: boolean;              // TRUE if error occurred
+  error_reason?: string;        // Error description
+  retry_count?: number;         // How many retries attempted
+}
+```
+
+**Example conversation_thread:**
+```json
+[
+  {
+    "message_id": "msg_001",
+    "direction": "outbound",
+    "content": "Hi John, interested in content or coaching?",
+    "timestamp": "2024-11-15T10:00:00.000Z",
+    "sender": "ai",
+    "ai_generated": true,
+    "ai_model": "gpt-4o-mini",
+    "ai_provider": "openai",
+    "ai_cost": 0.03,
+    "ai_confidence": 92,
+    "tokens_used": 245,
+    "twilio_message_sid": "SM1234567890abcdef",
+    "delivery_status": "delivered",
+    "campaign_stage_at_send": "intent_qualify"
+  },
+  {
+    "message_id": "msg_002",
+    "direction": "inbound",
+    "content": "Coaching please",
+    "timestamp": "2024-11-15T10:05:23.000Z",
+    "sender": "prospect",
+    "twilio_message_sid": "SM0987654321fedcba"
+  },
+  {
+    "message_id": "msg_003",
+    "direction": "outbound",
+    "content": "Great! What's your biggest challenge right now?",
+    "timestamp": "2024-11-15T10:05:45.000Z",
+    "sender": "ai",
+    "ai_generated": true,
+    "ai_model": "gpt-4o-mini",
+    "ai_cost": 0.04,
+    "ai_confidence": 88,
+    "tokens_used": 312,
+    "delivery_status": "delivered",
+    "campaign_stage_at_send": "hot_lead"
+  }
+]
+```
+
+**Helper Functions (n8n):**
+```javascript
+// Append new message to thread
+function appendToConversation(existing_thread, new_message) {
+  const thread = JSON.parse(existing_thread || '[]');
+  thread.push(new_message);
+  return JSON.stringify(thread);
+}
+
+// Get last N messages
+function getRecentMessages(conversation_thread, limit = 10) {
+  const thread = JSON.parse(conversation_thread || '[]');
+  return thread.slice(-limit);
+}
+
+// Format for AI context
+function formatForAI(conversation_thread) {
+  const thread = JSON.parse(conversation_thread || '[]');
+  return thread.map(msg => 
+    `[${msg.direction.toUpperCase()}] ${msg.timestamp}: ${msg.content}`
+  ).join('\n');
+}
+```
+
+---
+
 ## 🤖 AI AGENT ARCHITECTURE
 
 ### Universal BDR Training (Shared Across All Clients)
@@ -619,16 +745,39 @@ BOOKING SIGNALS (Respond with Calendly link):
 - "What's your availability?"
 - High engagement (3+ positive back-and-forth)
 
-TIMING UPDATES (Use action tags):
-- If prospect says "check back in 3 months" → "[DELAY:90days]"
-- If prospect says "not interested ever" → "[STOP]"
-- If sending content → "[DELAY:7days]" (default follow-up)
-- If high engagement → "[DELAY:2days]" (fast follow-up)
+TIMING UPDATES (Use standard delays only):
+- AI must choose from: 7, 14, 30, 60, or 90 days
+- Format: [DELAY:7days] or [DELAY:30days] or [DELAY:90days]
+- If prospect says "few months" → Pick 90
+- If prospect says "next week" → Pick 7
+- If prospect says "check back Q2" → Pick 90
+- If uncertain → Pick 30 (safe default)
+- If completely unclear → [ESCALATE:unclear_timing] (human review)
+
+Examples:
+Prospect: "Check back in 3 months" → AI: [DELAY:90days]
+Prospect: "Hit me up next week" → AI: [DELAY:7days]
+Prospect: "Not sure, maybe sometime?" → AI: [DELAY:30days]
+Prospect: "After our Q2 planning in late May" → AI: [DELAY:90days] or [ESCALATE:specific_date]
 
 CONTENT DELIVERY:
 - When sending resources, send link only (not long descriptions)
 - Format: "Here's that guide: [URL]" 
+- Max 3 resources per message
 - Ask follow-up: "What area are you finding most challenging?"
+
+CONTENT RETRIEVAL:
+- Client has small library (5-10 curated pieces)
+- If topic match found → Send top 3 by engagement_score
+- If no match → Send top 3 most popular overall
+- If library empty → Say: "Let me connect you with our team who can share resources."
+
+AI SAFETY RULES:
+- NEVER extract or use phone numbers from conversation
+- NEVER discuss competitors by name (redirect to value prop)
+- NEVER make promises about pricing, timelines, or custom terms
+- NEVER send messages >160 characters unless absolutely necessary
+- If AI confidence <60% on any response → Tag with [ESCALATE:low_confidence]
 
 You will receive CLIENT-SPECIFIC knowledge below. Use it to answer product 
 questions, but use these UNIVERSAL BDR skills for qualification and selling.`;
@@ -697,6 +846,220 @@ RESPOND:
 
 ---
 
+## ⚠️ ERROR HANDLING SPECIFICATIONS
+
+### Complete Error Handling Matrix
+
+**All possible error scenarios and exact handling:**
+
+| Error Type | Retry Strategy | Fallback Action | State Update | Alert Admin |
+|------------|---------------|-----------------|--------------|-------------|
+| **OpenAI API Timeout** | 2 retries, exponential backoff (2s, 4s) | Send default response after 3rd failure | Log error, continue conversation | If >5% error rate |
+| **OpenAI Rate Limit (429)** | Wait 60s, retry once | Queue for retry in 5 minutes | No state change | If happens >10x/day |
+| **OpenAI Invalid Response** | No retry | Send default response | Flag for human review | If >10% of messages |
+| **OpenAI Returns Empty** | No retry | Send default: "Thanks for your message..." | Log error | If >5% of messages |
+| **Airtable API Failure** | 3 retries (5s, 10s, 20s) | Skip message, log error | None (can't update) | Immediate (system issue) |
+| **Airtable Record Not Found** | No retry | Create error log entry | Mark lead for review | Yes |
+| **Twilio Send Failure** | Twilio auto-retries | Log failure, don't re-attempt | Mark delivery_failed | If >5% failure rate |
+| **Invalid Phone Number** | No retry | Flag lead for review | Update phone_validated = false | No (expected occasionally) |
+| **Budget Exceeded** | No retry | If active convo: allow 20% overage; else: block | Pause AI after convo ends | When budget hit |
+| **Circuit Breaker Triggered** | No retry | Pause AI for lead, alert admin | ai_status = "paused" | Immediate (critical) |
+| **AI Confidence < 60%** | No retry | Escalate to human review | ai_status = "human_takeover" | No (expected) |
+
+### Default Response Templates
+
+**When AI fails, use these defaults:**
+
+```javascript
+const DEFAULT_RESPONSES = {
+  ai_error: "Thanks for your message! Let me get you the right information. Someone from our team will follow up within 24 hours.",
+  
+  ai_timeout: "Thanks for reaching out! I'm pulling together the best answer for you. I'll respond shortly.",
+  
+  no_content_found: "Great question! Let me connect you with someone who can help better.",
+  
+  low_confidence: "Thanks for your message. Let me have someone from our team follow up with you directly.",
+  
+  budget_exceeded: "Thanks for reaching out! Our team will get back to you during business hours.",
+  
+  outside_hours: "Thanks for your message! Our team responds during business hours (9am-5pm ET). We'll be in touch soon."
+};
+```
+
+### Error Recovery Workflow
+
+```javascript
+// After any error:
+1. Log to Message_Decision_Log with full error details
+2. Send appropriate default response (don't leave prospect hanging)
+3. Update lead state (flag for human review if needed)
+4. Alert admin if critical or exceeds threshold
+5. Continue (don't break the system)
+
+// Key principle: Graceful degradation
+// Better to send generic response than no response
+```
+
+---
+
+## 📚 CONTENT LIBRARY SPECIFICATIONS
+
+### Content Retrieval Logic (SIMPLIFIED)
+
+**Content Library Size:** 5-10 pieces per client (small, curated)
+
+**Retrieval Strategy:**
+```javascript
+// STEP 1: Try topic matching
+if (prospect_mentioned_topic) {
+  const matches = searchByTopic(topic);
+  if (matches.length > 0) {
+    return top_3_by_engagement_score(matches);
+  }
+}
+
+// STEP 2: Fallback to most popular
+const top_content = getTopContent(limit: 3);
+return top_content;
+
+// STEP 3: If library is empty
+if (no_content_available) {
+  return DEFAULT_RESPONSE: "Let me connect you with our team who can share relevant resources.";
+  escalate_to_human();
+}
+```
+
+**Tag Matching (Simple):**
+```javascript
+// Normalize tags (lowercase, trim)
+const normalized_topic = topic.toLowerCase().trim();
+
+// Simple substring matching
+const matches = content_library.filter(content =>
+  content.topics.toLowerCase().includes(normalized_topic)
+);
+
+// Sort by engagement_score (highest first)
+matches.sort((a, b) => b.engagement_score - a.engagement_score);
+
+// Return top 3
+return matches.slice(0, 3);
+```
+
+**Content Response Format:**
+```javascript
+// AI sends (max 3 resources):
+"Here are 3 resources on cold calling:
+
+1. Cold Calling Script: [url]
+2. Objection Handling Guide: [url]  
+3. Gatekeeper Strategies: [url]
+
+Which area are you finding most challenging?"
+```
+
+---
+
+## 🧪 TESTING PROTOCOL
+
+### Test Environment Setup
+
+**Required Before ANY Development:**
+
+```javascript
+// 1. Create Test Airtable Base
+Base Name: "UYSP_TEST"
+Duplicate from: UYSP production base
+Clean: Remove all lead data
+Add: 10 test leads with test_mode_lead = TRUE
+
+// 2. Test Phone Numbers (Use Twilio Test Credentials)
+Test Numbers (These don't send real SMS):
+  +15005550006 (valid test number)
+  +15005550007 (valid test number)
+  +15005550008 (valid test number)
+  
+// 3. Test OpenAI Key
+Use: Separate API key with low rate limits
+Budget: $10 max for testing
+
+// 4. Test Mode Flag
+In workflow: if (test_mode_lead === TRUE) {
+  skip_all_rate_limits();
+  log_with_prefix("[TEST]");
+  use_test_twilio_credentials();
+}
+```
+
+### Phase 1 (Safety) Testing Scenarios
+
+**20 Required Test Cases:**
+
+```javascript
+// SAFETY TESTS
+Test 1: AI has last word → Scheduled trigger → Should BLOCK
+Test 2: Prospect replied → Should SEND
+Test 3: 11 messages in 2 hours → Circuit breaker → Should BLOCK
+Test 4: Opted out → Should BLOCK
+Test 5: Human takeover → Should BLOCK
+Test 6: Global pause → Should BLOCK
+Test 7: Outside business hours + NEW conversation → Should BLOCK
+Test 8: Outside business hours + ACTIVE conversation → Should SEND
+Test 9: Recent message (<24h) + Scheduled → Should BLOCK
+Test 10: Recent message (<24h) + Inbound reply → Should SEND
+
+// CONVERSATION FLOW TESTS
+Test 11: 4-message back-and-forth → All should SEND
+Test 12: Schedule set, then conversation happens → Schedule should invalidate
+Test 13: AI sends, prospect takes 3 days to reply → Should SEND when they reply
+Test 14: Multiple scheduled triggers same day → Only first should fire
+
+// BUDGET TESTS
+Test 15: Budget at 90%, active conversation → Should SEND (allow overage)
+Test 16: Budget at 110%, new conversation → Should BLOCK
+Test 17: Budget at 95%, prospect replies → Should SEND (active convo)
+
+// ERROR TESTS
+Test 18: OpenAI timeout → Should send default response
+Test 19: Airtable down → Should log error, skip gracefully
+Test 20: Invalid AI response → Should send default, flag for review
+```
+
+### Testing Workflow (Each Phase)
+
+```bash
+# 1. Unit Tests (Each Node)
+- Test each n8n node in isolation
+- Verify output matches expected
+- Use test data, not real leads
+
+# 2. Integration Tests (Full Workflow)
+- End-to-end with test leads
+- Verify all state updates
+- Check all logs created
+
+# 3. Safety Tests (Edge Cases)
+- Run all 20 safety scenarios
+- Verify 0 false positives
+- Verify 0 false negatives
+
+# 4. Performance Tests (Load)
+- Send 50 test messages simultaneously
+- Verify all queue and process
+- Check for race conditions
+
+# 5. Manual Review
+- Review all test conversation logs
+- Verify AI quality
+- Check for any inappropriate responses
+
+# 6. Sign-Off
+- Document all results
+- Get approval before next phase
+```
+
+---
+
 ## 🔄 N8N WORKFLOW SPECIFICATIONS
 
 ### Workflow 1: Inbound Message Handler (Primary Conversation Engine)
@@ -751,20 +1114,41 @@ NODE 8: Check AI Budget
 NODE 9: Build AI Prompt
   - Combine: UNIVERSAL_BDR_TRAINING
   - Add: CLIENT_CONTEXT
-  - Add: CONVERSATION_HISTORY
+  - Add: CONVERSATION_HISTORY (last 10 messages only)
   - Add: CURRENT_OBJECTIVE
   - Add: LATEST_MESSAGE
 
-NODE 10: Call AI (Dynamic Provider)
-  - Use client's ai_provider and ai_model
-  - Set temperature and max_tokens
+NODE 10: Call OpenAI (Fixed Provider)
+  - Model: gpt-4o-mini (fixed for all clients)
+  - Temperature: client_config.temperature (default 0.7)
+  - Max tokens: 300
+  - Timeout: 15 seconds
   - Track: start_time, tokens, cost
+  
+NODE 10a: Handle AI Errors
+  - If timeout (>15s) → Retry once, then fallback
+  - If rate limit → Wait 60s, retry once
+  - If error → Send default response, log, continue
+  - If empty response → Send default response
+  - Never let error break the conversation
 
 NODE 11: Parse AI Response
   - Extract message_to_send
-  - Extract action tags: [DELAY:Xdays], [ESCALATE], [BOOK], [STOP]
+  - Extract action tags (only these formats):
+    * [DELAY:7days] or [DELAY:14days] or [DELAY:30days] or [DELAY:60days] or [DELAY:90days]
+    * [ESCALATE] or [ESCALATE:reason]
+    * [BOOK]
+    * [STOP]
+  - Validate delay is one of standard options (7/14/30/60/90)
+  - If invalid delay → Use default for current stage
   - Calculate next_contact_date
-  - Validate response (no toxic content)
+  
+NODE 11a: Validate AI Response
+  - Check confidence (if available)
+  - Check length (<500 chars)
+  - Check for toxic content (basic filter)
+  - Check for phone numbers in response (should never include)
+  - If fails validation → Escalate to human review
 
 NODE 12: Check Escalation
   - If [ESCALATE] detected → Branch to Human Alert
@@ -911,11 +1295,46 @@ NODE 4: Summary Report
 |---------|---------|------|----------|
 | **Airtable** | Data storage (1 base per client) | $20/base/mo | ✅ Critical |
 | **n8n Cloud** | Workflow automation | $20-50/mo | ✅ Critical |
-| **OpenAI API** | AI responses | $0.02-0.10/message | ✅ Critical |
-| **SimpleTexting** | SMS delivery | $0.04/message | ✅ Critical |
+| **OpenAI API** | AI responses (GPT-4o-mini only) | $0.01-0.03/message | ✅ Critical |
+| **Twilio** | SMS delivery (inbound/outbound) | $0.0075/SMS | ✅ Critical |
 | **Clay** | Lead enrichment | $500-1k/mo | ✅ Critical |
 | **PostgreSQL** | Frontend cache | $15/mo (Render) | ✅ Critical |
-| **Pinecone** (Optional) | Vector DB for complex clients | $70/mo | ⚠️ Optional |
+
+**REMOVED (Simplified):**
+- ❌ Pinecone/Vector DB (not needed - small content libraries)
+- ❌ Multiple AI providers (just OpenAI)
+
+### Integration Points
+
+**Webhooks (Inbound):**
+- Twilio → n8n (inbound SMS - stateless, each message is separate webhook)
+- Kajabi → n8n (form submissions)
+- Calendly → n8n (meetings booked)
+
+**Webhooks (Outbound):**
+- n8n → Twilio (send SMS)
+- n8n → Airtable (update records)
+- n8n → Frontend API (real-time updates - optional)
+
+**API Calls:**
+- n8n → OpenAI (AI responses - GPT-4o-mini fixed)
+- n8n → Airtable (read/write)
+- Frontend → PostgreSQL (read cache)
+- Frontend → Airtable (write updates)
+
+**Twilio Architecture:**
+- Stateless: Each SMS = independent webhook
+- No "conversation sessions" on Twilio side
+- Our conversation_thread in Airtable = the session state
+- Webhook fires instantly when SMS received
+- No session timeout to manage
+
+**n8n Architecture:**
+- Queue mode (handles concurrent webhooks)
+- Multiple workers process executions
+- ~10 concurrent per worker (n8n Cloud default)
+- Webhooks queue if >10 arrive simultaneously
+- Scales by adding workers if needed
 
 ---
 
@@ -1038,24 +1457,24 @@ NODE 4: Summary Report
 └─────────────────────────────────────────────┘
 ```
 
-**Add/Edit Content Modal:**
+**Add/Edit Content Modal (SIMPLIFIED):**
 ```
 Title: [Cold Calling Masterclass        ]
 URL:   [https://uysp.com/resources/...  ]
-Type:  [PDF ▼]
 
-Topics (comma-separated):
-[cold_calling, prospecting, objection_handling]
-
-Best for stages:
-[✓] Content Nurture
-[✓] Pre-Qualification  
-[ ] Post-Event Follow-Up
+Topics (comma-separated - keep it simple):
+[cold_calling, prospecting, scripts]
 
 Active: [✓]
 
 [Save] [Cancel]
 ```
+
+**Content Limits:**
+- 5-10 pieces recommended per client
+- Focus on most valuable/popular resources
+- Quality over quantity
+- Tag with 2-4 simple topics each
 
 **API Endpoints:**
 - `GET /api/admin/content` - List all content
@@ -1091,9 +1510,9 @@ Active: [✓]
 │ Tone: [Professional but friendly          ] │
 │ Style: [Keep messages under 160 chars... ] │
 │                                             │
-│ AI Model                                    │
-│ Provider: [OpenAI ▼]                        │
-│ Model: [GPT-4o-mini ▼] (Recommended)        │
+│ AI Model (Fixed)                            │
+│ Model: GPT-4o-mini (All clients)            │
+│ Temperature: [0.7] (0.5-0.9)                │
 │                                             │
 │ Safety Limits                               │
 │ Max messages per conversation: [10      ]   │
@@ -1107,6 +1526,8 @@ Active: [✓]
 │ [Save Changes]                              │
 └─────────────────────────────────────────────┘
 ```
+
+**Note:** AI provider/model selection removed (simplified to OpenAI GPT-4o-mini for all clients)
 
 **API Endpoints:**
 - `GET /api/admin/ai-config` - Get configuration
@@ -1276,17 +1697,19 @@ Active: [✓]
 
 ```
 Tables:
-├── People (Enhanced with 15 new fields)
-├── Communications (Enhanced with 8 new fields)
-├── Campaigns (Enhanced with 10 new fields)
-├── Content_Library (NEW - 15 fields)
-├── AI_Config (NEW - single record, 25 fields)
-├── Campaign_Timing_Rules (NEW - multiple records)
+├── People (Enhanced with 16 new fields - added test_mode_lead)
+├── Communications (Enhanced with 6 new fields)
+├── Campaigns (Enhanced with 8 new fields - simplified)
+├── Content_Library (NEW - 10 fields - simplified)
+├── AI_Config (NEW - single record, 20 fields - simplified)
 ├── DND_List (Existing - keep as is)
 ├── Error_Log (Existing - keep as is)
 ├── Daily_Costs (Existing - enhance with AI costs)
 └── Daily_Metrics (Existing - enhance with AI metrics)
 ```
+
+**REMOVED (Simplified):**
+- ❌ Campaign_Timing_Rules table (use hardcoded standard delays instead)
 
 ### Master Registry Base (One shared)
 
@@ -1481,12 +1904,16 @@ DAY 121: New scheduled trigger fires (Q2)
 | Decision | Rationale | Alternative Considered | Status |
 |----------|-----------|----------------------|--------|
 | One AI agent (not separate event/nurture) | Simpler, campaign_type determines behavior | Separate agents | ✅ Final |
-| Content in Airtable (not vector DB) | <100 items, simple tagging works | Pinecone/Weaviate | ✅ Final |
+| Content in Airtable (not vector DB) | Small library (5-10 items), simple tagging sufficient | Pinecone/Weaviate | ✅ Final |
 | Conversation state in last_message_direction | Simple, reliable | Complex state machine | ✅ Final |
 | Action tags vs JSON parsing | More forgiving, simpler | Structured JSON | ✅ Final |
 | Schedule auto-invalidation | Prevents stale messages | Manual schedule management | ✅ Final |
 | Separate base per client | Total isolation | Shared base with client_id | ✅ Final |
 | Shared n8n workflows | One codebase to maintain | Duplicate per client | ✅ Final |
+| Standard delay options (5 choices) | Simple, AI picks closest match | Complex extraction | ✅ Final |
+| One AI model (GPT-4o-mini) | Consistent, cheap, fast enough | Per-client model selection | ✅ Final |
+| Twilio (not SimpleTexting) | Two-way messaging support | SimpleTexting | ✅ Final |
+| Hardcoded timing defaults | Simpler than database table | Campaign_Timing_Rules table | ✅ Final |
 
 ---
 
@@ -1602,13 +2029,24 @@ DAY 121: New scheduled trigger fires (Q2)
 
 ---
 
-### Nice to Have (Future Enhancements)
+### Nice to Have (Future Enhancements - Not in Scope)
 
 - [ ] A/B testing different AI tones
 - [ ] Sentiment analysis on responses
 - [ ] Predictive next-message suggestions
 - [ ] Auto-escalation based on sentiment
-- [ ] Vector DB for complex clients
+- [ ] Vector DB for complex clients (if library grows >50 items)
+- [ ] Multiple AI model support (if clients demand)
+- [ ] Conversation summaries (if convos get longer than expected)
+
+### Explicitly Removed (Simplified Out)
+
+- ❌ Campaign_Timing_Rules table (hardcoded delays simpler)
+- ❌ Multi-provider AI support (just OpenAI)
+- ❌ Complex timing extraction (standard options only)
+- ❌ Conversation summarization (convos are short)
+- ❌ Advanced content categorization (simple tags enough)
+- ❌ Per-client model selection (one model for all)
 
 ---
 
