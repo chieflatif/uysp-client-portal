@@ -27,7 +27,7 @@
       "n8n_reference": "{{ $json.last_message_direction }}"
     },
     "active_conversation": {
-      "field_id": "TBD",
+      "field_id": "fldBjOO1cHm4wJ7b0",
       "display_name": "🤖 active_conversation",
       "type": "checkbox",
       "purpose": "Active back-and-forth conversation (safety check)"
@@ -57,7 +57,7 @@
       "n8n_reference": "{{ $json.interest_type }}"
     },
     "schedule_invalidated": {
-      "field_id": "TBD",
+      "field_id": "fldYAqI316p3af44U",
       "display_name": "🤖 schedule_invalidated",
       "type": "checkbox",
       "purpose": "Is schedule stale due to conversation? (safety check)"
@@ -98,7 +98,7 @@
       "purpose": "Total safety violations for this lead"
     },
     "conversation_locked_by_human": {
-      "field_id": "TBD",
+      "field_id": "fldmx14UhS2UQTIBR",
       "display_name": "🤖 conversation_locked_by_human",
       "type": "checkbox",
       "purpose": "Human has taken over this conversation"
