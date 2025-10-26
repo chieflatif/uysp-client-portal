@@ -1,0 +1,237 @@
+{
+  "export_date": "2025-10-26",
+  "base_id": "appuBf0fTe8tp8ZaF",
+  "base_name": "UYSP Lead Qualification",
+  "table_id": "tblSk2Ikg21932uE0",
+  "table_name": "People",
+  "implementation_complete": true,
+  "new_fields_added": 22,
+  "deprecated_fields_marked": 10,
+  "total_fields": 129,
+  
+  "new_ai_fields": {
+    "conversation_thread": {
+      "field_id": "fldqJ6gjklkNxugLp",
+      "display_name": "🤖 conversation_thread",
+      "type": "multilineText",
+      "description": "NEW - Full conversation history in JSON format - AI Messaging Phase 1"
+    },
+    "last_message_direction": {
+      "field_id": "fld0Y2QmRjalhttcz",
+      "display_name": "🤖 last_message_direction",
+      "type": "singleSelect",
+      "options": ["outbound", "inbound"],
+      "description": "NEW - Who sent the last message - AI Messaging Phase 1"
+    },
+    "last_message_sent_at": {
+      "field_id": "fld8aYdC9GM8F1i9D",
+      "display_name": "🤖 last_message_sent_at",
+      "type": "dateTime",
+      "description": "NEW - When AI last sent a message - AI Messaging Phase 1"
+    },
+    "last_message_received_at": {
+      "field_id": "fldLMKKQhweCOkKF3",
+      "display_name": "🤖 last_message_received_at",
+      "type": "dateTime",
+      "description": "NEW - When prospect last replied - AI Messaging Phase 1"
+    },
+    "active_conversation": {
+      "field_id": "fldactive_conversation",
+      "display_name": "🤖 active_conversation",
+      "type": "checkbox",
+      "description": "NEW - Is there an active back-and-forth conversation? - AI Messaging Phase 1"
+    },
+    "ai_status": {
+      "field_id": "fldUdSeydwpxsyVzZ",
+      "display_name": "🤖 ai_status",
+      "type": "singleSelect",
+      "options": ["active", "paused", "human_takeover"],
+      "description": "NEW - Current AI agent status - AI Messaging Phase 1"
+    },
+    "conversation_locked_by_human": {
+      "field_id": "fldlocked_by_human",
+      "display_name": "🤖 conversation_locked_by_human",
+      "type": "checkbox",
+      "description": "NEW - Human has taken over this conversation - AI Messaging Phase 1"
+    },
+    "pause_reason": {
+      "field_id": "fld9FDdyuVf3ZRXXM",
+      "display_name": "🤖 pause_reason",
+      "type": "multilineText",
+      "description": "NEW - Why AI is paused for this lead - AI Messaging Phase 1"
+    },
+    "pause_until": {
+      "field_id": "fldqcse9XpnBQRRKg",
+      "display_name": "🤖 pause_until",
+      "type": "dateTime",
+      "description": "NEW - When to resume AI messaging - AI Messaging Phase 1"
+    },
+    "campaign_stage": {
+      "field_id": "fldmEt2SuEdNPT9tw",
+      "display_name": "🤖 campaign_stage",
+      "type": "singleSelect",
+      "options": ["confirmation", "intent_qualify", "sent_content", "content_followup", "hot_lead", "content_nurture", "paused_by_request", "long_term_nurture"],
+      "description": "NEW - Current stage in AI conversation flow - AI Messaging Phase 1"
+    },
+    "interest_type": {
+      "field_id": "fldHAGeSckb69aklx",
+      "display_name": "🤖 interest_type",
+      "type": "singleSelect",
+      "options": ["content", "coaching", "unknown"],
+      "description": "NEW - What prospect is interested in - AI Messaging Phase 1"
+    },
+    "next_scheduled_contact": {
+      "field_id": "fldDfYUeaMvV1AlsZ",
+      "display_name": "🤖 next_scheduled_contact",
+      "type": "dateTime",
+      "description": "NEW - When AI should message next (if no reply) - AI Messaging Phase 1"
+    },
+    "schedule_set_at": {
+      "field_id": "fldYfe8A36f9EL4oE",
+      "display_name": "🤖 schedule_set_at",
+      "type": "dateTime",
+      "description": "NEW - When the schedule was calculated - AI Messaging Phase 1"
+    },
+    "schedule_invalidated": {
+      "field_id": "fldschedule_invalidated",
+      "display_name": "🤖 schedule_invalidated",
+      "type": "checkbox",
+      "description": "NEW - Is the schedule stale due to conversation? - AI Messaging Phase 1"
+    },
+    "ai_message_count_today": {
+      "field_id": "flduxug8i8ZtdPzwf",
+      "display_name": "🤖 ai_message_count_today",
+      "type": "number",
+      "description": "NEW - How many AI messages sent today (resets at midnight) - AI Messaging Phase 1"
+    },
+    "messages_in_last_2_hours": {
+      "field_id": "fldae7Gc2pQCk7Opp",
+      "display_name": "🤖 messages_in_last_2_hours",
+      "type": "number",
+      "description": "NEW - Runaway conversation detection - AI Messaging Phase 1"
+    },
+    "last_safety_block_reason": {
+      "field_id": "fldsk6pz7o5YXBOBo",
+      "display_name": "🤖 last_safety_block_reason",
+      "type": "multilineText",
+      "description": "NEW - Why AI was blocked from messaging - AI Messaging Phase 1"
+    },
+    "safety_violations_count": {
+      "field_id": "fldIx9tnd4Xsx9ioK",
+      "display_name": "🤖 safety_violations_count",
+      "type": "number",
+      "description": "NEW - Total safety violations for this lead - AI Messaging Phase 1"
+    },
+    "human_assigned_to": {
+      "field_id": "fldU1N3ZKTMkPlYMj",
+      "display_name": "🤖 human_assigned_to",
+      "type": "singleLineText",
+      "description": "NEW - Who took over this conversation - AI Messaging Phase 1"
+    },
+    "handback_note": {
+      "field_id": "fldTpr1OCQgA6WPJI",
+      "display_name": "🤖 handback_note",
+      "type": "multilineText",
+      "description": "NEW - Note from human when handing back to AI - AI Messaging Phase 1"
+    },
+    "takeover_timestamp": {
+      "field_id": "fldDTisN4kvQ9ZSqh",
+      "display_name": "🤖 takeover_timestamp",
+      "type": "dateTime",
+      "description": "NEW - When human took over - AI Messaging Phase 1"
+    },
+    "total_ai_messages_sent": {
+      "field_id": "fldtXjEqysekjy1ze",
+      "display_name": "🤖 total_ai_messages_sent",
+      "type": "number",
+      "description": "NEW - Lifetime AI messages sent to this lead - AI Messaging Phase 1"
+    },
+    "total_ai_cost_usd": {
+      "field_id": "fldbBajILZFGRvWCH",
+      "display_name": "🤖 total_ai_cost_usd",
+      "type": "currency",
+      "description": "NEW - Lifetime AI cost for this lead - AI Messaging Phase 1"
+    },
+    "last_ai_response_time_sec": {
+      "field_id": "fldKbzldRsp8ASsRR",
+      "display_name": "🤖 last_ai_response_time_sec",
+      "type": "number",
+      "description": "NEW - How long last AI response took (seconds) - AI Messaging Phase 1"
+    }
+  },
+  
+  "deprecated_fields": {
+    "sms_sent": {
+      "field_id": "fldghDFjHxlpo2hNs",
+      "display_name": "⚠️ sms_sent",
+      "type": "checkbox",
+      "deprecation_reason": "Replaced by conversation_thread"
+    },
+    "sms_sent_time": {
+      "field_id": "fldmerDIMAit7AmyZ",
+      "display_name": "⚠️ sms_sent_time",
+      "type": "date",
+      "deprecation_reason": "Replaced by last_message_sent_at"
+    },
+    "sms_clicked": {
+      "field_id": "fldZbwusk3WZMXTOT",
+      "display_name": "⚠️ sms_clicked",
+      "type": "checkbox",
+      "deprecation_reason": "Track in Communications table instead"
+    },
+    "sms_click_time": {
+      "field_id": "fld3sZ6nCuOvknvvl",
+      "display_name": "⚠️ sms_click_time",
+      "type": "date",
+      "deprecation_reason": "Track in Communications table instead"
+    },
+    "sms_opted_out": {
+      "field_id": "fld9zNJqlqLsKCW6B",
+      "display_name": "⚠️ sms_opted_out",
+      "type": "checkbox",
+      "deprecation_reason": "Use DND_List table instead"
+    },
+    "sms_opt_out_time": {
+      "field_id": "fldBTRTwHeq4skxrx",
+      "display_name": "⚠️ sms_opt_out_time",
+      "type": "date",
+      "deprecation_reason": "Use DND_List table instead"
+    },
+    "reengagement_count": {
+      "field_id": "fld5GNOAz2AzkOGcp",
+      "display_name": "⚠️ reengagement_count",
+      "type": "number",
+      "deprecation_reason": "AI handles reengagement automatically"
+    },
+    "ready_for_sms": {
+      "field_id": "fldMdVenBNFDg0nkn",
+      "display_name": "⚠️ ready_for_sms",
+      "type": "checkbox",
+      "deprecation_reason": "AI safety module decides when to message"
+    },
+    "should_enrich_phone": {
+      "field_id": "flds8hsXpkZ5OTDbx",
+      "display_name": "⚠️ should_enrich_phone",
+      "type": "checkbox",
+      "deprecation_reason": "One-time flag no longer needed"
+    },
+    "duplicate_count": {
+      "field_id": "fldPXz7w0NU90c26u",
+      "display_name": "⚠️ duplicate_count",
+      "type": "number",
+      "deprecation_reason": "Handled at ingestion only"
+    }
+  },
+  
+  "summary": {
+    "original_field_count": 107,
+    "new_fields_added": 22,
+    "deprecated_fields_marked": 10,
+    "current_field_count": 129,
+    "emoji_markers": {
+      "new_fields": "🤖 (robot emoji)",
+      "deprecated_fields": "⚠️ (warning emoji)"
+    }
+  }
+}
+
