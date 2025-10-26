@@ -16,15 +16,17 @@ declare module 'next-auth' {
       image: string | null;
       role: string;
       clientId: string | null;
+      mustChangePassword: boolean;
     };
   }
-  
+
   interface User {
     id: string;
     email: string;
     name: string | null;
     role: string;
     clientId: string | null;
+    mustChangePassword: boolean;
   }
 }
 
@@ -33,6 +35,7 @@ declare module 'next-auth/jwt' {
     id: string;
     role: string;
     clientId: string | null;
+    mustChangePassword: boolean;
   }
 }
 
@@ -60,17 +63,25 @@ export const authOptions: NextAuthOptions = {
         const { email, password } = result.data;
 
         try {
-          // Query user from database
+          // Add timeout to database query
+          const startTime = Date.now();
+
+          // Query user from database (case-insensitive email lookup)
           const user = await db.query.users.findFirst({
-            where: eq(users.email, email),
+            where: eq(users.email, email.toLowerCase()),
           });
+
+          console.log(`[Auth] DB query took ${Date.now() - startTime}ms`);
 
           if (!user) {
             throw new Error('User not found');
           }
 
           // Verify password using bcryptjs
+          const hashStartTime = Date.now();
           const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+          console.log(`[Auth] Password verification took ${Date.now() - hashStartTime}ms`);
+
           if (!passwordMatch) {
             throw new Error('Invalid password');
           }
@@ -79,15 +90,18 @@ export const authOptions: NextAuthOptions = {
             throw new Error('User account is inactive');
           }
 
+          console.log(`[Auth] Total auth time: ${Date.now() - startTime}ms`);
+
           // Return user object for session
           return {
             id: user.id,
             email: user.email,
-            name: user.firstName && user.lastName 
-              ? `${user.firstName} ${user.lastName}` 
+            name: user.firstName && user.lastName
+              ? `${user.firstName} ${user.lastName}`
               : user.firstName || user.email,
             role: user.role,
             clientId: user.clientId,
+            mustChangePassword: user.mustChangePassword || false,
           };
         } catch (error) {
           console.error('Auth error:', error instanceof Error ? error.message : 'Unknown error');
@@ -104,8 +118,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as { role?: string }).role || 'CLIENT';
+        token.role = (user as { role?: string }).role || 'CLIENT_USER';
         token.clientId = (user as { clientId?: string | null }).clientId || null;
+        token.mustChangePassword = (user as { mustChangePassword?: boolean }).mustChangePassword || false;
       }
       return token;
     },
@@ -114,6 +129,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.clientId = token.clientId as string | null;
+        session.user.mustChangePassword = token.mustChangePassword as boolean;
       }
       return session;
     },
@@ -123,8 +139,16 @@ export const authOptions: NextAuthOptions = {
     maxAge: 24 * 60 * 60, // 24 hours
   },
   jwt: {
-    secret: process.env.NEXTAUTH_SECRET || 'dev-secret-key-uysp-client-portal-2025-change-in-production',
+    secret: process.env.NEXTAUTH_SECRET ||
+      (process.env.NODE_ENV === 'development'
+        ? 'dev-secret-key-uysp-client-portal-2025'
+        : undefined), // No fallback in production - will throw error
     maxAge: 24 * 60 * 60, // 24 hours
   },
   debug: process.env.NODE_ENV === 'development',
 };
+
+// SECURITY: Validate NEXTAUTH_SECRET in production
+if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_SECRET) {
+  throw new Error('NEXTAUTH_SECRET must be set in production environment');
+}

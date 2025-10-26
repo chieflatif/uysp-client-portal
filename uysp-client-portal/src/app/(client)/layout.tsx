@@ -3,8 +3,9 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { theme } from '@/lib/theme';
+import { theme } from '@/theme';
 import { Loader2 } from 'lucide-react';
+import { Navbar } from '@/components/navbar/Navbar';
 
 export default function ClientLayout({
   children,

@@ -1,12 +1,15 @@
-import { 
-  pgTable, 
-  text, 
-  varchar, 
-  integer, 
-  boolean, 
+import {
+  pgTable,
+  text,
+  varchar,
+  integer,
+  boolean,
   timestamp,
   uuid,
   index,
+  date,
+  jsonb,
+  inet,
 } from 'drizzle-orm/pg-core';
 
 // ==============================================================================
@@ -20,9 +23,10 @@ export const users = pgTable(
     passwordHash: text('password_hash').notNull(),
     firstName: varchar('first_name', { length: 255 }),
     lastName: varchar('last_name', { length: 255 }),
-    role: varchar('role', { length: 50 }).notNull().default('CLIENT'), // SUPER_ADMIN, ADMIN, CLIENT
+    role: varchar('role', { length: 50 }).notNull().default('CLIENT_USER'), // SUPER_ADMIN, CLIENT_ADMIN, CLIENT_USER
     clientId: uuid('client_id'),
     isActive: boolean('is_active').notNull().default(true),
+    mustChangePassword: boolean('must_change_password').notNull().default(false),
     lastLoginAt: timestamp('last_login_at'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -258,6 +262,75 @@ export const activityLog = pgTable(
 );
 
 // ==============================================================================
+// PROJECT MANAGEMENT TABLES (Synced from Airtable)
+// ==============================================================================
+export const clientProjectTasks = pgTable(
+  'client_project_tasks',
+  {
+    id: varchar('id', { length: 50 }).primaryKey(),
+    clientId: uuid('client_id').notNull(),
+    airtableRecordId: varchar('airtable_record_id', { length: 255 }).notNull().unique(),
+    task: varchar('task', { length: 500 }).notNull(),
+    status: varchar('status', { length: 50 }).notNull(),
+    priority: varchar('priority', { length: 50 }).notNull(),
+    taskType: varchar('task_type', { length: 50 }).notNull().default('Task'), // Feature, Bug, Task, Improvement, Documentation, Research
+    owner: varchar('owner', { length: 100 }),
+    dueDate: timestamp('due_date'),
+    notes: text('notes'),
+    dependencies: text('dependencies'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    clientIdIdx: index('idx_project_tasks_client_id').on(table.clientId),
+    statusIdx: index('idx_project_tasks_status').on(table.status),
+    priorityIdx: index('idx_project_tasks_priority').on(table.priority),
+    typeIdx: index('idx_project_tasks_type').on(table.taskType),
+    airtableRecordIdx: index('idx_project_tasks_airtable_record').on(table.airtableRecordId),
+  })
+);
+
+export const clientProjectBlockers = pgTable(
+  'client_project_blockers',
+  {
+    id: varchar('id', { length: 50 }).primaryKey(),
+    clientId: uuid('client_id').notNull(),
+    airtableRecordId: varchar('airtable_record_id', { length: 255 }).notNull().unique(),
+    blocker: varchar('blocker', { length: 500 }).notNull(),
+    severity: varchar('severity', { length: 50 }).notNull(),
+    actionToResolve: text('action_to_resolve'),
+    status: varchar('status', { length: 50 }).notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    resolvedAt: timestamp('resolved_at'),
+  },
+  (table) => ({
+    clientIdIdx: index('idx_project_blockers_client_id').on(table.clientId),
+    severityIdx: index('idx_project_blockers_severity').on(table.severity),
+    statusIdx: index('idx_project_blockers_status').on(table.status),
+    airtableRecordIdx: index('idx_project_blockers_airtable_record').on(table.airtableRecordId),
+  })
+);
+
+export const clientProjectStatus = pgTable(
+  'client_project_status',
+  {
+    id: varchar('id', { length: 50 }).primaryKey(),
+    clientId: uuid('client_id').notNull(),
+    airtableRecordId: varchar('airtable_record_id', { length: 255 }).notNull().unique(),
+    metric: varchar('metric', { length: 200 }).notNull(),
+    value: text('value').notNull(),
+    category: varchar('category', { length: 50 }).notNull(),
+    displayOrder: integer('display_order'),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    clientIdIdx: index('idx_project_status_client_id').on(table.clientId),
+    categoryIdx: index('idx_project_status_category').on(table.category),
+    airtableRecordIdx: index('idx_project_status_airtable_record').on(table.airtableRecordId),
+  })
+);
+
+// ==============================================================================
 // TYPES EXPORTS
 // ==============================================================================
 export type User = typeof users.$inferSelect;
@@ -283,3 +356,204 @@ export type NewSmsAudit = typeof smsAudit.$inferInsert;
 
 export type SmsTemplate = typeof smsTemplates.$inferSelect;
 export type NewSmsTemplate = typeof smsTemplates.$inferInsert;
+
+export type ClientProjectTask = typeof clientProjectTasks.$inferSelect;
+export type NewClientProjectTask = typeof clientProjectTasks.$inferInsert;
+
+export type ClientProjectBlocker = typeof clientProjectBlockers.$inferSelect;
+export type NewClientProjectBlocker = typeof clientProjectBlockers.$inferInsert;
+
+export type ClientProjectStatus = typeof clientProjectStatus.$inferSelect;
+export type NewClientProjectStatus = typeof clientProjectStatus.$inferInsert;
+
+// ==============================================================================
+// USER ACTIVITY TRACKING TABLES
+// ==============================================================================
+
+export const userActivityLogs = pgTable(
+  'user_activity_logs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull(),
+    clientId: uuid('client_id'),
+    eventType: varchar('event_type', { length: 100 }).notNull(),
+    eventCategory: varchar('event_category', { length: 50 }),
+    eventData: jsonb('event_data'),
+    pageUrl: varchar('page_url', { length: 500 }),
+    referrer: varchar('referrer', { length: 500 }),
+    sessionId: varchar('session_id', { length: 100 }),
+    ipAddress: inet('ip_address'),
+    userAgent: text('user_agent'),
+    browser: varchar('browser', { length: 50 }),
+    deviceType: varchar('device_type', { length: 50 }),
+    os: varchar('os', { length: 50 }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('idx_activity_logs_user_id').on(table.userId, table.createdAt),
+    clientIdIdx: index('idx_activity_logs_client_id').on(table.clientId, table.createdAt),
+    eventTypeIdx: index('idx_activity_logs_event_type').on(table.eventType),
+    eventCategoryIdx: index('idx_activity_logs_event_category').on(table.eventCategory),
+    sessionIdIdx: index('idx_activity_logs_session_id').on(table.sessionId),
+    createdAtIdx: index('idx_activity_logs_created_at').on(table.createdAt),
+  })
+);
+
+export const userActivitySessions = pgTable(
+  'user_activity_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sessionId: varchar('session_id', { length: 100 }).notNull().unique(),
+    userId: uuid('user_id').notNull(),
+    clientId: uuid('client_id'),
+    sessionStart: timestamp('session_start').notNull().defaultNow(),
+    sessionEnd: timestamp('session_end'),
+    lastActivity: timestamp('last_activity').notNull().defaultNow(),
+    pageViews: integer('page_views').default(0),
+    durationSeconds: integer('duration_seconds'),
+    deviceType: varchar('device_type', { length: 50 }),
+    browser: varchar('browser', { length: 50 }),
+    os: varchar('os', { length: 50 }),
+    ipAddress: inet('ip_address'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('idx_activity_sessions_user_id').on(table.userId, table.sessionStart),
+    clientIdIdx: index('idx_activity_sessions_client_id').on(table.clientId, table.sessionStart),
+    sessionIdIdx: index('idx_activity_sessions_session_id').on(table.sessionId),
+    startIdx: index('idx_activity_sessions_start').on(table.sessionStart),
+    endIdx: index('idx_activity_sessions_end').on(table.sessionEnd),
+  })
+);
+
+export const userActivitySummary = pgTable(
+  'user_activity_summary',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull(),
+    clientId: uuid('client_id'),
+    activityDate: date('activity_date').notNull(),
+    totalSessions: integer('total_sessions').default(0),
+    totalPageViews: integer('total_page_views').default(0),
+    totalEvents: integer('total_events').default(0),
+    totalDurationSeconds: integer('total_duration_seconds').default(0),
+    firstActivity: timestamp('first_activity'),
+    lastActivity: timestamp('last_activity'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userDateIdx: index('idx_summary_user_date').on(table.userId, table.activityDate),
+    clientDateIdx: index('idx_summary_client_date').on(table.clientId, table.activityDate),
+    dateIdx: index('idx_summary_date').on(table.activityDate),
+  })
+);
+
+// Type exports for activity tracking
+export type UserActivityLog = typeof userActivityLogs.$inferSelect;
+export type NewUserActivityLog = typeof userActivityLogs.$inferInsert;
+
+export type UserActivitySession = typeof userActivitySessions.$inferSelect;
+export type NewUserActivitySession = typeof userActivitySessions.$inferInsert;
+
+export type UserActivitySummary = typeof userActivitySummary.$inferSelect;
+export type NewUserActivitySummary = typeof userActivitySummary.$inferInsert;
+
+// ==============================================================================
+// EMAIL AUDIT LOG
+// ==============================================================================
+
+export const emailAuditLog = pgTable(
+  'email_audit_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    emailType: varchar('email_type', { length: 100 }).notNull(),
+    recipient: varchar('recipient', { length: 255 }).notNull(),
+    subject: varchar('subject', { length: 500 }).notNull(),
+    sentByUserId: uuid('sent_by_user_id'),
+    clientId: uuid('client_id'),
+    status: varchar('status', { length: 50 }).notNull().default('sent'),
+    errorMessage: text('error_message'),
+    metadata: jsonb('metadata'),
+    sentAt: timestamp('sent_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    recipientIdx: index('idx_email_audit_recipient').on(table.recipient, table.sentAt),
+    typeIdx: index('idx_email_audit_type').on(table.emailType, table.sentAt),
+    clientIdx: index('idx_email_audit_client').on(table.clientId, table.sentAt),
+    userIdx: index('idx_email_audit_user').on(table.sentByUserId, table.sentAt),
+    statusIdx: index('idx_email_audit_status').on(table.status, table.sentAt),
+    sentAtIdx: index('idx_email_audit_sent_at').on(table.sentAt),
+  })
+);
+
+export type EmailAuditLog = typeof emailAuditLog.$inferSelect;
+export type NewEmailAuditLog = typeof emailAuditLog.$inferInsert;
+
+// ==============================================================================
+// AIRTABLE SYNC QUEUE (Retry Failed Updates)
+// ==============================================================================
+
+export const airtableSyncQueue = pgTable(
+  'airtable_sync_queue',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
+    tableName: varchar('table_name', { length: 100 }).notNull(), // 'Tasks', 'Blockers', etc.
+    recordId: varchar('record_id', { length: 100 }).notNull(), // Airtable record ID
+    operation: varchar('operation', { length: 20 }).notNull(), // 'update', 'create', 'delete'
+    payload: jsonb('payload').notNull(), // Data to sync to Airtable
+    status: varchar('status', { length: 50 }).notNull().default('pending'), // 'pending', 'processing', 'failed', 'completed'
+    attempts: integer('attempts').notNull().default(0),
+    maxAttempts: integer('max_attempts').notNull().default(5),
+    lastError: text('last_error'),
+    lastAttemptAt: timestamp('last_attempt_at'),
+    nextRetryAt: timestamp('next_retry_at'),
+    completedAt: timestamp('completed_at'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    statusIdx: index('idx_sync_queue_status').on(table.status, table.nextRetryAt),
+    clientIdx: index('idx_sync_queue_client').on(table.clientId, table.status),
+    createdIdx: index('idx_sync_queue_created').on(table.createdAt),
+  })
+);
+
+export type AirtableSyncQueue = typeof airtableSyncQueue.$inferSelect;
+export type NewAirtableSyncQueue = typeof airtableSyncQueue.$inferInsert;
+
+// ==============================================================================
+// SECURITY AUDIT LOG TABLE
+// ==============================================================================
+export const securityAuditLog = pgTable(
+  'security_audit_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull(), // Who performed the action
+    userRole: varchar('user_role', { length: 50 }).notNull(), // Role at time of action
+    action: varchar('action', { length: 100 }).notNull(), // 'PASSWORD_RESET', 'USER_CREATED', 'USER_DEACTIVATED', etc.
+    resourceType: varchar('resource_type', { length: 50 }).notNull(), // 'USER', 'CLIENT', 'LEAD', etc.
+    resourceId: uuid('resource_id').notNull(), // ID of affected resource
+    clientId: uuid('client_id'), // Client context (null for SUPER_ADMIN actions)
+    ipAddress: inet('ip_address'), // IP address of request
+    userAgent: text('user_agent'), // Browser/client info
+    metadata: jsonb('metadata'), // Additional context (non-sensitive)
+    success: boolean('success').notNull().default(true), // Was action successful?
+    errorMessage: text('error_message'), // If failed, why?
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index('idx_audit_user').on(table.userId),
+    actionIdx: index('idx_audit_action').on(table.action),
+    resourceIdx: index('idx_audit_resource').on(table.resourceType, table.resourceId),
+    clientIdx: index('idx_audit_client').on(table.clientId),
+    createdIdx: index('idx_audit_created').on(table.createdAt),
+  })
+);
+
+export type SecurityAuditLog = typeof securityAuditLog.$inferSelect;
+export type NewSecurityAuditLog = typeof securityAuditLog.$inferInsert;

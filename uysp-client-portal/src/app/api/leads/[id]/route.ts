@@ -27,10 +27,14 @@ export async function GET(
       );
     }
 
-    // SECURITY: Verify user has access to this lead's client
-    if (session.user?.clientId && session.user.clientId !== lead.clientId && session.user?.role !== 'ADMIN') {
+    // SECURITY FIX: Enforce multi-tenancy isolation
+    // SUPER_ADMIN can view any lead
+    if (session.user.role === 'SUPER_ADMIN') {
+      // No restriction for SUPER_ADMIN
+    } else if (session.user.clientId !== lead.clientId) {
+      // CLIENT_ADMIN and CLIENT_USER must match clientId
       return NextResponse.json(
-        { error: 'You do not have access to this lead' },
+        { error: 'Forbidden - You can only view leads in your own client' },
         { status: 403 }
       );
     }

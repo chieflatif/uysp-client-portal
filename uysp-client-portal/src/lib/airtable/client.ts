@@ -1,4 +1,9 @@
-import type { NewLead } from '../db/schema';
+import type { 
+  NewLead,
+  NewClientProjectTask,
+  NewClientProjectBlocker,
+  NewClientProjectStatus
+} from '../db/schema';
 
 // Type definitions for Airtable Leads
 interface AirtableLeadFields {
@@ -165,6 +170,81 @@ export class AirtableClient {
   }
 
   /**
+   * Fetch all project tasks from Airtable
+   */
+  async getAllProjectTasks(offset?: string): Promise<{
+    records: AirtableRecord[];
+    nextOffset?: string;
+  }> {
+    return this.fetchFromTable('Tasks', offset);
+  }
+
+  /**
+   * Fetch all project blockers from Airtable
+   */
+  async getAllProjectBlockers(offset?: string): Promise<{
+    records: AirtableRecord[];
+    nextOffset?: string;
+  }> {
+    return this.fetchFromTable('Blockers', offset);
+  }
+
+  /**
+   * Fetch all project status records from Airtable
+   */
+  async getAllProjectStatus(offset?: string): Promise<{
+    records: AirtableRecord[];
+    nextOffset?: string;
+  }> {
+    return this.fetchFromTable('Project_Status', offset);
+  }
+
+  /**
+   * Generic method to fetch from any table
+   */
+  private async fetchFromTable(tableName: string, offset?: string): Promise<{
+    records: AirtableRecord[];
+    nextOffset?: string;
+  }> {
+    try {
+      const params = new URLSearchParams({
+        pageSize: '100',
+      });
+
+      if (offset) {
+        params.append('offset', offset);
+      }
+
+      const response = await fetch(
+        `${this.baseUrl}/${this.baseId}/${tableName}?${params}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(
+          `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
+        );
+      }
+
+      const data = (await response.json()) as AirtableListResponse;
+
+      return {
+        records: data.records,
+        nextOffset: data.offset,
+      };
+    } catch (error) {
+      console.error(`Error fetching ${tableName} from Airtable:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Get all leads with pagination handling
    */
   async streamAllLeads(onRecord: (record: AirtableRecord) => Promise<void>) {
@@ -191,6 +271,61 @@ export class AirtableClient {
       return totalFetched;
     } catch (error) {
       console.error('Error streaming leads from Airtable:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Stream all project tasks with pagination handling
+   */
+  async streamAllProjectTasks(onRecord: (record: AirtableRecord) => Promise<void>) {
+    return this.streamFromTable('Tasks', onRecord);
+  }
+
+  /**
+   * Stream all project blockers with pagination handling
+   */
+  async streamAllProjectBlockers(onRecord: (record: AirtableRecord) => Promise<void>) {
+    return this.streamFromTable('Blockers', onRecord);
+  }
+
+  /**
+   * Stream all project status records with pagination handling
+   */
+  async streamAllProjectStatus(onRecord: (record: AirtableRecord) => Promise<void>) {
+    return this.streamFromTable('Project_Status', onRecord);
+  }
+
+  /**
+   * Generic streaming method for any table
+   */
+  private async streamFromTable(
+    tableName: string,
+    onRecord: (record: AirtableRecord) => Promise<void>
+  ) {
+    let offset: string | undefined;
+    let totalFetched = 0;
+
+    try {
+      while (true) {
+        const batch = await this.fetchFromTable(tableName, offset);
+
+        for (const record of batch.records) {
+          await onRecord(record);
+          totalFetched++;
+        }
+
+        if (!batch.nextOffset) {
+          break;
+        }
+
+        offset = batch.nextOffset;
+      }
+
+      console.log(`✅ Fetched ${totalFetched} ${tableName} from Airtable`);
+      return totalFetched;
+    } catch (error) {
+      console.error(`Error streaming ${tableName} from Airtable:`, error);
       throw error;
     }
   }
@@ -248,6 +383,75 @@ export class AirtableClient {
       enrichmentAttemptedAt: fields['Enrichment Attempted At'] ? new Date(fields['Enrichment Attempted At'] as string) : undefined,
       
       createdAt: new Date(record.createdTime),
+    };
+  }
+
+  /**
+   * Map Airtable task record to database format
+   */
+  mapToDatabaseTask(
+    record: AirtableRecord,
+    clientId: string
+  ): Partial<NewClientProjectTask> {
+    const fields = record.fields;
+
+    return {
+      id: record.id,
+      clientId,
+      airtableRecordId: record.id,
+      task: (fields['Task'] as string) || '',
+      status: (fields['Status'] as string) || 'Pending',
+      priority: (fields['Priority'] as string) || 'Medium',
+      taskType: (fields['Type'] as string) || 'Task', // FIXED: Added taskType mapping from Airtable 'Type' field
+      owner: fields['Owner'] as string | undefined,
+      dueDate: fields['Due Date'] ? new Date(fields['Due Date'] as string) : undefined,
+      notes: fields['Notes'] as string | undefined,
+      dependencies: fields['Dependencies'] as string | undefined,
+      createdAt: new Date(record.createdTime),
+      updatedAt: new Date(),
+    };
+  }
+
+  /**
+   * Map Airtable blocker record to database format
+   */
+  mapToDatabaseBlocker(
+    record: AirtableRecord,
+    clientId: string
+  ): Partial<NewClientProjectBlocker> {
+    const fields = record.fields;
+
+    return {
+      id: record.id,
+      clientId,
+      airtableRecordId: record.id,
+      blocker: (fields['Blocker'] as string) || '',
+      severity: (fields['Severity'] as string) || 'Medium',
+      actionToResolve: fields['Action to Resolve'] as string | undefined,
+      status: (fields['Status'] as string) || 'Active',
+      createdAt: new Date(record.createdTime),
+      resolvedAt: fields['Resolved At'] ? new Date(fields['Resolved At'] as string) : undefined,
+    };
+  }
+
+  /**
+   * Map Airtable project status record to database format
+   */
+  mapToDatabaseProjectStatus(
+    record: AirtableRecord,
+    clientId: string
+  ): Partial<NewClientProjectStatus> {
+    const fields = record.fields;
+
+    return {
+      id: record.id,
+      clientId,
+      airtableRecordId: record.id,
+      metric: (fields['Metric'] as string) || '',
+      value: (fields['Value'] as string) || '',
+      category: (fields['Category'] as string) || 'General',
+      displayOrder: Number(fields['Display Order']) || 0,
+      updatedAt: new Date(),
     };
   }
 
@@ -314,6 +518,42 @@ export class AirtableClient {
       return await response.json() as AirtableRecord;
     } catch (error) {
       console.error('Error updating record in Airtable:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new record in Airtable
+   */
+  async createRecord(
+    tableName: string,
+    fields: Partial<AirtableLeadFields>
+  ): Promise<AirtableRecord> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/${this.baseId}/${tableName}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fields,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(
+          `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
+        );
+      }
+
+      return await response.json() as AirtableRecord;
+    } catch (error) {
+      console.error('Error creating record in Airtable:', error);
       throw error;
     }
   }
@@ -401,25 +641,102 @@ export class AirtableClient {
       throw error;
     }
   }
+
+  /**
+   * Delete a record from Airtable
+   * Used when deleting tasks/blockers from portal
+   */
+  async deleteRecord(tableName: string, recordId: string): Promise<void> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/${this.baseId}/${tableName}/${recordId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Airtable delete failed: ${response.status} ${JSON.stringify(errorData)}`);
+      }
+
+      console.log(`✅ Deleted record ${recordId} from ${tableName}`);
+    } catch (error) {
+      console.error(`Error deleting record ${recordId} from ${tableName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get the latest project call summary
+   * Fetches the record where "Is Latest" checkbox is true
+   */
+  async getLatestCallSummary() {
+    try {
+      const response = await fetch(
+        `https://api.airtable.com/v0/${this.baseId}/Project_Call_Summaries?filterByFormula={Is Latest}=TRUE()&maxRecords=1`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Airtable API error: ${JSON.stringify(error)}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.records || data.records.length === 0) {
+        return null; // No latest call summary found
+      }
+
+      const record = data.records[0];
+      return {
+        id: record.id,
+        callDate: record.fields['Call Date'] || null,
+        executiveSummary: record.fields['Executive Summary'] || '',
+        topPriorities: record.fields['Top Priorities'] || '',
+        keyDecisions: record.fields['Key Decisions'] || '',
+        blockersDiscussed: record.fields['Blockers Discussed'] || '',
+        nextSteps: record.fields['Next Steps'] || '',
+        attendees: record.fields['Attendees'] || '',
+        callRecordingUrl: record.fields['Call Recording URL'] || null,
+        transcript: record.fields['Transcript'] || null,
+        isLatest: record.fields['Is Latest'] || false,
+      };
+    } catch (error) {
+      console.error('Error fetching latest call summary from Airtable:', error);
+      throw error;
+    }
+  }
 }
 
 /**
- * Singleton instance
+ * Get Airtable client for a specific base ID
+ * If baseId not provided, uses AIRTABLE_BASE_ID from env
  */
-let instance: AirtableClient | null = null;
+export function getAirtableClient(baseId?: string): AirtableClient {
+  const apiKey = process.env.AIRTABLE_API_KEY;
+  const finalBaseId = baseId || process.env.AIRTABLE_BASE_ID;
 
-export function getAirtableClient(): AirtableClient {
-  if (!instance) {
-    const apiKey = process.env.AIRTABLE_API_KEY;
-    const baseId = process.env.AIRTABLE_BASE_ID;
-
-    if (!apiKey || !baseId) {
-      throw new Error('AIRTABLE_API_KEY and AIRTABLE_BASE_ID must be set');
-    }
-
-    instance = new AirtableClient(baseId, apiKey);
+  if (!apiKey) {
+    throw new Error('AIRTABLE_API_KEY must be set in environment variables');
   }
 
-  return instance;
+  if (!finalBaseId) {
+    throw new Error('AIRTABLE_BASE_ID must be set in environment variables or provided as parameter');
+  }
+
+  // Return a new instance for the specified base ID
+  // This allows multi-tenant support (different clients = different bases)
+  return new AirtableClient(finalBaseId, apiKey);
 }
 

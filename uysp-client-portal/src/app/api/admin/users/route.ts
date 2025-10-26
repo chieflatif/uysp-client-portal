@@ -1,120 +1,148 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import bcrypt from 'bcryptjs';
-import { auth } from '@/lib/auth';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { users, clients } from '@/lib/db/schema';
+import { eq, and } from 'drizzle-orm';
+import { canAddUser, canManageUsers, isSuperAdmin } from '@/lib/auth/permissions';
+import { sendPasswordSetupEmail } from '@/lib/email/mailer';
+import { z } from 'zod';
+
+// Validation schema for creating a user
+const createUserSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  role: z.enum(['CLIENT_ADMIN', 'CLIENT_USER']),
+  clientId: z.string().uuid('Invalid client ID').optional(),
+});
 
 /**
  * POST /api/admin/users
- * 
- * Create a new user for a client (ADMIN only)
+ * Create a new user with temporary password
  */
-
-const createUserSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  firstName: z.string().min(1, 'First name required'),
-  lastName: z.string().min(1, 'Last name required'),
-  clientId: z.string().uuid('Valid client ID required'),
-  role: z.enum(['CLIENT', 'ADMIN']).default('CLIENT'),
-});
-
 export async function POST(request: NextRequest) {
   try {
-    // Authentication
-    const session = await auth();
+    // Check authentication
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'UNAUTHORIZED' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Authorization - Only ADMIN or SUPER_ADMIN
-    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
+    // Check if user has permission to manage users
+    if (!canManageUsers(session.user.role)) {
       return NextResponse.json(
-        { error: 'Forbidden - Admin access required', code: 'FORBIDDEN' },
+        { error: 'You do not have permission to create users' },
         { status: 403 }
       );
     }
 
+    // Parse and validate request body
     const body = await request.json();
-    
-    // Validation
-    const validation = createUserSchema.safeParse(body);
-    if (!validation.success) {
+    const validationResult = createUserSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      const firstError = validationResult.error.issues[0];
       return NextResponse.json(
-        {
-          error: 'Validation failed',
-          code: 'VALIDATION_ERROR',
-          details: validation.error.flatten(),
-        },
+        { error: firstError.message },
         { status: 400 }
       );
     }
 
-    const { email, password, firstName, lastName, clientId, role } = validation.data;
+    const { email, firstName, lastName, role, clientId } = validationResult.data;
 
-    // Check if user already exists
+    // Determine target client ID
+    let targetClientId: string;
+    if (isSuperAdmin(session.user.role)) {
+      // SUPER_ADMIN must specify clientId
+      if (!clientId) {
+        return NextResponse.json(
+          { error: 'Client ID is required for SUPER_ADMIN' },
+          { status: 400 }
+        );
+      }
+      targetClientId = clientId;
+    } else {
+      // CLIENT_ADMIN uses their own clientId
+      if (!session.user.clientId) {
+        return NextResponse.json(
+          { error: 'Your account is not associated with a client' },
+          { status: 400 }
+        );
+      }
+      targetClientId = session.user.clientId;
+    }
+
+    // Check if user can add to this client (respects user count limit)
+    const addUserCheck = await canAddUser(
+      session.user.id,
+      session.user.role,
+      targetClientId
+    );
+
+    if (!addUserCheck.canAdd) {
+      return NextResponse.json(
+        { error: addUserCheck.reason || 'Cannot add user' },
+        { status: 403 }
+      );
+    }
+
+    // Check if email already exists
     const existingUser = await db.query.users.findFirst({
       where: eq(users.email, email),
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User with this email already exists', code: 'DUPLICATE_EMAIL' },
+        { error: 'A user with this email already exists' },
         { status: 409 }
       );
     }
 
-    // Verify client exists
-    const client = await db.query.clients.findFirst({
-      where: (clients, { eq }) => eq(clients.id, clientId),
-    });
+    // Create user WITHOUT password - user will set it themselves
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        email,
+        firstName,
+        lastName,
+        role,
+        clientId: targetClientId,
+        passwordHash: '', // Empty - user sets it themselves
+        mustChangePassword: false, // Not needed with this flow
+        isActive: true,
+      })
+      .returning();
 
-    if (!client) {
-      return NextResponse.json(
-        { error: 'Client not found', code: 'CLIENT_NOT_FOUND' },
-        { status: 404 }
-      );
+    // Generate setup URL
+    const setupUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/setup-password?email=${encodeURIComponent(email)}`;
+
+    // Send invitation email
+    try {
+      await sendPasswordSetupEmail(email, firstName, setupUrl);
+    } catch (emailError) {
+      console.error('Email failed:', emailError);
+      // Note: We continue even if email fails - admin can manually share the link
     }
 
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    // Create user
-    const newUser = await db.insert(users).values({
-      email,
-      passwordHash,
-      firstName,
-      lastName,
-      role,
-      clientId,
-      isActive: true,
-    }).returning();
-
-    // Return without password
-    return NextResponse.json(
-      {
-        success: true,
-        user: {
-          id: newUser[0].id,
-          email: newUser[0].email,
-          firstName: newUser[0].firstName,
-          lastName: newUser[0].lastName,
-          role: newUser[0].role,
-          clientId: newUser[0].clientId,
-        },
+    // Return user info and setup URL
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        role: newUser.role,
+        clientId: newUser.clientId,
       },
-      { status: 201 }
-    );
-
+      setupUrl, // For manual sharing if email fails
+      message: `Invitation email sent to ${email}`,
+    });
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('Create user error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', code: 'SERVER_ERROR' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -122,62 +150,92 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET /api/admin/users
- * 
- * Get all users (ADMIN only)
+ * Get list of users based on role
  */
 export async function GET(request: NextRequest) {
   try {
-    // Authentication
-    const session = await auth();
+    // Check authentication
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'UNAUTHORIZED' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Authorization - Only ADMIN or SUPER_ADMIN
-    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
+    // Check if user has permission to manage users
+    if (!canManageUsers(session.user.role)) {
       return NextResponse.json(
-        { error: 'Forbidden - Admin access required', code: 'FORBIDDEN' },
+        { error: 'You do not have permission to view users' },
         { status: 403 }
       );
     }
 
-    // Fetch all users with client info
-    const allUsers = await db.query.users.findMany({
-      orderBy: (users, { desc }) => [desc(users.createdAt)],
-    });
+    let usersList;
+    let sanitizedUsers;
 
-    // Get client names
-    const clients = await db.query.clients.findMany();
-    const clientMap = new Map(clients.map(c => [c.id, c.companyName]));
+    if (isSuperAdmin(session.user.role)) {
+      // SUPER_ADMIN sees all users with their client organization names
+      const allUsers = await db.query.users.findMany({
+        orderBy: (users, { desc }) => [desc(users.createdAt)],
+      });
 
-    const usersWithClientName = allUsers.map(u => ({
-      id: u.id,
-      email: u.email,
-      firstName: u.firstName,
-      lastName: u.lastName,
-      role: u.role,
-      clientId: u.clientId,
-      clientName: u.clientId ? clientMap.get(u.clientId) : null,
-      isActive: u.isActive,
-      lastLoginAt: u.lastLoginAt,
-      createdAt: u.createdAt,
-    }));
+      // Fetch all clients to map clientId to companyName
+      const allClients = await db.query.clients.findMany();
+      const clientMap = new Map(allClients.map(c => [c.id, c.companyName]));
+
+      // Add client organization name to each user
+      sanitizedUsers = allUsers.map((user) => ({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        clientId: user.clientId,
+        clientOrganization: user.clientId ? clientMap.get(user.clientId) || 'Unknown' : 'N/A',
+        isActive: user.isActive,
+        mustChangePassword: user.mustChangePassword,
+        lastLoginAt: user.lastLoginAt,
+        createdAt: user.createdAt,
+      }));
+    } else {
+      // CLIENT_ADMIN sees only users in their client (excluding SUPER_ADMINs)
+      if (!session.user.clientId) {
+        return NextResponse.json(
+          { error: 'Your account is not associated with a client' },
+          { status: 400 }
+        );
+      }
+
+      const allClientUsers = await db.query.users.findMany({
+        where: eq(users.clientId, session.user.clientId),
+        orderBy: (users, { desc }) => [desc(users.createdAt)],
+      });
+
+      // Filter out SUPER_ADMIN users - CLIENT_ADMIN should not see them
+      usersList = allClientUsers.filter(user => user.role !== 'SUPER_ADMIN');
+
+      // Remove sensitive data (no clientOrganization needed for CLIENT_ADMIN)
+      sanitizedUsers = usersList.map((user) => ({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        clientId: user.clientId,
+        isActive: user.isActive,
+        mustChangePassword: user.mustChangePassword,
+        lastLoginAt: user.lastLoginAt,
+        createdAt: user.createdAt,
+      }));
+    }
 
     return NextResponse.json({
       success: true,
-      users: usersWithClientName,
-      count: usersWithClientName.length,
+      users: sanitizedUsers,
     });
-
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error('Get users error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', code: 'SERVER_ERROR' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { theme } from '@/lib/theme';
-import { Menu, X, LogOut, Settings, Home, BarChart3, Shield } from 'lucide-react';
+import { theme } from '@/theme';
+import { Menu, X, LogOut, Settings, Home, BarChart3, Shield, Briefcase, Users, Activity } from 'lucide-react';
+import { ClientSelector } from './ClientSelector';
+import { canManageUsers } from '@/lib/auth/permissions-client';
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -16,14 +18,18 @@ export function Navbar() {
     return null;
   }
 
-  const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN';
-  
+  // Check if user has admin privileges (using new role system)
+  const hasAdminAccess = session?.user?.role === 'SUPER_ADMIN' || session?.user?.role === 'CLIENT_ADMIN';
+  const hasUserManagement = canManageUsers(session?.user?.role || '');
+  const isSuperAdmin = session?.user?.role === 'SUPER_ADMIN';
+
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/leads', label: 'Leads', icon: null },
+    { href: '/leads', label: 'Leads', icon: Users },
     { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-    ...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: Shield }] : []),
-    { href: '/settings', label: 'Settings', icon: Settings },
+    ...(hasAdminAccess ? [{ href: '/project-management', label: 'Project Management', icon: Briefcase }] : []),
+    ...(hasUserManagement ? [{ href: '/admin/users', label: 'Users', icon: Shield }] : []),
+    ...(isSuperAdmin ? [{ href: '/admin/user-activity', label: 'User Activity', icon: Activity }] : []),
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -32,12 +38,15 @@ export function Navbar() {
     <nav className={`${theme.core.darkBg} border-b border-gray-700 sticky top-0 z-50`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/leads" className="flex items-center gap-2">
-            <div className={`text-2xl font-bold ${theme.core.white}`}>
-              Rebel <span className={theme.accents.primary.class}>HQ</span>
-            </div>
-          </Link>
+          {/* Logo + Client Selector */}
+          <div className="flex items-center gap-4">
+            <Link href="/leads" className="flex items-center gap-2">
+              <div className={`text-2xl font-bold ${theme.core.white}`}>
+                Rebel <span className={theme.accents.primary.class}>HQ</span>
+              </div>
+            </Link>
+            <ClientSelector />
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
@@ -64,14 +73,14 @@ export function Navbar() {
           {/* User Menu */}
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-cyan-400 flex items-center justify-center">
-                <span className="text-gray-900 font-bold text-sm">
-                  {session.user?.name?.[0]?.toUpperCase() || 'U'}
+              <div className="w-10 h-10 rounded-full bg-cyan-400 flex items-center justify-center">
+                <span className="text-gray-900 font-bold text-lg">
+                  {session.user?.name?.[0]?.toUpperCase() || session.user?.email?.[0]?.toUpperCase() || 'U'}
                 </span>
               </div>
               <div className="flex flex-col">
                 <p className={`text-sm font-medium ${theme.core.white}`}>
-                  {session.user?.name || 'User'}
+                  {session.user?.name || session.user?.email?.split('@')[0] || 'User'}
                 </p>
                 <p className={`text-xs ${theme.core.bodyText}`}>
                   {session.user?.email}
@@ -79,10 +88,18 @@ export function Navbar() {
               </div>
             </div>
 
+            {/* Settings Icon */}
+            <Link
+              href="/settings"
+              className={`hidden sm:flex items-center justify-center p-2 rounded-lg transition ${theme.core.bodyText} hover:bg-gray-800 hover:text-white`}
+            >
+              <Settings className="w-5 h-5" />
+            </Link>
+
             {/* Desktop Logout */}
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${theme.components.button.ghost}`}
+              className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition border border-cyan-400 ${theme.accents.tertiary.class} hover:bg-cyan-400 hover:text-gray-900`}
             >
               <LogOut className="w-4 h-4" />
               Logout

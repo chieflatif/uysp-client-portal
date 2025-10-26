@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { clients } from '@/lib/db/schema';
 
 /**
  * GET /api/analytics/dashboard
@@ -24,10 +25,38 @@ export async function GET(request: NextRequest) {
     const requestedClientId = searchParams.get('clientId');
     const period = searchParams.get('period') || '30d';
 
-    // Authorization
+    // Authorization - SECURITY FIX: Strict client isolation for CLIENT_ADMIN/CLIENT_USER
     let clientId = session.user.clientId;
-    if (session.user.role === 'ADMIN' && requestedClientId) {
-      clientId = requestedClientId;
+
+    // SUPER_ADMIN can see all clients or specify one
+    if (session.user.role === 'SUPER_ADMIN') {
+      clientId = requestedClientId || null; // null = show all
+    } else if (session.user.role === 'CLIENT_ADMIN' || session.user.role === 'CLIENT_USER') {
+      // SECURITY FIX: CLIENT_ADMIN/USER can ONLY access their own client data
+      if (requestedClientId && requestedClientId !== session.user.clientId) {
+        return NextResponse.json(
+          { error: 'Forbidden - can only access your own client data', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
+      clientId = session.user.clientId;
+    } else if (requestedClientId) {
+      // Other roles cannot request different client data
+      return NextResponse.json(
+        { error: 'Access denied', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
+    }
+
+    // For SUPER_ADMIN without clientId specified, default to UYSP for now
+    if (session.user.role === 'SUPER_ADMIN' && !clientId) {
+      // Get UYSP client ID
+      const uyspClient = await db.query.clients.findFirst({
+        where: (clients, { eq }) => eq(clients.companyName, 'UYSP'),
+      });
+      if (uyspClient) {
+        clientId = uyspClient.id;
+      }
     }
 
     // Calculate time boundaries

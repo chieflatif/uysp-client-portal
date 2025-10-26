@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
   Shield, 
   Users, 
@@ -12,9 +13,13 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Database,
+  Pause,
+  Trash2,
+  Eye
 } from 'lucide-react';
-import { theme } from '@/lib/theme';
+import { theme } from '@/theme';
 
 interface Client {
   id: string;
@@ -47,6 +52,13 @@ interface AdminStats {
   }>;
 }
 
+interface DatabaseHealth {
+  ok: boolean;
+  tables: Record<string, { count: number; last_updated: string | null }>;
+  connection: string;
+  last_sync: string | null;
+}
+
 export default function AdminDashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -55,6 +67,10 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [showAddClient, setShowAddClient] = useState(false);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [showDbHealth, setShowDbHealth] = useState(false);
+  const [showPauseCampaigns, setShowPauseCampaigns] = useState(false);
+  const [dbHealth, setDbHealth] = useState<DatabaseHealth | null>(null);
+  const [dbHealthLoading, setDbHealthLoading] = useState(false);
 
   // Add client form state
   const [newClient, setNewClient] = useState({
@@ -73,6 +89,12 @@ export default function AdminDashboardPage() {
     clientId: '',
     role: 'CLIENT' as 'CLIENT' | 'ADMIN',
   });
+
+  // Pause campaigns form state
+  const [pauseCampaigns, setPauseCampaigns] = useState({
+    clientId: '',
+    reason: '',
+  });
   
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -86,8 +108,8 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    // Check if user is ADMIN
-    if (session?.user?.role !== 'ADMIN' && session?.user?.role !== 'SUPER_ADMIN') {
+    // Check if user is SUPER_ADMIN only for full admin features
+    if (session?.user?.role !== 'SUPER_ADMIN' && session?.user?.role !== 'ADMIN') {
       router.push('/dashboard');
       return;
     }
@@ -116,6 +138,24 @@ export default function AdminDashboardPage() {
       console.error('Error fetching admin data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDatabaseHealth = async () => {
+    try {
+      setDbHealthLoading(true);
+      const response = await fetch('/api/admin/db-health');
+      if (response.ok) {
+        const data = await response.json();
+        setDbHealth(data);
+      } else {
+        setError('Failed to fetch database health');
+      }
+    } catch (error) {
+      setError('Error fetching database health');
+      console.error(error);
+    } finally {
+      setDbHealthLoading(false);
     }
   };
 
@@ -217,6 +257,45 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handlePauseCampaigns = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    
+    if (!pauseCampaigns.clientId) {
+      setError('Please select a client');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const response = await fetch('/api/admin/campaigns/pause', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pauseCampaigns),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Failed to pause campaigns');
+        return;
+      }
+
+      const clientName = clients.find(c => c.id === pauseCampaigns.clientId)?.companyName || 'Client';
+      setSuccess(`Campaigns paused for ${clientName} (${data.affectedLeadsCount} leads)`);
+      setPauseCampaigns({ clientId: '', reason: '' });
+      setShowPauseCampaigns(false);
+      
+      // Refresh data
+      fetchAdminData();
+    } catch (error) {
+      setError('Network error. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className={`min-h-screen ${theme.core.darkBg} flex items-center justify-center`}>
@@ -246,7 +325,7 @@ export default function AdminDashboardPage() {
           </div>
           
           {!showAddClient && !showAddUser && (
-            <div className="flex gap-3">
+            <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => setShowAddClient(true)}
                 className={theme.components.button.primary}
@@ -360,6 +439,144 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
+        {/* Database Health Section */}
+        {showDbHealth && (
+          <div className={theme.components.card}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-xl font-bold ${theme.core.white}`}>
+                <Database className="w-5 h-5 inline mr-2" />
+                Database <span className={theme.accents.tertiary.class}>Health</span>
+              </h2>
+              <button
+                onClick={() => setShowDbHealth(false)}
+                className={`text-sm ${theme.core.bodyText} hover:text-white`}
+              >
+                Close
+              </button>
+            </div>
+
+            {dbHealthLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 text-cyan-400 animate-spin mr-2" />
+                <p className={theme.core.bodyText}>Checking database...</p>
+              </div>
+            ) : dbHealth ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {Object.entries(dbHealth.tables).map(([tableName, info]) => (
+                    <div key={tableName} className="p-3 rounded-lg bg-gray-800/50 border border-gray-700">
+                      <p className={`text-xs ${theme.accents.tertiary.class} uppercase font-semibold mb-1`}>
+                        {tableName}
+                      </p>
+                      <p className={`text-2xl font-bold ${theme.core.white}`}>
+                        {info.count.toLocaleString()}
+                      </p>
+                      <p className={`text-xs ${theme.core.bodyText} mt-1`}>
+                        {info.last_updated 
+                          ? new Date(info.last_updated).toLocaleDateString()
+                          : 'No data'
+                        }
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-4 border-t border-gray-700">
+                  <p className={`${theme.core.bodyText} text-sm`}>
+                    <span className="font-semibold">Status:</span> {dbHealth.connection}
+                  </p>
+                  {dbHealth.last_sync && (
+                    <p className={`${theme.core.bodyText} text-sm mt-1`}>
+                      <span className="font-semibold">Last Sync:</span> {new Date(dbHealth.last_sync).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {/* Pause Campaigns Form */}
+        {showPauseCampaigns && (
+          <div className={theme.components.card}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-xl font-bold ${theme.core.white}`}>
+                Pause <span className={theme.accents.primary.class}>Campaigns</span>
+              </h2>
+              <button
+                onClick={() => {
+                  setShowPauseCampaigns(false);
+                  setError('');
+                  setPauseCampaigns({ clientId: '', reason: '' });
+                }}
+                className={`text-sm ${theme.core.bodyText} hover:text-white`}
+              >
+                Cancel
+              </button>
+            </div>
+
+            <form onSubmit={handlePauseCampaigns} className="space-y-4">
+              <div>
+                <label className={`block text-sm font-medium ${theme.accents.tertiary.class} mb-2`}>
+                  Select Client *
+                </label>
+                <select
+                  value={pauseCampaigns.clientId}
+                  onChange={(e) => setPauseCampaigns({ ...pauseCampaigns, clientId: e.target.value })}
+                  className={theme.components.input}
+                  required
+                >
+                  <option value="">Choose a client...</option>
+                  {clients.filter(c => c.isActive).map(client => (
+                    <option key={client.id} value={client.id}>
+                      {client.companyName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium ${theme.accents.tertiary.class} mb-2`}>
+                  Reason (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={pauseCampaigns.reason}
+                  onChange={(e) => setPauseCampaigns({ ...pauseCampaigns, reason: e.target.value })}
+                  className={theme.components.input}
+                  placeholder="e.g., Client requested pause"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className={theme.components.button.primary}
+                >
+                  {submitting ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Pausing...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Pause className="w-4 h-4" />
+                      Pause Campaigns
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPauseCampaigns(false)}
+                  className={theme.components.button.ghost}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
         {/* Add User Form */}
         {showAddUser && (
           <div className={theme.components.card}>
@@ -466,11 +683,11 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setNewUser({ ...newUser, role: e.target.value as 'CLIENT' | 'ADMIN' })}
                   className={theme.components.input}
                 >
-                  <option value="CLIENT">Client User (Standard Access)</option>
+                  <option value="CLIENT">User (Standard Access)</option>
                   <option value="ADMIN">Admin (Full Access)</option>
                 </select>
                 <p className={`text-xs ${theme.core.bodyText} mt-1`}>
-                  Client users see only their client&apos;s data. Admins see all clients.
+                  Users see only their client&apos;s data. Admins see all clients.
                 </p>
               </div>
 
@@ -655,7 +872,9 @@ export default function AdminDashboardPage() {
                   return (
                     <tr key={client.id} className="hover:bg-gray-800 transition">
                       <td className={`py-3 px-4 font-medium ${theme.core.white}`}>
-                        {client.companyName}
+                        <Link href={`/admin/clients/${client.id}`} className="hover:underline">
+                          {client.companyName}
+                        </Link>
                       </td>
                       <td className={`py-3 px-4 ${theme.core.bodyText}`}>
                         {client.email}

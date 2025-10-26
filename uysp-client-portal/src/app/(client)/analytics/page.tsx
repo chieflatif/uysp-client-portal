@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { BarChart3, TrendingUp, Users, MousePointerClick, Calendar, ChevronRight } from 'lucide-react';
-import { theme } from '@/lib/theme';
+import { theme } from '@/theme';
 
 interface DashboardStats {
   overview: {
@@ -87,22 +87,56 @@ export default function AnalyticsPage() {
   const router = useRouter();
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [campaignStats, setCampaignStats] = useState<CampaignAnalytics[]>([]);
+  const [clients, setClients] = useState<Array<{id: string; companyName: string}>>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState('30d');
+
+  // Fetch clients list for SUPER_ADMIN selector
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const res = await fetch('/api/admin/clients');
+        if (res.ok) {
+          const data = await res.json();
+          setClients(data.clients || []);
+          // Default to UYSP if available
+          const uysp = data.clients.find((c: any) => c.companyName === 'UYSP');
+          if (uysp) setSelectedClientId(uysp.id);
+        }
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+      }
+    };
+    fetchClients();
+  }, []);
 
   const fetchAnalytics = useCallback(async () => {
     try {
       setIsLoading(true);
 
-      // Fetch dashboard stats
-      const dashboardRes = await fetch(`/api/analytics/dashboard?period=${period}`);
+      // PERFORMANCE FIX: Fetch both endpoints in parallel instead of sequentially
+      const dashboardUrl = selectedClientId
+        ? `/api/analytics/dashboard?period=${period}&clientId=${selectedClientId}`
+        : `/api/analytics/dashboard?period=${period}`;
+
+      const campaignsUrl = selectedClientId
+        ? `/api/analytics/campaigns?clientId=${selectedClientId}`
+        : '/api/analytics/campaigns';
+
+      // Fetch both in parallel using Promise.all
+      const [dashboardRes, campaignsRes] = await Promise.all([
+        fetch(dashboardUrl),
+        fetch(campaignsUrl)
+      ]);
+
+      // Process dashboard response
       if (dashboardRes.ok) {
         const dashboardData = await dashboardRes.json();
         setDashboardStats(dashboardData);
       }
 
-      // Fetch campaign stats
-      const campaignsRes = await fetch('/api/analytics/campaigns');
+      // Process campaigns response
       if (campaignsRes.ok) {
         const campaignsData = await campaignsRes.json();
         setCampaignStats(campaignsData.campaigns || []);
@@ -112,7 +146,7 @@ export default function AnalyticsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [period]);
+  }, [period, selectedClientId]);
 
   useEffect(() => {
     fetchAnalytics();
@@ -137,16 +171,31 @@ export default function AnalyticsPage() {
           Analytics <span className={theme.accents.primary.class}>Dashboard</span>
         </h1>
 
-        <select
-          value={period}
-          onChange={(e) => setPeriod(e.target.value)}
-          className={theme.components.input}
-        >
-          <option value="24h">Last 24 Hours</option>
-          <option value="7d">Last 7 Days</option>
-          <option value="30d">Last 30 Days</option>
-          <option value="all">All Time</option>
-        </select>
+        <div className="flex gap-3">
+          {clients.length > 0 && (
+            <select
+              value={selectedClientId}
+              onChange={(e) => setSelectedClientId(e.target.value)}
+              className={theme.components.input}
+            >
+              {clients.map(client => (
+                <option key={client.id} value={client.id}>
+                  {client.companyName}
+                </option>
+              ))}
+            </select>
+          )}
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className={theme.components.input}
+          >
+            <option value="24h">Last 24 Hours</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
       </div>
 
       {/* Overview Stats */}
