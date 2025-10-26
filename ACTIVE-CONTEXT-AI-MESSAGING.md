@@ -76,6 +76,23 @@
 
 ---
 
+## ⚠️ DOCUMENTATION RULE (CRITICAL)
+
+**CREATE DOCS ONLY IF**:
+1. ✅ Will be used in next 2 sessions
+2. ✅ Contains unique technical info
+3. ✅ Serves specific build task
+
+**DON'T CREATE**:
+- ❌ Multiple summaries (bloat)
+- ❌ Checkpoint histories (git does this)
+- ❌ Organization reports (waste)
+- ❌ Duplicate indices (one README enough)
+
+**MAX PER PHASE**: 5-7 files. If creating 10+, you're doing it wrong.
+
+---
+
 ## 📁 ACTIVE PROJECT STRUCTURE
 
 ### Primary Documentation
