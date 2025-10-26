@@ -72,9 +72,19 @@
 - Prospect-controlled timing (respects delays)
 - Circuit breakers (runaway detection)
 
-**Before starting AI messaging implementation, READ:**
-1. `PRD-TWO-WAY-AI-MESSAGING-SYSTEM.md` (complete spec)
-2. `DEPLOYMENT-GUIDE-TWO-WAY-AI.md` (how to build it)
+**Before starting AI messaging implementation:**
+
+**SYSTEM MESSAGE FOR DEVELOPER:**
+```
+START: DEPLOYMENT-GUIDE-TWO-WAY-AI.md
+METHOD: Test-driven (tests first, code second)
+EVIDENCE: Document in /tests/[phase]/
+SAFETY: Phase 1 must be bulletproof
+```
+
+**Documents:**
+1. `DEPLOYMENT-GUIDE-TWO-WAY-AI.md` ← Start here, follow step-by-step
+2. `PRD-TWO-WAY-AI-MESSAGING-SYSTEM.md` ← Reference for details
 
 ---
 

@@ -7,15 +7,40 @@
 
 ---
 
-## 📋 DOCUMENT INDEX
+## 🎯 DEVELOPMENT PROTOCOL (Read This First)
+
+**SYSTEM MESSAGE FOR DEVELOPER:**
+```
+YOU ARE: Implementing two-way AI messaging system
+YOU MUST: Follow test-driven development (TDD)
+BEFORE CODING: Write tests first (from this PRD)
+AFTER CODING: Run tests, gather evidence, commit
+
+WORKFLOW:
+1. Read current phase in DEPLOYMENT-GUIDE-TWO-WAY-AI.md
+2. Write tests (scenarios in deployment guide)
+3. Tests fail (no implementation yet) ← Good!
+4. Implement minimum code to pass
+5. Tests pass ← Ship it
+6. Document evidence in /tests/[phase]/
+7. Commit, move to next
+
+NEVER: Code before tests
+NEVER: Assume without verifying  
+NEVER: Skip evidence gathering
+ALWAYS: Safety checks first
+```
+
+**Next Step**: Open `DEPLOYMENT-GUIDE-TWO-WAY-AI.md` → Phase 1 → Follow step-by-step
+
+---
+
+## 📋 DOCUMENT NAVIGATION
 
 **This Document**: Complete PRD with architecture, schema, and specifications  
-**Implementation Guide**: `DEPLOYMENT-GUIDE-TWO-WAY-AI.md`  
-**Related Docs**:
-- `NEXT-FEATURES-PLANNING.md` - Original feature planning
-- `DEVELOPMENT-ROADMAP-FINAL.md` - Timeline and milestones
-- `UYSP-COMPLETE-STATUS-AND-ROADMAP.md` - Overall system status
-- `/docs/kajabi-integration/` - Webhook integration specs
+**How to Build It**: `DEPLOYMENT-GUIDE-TWO-WAY-AI.md` ← START HERE  
+**System Status**: `UYSP-COMPLETE-STATUS-AND-ROADMAP.md`  
+**All Docs**: `DOCS-INDEX.md`
 
 ---
 

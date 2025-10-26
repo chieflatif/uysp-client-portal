@@ -7,11 +7,32 @@
 
 ---
 
+## 🎯 START HERE (System Message)
+
+**DEVELOPER PROTOCOL:**
+```
+TDD WORKFLOW (Every Feature):
+1. Write tests FIRST (scenarios below)
+2. Run tests (should fail)
+3. Implement code
+4. Tests pass → Commit
+5. Evidence in /tests/[phase]/
+
+SAFETY RULE:
+Phase 1 = Foundation
+Cannot skip, cannot rush
+Must be bulletproof
+
+READ NEXT: Phase 1 below
+```
+
+---
+
 ## 📋 DEPLOYMENT OVERVIEW
 
-**Total Time**: 86 hours over 5 weeks  
-**Team**: 1 developer (full-time) or 2 developers (part-time)  
-**Phases**: 5 sequential phases (must complete in order)
+**Total Time**: ~76 hours over 5 weeks  
+**Phases**: 5 sequential (MUST complete in order)  
+**Method**: Test-driven, evidence-based
 
 ---
 
@@ -41,13 +62,32 @@
 
 ## 🛡️ PHASE 1: SAFETY INFRASTRUCTURE (Week 1 - 16 hours)
 
-### ⚠️ CRITICAL: Build Safety FIRST, Test Thoroughly
+**SYSTEM MESSAGE:**
+```
+PHASE 1 = FOUNDATION (Non-Negotiable)
 
-**Why First**: Everything else depends on bulletproof safety layer.
+TDD Protocol:
+1. Write all 20 safety tests FIRST
+2. Tests fail (no implementation)
+3. Add schema fields
+4. Build safety module  
+5. Tests pass → Sign off
+
+Evidence Required:
+- Test results (20 scenarios)
+- Schema export
+- 0 false positives
+- 0 false negatives
+
+READ: PRD → "Safety-First Architecture"
+THEN: Follow steps below
+```
 
 ---
 
 ### Day 1: Airtable Schema Updates (4 hours)
+
+**SYSTEM MESSAGE**: Test environment FIRST, then schema changes.
 
 **Step 1.1: Backup Current Schema** (15 min)
 ```bash
@@ -227,6 +267,13 @@ node scripts/export-airtable-schema.js
 ---
 
 ### Day 2: Safety Check Module (n8n) (6 hours)
+
+**SYSTEM MESSAGE**: 
+```
+Tests first! Create /tests/phase1-safety/test-scenarios.md
+Run tests (fail), build module, tests pass.
+Evidence: Export workflow + test results.
+```
 
 **Step 2.1: Create Safety Check Workflow** (3 hours)
 
@@ -505,9 +552,28 @@ Document:
 
 ---
 
-## 🤖 PHASE 2: AI CONVERSATION ENGINE (Week 2 - 24 hours)
+## 🤖 PHASE 2: AI CONVERSATION ENGINE (Week 2 - 21 hours)
+
+**SYSTEM MESSAGE:**
+```
+PREREQUISITE: Phase 1 sign-off complete
+
+TDD Protocol:
+1. Write 8 conversation tests
+2. Build AI workflow
+3. Tests pass
+4. Evidence: conversation logs
+
+READ: PRD → "AI Agent Architecture"
+READ: PRD → "Conversation Thread Schema"
+READ: PRD → "Error Handling Matrix"
+```
+
+---
 
 ### Day 1: Airtable Schema for AI (2 hours)
+
+**SYSTEM MESSAGE**: Create AI_Config with UYSP's actual product info (not Lorem Ipsum).
 
 **Step 2.1: Create AI_Config Table** (1 hour)
 

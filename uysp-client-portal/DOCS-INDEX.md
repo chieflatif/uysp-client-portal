@@ -8,22 +8,20 @@
 
 ## 🚀 START HERE
 
-### **New to This Project?** Read in this order:
+**SYSTEM MESSAGE FOR NEW DEVELOPER:**
+```
+Day 1: Read START-HERE-TOMORROW.md (5 min)
+Day 1: Skim UYSP-COMPLETE-STATUS-AND-ROADMAP.md (10 min)  
+Then: Pick your task, follow its guide
+```
 
-1. **[START-HERE-TOMORROW.md](START-HERE-TOMORROW.md)** (5 min)
-   - Where we are now
-   - What's deployed in production
-   - What to do next
+### **Building AI Messaging?**
+→ `DEPLOYMENT-GUIDE-TWO-WAY-AI.md` (step-by-step)  
+→ Reference: `PRD-TWO-WAY-AI-MESSAGING-SYSTEM.md` (when you need details)  
+→ Quick context: `SYSTEM-MESSAGES-AI-MESSAGING.md` (phase summaries)
 
-2. **[UYSP-COMPLETE-STATUS-AND-ROADMAP.md](UYSP-COMPLETE-STATUS-AND-ROADMAP.md)** (15 min)
-   - Complete system overview
-   - All features (built + planned)
-   - Comprehensive roadmap
-
-3. **[PRODUCT-SPECIFICATION.md](PRODUCT-SPECIFICATION.md)** (20 min)
-   - Complete product vision
-   - Target users
-   - Competitive advantages
+### **Other Work?**
+→ `START-HERE-TOMORROW.md` → `DEVELOPMENT-ROADMAP-FINAL.md`
 
 ---
 
