@@ -22,23 +22,20 @@
 
 ---
 
-## 📁 FILES IN THIS DIRECTORY
+## 📁 FILES (8 Total)
 
-**USER (Step-by-Step)**:
-1. `DAY2-WORKFLOW-IMPORT-GUIDE.md` - How to import workflows in n8n UI
+**USER**: `DAY2-WORKFLOW-IMPORT-GUIDE.md` - Import workflows step-by-step
 
-**DEVELOPER (Technical Reference)**:
-2. `field-ids-correct-base.json` - All field IDs for n8n
-3. `day2-test-scenarios.md` - 20 test cases
-4. `ERROR-HANDLING-SPEC-COMPLETE.md` - Error handling patterns
-5. `TWILIO-CLICK-TRACKING-SPEC.md` - Click tracking design
-6. `FINAL-IMPLEMENTATION-CORRECTED.md` - Day 1 field inventory
+**DEVELOPER**:
+- `field-ids-correct-base.json` - Field IDs for n8n
+- `day2-test-scenarios.md` - 20 test cases
+- `ERROR-HANDLING-SPEC-COMPLETE.md` - Error patterns
+- `TWILIO-CLICK-TRACKING-SPEC.md` - Click tracking
+- `FINAL-IMPLEMENTATION-CORRECTED.md` - Day 1 fields
 
-**SYSTEM (Decisions & Context)**:
-7. `AUDIT-TRAIL.md` - Why decisions were made, lessons learned
-8. `README.md` - This file
+**SYSTEM**: `AUDIT-TRAIL.md` - Decisions, mistakes, lessons
 
-**Total**: 8 files. Purpose-driven, no bloat.
+**NAV**: `README.md` - This file
 
 ---
 
