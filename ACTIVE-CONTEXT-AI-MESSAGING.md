@@ -76,20 +76,27 @@
 
 ---
 
-## ⚠️ DOCUMENTATION RULE (CRITICAL)
+## ⚠️ DOCUMENTATION RULE (ENFORCE STRICTLY)
 
-**CREATE DOCS ONLY IF**:
-1. ✅ Will be used in next 2 sessions
-2. ✅ Contains unique technical info
-3. ✅ Serves specific build task
+**ONLY create docs that will be USED in next session for building.**
 
-**DON'T CREATE**:
-- ❌ Multiple summaries (bloat)
-- ❌ Checkpoint histories (git does this)
-- ❌ Organization reports (waste)
-- ❌ Duplicate indices (one README enough)
+**ALLOWED**:
+- Field IDs (for n8n)
+- Build specifications (error patterns, integrations)
+- Implementation summary (what was built)
+- MAX: 5 files per phase
 
-**MAX PER PHASE**: 5-7 files. If creating 10+, you're doing it wrong.
+**FORBIDDEN**:
+- Summaries of summaries
+- Checkpoint reports (git does this)
+- Organization reports
+- Status trackers (use THIS file)
+- Multiple indices
+- Approval documents after approval done
+
+**If creating >7 files → STOP. Delete the bloat.**
+
+Git commits = checkpoint history. Don't duplicate in markdown.
 
 ---
 
