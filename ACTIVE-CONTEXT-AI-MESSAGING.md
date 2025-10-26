@@ -68,11 +68,19 @@
 - Evidence: /tests/phase1-safety/TWILIO-CLICK-TRACKING-SPEC.md
 
 ### Next Phase Tasks
-📋 **Day 2-5: Safety Module & Testing** (12 hours estimated):
-- Build safety check workflow in n8n (SIMPLIFIED - no cost checking)
-- Implement circuit breakers (message count based)
-- Test 20 safety scenarios
-- Sign-off documentation
+📋 **Day 2-5: Safety Module & Testing** (6.5 hours estimated):
+
+**Day 2 Plan** (Verified clean integration):
+- Build NEW workflow: UYSP-AI-Inbound-Handler (parallel webhook)
+- Keep existing UYSP-Twilio-Inbound-Messages (backup/logging)
+- Integration: Parallel webhooks (cleanest, safest)
+- No conflicts with existing system ✅
+
+**Existing workflows analyzed**:
+- Current system = logging + notifications only
+- NO AI logic to conflict with
+- Clean integration points identified
+- See: tests/phase1-safety/EXISTING-WORKFLOW-ANALYSIS.md
 
 ---
 
