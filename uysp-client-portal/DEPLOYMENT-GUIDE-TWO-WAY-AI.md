@@ -66,14 +66,18 @@ READ NEXT: Phase 1 below
 ```
 PHASE 1 = FOUNDATION (Non-Negotiable)
 
+STEP 0: Audit existing schema FIRST (find redundant fields)
+THEN: Add only what's truly needed
+
 TDD Protocol:
 1. Write all 20 safety tests FIRST
 2. Tests fail (no implementation)
-3. Add schema fields
+3. Add/repurpose schema fields
 4. Build safety module  
 5. Tests pass → Sign off
 
 Evidence Required:
+- Schema audit results
 - Test results (20 scenarios)
 - Schema export
 - 0 false positives
@@ -85,9 +89,120 @@ THEN: Follow steps below
 
 ---
 
-### Day 1: Airtable Schema Updates (4 hours)
+### Day 0: Schema Audit (2 hours) ⚠️ DO THIS FIRST
 
-**SYSTEM MESSAGE**: Test environment FIRST, then schema changes.
+**SYSTEM MESSAGE**: 
+```
+Before adding 16 fields, audit what exists.
+Find redundant fields.
+Map existing fields to our needs.
+Document in /tests/phase1-safety/schema-audit.md
+```
+
+**Step 0.1: Export Current Schema** (15 min)
+
+```bash
+cd "/Users/latifhorst/cursor projects/UYSP Lead Qualification V1"
+
+# Export latest schema
+node scripts/export-airtable-schema.js
+
+# or use MCP:
+# Get current schema with all field details
+```
+
+**Step 0.2: Analyze Existing Fields** (1 hour)
+
+Create: `/tests/phase1-safety/schema-audit.md`
+
+For each existing field in People table (~60 fields), document:
+
+```markdown
+## Schema Audit - People Table
+
+| Field Name | Current Purpose | Needed for AI Messaging? | Action |
+|------------|----------------|-------------------------|--------|
+| conversation_thread | ??? | ✅ YES - stores chat history | Keep, use as-is |
+| last_inbound_at | ??? | ✅ YES - track when replied | Keep, use as-is |
+| sms_status | Tracks SMS delivery? | ⚠️ Maybe redundant? | Review → Possibly remove |
+| response_count | ??? | ✅ YES - track engagement | Keep, use as-is |
+| ai_agent_status | ??? | ⚠️ Might exist already? | Check if we already have this |
+| ... | ... | ... | ... |
+
+FINDINGS:
+- Fields we already have: [list]
+- Fields we can repurpose: [list]
+- Fields that are redundant: [list]
+- Fields we need to add: [list - should be <16]
+
+RECOMMENDATION:
+Instead of adding 16 new fields, we need to add [X] new fields.
+We can repurpose [Y] existing fields.
+We should deprecate [Z] unused fields.
+```
+
+**Step 0.3: Map Existing to Required** (30 min)
+
+Match what you have vs what PRD needs:
+
+```markdown
+## Field Mapping
+
+REQUIRED (from PRD): last_message_direction
+EXISTING: [Check if anything similar exists]
+ACTION: [Add new | Repurpose X | Already exists]
+
+REQUIRED: last_message_sent_at
+EXISTING: sms_last_sent_at (if it exists?)
+ACTION: Repurpose or add new?
+
+REQUIRED: conversation_thread
+EXISTING: conversation_history (if it exists?)
+ACTION: Use existing or add new?
+
+... (do this for all 16 required fields)
+```
+
+**Step 0.4: Get Approval on Schema Changes** (15 min)
+
+Create summary:
+
+```markdown
+## Schema Changes - Final Plan
+
+FIELDS TO ADD (new): 8 fields
+- last_message_direction
+- ai_status
+- campaign_stage
+- next_scheduled_contact
+- schedule_set_at
+- messages_in_last_2_hours
+- test_mode_lead
+- conversation_locked_by_human
+
+FIELDS TO REPURPOSE (existing): 5 fields
+- conversation_thread (already exists, use as-is)
+- last_inbound_at (already exists, use as-is)
+- response_count (already exists, use as-is)
+- has_responded (already exists, use as-is)
+- last_inbound_message (already exists, use as-is)
+
+FIELDS TO DEPRECATE (cleanup): 3 fields
+- [Old field 1] - no longer used
+- [Old field 2] - replaced by new structure
+- [Old field 3] - redundant
+
+NET CHANGE: +8 new fields, -3 deprecated = +5 total
+(Much cleaner than +16!)
+```
+
+Get approval before proceeding.
+
+---
+
+### Day 1: Airtable Schema Updates (2 hours - REVISED)
+
+**SYSTEM MESSAGE**: Only add what audit determined is needed.
 
 **Step 1.1: Backup Current Schema** (15 min)
 ```bash

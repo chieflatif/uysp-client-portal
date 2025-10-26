@@ -279,17 +279,24 @@ Table: Client_Registry
 
 ### Table 1: People (Enhanced)
 
-**Existing Fields:** (60 fields - keep all)
-- email, phone, first_name, last_name, company, title, icp_score, etc.
+**⚠️ IMPORTANT**: Before adding fields, complete schema audit (see Deployment Guide Day 0)
 
-**NEW FIELDS (Conversation Management):**
+**Existing Fields:** (~60 fields currently)
+- Some may already serve our purposes
+- Some may be redundant and can be removed
+- Audit first, then add only what's truly needed
+
+**REQUIRED FIELDS (Add if don't exist, repurpose if similar exists):**
 ```sql
 -- CONVERSATION STATE
 conversation_thread          (Long Text - JSON array of full conversation)
                             (See "Conversation Thread Schema" below for exact format)
+                            (⚠️ May already exist - check first!)
 last_message_direction       (Single Select: "outbound" | "inbound")
 last_message_sent_at         (DateTime)
+                            (⚠️ Check if "sms_last_sent_at" or similar exists)
 last_message_received_at     (DateTime)
+                            (⚠️ Check if "last_inbound_at" exists - may repurpose)
 active_conversation          (Checkbox - TRUE if back-and-forth in last 4 hours)
 test_mode_lead              (Checkbox - TRUE for testing, skips all rate limits)
 
