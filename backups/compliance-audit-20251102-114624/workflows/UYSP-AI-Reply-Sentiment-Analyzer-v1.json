@@ -1,0 +1,194 @@
+{
+  "name": "UYSP-AI-Reply-Sentiment-Analyzer-v1",
+  "nodes": [
+    {
+      "parameters": {
+        "base": {
+          "value": "app4wIsBfpJTg7pWS",
+          "__rl": true
+        },
+        "table": {
+          "value": "tblYUvhGADerbD8EO",
+          "__rl": true
+        },
+        "triggerOn": "update"
+      },
+      "id": "airtable-trigger",
+      "name": "Trigger: Last Reply Text Updated",
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        50,
+        50
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": [
+            {
+              "leftValue": "={{$json.changedFields['Last Reply Text']}}",
+              "operator": "exists"
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "check-reply-updated",
+      "name": "Check: Reply Text Changed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        300,
+        50
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "base": {
+          "value": "app4wIsBfpJTg7pWS",
+          "__rl": true
+        },
+        "table": {
+          "value": "tblYUvhGADerbD8EO",
+          "__rl": true
+        },
+        "id": "={{$json.id}}"
+      },
+      "id": "get-record",
+      "name": "Get Full Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        550,
+        50
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "messageUi": [
+            {
+              "content": "You are an expert at analyzing customer SMS replies for sales sentiment. Analyze the following reply text and determine if it indicates a POSITIVE, NEUTRAL, or NEGATIVE response.\n\nRules:\n- POSITIVE: Shows interest, enthusiasm, willingness to talk, enthusiasm, schedule meeting, yes to interest, etc.\n- NEUTRAL: Not interested right now but open later, thank you, need more time, busy, etc.\n- NEGATIVE: Hard no, unsubscribe, \"don't contact\", \"not interested\", \"remove me\", angry/rude tone, etc.\n\nReply text:\n\"{{$json.fields['Last Reply Text']}}\"\n\nRespond with ONLY a JSON object like this:\n{\n  \"sentiment\": \"POSITIVE\" or \"NEUTRAL\" or \"NEGATIVE\",\n  \"confidence\": 0.85,\n  \"reasoning\": \"Brief explanation of why this sentiment was chosen\",\n  \"key_indicators\": [\"list\", \"of\", \"keywords\", \"detected\"]\n}\n\nDo NOT include markdown formatting or code blocks. Return ONLY valid JSON.",
+              "role": "user"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "analyze-sentiment",
+      "name": "AI: Analyze Reply Sentiment",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 3,
+      "position": [
+        800,
+        50
+      ],
+      "credentials": {
+        "openAIApi": "YOUR_OPENAI_CREDENTIAL_ID"
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $json.choices[0].message.content;\n\nlet sentiment_data = {};\ntry {\n  // Try to parse the JSON response\n  sentiment_data = JSON.parse(response);\n} catch (e) {\n  // Fallback: try to extract from text\n  if (response.includes('POSITIVE')) {\n    sentiment_data = {\n      sentiment: 'POSITIVE',\n      confidence: 0.7,\n      reasoning: 'Extracted from response text',\n      key_indicators: []\n    };\n  } else if (response.includes('NEGATIVE')) {\n    sentiment_data = {\n      sentiment: 'NEGATIVE',\n      confidence: 0.7,\n      reasoning: 'Extracted from response text',\n      key_indicators: []\n    };\n  } else {\n    sentiment_data = {\n      sentiment: 'NEUTRAL',\n      confidence: 0.7,\n      reasoning: 'Extracted from response text',\n      key_indicators: []\n    };\n  }\n}\n\nreturn [{\n  json: {\n    record_id: $node['Get Full Record'].json.id,\n    sentiment: sentiment_data.sentiment || 'NEUTRAL',\n    confidence: sentiment_data.confidence || 0.5,\n    reasoning: sentiment_data.reasoning || 'Unable to determine',\n    key_indicators: sentiment_data.key_indicators || []\n  }\n}];"
+      },
+      "id": "parse-sentiment",
+      "name": "Parse Sentiment Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        50
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "value": "app4wIsBfpJTg7pWS",
+          "__rl": true
+        },
+        "table": {
+          "value": "tblYUvhGADerbD8EO",
+          "__rl": true
+        },
+        "id": "={{$json.record_id}}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fldBY5Tp54mJsExrW": "={{$json.sentiment}}"
+          }
+        }
+      },
+      "id": "update-sentiment",
+      "name": "Update Sentiment to Conversation Status",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        50
+      ]
+    }
+  ],
+  "connections": {
+    "Trigger: Last Reply Text Updated": {
+      "main": [
+        [
+          {
+            "node": "Check: Reply Text Changed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Reply Text Changed?": {
+      "main": [
+        [
+          {
+            "node": "Get Full Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Full Record": {
+      "main": [
+        [
+          {
+            "node": "AI: Analyze Reply Sentiment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: Analyze Reply Sentiment": {
+      "main": [
+        [
+          {
+            "node": "Parse Sentiment Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Sentiment Response": {
+      "main": [
+        [
+          {
+            "node": "Update Sentiment to Conversation Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}

@@ -111,4 +111,7 @@ $RECYCLE.BIN/
 *~
 .fuse_hidden*
 .directory
-.Trash-* 
+.Trash-* # Large backup files
+*.tar.gz
+*.zip
+*.7z

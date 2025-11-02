@@ -1,0 +1,129 @@
+{
+  "name": "UYSP-Engagement-Score-Calculator-v1",
+  "nodes": [
+    {
+      "parameters": {
+        "base": {
+          "value": "app4wIsBfpJTg7pWS",
+          "__rl": true
+        },
+        "table": {
+          "value": "tblYUvhGADerbD8EO",
+          "__rl": true
+        },
+        "triggerOn": "update"
+      },
+      "id": "airtable-trigger",
+      "name": "Trigger: Record Updated",
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        50,
+        50
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "base": {
+          "value": "app4wIsBfpJTg7pWS",
+          "__rl": true
+        },
+        "table": {
+          "value": "tblYUvhGADerbD8EO",
+          "__rl": true
+        },
+        "id": "={{$json.id}}"
+      },
+      "id": "get-record",
+      "name": "Get Full Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        300,
+        50
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const record = $json.fields;\nconst recordId = $json.id;\n\n// TAG COUNT\nconst kajabi_tags = String(record['Kajabi Tags'] || '').trim();\nlet tag_count = 0;\nif (kajabi_tags.length > 0) {\n  tag_count = kajabi_tags.split(',').map(t => t.trim()).filter(t => t.length > 0).length;\n}\n\n// RECENCY\nconst last_reply_at = record['Last Reply At'];\nconst sms_last_sent_at = record['SMS Last Sent At'];\nconst record_created_at = record['Record Created AT'];\n\nlet most_recent_activity = null;\nconst dates = [\n  last_reply_at ? new Date(last_reply_at) : null,\n  sms_last_sent_at ? new Date(sms_last_sent_at) : null,\n  record_created_at ? new Date(record_created_at) : null\n].filter(d => d && !isNaN(d.getTime()));\n\nif (dates.length > 0) {\n  most_recent_activity = new Date(Math.max(...dates.map(d => d.getTime())));\n}\n\nlet days_since_activity = 999;\nlet recency_level = 'Low';\nlet recency_points = 0.5;\n\nif (most_recent_activity) {\n  const today = new Date();\n  today.setHours(0, 0, 0, 0);\n  most_recent_activity.setHours(0, 0, 0, 0);\n  days_since_activity = Math.floor((today - most_recent_activity) / (1000 * 60 * 60 * 24));\n  \n  if (days_since_activity <= 30) {\n    recency_level = 'High';\n    recency_points = 2.0;\n  } else if (days_since_activity <= 90) {\n    recency_level = 'Medium';\n    recency_points = 1.5;\n  } else {\n    recency_level = 'Low';\n    recency_points = 0.5;\n  }\n}\n\n// TOTAL SCORE\nconst total_score = tag_count * recency_points;\n\n// ENGAGEMENT LEVEL\nlet engagement_level = 'Red';\nif (total_score > 15) {\n  engagement_level = 'Green';\n} else if (total_score >= 8) {\n  engagement_level = 'Yellow';\n}\n\nreturn [{\n  json: {\n    record_id: recordId,\n    tag_count,\n    recency_level,\n    recency_points,\n    total_score: Math.round(total_score * 10) / 10,\n    engagement_level\n  }\n}];"
+      },
+      "id": "calculate-scores",
+      "name": "Calculate Engagement Scores",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        550,
+        50
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "value": "app4wIsBfpJTg7pWS",
+          "__rl": true
+        },
+        "table": {
+          "value": "tblYUvhGADerbD8EO",
+          "__rl": true
+        },
+        "id": "={{$json.record_id}}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fldtVtnFREvHKDnVT": "={{$json.tag_count}}",
+            "fldYglpx4UtiXa1nW": "={{$json.recency_points}}",
+            "fldyZMljoLlB3BeYK": "={{$json.total_score}}",
+            "fldspSLdnQCFuFe1Z": "={{$json.engagement_level}}"
+          }
+        }
+      },
+      "id": "update-airtable",
+      "name": "Update Engagement Scores",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        800,
+        50
+      ]
+    }
+  ],
+  "connections": {
+    "Trigger: Record Updated": {
+      "main": [
+        [
+          {
+            "node": "Get Full Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Full Record": {
+      "main": [
+        [
+          {
+            "node": "Calculate Engagement Scores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Engagement Scores": {
+      "main": [
+        [
+          {
+            "node": "Update Engagement Scores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}

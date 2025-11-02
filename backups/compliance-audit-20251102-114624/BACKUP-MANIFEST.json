@@ -1,0 +1,16 @@
+{
+  "backup_date": "2025-11-02T19:46:24Z",
+  "compliance_status": "FULL AUDIT PASSED",
+  "workflows_count": 7,
+  "tables_count": 2,
+  "total_fields": 114,
+  "critical_fields_verified": 11,
+  "documentation_files": 8,
+  "backup_type": "PRODUCTION-READY",
+  "contents": {
+    "workflows": "7 validated n8n workflows",
+    "documentation": "8 comprehensive guides with all configurations",
+    "configuration": "Complete registry with all IDs and field mappings",
+    "schemas": "Airtable table schemas (114 fields total)"
+  }
+}

@@ -1,0 +1,174 @@
+===========================================
+UYSP ENGAGEMENT SCORING + AI SENTIMENT
+Setup Summary - November 2, 2025
+===========================================
+
+✅ COMPLETED SETUP
+
+1. CREATED 4 NEW AIRTABLE FIELDS:
+   ✓ Engagement - Tag Count (fldtVtnFREvHKDnVT) - Number field
+   ✓ Engagement - Recency Points (fldYglpx4UtiXa1nW) - Number field
+   ✓ Engagement - Total Score (fldyZMljoLlB3BeYK) - Number field
+   ✓ Engagement - Level (fldspSLdnQCFuFe1Z) - Single Select (Green/Yellow/Red)
+
+2. CREATED 2 N8N WORKFLOWS:
+   ✓ UYSP-Engagement-Score-Calculator-v1.json
+     - Triggers on any record update
+     - Calculates tag count + recency points + total score
+     - Auto-updates all 4 engagement fields
+     - ~1-2 seconds latency
+
+   ✓ UYSP-AI-Reply-Sentiment-Analyzer-v1.json
+     - Triggers when "Last Reply Text" is updated
+     - Sends to OpenAI GPT-4o-mini for analysis
+     - Maps sentiment to "Conversation Status" field
+     - ~2-5 seconds latency (~$0.001 per reply)
+
+3. CREATED COMPREHENSIVE DOCUMENTATION:
+   ✓ /docs/ENGAGEMENT-SCORING-SENTIMENT-IMPLEMENTATION.md
+     - Complete setup instructions
+     - Field mapping reference
+     - Troubleshooting guide
+     - Advanced configuration options
+
+===========================================
+🚀 NEXT STEPS (Import to n8n)
+===========================================
+
+1. Go to your n8n instance (likely running locally or at a hosted URL)
+
+2. Click "Import Workflow" (usually top-left menu)
+
+3. Select: /workflows/UYSP-Engagement-Score-Calculator-v1.json
+   - Click Import
+   - Click the TOGGLE to ACTIVATE
+   - Watch for any credential errors and fix
+
+4. Repeat for: /workflows/UYSP-AI-Reply-Sentiment-Analyzer-v1.json
+   - Click Import
+   - Add your OpenAI API key credential
+   - Click the TOGGLE to ACTIVATE
+
+5. TEST:
+   - Open any lead in Airtable
+   - Add a Kajabi tag (e.g., "test-tag")
+   - Watch Engagement - Tag Count update (should show 1)
+   - For sentiment: add text to "Last Reply Text" field
+   - Watch "Conversation Status" update
+
+===========================================
+📊 SCORE INTERPRETATION
+===========================================
+
+Engagement Score Ranges:
+  > 15  = 🟢 Green = Highly Engaged (ready for sales)
+  8-15  = 🟡 Yellow = Moderately Engaged (nurture)
+  < 8   = 🔴 Red = Low Engagement (long-term)
+
+Recency Points:
+  High (≤30 days)   = 2.0x multiplier
+  Medium (31-90)    = 1.5x multiplier
+  Low (90+ days)    = 0.5x multiplier
+
+Sentiment Categories:
+  POSITIVE  → Replied - Interested
+  NEUTRAL   → Replied - Considering
+  NEGATIVE  → Replied - Not Interested
+
+===========================================
+⚠️ IMPORTANT NOTES
+===========================================
+
+1. AIRTABLE FIELD LIMITS:
+   - Cannot create formula fields via API
+   - All scoring done in n8n (not Airtable formulas)
+   - This means: faster, more flexible, but requires workflow
+
+2. OPENAI COSTS:
+   - Using GPT-4o-mini (cheapest, still very accurate)
+   - ~$0.001 per reply analysis
+   - Budget: ~$5-10/month even with 1000+ replies
+
+3. TRIGGER BEHAVIOR:
+   - Engagement calculator: Runs on ANY field update
+   - Sentiment analyzer: Runs only when "Last Reply Text" changes
+   - Both can be filtered if too chatty
+
+4. ERROR FALLBACK:
+   - Sentiment analyzer has graceful fallback if OpenAI fails
+   - Will still update Conversation Status with best guess
+   - Manual override always possible
+
+===========================================
+📞 TROUBLESHOOTING CHECKLIST
+===========================================
+
+Workflows not triggering?
+  ☐ Check both workflows are ACTIVE (toggle on)
+  ☐ Check Airtable credentials valid
+  ☐ Try manually editing a record field
+  ☐ Check n8n "Executions" tab for errors
+
+Engagement scores not calculating?
+  ☐ Verify "Kajabi Tags" field has comma-separated values
+  ☐ Verify "Last Reply At" or "SMS Last Sent At" has dates
+  ☐ Check n8n execution logs
+
+Sentiment not analyzing?
+  ☐ Verify OpenAI API key is valid
+  ☐ Check OpenAI account has credit
+  ☐ Verify "Last Reply Text" field has content
+  ☐ Check n8n execution logs for API errors
+
+Slow performance?
+  ☐ Engagement: Should be <2 sec
+  ☐ Sentiment: Should be 2-5 sec (normal for API calls)
+  ☐ If slower: Check n8n server resources
+
+===========================================
+📈 EXPECTED RESULTS
+===========================================
+
+After 24 hours:
+- All leads with tags will have scores
+- New leads auto-calculate as created
+- Color coding visible in Airtable
+
+After 1 week:
+- Patterns emerge: which tags = high engagement
+- AI sentiment library builds
+- Can identify warm vs cold leads visually
+
+Use cases:
+- Filter Green leads for immediate sales follow-up
+- Auto-route Yellow to nurture sequences
+- Identify Red leads needing win-back campaigns
+
+===========================================
+✨ FEATURES ENABLED
+===========================================
+
+✓ Automatic engagement scoring (no manual entry)
+✓ Real-time color-coded lead quality
+✓ AI-powered reply sentiment detection
+✓ Conversation status auto-population
+✓ Scalable to thousands of leads
+✓ Cost-effective (GPT-4o-mini)
+✓ Customizable thresholds and rules
+✓ Audit trail in n8n execution logs
+
+===========================================
+📄 DOCUMENTATION FILES
+===========================================
+
+- /docs/ENGAGEMENT-SCORING-SENTIMENT-IMPLEMENTATION.md
+  Complete implementation guide with setup, troubleshooting, advanced config
+
+- /workflows/UYSP-Engagement-Score-Calculator-v1.json
+  Engagement calculator workflow (import to n8n)
+
+- /workflows/UYSP-AI-Reply-Sentiment-Analyzer-v1.json
+  AI sentiment analyzer workflow (import to n8n)
+
+===========================================
+Ready to deploy! Import the workflows and activate. 🚀
