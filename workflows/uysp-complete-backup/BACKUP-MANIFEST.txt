@@ -1,0 +1,36 @@
+COMPLETE UYSP WORKFLOW BACKUP
+==============================
+Created: November 2, 2025
+Source: n8n Project H4VRaaZhd8VKQANf
+Total Workflows: 20 (ALL non-archived)
+
+ACTIVE WORKFLOWS (10):
+======================
+1. safety-check-module-v2 (3aOAIMbsSZYoeOpW)
+2. UYSP-Engagement-Score-Calculator-v1 (3nA0asUTWdgYuCMf)
+3. UYSP-Daily-Monitoring (5xW2QG8x2RFQP8kx)
+4. UYSP-SimpleTexting-Reply-Handler (CmaISo2tBtYRqNs0)
+5. UYSP-AI-Reply-Sentiment-v2 (IzWhzHKBdA6JZWAH)
+6. UYSP-Calendly-Booked (LiVE3BlxsFkHhG83)
+7. UYSP-Workflow-Health-Monitor-v2 (MLnKXQYtfJDk9HXI)
+8. UYSP-Kajabi-SMS-Scheduler (kJMMZ10anu4NqYUL)
+9. UYSP-SMS-Inbound-STOP (pQhwZYwBXbcARUzp)
+10. UYSP-ST-Delivery V2 (vA0Gkp2BrxKppuSu)
+
+INACTIVE (10):
+==============
+11. UYSP-AI-Inbound-Handler (AlOblqD8q1G7Iuq8) - Twilio two-way
+12. UYSP-Twilio-Click-Tracker (AvawSqsjApV43lAr)
+13. UYSP-Twilio-Status-Callback (39yskqJT3V6enem2)
+14. UYSP-Twilio-Inbound-Messages (ujkG0KbTYBIubxgK)
+15. UYSP-Kajabi-API-Polling (0scB7vqk8QHp8s5b) - CRITICAL
+16. UYSP-Message-Scheduler-v2 (UAZWVFzMrJaVbvGM)
+17. UYSP-Kajabi-Realtime-Ingestion (e9s0pmmlZfrZ3qjD)
+18. UYSP-Realtime-Ingestion_Gabriel (2cdgp1qr9tXlONVL)
+19. UYSP Backlog Ingestion - Hardened (A8L1TbEsqHY6d4dH)
+20. UYSP-Health-Monitor (wNvsJojWTr0U2ypz) - Old version
+
+All workflows downloaded via n8n MCP tools.
+All can be re-imported to n8n if needed.
+
+ARCHIVED WORKFLOWS: Excluded (not backed up)
