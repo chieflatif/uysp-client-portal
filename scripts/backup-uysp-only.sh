@@ -29,13 +29,37 @@ echo "📁 Backup Dir: $BACKUP_DIR"
 mkdir -p "$BACKUP_DIR"
 
 # Define ONLY the UYSP workflows we need to backup
+# Updated: ALL 20 non-archived workflows (10 ACTIVE + 10 INACTIVE)
+# Project: UYSP Lead Qualification Agent (H4VRaaZhd8VKQANf)
+# Excludes: ~17 archived workflows
 UYSP_WORKFLOWS=(
-  "UAZWVFzMrJaVbvGM:UYSP-SMS-Scheduler-v2:PRIMARY"
-  "bA3vEZvfokE84AGY:UYSP-Switchy-Click-Tracker:PRIMARY" 
-  "LiVE3BlxsFkHhG83:UYSP-Calendly-Booked:PRIMARY"
-  "pQhwZYwBXbcARUzp:UYSP-SMS-Inbound-STOP:SECONDARY"
-  "vA0Gkp2BrxKppuSu:UYSP-ST-Delivery-V2:SECONDARY"
-  "qMXmmw4NUCh1qu8r:UYSP-Backlog-Ingestion:SECONDARY"
+  # ═══════════════════════════════════════════════════════════
+  # ACTIVE PRODUCTION WORKFLOWS (10)
+  # ═══════════════════════════════════════════════════════════
+  "3aOAIMbsSZYoeOpW:safety-check-module-v2:ACTIVE"
+  "3nA0asUTWdgYuCMf:UYSP-Engagement-Score-Calculator-v1:ACTIVE"
+  "5xW2QG8x2RFQP8kx:UYSP-Daily-Monitoring:ACTIVE"
+  "CmaISo2tBtYRqNs0:UYSP-SimpleTexting-Reply-Handler:ACTIVE"
+  "IzWhzHKBdA6JZWAH:UYSP-AI-Reply-Sentiment-v2:ACTIVE"
+  "LiVE3BlxsFkHhG83:UYSP-Calendly-Booked:ACTIVE"
+  "MLnKXQYtfJDk9HXI:UYSP-Workflow-Health-Monitor-v2:ACTIVE"
+  "kJMMZ10anu4NqYUL:UYSP-Kajabi-SMS-Scheduler:ACTIVE"
+  "pQhwZYwBXbcARUzp:UYSP-SMS-Inbound-STOP:ACTIVE"
+  "vA0Gkp2BrxKppuSu:UYSP-ST-Delivery V2:ACTIVE"
+  
+  # ═══════════════════════════════════════════════════════════
+  # INACTIVE WORKFLOWS (10) - NOT ARCHIVED, STILL CRITICAL
+  # ═══════════════════════════════════════════════════════════
+  "0scB7vqk8QHp8s5b:UYSP-Kajabi-API-Polling:INACTIVE"
+  "2cdgp1qr9tXlONVL:UYSP-Realtime-Ingestion_Gabriel:INACTIVE"
+  "39yskqJT3V6enem2:UYSP-Twilio-Status-Callback:INACTIVE"
+  "A8L1TbEsqHY6d4dH:UYSP Backlog Ingestion - Hardened:INACTIVE"
+  "AlOblqD8q1G7Iuq8:UYSP-AI-Inbound-Handler:INACTIVE"
+  "AvawSqsjApV43lAr:UYSP-Twilio-Click-Tracker:INACTIVE"
+  "UAZWVFzMrJaVbvGM:UYSP-Message-Scheduler-v2:INACTIVE"
+  "e9s0pmmlZfrZ3qjD:UYSP-Kajabi-Realtime-Ingestion:INACTIVE"
+  "ujkG0KbTYBIubxgK:UYSP-Twilio-Inbound-Messages:INACTIVE"
+  "wNvsJojWTr0U2ypz:UYSP-Health-Monitor:INACTIVE"
 )
 
 export_workflow() {
@@ -47,7 +71,7 @@ export_workflow() {
   local output_file="${BACKUP_DIR}/${priority}-${workflow_name}-${TIMESTAMP}.json"
   
   echo "🔄 Exporting: $workflow_name ($workflow_id)"
-  echo "   📋 Priority: $priority"
+  echo "   📋 Status: $priority"
   
   # Export via n8n API
   http_code=$(curl -sS -w "%{http_code}" \
@@ -95,18 +119,38 @@ if [ "$SUCCESS_COUNT" -eq "$TOTAL_COUNT" ]; then
   git add "$BACKUP_DIR"/*
   
   # Create commit
-  git commit -m "backup: UYSP Core Workflows - Targeted Export $TIMESTAMP
+  git commit -m "backup: UYSP Complete Workflow Export - ALL Non-Archived Workflows
 
-🎯 UYSP TARGETED BACKUP (Core Workflows Only)
+🎯 COMPLETE UYSP BACKUP (All 20 Non-Archived Workflows)
 📦 Workflows: $SUCCESS_COUNT/$TOTAL_COUNT exported successfully
 📅 Timestamp: $TIMESTAMP
 
-🔴 PRIMARY WORKFLOWS (Production Critical):
-$(ls "$BACKUP_DIR"/PRIMARY-* 2>/dev/null | xargs -I {} basename {} | sed 's/^/   ⭐ /')
+🟢 ACTIVE PRODUCTION WORKFLOWS (10):
+- safety-check-module-v2
+- UYSP-Engagement-Score-Calculator-v1
+- UYSP-Daily-Monitoring
+- UYSP-SimpleTexting-Reply-Handler
+- UYSP-AI-Reply-Sentiment-v2
+- UYSP-Calendly-Booked
+- UYSP-Workflow-Health-Monitor-v2
+- UYSP-Kajabi-SMS-Scheduler
+- UYSP-SMS-Inbound-STOP
+- UYSP-ST-Delivery V2
 
-🟡 SECONDARY WORKFLOWS (Supporting):
-$(ls "$BACKUP_DIR"/SECONDARY-* 2>/dev/null | xargs -I {} basename {} | sed 's/^/   📄 /')
+⚪ INACTIVE WORKFLOWS (10) - NOT ARCHIVED, STILL CRITICAL:
+- UYSP-Kajabi-API-Polling (Critical: intentionally inactive)
+- UYSP-Realtime-Ingestion_Gabriel
+- UYSP-Twilio-Status-Callback
+- UYSP Backlog Ingestion - Hardened
+- UYSP-AI-Inbound-Handler (Two-way SMS: Twilio)
+- UYSP-Twilio-Click-Tracker
+- UYSP-Message-Scheduler-v2 (Batch control: intentionally inactive)
+- UYSP-Kajabi-Realtime-Ingestion
+- UYSP-Twilio-Inbound-Messages
+- UYSP-Health-Monitor (Old version)
 
+📍 Scope: Project H4VRaaZhd8VKQANf (UYSP Lead Qualification Agent)
+🚫 Excludes: ~17 archived/historical workflows
 🤖 Exported by: backup-uysp-only.sh
 ⏰ Completed: $(date)"
   
