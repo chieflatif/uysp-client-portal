@@ -58,7 +58,7 @@
 
 | Component | Value | Status |
 |-----------|-------|--------|
-| Account SID | ACd44931e5872ddece00ea993d71170542 | ✅ Active |
+| Account SID | AC[REDACTED] | ✅ Active |
 | Auth Token | [Stored securely] | ✅ Configured |
 | Phone Number | +1 (818) 699-0998 | ✅ Purchased |
 | Phone Verified | +1 (831) 999-0500 | ✅ Verified |

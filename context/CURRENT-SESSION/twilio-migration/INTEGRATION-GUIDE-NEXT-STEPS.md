@@ -133,7 +133,7 @@ Webhook → Parse → Find Lead → Get Settings
 2. Name: "Send Auto-Response"
 3. Configure:
    - **Method**: POST
-   - **URL**: `https://api.twilio.com/2010-04-01/Accounts/ACd44931e5872ddece00ea993d71170542/Messages.json`
+   - **URL**: `https://api.twilio.com/2010-04-01/Accounts/AC[REDACTED]/Messages.json`
    - **Authentication**: Generic Credential → HTTP Basic Auth
    - **Credential**: Twilio API
    - **Send Body**: Yes

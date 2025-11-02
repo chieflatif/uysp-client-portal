@@ -123,7 +123,7 @@
 
 ### **Configuration:**
 
-✅ Twilio Account: ACd44931e5872ddece00ea993d71170542  
+✅ Twilio Account: AC[REDACTED]  
 ✅ Phone Number: +1 (818) 699-0998  
 ✅ Verified Number: +1 (831) 999-0500  
 ✅ n8n Credentials: Configured (ID: uDkN6w78C9kmbzNM)  

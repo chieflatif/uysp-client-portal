@@ -20,7 +20,7 @@
 
 **What Changed:**
 1. **"SimpleTexting HTTP" → "Twilio SMS HTTP"**
-   - URL: `https://api.twilio.com/2010-04-01/Accounts/ACd44931e5872ddece00ea993d71170542/Messages.json`
+   - URL: `https://api.twilio.com/2010-04-01/Accounts/AC[REDACTED]/Messages.json`
    - Authentication: HTTP Basic Auth (awaiting credential binding)
    - Body format: Form-encoded (not JSON)
    - Parameters: `To`, `From`, `Body` (Twilio format)
@@ -41,7 +41,7 @@
 **Location**: `# Kajabi Integration - Environment Varia.ini`
 
 ```ini
-TWILIO_ACCOUNT_SID=ACd44931e5872ddece00ea993d71170542
+TWILIO_ACCOUNT_SID=AC[REDACTED]
 TWILIO_AUTH_TOKEN=1f45d62aa4c2f61bdedaae490989bc06
 TWILIO_PHONE_NUMBER=+18186990998
 TWILIO_TEST_RECIPIENT=+18319990500
@@ -61,7 +61,7 @@ TWILIO_TEST_RECIPIENT=+18319990500
 4. **Search for**: "HTTP Basic Auth"
 5. **Fill in:**
    - **Name**: `Twilio API`
-   - **Username**: `ACd44931e5872ddece00ea993d71170542`
+   - **Username**: `AC[REDACTED]`
    - **Password**: `1f45d62aa4c2f61bdedaae490989bc06`
 6. **Click "Save"**
 

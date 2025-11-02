@@ -9,7 +9,7 @@
  * Safety: Only modifies records where names are identical (clear data corruption).
  */
 
-const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN || 'patgvEZdGWvPXX1bV.a9fd3bcf38be26c0d7d5b24d11aaf0b00e4a71ce5a0c97e4f98ce5e6fdb81f8f';
+const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const BASE_ID = 'app4wIsBfpJTg7pWS';
 const TABLE_ID = 'tblYUvhGADerbD8EO';
 
