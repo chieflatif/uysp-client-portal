@@ -5,17 +5,18 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { theme } from '@/theme';
-import { 
-  TrendingUp, 
-  Users, 
-  Target, 
+import {
+  TrendingUp,
+  Users,
+  Target,
   Calendar,
   MousePointerClick,
-  ArrowRight, 
-  Loader2, 
+  ArrowRight,
+  Loader2,
   AlertCircle,
   Clock,
-  Briefcase
+  Briefcase,
+  Megaphone
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -35,6 +36,14 @@ interface ActivityEntry {
   leadId: string | null;
 }
 
+interface CampaignSummary {
+  id: string;
+  name: string;
+  campaignType: 'Webinar' | 'Standard';
+  totalLeads: number;
+  isPaused: boolean;
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -46,6 +55,7 @@ export default function DashboardPage() {
     clickedLeads: 0,
   });
   const [recentActivity, setRecentActivity] = useState<ActivityEntry[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,6 +113,29 @@ export default function DashboardPage() {
         } catch (activityError) {
           console.error('Error fetching activity:', activityError);
           // Don't fail the whole dashboard if activity fails
+        }
+
+        // Fetch campaigns
+        try {
+          const campaignsResponse = await fetch('/api/admin/campaigns');
+          if (campaignsResponse.ok) {
+            const campaignsData = await campaignsResponse.json();
+            const allCampaigns = campaignsData.campaigns || [];
+
+            // Count leads per campaign
+            const campaignsWithCounts = allCampaigns.map((campaign: any) => ({
+              id: campaign.id,
+              name: campaign.name,
+              campaignType: campaign.campaignType,
+              isPaused: campaign.isPaused,
+              totalLeads: leads.filter((l: any) => l.campaignLinkId === campaign.id).length,
+            }));
+
+            setCampaigns(campaignsWithCounts);
+          }
+        } catch (campaignError) {
+          console.error('Error fetching campaigns:', campaignError);
+          // Don't fail the whole dashboard if campaigns fail
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Failed to load dashboard';
@@ -275,6 +308,83 @@ export default function DashboardPage() {
           </button>
         </div>
 
+        {/* Campaign Overview */}
+        <div className={theme.components.card}>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className={`text-xl font-bold ${theme.core.white} flex items-center gap-2`}>
+              <Megaphone className={`w-5 h-5 ${theme.accents.tertiary.class}`} />
+              Campaign <span className={theme.accents.primary.class}>Overview</span>
+            </h2>
+            <Link
+              href="/admin/campaigns"
+              className={`text-sm ${theme.accents.tertiary.class} hover:text-cyan-300 transition flex items-center gap-1`}
+            >
+              View All Campaigns <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {campaigns.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {campaigns.slice(0, 6).map((campaign) => (
+                <button
+                  key={campaign.id}
+                  onClick={() => router.push(`/admin/campaigns`)}
+                  className={`p-4 rounded-lg border-2 ${
+                    campaign.isPaused
+                      ? 'border-gray-700 bg-gray-800/50'
+                      : campaign.campaignType === 'Webinar'
+                      ? 'border-purple-500/30 bg-purple-500/5 hover:border-purple-500/50'
+                      : 'border-blue-500/30 bg-blue-500/5 hover:border-blue-500/50'
+                  } transition text-left`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <p className={`font-semibold ${campaign.isPaused ? theme.core.bodyText : theme.core.white} line-clamp-1`}>
+                        {campaign.name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded ${
+                            campaign.campaignType === 'Webinar'
+                              ? 'bg-purple-500/20 text-purple-300'
+                              : 'bg-blue-500/20 text-blue-300'
+                          }`}
+                        >
+                          {campaign.campaignType}
+                        </span>
+                        {campaign.isPaused && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-gray-600 text-gray-300">
+                            Paused
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-3">
+                    <Users className={`w-4 h-4 ${theme.accents.tertiary.class}`} />
+                    <span className={`text-2xl font-bold ${theme.core.white}`}>
+                      {campaign.totalLeads}
+                    </span>
+                    <span className={`text-xs ${theme.core.bodyText}`}>leads</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Megaphone className={`w-12 h-12 ${theme.core.bodyText} mx-auto mb-3 opacity-30`} />
+              <p className={`${theme.core.bodyText} mb-2`}>No campaigns yet</p>
+              <Link
+                href="/admin/campaigns"
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${theme.accents.primary.bgClass} text-white hover:bg-green-600 transition text-sm font-medium`}
+              >
+                <Megaphone className="w-4 h-4" />
+                Create Your First Campaign
+              </Link>
+            </div>
+          )}
+        </div>
+
         {/* Quick Actions */}
         <div className={theme.components.card}>
           <h2 className={`text-xl font-bold ${theme.core.white} mb-4`}>Quick Actions</h2>
@@ -288,6 +398,16 @@ export default function DashboardPage() {
                 <p className={`text-sm ${theme.core.bodyText}`}>Browse and manage leads</p>
               </div>
               <ArrowRight className="w-5 h-5 text-cyan-400" />
+            </Link>
+            <Link
+              href="/admin/campaigns"
+              className={`flex items-center justify-between p-4 rounded-lg border border-gray-700 hover:border-purple-500 hover:bg-gray-800 transition ${theme.core.bodyText}`}
+            >
+              <div>
+                <p className={`font-medium ${theme.core.white}`}>Campaigns</p>
+                <p className={`text-sm ${theme.core.bodyText}`}>Manage webinar & standard campaigns</p>
+              </div>
+              <Megaphone className="w-5 h-5 text-purple-500" />
             </Link>
             <Link
               href="/analytics"
