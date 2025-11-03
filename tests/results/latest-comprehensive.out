@@ -1,0 +1,28 @@
+
+> uysp-lead-qualification@1.0.0 test:comprehensive
+> node tests/comprehensive/full-suite.js
+
+
+=== Running set: shared ===
+[OK] BC001-bool-yes.json -> 200
+[OK] FV001-standard-kajabi.json -> 200
+[OK] FV002-all-caps.json -> 200
+[OK] Test-matrix.json -> 500
+
+=== Running set: phase-2D ===
+[OK] PDL001-sales-executive.json -> 200
+[OK] PDL002-tech-professional.json -> 200
+[OK] PDL003-non-sales.json -> 200
+[OK] test-payloads-2d.json -> 500
+[OK] test-payloads-2d.json -> 500
+
+=== Running set: phase-2C ===
+[OK] hunter-pdl-apollo.json -> 200
+[OK] hunter-success.json -> 200
+[OK] hunter-to-pdl.json -> 200
+
+=== Running set: phase-2E ===
+[OK] apollo-scenarios.json -> 200
+[OK] apollo-scenarios.json -> 200
+
+Saved results: /Users/latifhorst/cursor projects/UYSP Lead Qualification V1/tests/results/full-suite-2025-08-13T11:04:38.508Z.json

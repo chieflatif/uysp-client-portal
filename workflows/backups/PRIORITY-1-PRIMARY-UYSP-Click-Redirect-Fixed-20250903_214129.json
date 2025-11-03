@@ -1,0 +1,292 @@
+{
+  "createdAt": "2025-09-04T00:20:28.779Z",
+  "updatedAt": "2025-09-04T02:31:35.292Z",
+  "id": "YDMeulcYNT2eFqGh",
+  "name": "UYSP-Click-Redirect-Fixed",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        -80
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "click",
+        "responseMode": "responseNode",
+        "responseNode": "Respond",
+        "options": {}
+      },
+      "webhookId": "a14a0b43-6dfa-43b7-b896-8772b434a5ed"
+    },
+    {
+      "id": "verify",
+      "name": "Verify Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        -80
+      ],
+      "parameters": {
+        "jsCode": "// Verify minimal token from query param t\nconst crypto = require('crypto');\nconst secret = 'b5704ee85c253bb98dfe2cb6bab76646b3969866a20db6fdf77880ea2b295c32';\n\nconst q = $json.query || {};\nconst token = q.t || '';\nif (!token) {\n  return { json: { ok:false, error:'missing_token', statusCode:400 } };\n}\nlet payloadB64 = '';\nlet sigHex = '';\ntry {\n  const decoded = Buffer.from(token, 'base64url').toString('utf8');\n  const parts = decoded.split('.');\n  if (parts.length !== 2) throw new Error('invalid_token_parts');\n  payloadB64 = parts[0];\n  sigHex = parts[1];\n} catch (e) {\n  return { json: { ok:false, error:'invalid_token', statusCode:400 } };\n}\nconst expectSig = crypto.createHmac('sha256', secret).update(payloadB64).digest('hex');\nif (expectSig !== sigHex) {\n  return { json: { ok:false, error:'bad_signature', statusCode:400 } };\n}\nlet payload;\ntry {\n  payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString('utf8'));\n} catch (e) {\n  return { json: { ok:false, error:'bad_payload', statusCode:400 } };\n}\nif (!payload.exp || Date.now()/1000 > Number(payload.exp)) {\n  return { json: { ok:false, error:'expired', statusCode:410 } };\n}\nconst leadId = payload.leadId || '';\nconst campaignId = payload.campaignId || '';\nconst redirectUrl = 'https://calendly.com/rebel-rebelhq/1-2-1-latif';\nreturn { json: { ok:true, leadId, campaignId, redirectUrl } };"
+      }
+    },
+    {
+      "id": "findAudit",
+      "name": "Find Audit",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        -80
+      ],
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "filterByFormula": "={{ \"{Lead Record ID}='\" + $json.leadId + \"'\" }}",
+        "options": {
+          "sort": [
+            {
+              "field": "Sent At",
+              "direction": "desc"
+            }
+          ],
+          "maxRecords": 1
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "id": "pick",
+      "name": "Pick First",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        -80
+      ],
+      "parameters": {
+        "jsCode": "const items = $items('Find Audit', 0) || [];\nif (!items.length) {\n  return [{ json: { error: 'not_found', statusCode:204 } }];\n}\nconst rec = items[0].json;\nreturn [{ json: { id: rec.id } }];"
+      }
+    },
+    {
+      "id": "update",
+      "name": "Update Audit",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -80
+      ],
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app6cU9HecxLpgT0P"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "Status": "={{ 'Clicked' }}",
+            "Clicked": "={{ true }}",
+            "Clicked At": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -80
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseCode": 200,
+        "responseHeaders": {
+          "entries": [
+            {
+              "name": "Content-Type",
+              "value": "text/html"
+            },
+            {
+              "name": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            },
+            {
+              "name": "X-Frame-Options",
+              "value": "ALLOWALL"
+            },
+            {
+              "name": "Referrer-Policy",
+              "value": "no-referrer"
+            }
+          ]
+        },
+        "responseBody": "=<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"refresh\" content=\"0; url={{ $items('Verify Token', 0)[0].json.redirectUrl }}\">\n<title>Redirecting...</title>\n<script>\n  (function(){\n    var u = {{ $json.stringify($items('Verify Token', 0)[0].json.redirectUrl) }};\n    try { window.top.location.href = u; } catch(e) {}\n    try { window.location.href = u; } catch(e2) {}\n    setTimeout(function(){ try { window.location.assign(u); } catch(e3) {} }, 200);\n  })();\n</script>\n</head>\n<body style=\"margin:0;padding:0;\">\n<a href=\"{{ $items('Verify Token', 0)[0].json.redirectUrl }}\" style=\"display:block;width:100%;height:100vh;text-indent:-9999px;\">.</a>\n</body>\n</html>"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verify Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Token": {
+      "main": [
+        [
+          {
+            "node": "Find Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Audit": {
+      "main": [
+        [
+          {
+            "node": "Pick First",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick First": {
+      "main": [
+        [
+          {
+            "node": "Update Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Audit": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "5178037e-6156-4d84-b326-b44f4e7dd7fe",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-09-04T00:34:04.152Z",
+      "updatedAt": "2025-09-04T00:34:04.152Z",
+      "role": "workflow:owner",
+      "workflowId": "YDMeulcYNT2eFqGh",
+      "projectId": "H4VRaaZhd8VKQANf",
+      "project": {
+        "createdAt": "2025-07-20T10:20:07.367Z",
+        "updatedAt": "2025-07-20T10:23:14.000Z",
+        "id": "H4VRaaZhd8VKQANf",
+        "name": "UYSP Lead Qualification Agent ",
+        "type": "team",
+        "icon": {
+          "type": "icon",
+          "value": "layer-group"
+        },
+        "description": "Automated lead qualification and SMS outreach system that processes Kajabi form submissions, enriches B2B leads through two-phase qualification, scores them 0-100 using AI, and sends personalized SMS to qualified prospects while maintaining strict compliance and cost controls.",
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-20T10:23:14.911Z",
+            "updatedAt": "2025-07-20T10:23:14.911Z",
+            "role": "project:admin",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "H4VRaaZhd8VKQANf",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-03T22:00:13.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

@@ -1,0 +1,29 @@
+{
+  "baseId": "appuBf0fTe8tp8ZaF",
+  "exportedAt": "2025-07-31T07:40:11.257Z",
+  "exportedBy": "real-n8n-export.sh",
+  "tables": {
+    "People": {
+      "id": "tblSk22Ikg21932uE0",
+      "description": "Main contact storage with normalized fields",
+      "notes": "Session 0 & 1 field normalization complete"
+    },
+    "DND_List": {
+      "id": "tblPV3aierIkDhaAU",
+      "description": "Do Not Disturb phone number registry",
+      "notes": "Session 2 compliance checking"
+    },
+    "Error_Log": {
+      "id": "tblxY1bXzp4tXQ2aP",
+      "description": "Error tracking and debugging",
+      "notes": "Session 1+ comprehensive logging"
+    },
+    "Communications": {
+      "id": "tblCommunications",
+      "description": "SMS and communication audit trail",
+      "notes": "Session 2+ compliance logging"
+    }
+  },
+  "status": "This is a metadata backup - use MCP Airtable tools for full schema export",
+  "instructions": "Run: mcp_airtable_list_tables with detailLevel=full for complete schemas"
+}

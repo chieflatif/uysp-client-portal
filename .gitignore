@@ -1,41 +1,117 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# UYSP Lead Qualification - Comprehensive .gitignore
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
+# Environment and credentials
+.env
+.env.local
+.env.production
+.env.staging
+credentials.json
+**/credentials/
+*.key
 *.pem
+api-keys.json
 
-# debug
+# n8n specific
+*.n8n
+.n8n/
+n8n-data/
+workflows/temp/
+executions/
+
+# Airtable and API secrets
+airtable-credentials.json
+apollo-api-key.txt
+twilio-credentials.json
+openai-api-key.txt
+
+# Backups and temp files
+*.backup
+*.tmp
+*.log
+temp/
+scratch/
+local-only/
+draft/
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if any)
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Python (if any scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
 
-# vercel
-.vercel
+# Sensitive data directories
+**/api-keys/
+**/secrets/
+**/private/
+personal-notes/
+client-data/
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Test data with real info
+tests/real-data/
+tests/production-payloads/
+
+# Local configurations
+config/local.json
+config/development.json
+
+# Webhook test responses
+webhook-responses/
+test-results/real-*
+
+# But include templates and examples
+!*.template
+!*.example
+!environment.template
+!credentials.template
+!config/*.template.json
+
+# Documentation exports
+docs/exports/
+memory_bank/private/
+
+# Backup exclusions
+backups/encrypted/
+backups/production/
+../BACKUP-BEFORE-CLEANUP-20250808_165339/**
+
+# macOS specific
+.AppleDouble
+.LSOverride
+
+# Windows specific
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux specific
+*~
+.fuse_hidden*
+.directory
+.Trash-* # Large backup files
+*.tar.gz
+*.zip
+*.7z

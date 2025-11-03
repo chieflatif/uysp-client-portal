@@ -1,0 +1,236 @@
+{
+  "summary": {
+    "total_tests": 8,
+    "successful_webhooks": 0,
+    "test_categories": {
+      "company_updates": 3,
+      "name_changes": 4,
+      "multi_field_conflicts": 1
+    }
+  },
+  "test_results": [
+    {
+      "test_type": "company_update",
+      "step": 1,
+      "payload": {
+        "name": "Business Owner",
+        "email": "field-conflicts-1754060980@example.com",
+        "company": "Startup Inc",
+        "title": "Founder",
+        "phone": "555-COMPANY",
+        "request_id": "company-001"
+      },
+      "response": {
+        "success": false,
+        "status_code": 404,
+        "error": "{\"code\":404,\"message\":\"The requested webhook \\\"POST kajabi-leads\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflow using the toggle in the top-right of the editor. Note that unlike test URL calls, production URL calls aren't shown on the canvas (only in the executions list)\"}",
+        "response_time": 1.285828
+      },
+      "analysis": {
+        "input_fields": 6,
+        "mapped_fields": 0,
+        "field_mapping_rate": 0,
+        "unmapped_fields": [],
+        "unknown_fields": [],
+        "boolean_conversions": {},
+        "name_splitting": false
+      }
+    },
+    {
+      "test_type": "company_update",
+      "step": 2,
+      "payload": {
+        "name": "Business Owner",
+        "email": "field-conflicts-1754060980@example.com",
+        "company": "Growth Corp",
+        "title": "CEO",
+        "phone": "555-COMPANY",
+        "request_id": "company-002"
+      },
+      "response": {
+        "success": false,
+        "status_code": 404,
+        "error": "{\"code\":404,\"message\":\"The requested webhook \\\"POST kajabi-leads\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflow using the toggle in the top-right of the editor. Note that unlike test URL calls, production URL calls aren't shown on the canvas (only in the executions list)\"}",
+        "response_time": 1.048057
+      },
+      "analysis": {
+        "input_fields": 6,
+        "mapped_fields": 0,
+        "field_mapping_rate": 0,
+        "unmapped_fields": [],
+        "unknown_fields": [],
+        "boolean_conversions": {},
+        "name_splitting": false
+      }
+    },
+    {
+      "test_type": "company_update",
+      "step": 3,
+      "payload": {
+        "name": "Business Owner",
+        "email": "field-conflicts-1754060980@example.com",
+        "company": "Enterprise LLC",
+        "title": "Chief Executive",
+        "phone": "555-COMPANY",
+        "request_id": "company-003"
+      },
+      "response": {
+        "success": false,
+        "status_code": 404,
+        "error": "{\"code\":404,\"message\":\"The requested webhook \\\"POST kajabi-leads\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflow using the toggle in the top-right of the editor. Note that unlike test URL calls, production URL calls aren't shown on the canvas (only in the executions list)\"}",
+        "response_time": 1.079579
+      },
+      "analysis": {
+        "input_fields": 6,
+        "mapped_fields": 0,
+        "field_mapping_rate": 0,
+        "unmapped_fields": [],
+        "unknown_fields": [],
+        "boolean_conversions": {},
+        "name_splitting": false
+      }
+    },
+    {
+      "test_type": "name_change",
+      "step": 1,
+      "payload": {
+        "email": "name-changes-1754060989@example.com",
+        "phone": "555-NAMES",
+        "company": "Name Testing Corp",
+        "request_id": "name-test-001",
+        "name": "John Smith"
+      },
+      "response": {
+        "success": false,
+        "status_code": 404,
+        "error": "{\"code\":404,\"message\":\"The requested webhook \\\"POST kajabi-leads\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflow using the toggle in the top-right of the editor. Note that unlike test URL calls, production URL calls aren't shown on the canvas (only in the executions list)\"}",
+        "response_time": 1.11633
+      },
+      "analysis": {
+        "input_fields": 5,
+        "mapped_fields": 0,
+        "field_mapping_rate": 0,
+        "unmapped_fields": [],
+        "unknown_fields": [],
+        "boolean_conversions": {},
+        "name_splitting": false
+      }
+    },
+    {
+      "test_type": "name_change",
+      "step": 2,
+      "payload": {
+        "email": "name-changes-1754060989@example.com",
+        "phone": "555-NAMES",
+        "company": "Name Testing Corp",
+        "request_id": "name-test-002",
+        "name": "Jonathan Smith-Johnson"
+      },
+      "response": {
+        "success": false,
+        "status_code": 404,
+        "error": "{\"code\":404,\"message\":\"The requested webhook \\\"POST kajabi-leads\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflow using the toggle in the top-right of the editor. Note that unlike test URL calls, production URL calls aren't shown on the canvas (only in the executions list)\"}",
+        "response_time": 1.098277
+      },
+      "analysis": {
+        "input_fields": 5,
+        "mapped_fields": 0,
+        "field_mapping_rate": 0,
+        "unmapped_fields": [],
+        "unknown_fields": [],
+        "boolean_conversions": {},
+        "name_splitting": false
+      }
+    },
+    {
+      "test_type": "name_change",
+      "step": 3,
+      "payload": {
+        "email": "name-changes-1754060989@example.com",
+        "phone": "555-NAMES",
+        "company": "Name Testing Corp",
+        "request_id": "name-test-003",
+        "name": "Jon S. Johnson III"
+      },
+      "response": {
+        "success": false,
+        "status_code": 404,
+        "error": "{\"code\":404,\"message\":\"The requested webhook \\\"POST kajabi-leads\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflow using the toggle in the top-right of the editor. Note that unlike test URL calls, production URL calls aren't shown on the canvas (only in the executions list)\"}",
+        "response_time": 1.094585
+      },
+      "analysis": {
+        "input_fields": 5,
+        "mapped_fields": 0,
+        "field_mapping_rate": 0,
+        "unmapped_fields": [],
+        "unknown_fields": [],
+        "boolean_conversions": {},
+        "name_splitting": false
+      }
+    },
+    {
+      "test_type": "name_change",
+      "step": 4,
+      "payload": {
+        "email": "name-changes-1754060989@example.com",
+        "phone": "555-NAMES",
+        "company": "Name Testing Corp",
+        "request_id": "name-test-004",
+        "first_name": "Johnny",
+        "last_name": "Smith"
+      },
+      "response": {
+        "success": false,
+        "status_code": 404,
+        "error": "{\"code\":404,\"message\":\"The requested webhook \\\"POST kajabi-leads\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflow using the toggle in the top-right of the editor. Note that unlike test URL calls, production URL calls aren't shown on the canvas (only in the executions list)\"}",
+        "response_time": 1.307726
+      },
+      "analysis": {
+        "input_fields": 6,
+        "mapped_fields": 0,
+        "field_mapping_rate": 0,
+        "unmapped_fields": [],
+        "unknown_fields": [],
+        "boolean_conversions": {},
+        "name_splitting": false
+      }
+    },
+    {
+      "test_type": "multi_field_conflict",
+      "original_payload": {
+        "name": "Sarah Wilson",
+        "email": "multi-conflict-1754061002@example.com",
+        "phone": "555-111-0000",
+        "company": "Original Corp",
+        "title": "Manager",
+        "source_form": "webinar-1",
+        "interested_in_coaching": "yes",
+        "request_id": "multi-001"
+      },
+      "conflict_payload": {
+        "name": "Sarah W. Johnson",
+        "email": "multi-conflict-1754061002@example.com",
+        "phone": "555-222-9999",
+        "company": "New Enterprise Inc",
+        "title": "Senior Director",
+        "source_form": "download-form",
+        "interested_in_coaching": "no",
+        "request_id": "multi-002"
+      },
+      "original_response": {
+        "success": false,
+        "status_code": 404,
+        "error": "{\"code\":404,\"message\":\"The requested webhook \\\"POST kajabi-leads\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflow using the toggle in the top-right of the editor. Note that unlike test URL calls, production URL calls aren't shown on the canvas (only in the executions list)\"}",
+        "response_time": 1.178718
+      },
+      "conflict_response": {
+        "success": false,
+        "status_code": 404,
+        "error": "{\"code\":404,\"message\":\"The requested webhook \\\"POST kajabi-leads\\\" is not registered.\",\"hint\":\"The workflow must be active for a production URL to run successfully. You can activate the workflow using the toggle in the top-right of the editor. Note that unlike test URL calls, production URL calls aren't shown on the canvas (only in the executions list)\"}",
+        "response_time": 1.097863
+      }
+    }
+  ],
+  "timestamp": "2025-08-01-17-10-06",
+  "test_type": "comprehensive_field_conflict_testing"
+}

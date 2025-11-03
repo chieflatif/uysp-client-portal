@@ -1,0 +1,249 @@
+{
+  "name": "UYSP-Calendly-Booked",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "calendly",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "wb",
+      "name": "Webhook (Calendly)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        16
+      ],
+      "webhookId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const raw = $json || {};\nconst body = raw.body || raw;\nconst payload = body.payload || body || {};\n\nconst email = (payload?.invitee?.email || payload?.email || '').toString().trim().toLowerCase();\n\nlet phoneRaw = '';\nif (payload?.invitee?.phone_number) {\n  phoneRaw = String(payload.invitee.phone_number);\n} else if (Array.isArray(payload?.questions_and_answers)) {\n  const qa = payload.questions_and_answers.find(q =>\n    String(q?.question || '').toLowerCase().includes('phone')\n  );\n  phoneRaw = qa?.answer ? String(qa.answer) : '';\n}\nconst phoneDigits = phoneRaw.replace(/\\D/g, '').replace(/^1(?=\\d{10}$)/, '');\n\nconst eventId = (payload?.event_uuid || payload?.event || payload?.event_id || '').toString();\nconst bookedAt = payload?.start_time || payload?.time || new Date().toISOString();\n\nif (!email && !phoneDigits) return null;\nreturn { json: { email, phoneDigits, eventId, bookedAt } };"
+      },
+      "id": "parse",
+      "name": "Parse Calendly",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "=={{`LOWER({Email})='${($json.email||'').toLowerCase()}'`}}",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "id": "find",
+      "name": "Find Lead by Email",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        -80
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "Booked": true,
+            "Booked At": "={{ $('Parse Calendly').item.json.bookedAt }}",
+            "SMS Stop": true,
+            "SMS Stop Reason": "BOOKED",
+            "Processing Status": "Completed",
+            "Company Score Component": 0,
+            "Role Score Component": 0,
+            "Dynamic Signals Score": 0,
+            "SMS Sequence Position": 0,
+            "SMS Sent Count": 0,
+            "SMS Cost": 0,
+            "Data Quality Score": 0,
+            "Total Processing Cost": 0,
+            "Processing Duration": 0,
+            "Click Count": 0
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "update",
+      "name": "Mark Booked",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        96,
+        -80
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return { json: { ok: true } }"
+      },
+      "id": "resp",
+      "name": "Respond 200",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C08R958LZQT",
+          "mode": "list",
+          "cachedResultName": "uysp-debug"
+        },
+        "text": "CALENDLY BOOKED: {{$items('Parse Calendly',0)[$itemIndex].json.email}} / {{$items('Parse Calendly',0)[$itemIndex].json.phoneDigits}}\nAt: {{$items('Parse Calendly',0)[$itemIndex].json.bookedAt}}",
+        "otherOptions": {}
+      },
+      "id": "slackBooked",
+      "name": "Booked Notify",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -352,
+        112
+      ],
+      "webhookId": "2a354fd6-637a-4b5e-b3b2-2a532bc628b6",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// FIXED: Calendly Booking Guard Node\n// PURPOSE: Validate exactly one lead found, allow ALL bookings\n// CHANGES:\n// 1. Fixed return format: { json: lead } not [{ json: lead }]\n// 2. Removed SMS program requirement - record ALL bookings\n// 3. Better error messages for debugging\n\nconst matches = $items('Find Lead by Email', 0);\n\n// Validation 1: Must find at least one record\nif (!matches || matches.length === 0) {\n  throw new Error('Calendly: No matching lead found for email');\n}\n\n// Validation 2: Must find exactly one record (no ambiguous matches)\nif (matches.length > 1) {\n  throw new Error(`Calendly: Ambiguous match (${matches.length} records found)`);\n}\n\n// Get the lead data\nconst lead = matches[0].json;\n\n// SUCCESS: Return the lead for booking update\n// NOTE: We record ALL bookings, regardless of SMS program status\nreturn { json: lead };"
+      },
+      "id": "cd7f9535-7b61-4442-8ef9-5ef824db84f0",
+      "name": "Guard — One Record + Recently Messaged",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -80
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook (Calendly)": {
+      "main": [
+        [
+          {
+            "node": "Parse Calendly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Calendly": {
+      "main": [
+        [
+          {
+            "node": "Find Lead by Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Booked Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booked Notify": {
+      "main": [
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Lead by Email": {
+      "main": [
+        [
+          {
+            "node": "Guard — One Record + Recently Messaged",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guard — One Record + Recently Messaged": {
+      "main": [
+        [
+          {
+            "node": "Mark Booked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "versionId": "77b0533f-0597-4d4a-9dad-517aa3f5cb76",
+  "id": "LiVE3BlxsFkHhG83",
+  "meta": {
+    "instanceId": "rebelhq.app.n8n.cloud"
+  },
+  "tags": []
+}
+

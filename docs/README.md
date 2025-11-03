@@ -1,27 +1,13 @@
-# Documentation
+# UYSP Documentation
 
-This folder contains all project documentation organized by type.
+This directory contains all documentation for the UYSP Lead Qualification V1 project.
 
-## Folder Structure
+## Quick Links
 
-- **session-reports/** - Session completion reports and development logs
-- **handoffs/** - Handoff documents for between-session context
-- **quality/** - Quality metrics and validation reports
-- **progress/** - Development progress tracking
-
-## Quick Navigation
-
-- 📈 **Progress**: See [progress/PROGRESS.md](progress/PROGRESS.md)
-- 📋 **Latest Session**: [session-reports/](session-reports/)
-- 🤝 **Next Steps**: [handoffs/](handoffs/)
-- 📊 **Quality**: [quality/](quality/)
-
-## Naming Convention
-
-Documents are named with date prefix for easy sorting:
-- `YYYY-MM-DD-descriptive-name.md`
-- Example: `2025-10-19-week1-completion.md`
-
----
-
-**Last Updated**: 2025-10-19
+-   **Project SSOT (status, decisions, priorities):** [memory_bank/active_context.md](../memory_bank/active_context.md)
+-   **Project Backlog & Roadmap:** [memory_bank/task_management.md](../memory_bank/task_management.md)
+ -   **Roadmap (features only):** [memory_bank/roadmap.md](../memory_bank/roadmap.md)
+-   **Current Session Guide:** [context/CURRENT-SESSION/SESSION-GUIDE.md](../context/CURRENT-SESSION/SESSION-GUIDE.md)
+-   **Testing Guide:** [docs/testing/USER-INDEPENDENT-VERIFICATION-GUIDE.md](./testing/USER-INDEPENDENT-VERIFICATION-GUIDE.md)
+-   **Clay Gotchas (active reference):** [docs/platform-gotchas/CLAY-PLATFORM-GOTCHAS-COMPLETE.md](./platform-gotchas/CLAY-PLATFORM-GOTCHAS-COMPLETE.md)
+-   **Airtable Schema (with Clay fields):** [docs/architecture/AIRTABLE-SCHEMA.md](./architecture/AIRTABLE-SCHEMA.md)

@@ -1,0 +1,421 @@
+{
+  "name": "UYSP-Client-Call-Ingestion",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "client-call",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (Notion)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "client-call-ingestion"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract data from Notion webhook payload\nconst pageData = $input.item.json;\n\n// Helper function to extract text from Notion rich_text fields\nfunction getTextValue(property) {\n  if (!property) return '';\n  \n  if (property.title && property.title.length > 0) {\n    return property.title[0].plain_text || '';\n  }\n  if (property.rich_text && property.rich_text.length > 0) {\n    return property.rich_text.map(t => t.plain_text).join('') || '';\n  }\n  if (property.url) {\n    return property.url;\n  }\n  return '';\n}\n\n// Extract date\nfunction getDateValue(property) {\n  if (!property || !property.date) return null;\n  return property.date.start;\n}\n\n// Normalize client name\nfunction normalizeClientName(name) {\n  return name\n    .trim()\n    .replace(/\\s+/g, ' ')\n    .split(' ')\n    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())\n    .join(' ');\n}\n\nconst props = pageData.properties;\n\nconst clientName = normalizeClientName(getTextValue(props['Client Name']));\n\n// Validate required fields\nif (!clientName || clientName.length < 2) {\n  throw new Error('Client Name is required and must be at least 2 characters');\n}\n\nconst callDate = getDateValue(props['Call Date']);\nif (!callDate) {\n  throw new Error('Call Date is required');\n}\n\nconst executiveSummary = getTextValue(props['Executive Summary']);\nif (!executiveSummary || executiveSummary.length < 10) {\n  console.warn('⚠️ Executive Summary is very short or missing');\n}\n\nreturn {\n  json: {\n    // Notion metadata\n    notionPageId: pageData.id,\n    notionDatabaseId: pageData.parent.database_id,\n    \n    // Core call data\n    clientName: clientName,\n    callDate: callDate,\n    \n    // Call content\n    executiveSummary: executiveSummary,\n    topPriorities: getTextValue(props['Top Priorities']),\n    keyDecisions: getTextValue(props['Key Decisions']),\n    blockers: getTextValue(props['Blockers']),\n    nextSteps: getTextValue(props['Next Steps']),\n    \n    // Additional fields\n    attendees: getTextValue(props['Attendees']),\n    recordingUrl: getTextValue(props['Call Recording URL']),\n    fullTranscript: getTextValue(props['Full Transcript']),\n    \n    // Processing metadata\n    processedAt: new Date().toISOString(),\n    processingVersion: '1.0'\n  }\n};"
+      },
+      "id": "parse-notion-data",
+      "name": "Parse Notion Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "application": "{{$credentials.airtableTokenApi.baseId}}",
+        "table": "Clients",
+        "filterByFormula": "=SEARCH(LOWER(\"{{$json.clientName}}\"), LOWER({Client Name})) > 0",
+        "options": {
+          "returnAll": false,
+          "maxRecords": 5
+        }
+      },
+      "id": "find-client",
+      "name": "Find Client in Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "{{$credentials.airtableTokenApi.id}}",
+          "name": "Airtable Personal Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{Object.keys($json).length}}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "if-client-exists",
+      "name": "Client Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "application": "{{$credentials.airtableTokenApi.baseId}}",
+        "table": "Clients",
+        "options": {},
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "Client Name",
+              "fieldValue": "={{$node['Parse Notion Data'].json.clientName}}"
+            },
+            {
+              "fieldId": "Status",
+              "fieldValue": "Active"
+            },
+            {
+              "fieldId": "Source",
+              "fieldValue": "Call Notes"
+            },
+            {
+              "fieldId": "First Contact Date",
+              "fieldValue": "={{$node['Parse Notion Data'].json.callDate}}"
+            },
+            {
+              "fieldId": "Active Client",
+              "fieldValue": true
+            }
+          ]
+        }
+      },
+      "id": "create-new-client",
+      "name": "Create New Client",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 1,
+      "position": [1050, 450],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "{{$credentials.airtableTokenApi.id}}",
+          "name": "Airtable Personal Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Merge client data from either existing or newly created client\nconst parsedData = $node['Parse Notion Data'].json;\nconst ifNode = $node['Client Exists?'];\n\nlet clientId;\nlet clientName;\nlet isNewClient = false;\n\n// Check which branch we came from\nif ($json.id) {\n  // We have client data (either from existing or newly created)\n  clientId = $json.id;\n  clientName = $json.fields['Client Name'];\n  \n  // Determine if this is from the create branch\n  if ($node['Create New Client'].json) {\n    isNewClient = true;\n  }\n} else {\n  throw new Error('No client data found in either branch');\n}\n\nreturn {\n  json: {\n    ...parsedData,\n    clientId: clientId,\n    clientNameFromAirtable: clientName,\n    isNewClient: isNewClient\n  }\n};"
+      },
+      "id": "merge-client-data",
+      "name": "Merge Client Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "application": "{{$credentials.airtableTokenApi.baseId}}",
+        "table": "Client_Call_Notes",
+        "options": {},
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "Client",
+              "fieldValue": "=[\"{{$json.clientId}}\"]"
+            },
+            {
+              "fieldId": "Call Date",
+              "fieldValue": "={{$json.callDate}}"
+            },
+            {
+              "fieldId": "Executive Summary",
+              "fieldValue": "={{$json.executiveSummary}}"
+            },
+            {
+              "fieldId": "Top Priorities",
+              "fieldValue": "={{$json.topPriorities}}"
+            },
+            {
+              "fieldId": "Key Decisions",
+              "fieldValue": "={{$json.keyDecisions}}"
+            },
+            {
+              "fieldId": "Blockers Discussed",
+              "fieldValue": "={{$json.blockers}}"
+            },
+            {
+              "fieldId": "Next Steps",
+              "fieldValue": "={{$json.nextSteps}}"
+            },
+            {
+              "fieldId": "Attendees",
+              "fieldValue": "={{$json.attendees}}"
+            },
+            {
+              "fieldId": "Call Recording URL",
+              "fieldValue": "={{$json.recordingUrl}}"
+            },
+            {
+              "fieldId": "Full Transcript",
+              "fieldValue": "={{$json.fullTranscript}}"
+            },
+            {
+              "fieldId": "Notion Page ID",
+              "fieldValue": "={{$json.notionPageId}}"
+            },
+            {
+              "fieldId": "Is Latest",
+              "fieldValue": true
+            }
+          ]
+        }
+      },
+      "id": "create-call-note",
+      "name": "Create Call Note",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 1,
+      "position": [1450, 300],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "{{$credentials.airtableTokenApi.id}}",
+          "name": "Airtable Personal Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "application": "{{$credentials.airtableTokenApi.baseId}}",
+        "table": "Client_Call_Notes",
+        "filterByFormula": "=AND({Client} = \"{{$node['Merge Client Data'].json.clientId}}\", {Is Latest} = TRUE(), RECORD_ID() != \"{{$json.id}}\")",
+        "options": {
+          "returnAll": true
+        }
+      },
+      "id": "find-old-latest-notes",
+      "name": "Find Old 'Is Latest' Notes",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 1,
+      "position": [1650, 300],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "{{$credentials.airtableTokenApi.id}}",
+          "name": "Airtable Personal Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "application": "{{$credentials.airtableTokenApi.baseId}}",
+        "table": "Client_Call_Notes",
+        "id": "={{$json.id}}",
+        "options": {},
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "Is Latest",
+              "fieldValue": false
+            }
+          ]
+        }
+      },
+      "id": "clear-old-is-latest",
+      "name": "Clear Old 'Is Latest' Flags",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 1,
+      "position": [1850, 300],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "{{$credentials.airtableTokenApi.id}}",
+          "name": "Airtable Personal Access Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "#client-updates",
+        "text": "=🎙️ **New Client Call Processed**\\n\\n**Client:** {{$node['Merge Client Data'].json.clientName}}\\n{{$node['Merge Client Data'].json.isNewClient ? '🆕 _New client created!_\\n' : ''}}**Date:** {{$node['Merge Client Data'].json.callDate}}\\n**Attendees:** {{$node['Merge Client Data'].json.attendees || 'Not specified'}}\\n\\n**Executive Summary:**\\n{{$node['Merge Client Data'].json.executiveSummary.substring(0, 300)}}{{$node['Merge Client Data'].json.executiveSummary.length > 300 ? '...' : ''}}\\n\\n**Top Priorities:**\\n{{$node['Merge Client Data'].json.topPriorities.substring(0, 200)}}{{$node['Merge Client Data'].json.topPriorities.length > 200 ? '...' : ''}}\\n\\n🔗 <https://notion.so/{{$node['Merge Client Data'].json.notionPageId}}|View in Notion>\\n📊 View in Airtable\\n\\n---\\n_Automated via UYSP Client Call Ingestion • {{$node['Merge Client Data'].json.processedAt}}_",
+        "otherOptions": {
+          "mrkdwn": true
+        }
+      },
+      "id": "send-slack-notification",
+      "name": "Send Slack Notification",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [2050, 300],
+      "credentials": {
+        "slackApi": {
+          "id": "{{$credentials.slackApi.id}}",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Return success response to Notion webhook\nreturn {\n  json: {\n    success: true,\n    message: 'Call note processed successfully',\n    client: {\n      id: $node['Merge Client Data'].json.clientId,\n      name: $node['Merge Client Data'].json.clientName,\n      isNew: $node['Merge Client Data'].json.isNewClient\n    },\n    callNote: {\n      id: $node['Create Call Note'].json.id,\n      date: $node['Merge Client Data'].json.callDate,\n      isLatest: true\n    },\n    processedAt: $node['Merge Client Data'].json.processedAt,\n    workflowVersion: '1.0'\n  }\n};"
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2250, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (Notion)": {
+      "main": [
+        [
+          {
+            "node": "Parse Notion Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Notion Data": {
+      "main": [
+        [
+          {
+            "node": "Find Client in Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Client in Airtable": {
+      "main": [
+        [
+          {
+            "node": "Client Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client Exists?": {
+      "main": [
+        [
+          {
+            "node": "Merge Client Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create New Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Client": {
+      "main": [
+        [
+          {
+            "node": "Merge Client Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Client Data": {
+      "main": [
+        [
+          {
+            "node": "Create Call Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Call Note": {
+      "main": [
+        [
+          {
+            "node": "Find Old 'Is Latest' Notes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Old 'Is Latest' Notes": {
+      "main": [
+        [
+          {
+            "node": "Clear Old 'Is Latest' Flags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear Old 'Is Latest' Flags": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Slack Notification": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 60,
+    "timezone": "America/New_York"
+  },
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "your-n8n-instance-id"
+  },
+  "tags": [
+    {
+      "name": "client-management",
+      "id": "1"
+    },
+    {
+      "name": "automation",
+      "id": "2"
+    },
+    {
+      "name": "notion-integration",
+      "id": "3"
+    }
+  ]
+}
+

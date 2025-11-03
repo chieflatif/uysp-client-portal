@@ -1,0 +1,200 @@
+{
+  "export_date": "2025-10-26",
+  "base_id": "app4wIsBfpJTg7pWS",
+  "base_name": "FINAL - UYSP Lead Qualification Table",
+  "table_id": "tblYUvhGADerbD8EO",
+  "table_name": "Leads",
+  "implementation_status": "COMPLETE - CORRECT BASE",
+  "fields_added": 19,
+  "fields_upgraded": 1,
+  "fields_reused": 3,
+  "total_fields": 105,
+  
+  "new_ai_fields": {
+    "conversation_thread": {
+      "field_id": "fldVgupuwf12ELBCp",
+      "display_name": "🤖 conversation_thread",
+      "type": "multilineText",
+      "purpose": "Full conversation history in JSON format (message-by-message)",
+      "n8n_reference": "{{ $json.conversation_thread }}"
+    },
+    "last_message_direction": {
+      "field_id": "fldXBifxn9mfSrdRm",
+      "display_name": "🤖 last_message_direction",
+      "type": "singleSelect",
+      "options": ["outbound", "inbound"],
+      "purpose": "Who sent the last message (safety check)",
+      "n8n_reference": "{{ $json.last_message_direction }}"
+    },
+    "active_conversation": {
+      "field_id": "fldBjOO1cHm4wJ7b0",
+      "display_name": "🤖 active_conversation",
+      "type": "checkbox",
+      "purpose": "Active back-and-forth conversation (safety check)"
+    },
+    "ai_status": {
+      "field_id": "fld45Ud8GLkSjwuQ3",
+      "display_name": "🤖 ai_status",
+      "type": "singleSelect",
+      "options": ["active", "paused", "human_takeover"],
+      "purpose": "AI agent state management",
+      "n8n_reference": "{{ $json.ai_status }}"
+    },
+    "campaign_stage": {
+      "field_id": "fldLCDmedghgEjl8g",
+      "display_name": "🤖 campaign_stage",
+      "type": "singleSelect",
+      "options": ["confirmation", "intent_qualify", "sent_content", "content_followup", "hot_lead", "content_nurture", "paused_by_request", "long_term_nurture"],
+      "purpose": "Current stage in AI conversation flow",
+      "n8n_reference": "{{ $json.campaign_stage }}"
+    },
+    "interest_type": {
+      "field_id": "fldFmtQs0BjmYI09r",
+      "display_name": "🤖 interest_type",
+      "type": "singleSelect",
+      "options": ["content", "coaching", "unknown"],
+      "purpose": "What prospect is interested in",
+      "n8n_reference": "{{ $json.interest_type }}"
+    },
+    "schedule_invalidated": {
+      "field_id": "fldYAqI316p3af44U",
+      "display_name": "🤖 schedule_invalidated",
+      "type": "checkbox",
+      "purpose": "Is schedule stale due to conversation? (safety check)"
+    },
+    "schedule_set_at": {
+      "field_id": "fldHxTSR7qZ5vRL7V",
+      "display_name": "🤖 schedule_set_at",
+      "type": "dateTime",
+      "purpose": "When the follow-up schedule was calculated",
+      "n8n_reference": "{{ $json.schedule_set_at }}"
+    },
+    "ai_message_count_today": {
+      "field_id": "fldF2OlfNiXHdsChI",
+      "display_name": "🤖 ai_message_count_today",
+      "type": "number",
+      "purpose": "Daily AI message counter (safety - resets midnight)",
+      "n8n_reference": "{{ $json.ai_message_count_today }}",
+      "critical": true
+    },
+    "messages_in_last_2_hours": {
+      "field_id": "fldXl6cl6md8pXRGs",
+      "display_name": "🤖 messages_in_last_2_hours",
+      "type": "number",
+      "purpose": "Runaway conversation detection (circuit breaker)",
+      "n8n_reference": "{{ $json.messages_in_last_2_hours }}",
+      "critical": true
+    },
+    "last_safety_block_reason": {
+      "field_id": "fldGeQhr4aRUBo5ye",
+      "display_name": "🤖 last_safety_block_reason",
+      "type": "multilineText",
+      "purpose": "Why AI was blocked from messaging (audit trail)"
+    },
+    "safety_violations_count": {
+      "field_id": "fldA8ZWlmF3mY0xMa",
+      "display_name": "🤖 safety_violations_count",
+      "type": "number",
+      "purpose": "Total safety violations for this lead"
+    },
+    "conversation_locked_by_human": {
+      "field_id": "fldmx14UhS2UQTIBR",
+      "display_name": "🤖 conversation_locked_by_human",
+      "type": "checkbox",
+      "purpose": "Human has taken over this conversation"
+    },
+    "pause_reason": {
+      "field_id": "fldBEf3Rw0MaORe0Y",
+      "display_name": "🤖 pause_reason",
+      "type": "multilineText",
+      "purpose": "Why AI is paused for this lead"
+    },
+    "pause_until": {
+      "field_id": "fldxvKi8fmufpI03O",
+      "display_name": "🤖 pause_until",
+      "type": "dateTime",
+      "purpose": "When to resume AI messaging"
+    },
+    "human_assigned_to": {
+      "field_id": "fldmEcAwvD1oFX7w0",
+      "display_name": "🤖 human_assigned_to",
+      "type": "singleLineText",
+      "purpose": "Who took over this conversation"
+    },
+    "handback_note": {
+      "field_id": "fldrCialPR9h9RTSf",
+      "display_name": "🤖 handback_note",
+      "type": "multilineText",
+      "purpose": "Note from human when handing back to AI"
+    },
+    "takeover_timestamp": {
+      "field_id": "fld3sDGJiyt6TA1VJ",
+      "display_name": "🤖 takeover_timestamp",
+      "type": "dateTime",
+      "purpose": "When human took over"
+    },
+    "total_ai_messages_sent": {
+      "field_id": "fld5hIYxx9VTqloB7",
+      "display_name": "🤖 total_ai_messages_sent",
+      "type": "number",
+      "purpose": "Lifetime AI messages sent to this lead"
+    },
+    "total_ai_cost_usd": {
+      "field_id": "fld2n3wRIwvCR2d2x",
+      "display_name": "🤖 total_ai_cost_usd",
+      "type": "currency",
+      "purpose": "Lifetime AI cost for this lead (OpenAI only)"
+    },
+    "last_ai_response_time_sec": {
+      "field_id": "fldIhCNabMZTfZ8Po",
+      "display_name": "🤖 last_ai_response_time_sec",
+      "type": "number",
+      "purpose": "Performance tracking - response time"
+    }
+  },
+  
+  "reused_existing_fields": {
+    "last_reply_at": {
+      "field_id": "fld2WzCrDL3l1WA5b",
+      "display_name": "Last Reply At",
+      "type": "dateTime",
+      "maps_to_prd": "last_message_received_at",
+      "n8n_reference": "{{ $json['Last Reply At'] }}"
+    },
+    "sms_last_sent_at": {
+      "field_id": "fldjHyUk48hUwUq6O",
+      "display_name": "SMS Last Sent At",
+      "type": "dateTime",
+      "maps_to_prd": "last_message_sent_at",
+      "n8n_reference": "{{ $json['SMS Last Sent At'] }}"
+    },
+    "follow_up_date_time": {
+      "field_id": "fldnGRfk7qRrADP7x",
+      "display_name": "Follow-up Date/Time",
+      "type": "date (UPGRADE TO DATETIME MANUALLY)",
+      "maps_to_prd": "next_scheduled_contact",
+      "n8n_reference": "{{ $json['Follow-up Date/Time'] }}",
+      "note": "Shared by AI-calculated and manual scheduling"
+    }
+  },
+  
+  "integration_notes": {
+    "oct_17_system": "Existing two-way conversation system with 12 conversation fields",
+    "new_ai_system": "Enhanced with 19 AI-specific safety and intelligence fields",
+    "conflicts": "None - systems complement each other",
+    "migration": "Not needed - new fields start empty, existing system continues working"
+  },
+  
+  "design_changes": {
+    "cost_limit_removed": {
+      "date": "2025-10-26",
+      "field_removed": "max_ai_cost_per_day",
+      "table": "Client_Safety_Config",
+      "rationale": "Over-engineered, unnecessary real-time compute",
+      "replacement": "Message count limits (200 convos × 10 msgs = natural cost cap)",
+      "impact": "Simpler safety checks, 10x faster performance",
+      "evidence": "/tests/phase1-safety/DESIGN-CHANGE-COST-LIMIT-REMOVED.md"
+    }
+  }
+}
+

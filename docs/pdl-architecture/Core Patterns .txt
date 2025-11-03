@@ -1,0 +1,397 @@
+# Core Patterns - PDL Integration
+*Foundation patterns for webhooks, data handling, and enrichment setup*
+
+# PREREQUISITE: Pattern 00 (Field Normalization) MUST be implemented first
+# This pattern assumes Smart Field Mapper is the first node after any webhook
+
+## CRITICAL n8n PLATFORM LIMITATIONS (Must Read First)
+
+## UI-Only Settings That Break Workflows
+1. **"Always Output Data" Toggle**
+   - Location: Node Settings tab (NOT Parameters tab)
+   - Must be ON for IF/Switch nodes to continue on empty
+   - Cannot be set via API/JSON
+   - Symptom: "No output data returned" errors
+
+2. **Credential Corruption on Updates**
+   - ANY programmatic update can null credential IDs
+   - Symptom: "No authentication data defined on node!"
+   - Solution: Manual UI re-selection only
+   - NEVER use MCP for workflow updates
+
+## Expression Syntax Requirements
+- MUST have spaces: `{{ $json.field }}`  ✓
+- Will fail silently: `{{$json.field}}`  ✗
+- Applies to all formula fields
+- No error message - just empty results
+
+## Webhook Test Mode Behavior
+- Requires manual "Execute Workflow" click per test
+- Webhook only listens for one request
+- Not a bug - by design for development
+- Production mode: Always listening
+- Use n8n API for batch activation to automate testing sequences
+
+## Table References
+- Use Table IDs: `tblXXXXXXXXXXXXXX` ✓
+- Never table names: `People` ✗
+- Names work intermittently = silent failures
+
+## Common Error Solutions
+"Cannot read property 'length' of undefined"
+→ Enable "Always Output Data" in Settings tab
+
+"Expression error: filterByFormula: Nested expressions are not supported"  
+→ Add spaces: {{ $json.field }} not {{$json.field}}
+
+"No authentication data defined on node!"
+→ Credential corrupted, needs UI re-selection
+
+### Hunter Fallback Integration (Phase 2C Pointer)
+- After PDL Person failure, call Hunter people/find with `qs: { domain, first_name, last_name }`
+- Authentication: `authentication: "predefinedCredentialType"`, `nodeCredentialType: "httpHeaderAuth"` (no manual headers; do not pass `api_key` in query)
+- Feature flag: IF node checks `={{$env.PERSON_WATERFALL_ENABLED}}` equals `"true"`
+- Routing: PDL success TRUE(index 0) → ICP; FALSE(index 1) → Hunter
+- Merge: Use a Code node for precedence (PDL > Hunter), not a Merge node
+
+---
+
+## Pattern: Bootstrap and Initial Setup - PDL Enhanced
+**Purpose**: Fully automate the initial setup with PDL integration
+**Required Nodes**: Code (set variables and check tables), Airtable (create sample records if needed)
+
+**Configuration**:
+```javascript
+// Node 1: Set Variables and Check Tables - UPDATED FOR PDL
+Type: Code
+const vars = { 
+  TEST_MODE: 'true', 
+  TEN_DLC_REGISTERED: 'false',
+  DAILY_COST_LIMIT: '50',
+  PDL_API_KEY: '{{ $credentials.pdlApiKey }}', // PDL API key
+  PDL_COMPANY_COST: '0.01',    // Cost per company match
+  PDL_PERSON_COST: '0.03',     // Cost per person match  
+  PDL_FREE_TIER_LIMIT: '100',  // Monthly free matches
+  TWILIO_COST: '0.015',
+  SMS_COST: '0.02',
+  CLAUDE_COST: '0.001',
+  CACHE_EXPIRY_DAYS: '90',
+  MAX_RETRIES: '3',
+  RETRY_DELAY_MS: '5000'
+};
+
+// Initialize environment variables
+Object.entries(vars).forEach(([key, value]) => {
+  $vars[key] = value;
+});
+
+// Check tables and initialize
+return { bootstrap_complete: true, pdl_integration: true };
+```
+
+```javascript
+// Node 1.5: Initialize Daily Costs if Empty - UPDATED FOR PDL
+Type: Code
+const today = new Date().toISOString().split('T')[0];
+const dailyCostsCheck = await $node["Airtable"].execute({
+  operation: 'search',
+  table: 'Daily_Costs',
+  filterByFormula: `{date} = '${today}'`
+});
+
+if (dailyCostsCheck.length === 0) {
+  await $node["Airtable"].execute({
+    operation: 'create',
+    table: 'Daily_Costs',
+    fields: {
+      date: today,
+      initial_total: 0,
+      pdl_company_costs: 0,      // PDL company enrichment costs
+      pdl_person_costs: 0,       // PDL person enrichment costs
+      twilio_costs: 0,
+      sms_costs: 0,
+      claude_costs: 0,
+      total_costs: 0
+    }
+  });
+}
+return { daily_costs_initialized: true, pdl_tracking_ready: true };
+```
+
+**Error Handling**: console.error('Bootstrap failed for table');
+
+---
+
+## Pattern: Test Mode Enforcement
+**Purpose**: Prevent accidental SMS sends and API calls during development/testing
+**Required Nodes**: Code (check test mode), Switch (route based on mode)
+
+**Configuration**:
+```javascript
+// Node 1: Check Test Mode
+Type: Code
+const TEST_MODE = $vars.TEST_MODE === 'true';
+if (TEST_MODE) { 
+  return { 
+    test_mode: true, 
+    skip_pdl_calls: true,     // Skip PDL API calls in test mode
+    skip_sms: true,
+    skip_twilio: true
+  }; 
+}
+```
+
+**Error Handling**: In SMS/API nodes - if test_mode, log and simulate success.
+
+---
+
+## Pattern: Webhook Authentication with Duplicate Prevention
+**Purpose**: Secure webhook reception with header-based authentication and duplicate request prevention
+**Required Nodes**: Webhook (trigger), Code (validation + duplicate check), Airtable (check request_id), Switch (route duplicates)
+
+**Configuration**:
+```javascript
+// Node 1: Webhook
+Type: Webhook
+Settings: HTTP Method: POST, Path: /webhook/[endpoint-name], Authentication: Header Auth (X-API-Key)
+
+// Node 2: Validate and Generate Request ID
+Type: Code
+const request_id = $json.request_id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+// Enhanced validation for PDL integration readiness
+const requiredFields = ['email']; // Minimum for PDL fuzzy matching
+const validationErrors = [];
+requiredFields.forEach(field => {
+  if (!$json[field]) validationErrors.push(`Missing ${field}`);
+});
+
+return { 
+  request_id, 
+  validation_errors: validationErrors,
+  pdl_ready: validationErrors.length === 0
+};
+
+// Node 3: Check Request Already Processed
+Type: Airtable
+Filter by Formula: OR({request_id} = '{{$json.request_id}}', ...)
+
+// Node 4: Skip if Duplicate
+Type: Switch
+```
+
+**Error Handling**: Return 200 for duplicates, 400 for validation errors.
+
+---
+
+## Pattern: Airtable Upsert with Multiple Match Logging
+**Purpose**: Create or update records based on unique identifier with logging for data integrity
+**Required Nodes**: Airtable (search), Code (log multiples), Switch (route), Airtable (create/update), Merge
+
+**Configuration**:
+```javascript
+// Node 1: Search Existing
+Type: Airtable
+Filter by Formula: OR({email} = '{{$json.email}}', ...)
+
+// Node 2: Check and Log Multiple Matches
+Type: Code
+if (matches.length > 1) { 
+  console.warn('Multiple records found for email:', $json.email);
+  // Log for PDL deduplication analysis
+}
+return { 
+  matches: matches.length,
+  pdl_enrichment_needed: matches.length === 0 || !matches[0].fields.last_enriched
+};
+
+// Node 3: Route Decision
+Type: Switch
+```
+
+**Error Handling**: Retry On Fail: true, Max Tries: {{$vars.MAX_RETRIES}}
+
+---
+
+## Pattern: Batch Processing with Memory Safety
+**Purpose**: Process large datasets without overwhelming memory or APIs
+**Required Nodes**: Airtable (get batch), Code (chunk data), Loop (process chunks), Wait, Airtable (update)
+
+**Configuration**:
+```javascript
+// Node 1: Get Batch
+Type: Airtable
+Max Records: {{$vars.BATCH_SIZE}}
+
+// Node 2: Chunk and Validate Size - ENHANCED FOR PDL COSTS
+Type: Code
+const chunks = [];
+const batchSize = parseInt($vars.BATCH_SIZE) || 50;
+const data = $input.all();
+
+// Calculate estimated PDL costs for batch
+const estimatedPdlCost = data.length * (
+  parseFloat($vars.PDL_COMPANY_COST) + 
+  parseFloat($vars.PDL_PERSON_COST)
+);
+
+// Check against daily limit
+const dailyLimit = parseFloat($vars.DAILY_COST_LIMIT);
+if (estimatedPdlCost > dailyLimit * 0.8) { // 80% threshold
+  throw new Error(`Batch PDL cost (${estimatedPdlCost}) would exceed 80% of daily limit`);
+}
+
+// Create chunks
+for (let i = 0; i < data.length; i += batchSize) {
+  chunks.push(data.slice(i, i + batchSize));
+}
+
+return { chunks, estimated_cost: estimatedPdlCost };
+```
+
+**Error Handling**: Console log memory warnings and cost overruns.
+
+---
+
+## Pattern: API Call with Cost Tracking - PDL Enhanced
+**Purpose**: Standardized pattern for any paid API call with cost tracking
+**Required Nodes**: Code (pre-check), HTTP (call), Execute Workflow (logging)
+
+**Configuration**:
+```javascript
+// Node 1: Pre-Call Cost Check - UPDATED FOR PDL
+Type: Code
+const costType = $json.api_type; // 'pdl_company', 'pdl_person', etc.
+const costMap = {
+  'pdl_company': parseFloat($vars.PDL_COMPANY_COST),
+  'pdl_person': parseFloat($vars.PDL_PERSON_COST),
+  'twilio': parseFloat($vars.TWILIO_COST),
+  'claude': parseFloat($vars.CLAUDE_COST)
+};
+
+const callCost = costMap[costType] || 0;
+const dailyLimit = parseFloat($vars.DAILY_COST_LIMIT);
+
+// Get today's costs
+const today = new Date().toISOString().split('T')[0];
+// ... cost check logic
+
+if (todaysCosts + callCost > dailyLimit) {
+  throw new Error(`API call would exceed daily limit. Current: ${todaysCosts}, Call: ${callCost}, Limit: ${dailyLimit}`);
+}
+
+return { 
+  approved: true, 
+  cost: callCost, 
+  remaining_budget: dailyLimit - todaysCosts - callCost 
+};
+
+// Node 2: Make API Call
+Type: HTTP Request
+// Enhanced with PDL endpoints
+const apiUrls = {
+  'pdl_company': 'https://api.peopledatalabs.com/v5/company/enrich',
+  'pdl_person': 'https://api.peopledatalabs.com/v5/person/enrich',
+  // ... other APIs
+};
+
+// Node 3: Log Cost
+Type: Execute Workflow
+```
+
+**Error Handling**: Handle 429, auth errors, PDL-specific errors (402 for credits exhausted).
+
+---
+
+## Pattern: Workflow ID Helper
+**Purpose**: Centralized workflow ID management and lookup
+**Required Nodes**: Code (ID lookup helper)
+
+**Configuration**:
+```javascript
+// Node 1: Workflow ID Helper
+Type: Code
+async function getWorkflowId(workflowName) {
+  // Enhanced with PDL-specific workflows
+  const workflowMap = {
+    'uysp-lead-processing-v1': process.env.MAIN_WORKFLOW_ID,
+    'uysp-pdl-enrichment-v1': process.env.PDL_ENRICHMENT_WORKFLOW_ID,
+    'uysp-cost-logging-v1': process.env.COST_LOGGING_WORKFLOW_ID,
+    // ... other workflows
+  };
+  
+  return workflowMap[workflowName] || null;
+}
+```
+
+**Error Handling**: Throw if workflow not found.
+
+---
+
+## Pattern: Airtable Test Cleanup - PDL Enhanced
+**Purpose**: Clean test records post-testing, preserving duplicates and PDL cache
+**Required Nodes**: Code (query), Airtable (batch delete)
+
+**Configuration**:
+```javascript
+// Node 1: Query Test Records
+Type: Airtable
+Filter: {email} LIKE 'test%'
+
+// Node 2: Batch Delete - ENHANCED FOR PDL CACHE
+Type: Code
+const testRecords = $input.first().json;
+
+// Preserve records with duplicate_count > 0
+// Preserve PDL cache entries (separate cleanup)
+const toDelete = testRecords.filter(record => 
+  record.fields.duplicate_count === 0 &&
+  !record.fields.email.includes('cache-test') // Preserve cache test data
+);
+
+// Also clean PDL cache for test emails
+const cacheCleanup = testRecords
+  .filter(r => r.fields.email.includes('test'))
+  .map(r => r.fields.email);
+
+return { 
+  records_to_delete: toDelete,
+  cache_emails_to_clean: cacheCleanup,
+  pdl_cache_cleanup_needed: cacheCleanup.length > 0
+};
+```
+
+**Error Handling**: Backup base first, handle PDL cache cleanup separately.
+
+---
+
+## Platform Gotcha Prevention - PDL Specific
+
+### PDL API Rate Limits
+- **Free Tier**: 100 requests/minute, 100 matches/month
+- **Paid Tier**: 1000 requests/minute, usage-based billing
+- **Error Code 429**: Rate limit exceeded - implement exponential backoff
+- **Error Code 402**: Credits exhausted - trigger circuit breaker
+
+### PDL Response Handling
+```javascript
+// Always check for successful match
+if (pdlResponse.status === 404) {
+  // No match found - route to human review
+  return { no_match: true, route_to_review: true };
+}
+
+if (pdlResponse.data && pdlResponse.data.likelihood >= 6) {
+  // Good match - proceed with data
+  return { match_found: true, data: pdlResponse.data };
+}
+```
+
+### Cost Tracking Precision
+```javascript
+// PDL charges only on successful matches
+const actualCost = pdlResponse.status === 200 && pdlResponse.data 
+  ? costMap[apiType] 
+  : 0; // No charge for 404/no match
+```
+
+*Updated for PDL integration while maintaining backward compatibility during transition period.*

@@ -1,0 +1,480 @@
+{
+  "name": "UYSP Reality-Based Test Suite v2",
+  "version": "3.0", 
+  "description": "Comprehensive test suite that verifies ACTUAL Airtable record creation, not just HTTP responses",
+  "last_updated": "2025-07-22",
+  "critical_updates": [
+    "Added field variation tests for all discovered webhook variations",
+    "Includes verification requirements that check Airtable records",
+    "Tests edge cases that caused original implementation failures",
+    "Provides evidence collection for all test scenarios"
+  ],
+
+  "mandatory_tests": {
+    "field_variation_tests": [
+      {
+        "name": "Standard Kajabi Format",
+        "payload": {
+          "email": "test1@example.com",
+          "name": "John Doe", 
+          "phone": "555-0001",
+          "company": "Acme Corp",
+          "source_form": "webinar-signup",
+          "interested_in_coaching": "yes",
+          "request_id": "field-test-001"
+        },
+        "expected_fields": ["email", "first_name", "last_name", "phone", "company", "source_form", "interested_in_coaching"]
+      },
+      {
+        "name": "ALL CAPS Variation",
+        "payload": {
+          "EMAIL": "test2@example.com",
+          "NAME": "Jane Doe",
+          "PHONE": "555-0002", 
+          "COMPANY": "Tech Corp",
+          "INTERESTED_IN_COACHING": "YES",
+          "request_id": "field-test-002"
+        },
+        "expected_fields": ["email", "first_name", "last_name", "phone", "company", "interested_in_coaching"]
+      },
+      {
+        "name": "Mixed Case Chaos", 
+        "payload": {
+          "Email": "test3@example.com",
+          "Name": "Bob Smith",
+          "Phone": "555-0003",
+          "Company": "StartupCo", 
+          "request_id": "field-test-003"
+        },
+        "expected_fields": ["email", "first_name", "last_name", "phone", "company"]
+      },
+      {
+        "name": "Alternative Field Names",
+        "payload": {
+          "email_address": "test4@example.com",
+          "full_name": "Alice Johnson",
+          "phone_number": "555-0004",
+          "company_name": "BigCorp",
+          "form_name": "download-form",
+          "request_id": "field-test-004" 
+        },
+        "expected_fields": ["email", "first_name", "last_name", "phone", "company", "source_form"]
+      },
+      {
+        "name": "Underscore Variations",
+        "payload": {
+          "email_address": "test5@example.com", 
+          "first_name": "Charlie",
+          "last_name": "Brown",
+          "phone_number": "555-0005",
+          "company_name": "MegaCorp",
+          "job_title": "Sales Manager",
+          "request_id": "field-test-005"
+        },
+        "expected_fields": ["email", "first_name", "last_name", "phone", "company", "title"]
+      },
+      {
+        "name": "CamelCase Fields",
+        "payload": {
+          "emailAddress": "test6@example.com",
+          "firstName": "David", 
+          "lastName": "Green",
+          "phoneNumber": "555-0006",
+          "companyName": "TechStart",
+          "jobTitle": "Account Executive",
+          "request_id": "field-test-006"
+        },
+        "expected_fields": ["email", "first_name", "last_name", "phone", "company", "title"]
+      },
+      {
+        "name": "Boolean String Variations",
+        "payload": {
+          "email": "test7@example.com",
+          "name": "Eve White",
+          "interested_in_coaching": "yes",
+          "qualified_lead": "true", 
+          "contacted": "1",
+          "request_id": "field-test-007"
+        },
+        "expected_fields": ["email", "first_name", "last_name", "interested_in_coaching"],
+        "verify_booleans": {
+          "interested_in_coaching": true,
+          "qualified_lead": true,
+          "contacted": true
+        }
+      },
+      {
+        "name": "Boolean True Values",
+        "payload": {
+          "email": "test8@example.com", 
+          "name": "Frank Black",
+          "interested_in_coaching": true,
+          "qualified_lead": 1,
+          "contacted": "on",
+          "request_id": "field-test-008"
+        },
+        "expected_fields": ["email", "first_name", "last_name", "interested_in_coaching"],
+        "verify_booleans": {
+          "interested_in_coaching": true,
+          "qualified_lead": true, 
+          "contacted": true
+        }
+      },
+      {
+        "name": "Boolean False Values",
+        "payload": {
+          "email": "test9@example.com",
+          "name": "Grace Red",
+          "interested_in_coaching": "no",
+          "qualified_lead": "false",
+          "contacted": "0",
+          "request_id": "field-test-009" 
+        },
+        "expected_fields": ["email", "first_name", "last_name", "interested_in_coaching"],
+        "verify_booleans": {
+          "interested_in_coaching": false,
+          "qualified_lead": false,
+          "contacted": false
+        }
+      },
+      {
+        "name": "Missing Critical Fields",
+        "payload": {
+          "email": "test10@example.com",
+          "request_id": "field-test-010"
+        },
+        "expected_fields": ["email"],
+        "verify_graceful": true,
+        "description": "Should not break workflow when most fields missing"
+      },
+      {
+        "name": "New Kajabi Variations",
+        "payload": {
+          "email_address_1": "test11@example.com",
+          "phone_intl": "+1 555-0011",
+          "user_email": "test11@example.com",
+          "request_id": "field-test-011"
+        },
+        "expected_fields": ["email", "phone"],
+        "description": "Tests new field variations discovered in 2025"
+      }
+    ],
+
+    "duplicate_scenarios": [
+      {
+        "name": "Exact Duplicate Email",
+        "first_payload": {
+          "email": "duplicate@example.com",
+          "name": "Original User",
+          "phone": "555-1001",
+          "request_id": "dup-test-001"
+        },
+        "second_payload": {
+          "email": "duplicate@example.com", 
+          "name": "Updated User",
+          "phone": "555-1002",
+          "request_id": "dup-test-002"
+        },
+        "verify_action": "update_not_create",
+        "description": "Should update existing record, not create new one"
+      },
+      {
+        "name": "Same Email Different Case",
+        "first_payload": {
+          "email": "casetest@example.com",
+          "name": "Lower Case",
+          "request_id": "case-test-001"
+        },
+        "second_payload": {
+          "EMAIL": "CASETEST@EXAMPLE.COM",
+          "NAME": "Upper Case", 
+          "request_id": "case-test-002"
+        },
+        "verify_action": "update_not_create",
+        "description": "Should treat as same email regardless of case"
+      }
+    ],
+
+    "integration_tests": [
+      {
+        "name": "Complete End-to-End Flow",
+        "payload": {
+          "email": "e2e-test@salesforce.com",
+          "name": "End To End User", 
+          "phone": "4155551234",
+          "company": "Salesforce",
+          "title": "Enterprise Account Executive",
+          "source_form": "webinar-signup",
+          "interested_in_coaching": "yes",
+          "request_id": "e2e-test-001"
+        },
+        "verify_complete_flow": {
+          "field_normalization": "95%+ fields captured",
+          "phase1_qualification": "Company verified as B2B tech",
+          "phase2_enrichment": "Person enriched successfully", 
+          "icp_scoring": "Score 70+ assigned",
+          "routing": "Should route to SMS",
+          "sms_compliance": "All compliance checks pass",
+          "cost_tracking": "All API costs logged",
+          "processing_time": "Under 5 minutes total"
+        },
+        "expected_airtable_state": {
+          "people_record": "Created with all fields",
+          "communications_record": "SMS logged (test mode)",
+          "daily_costs_updated": "Today's costs increased",
+          "no_human_review": "Should not route to review",
+          "processing_status": "Completed"
+        }
+      },
+      {
+        "name": "Human Review Queue Routing",
+        "payload": {
+          "email": "unclear@smallbiz.com",
+          "name": "Unclear Business User",
+          "company": "Small Local Business", 
+          "request_id": "review-test-001"
+        },
+        "expected_routing": "human_review",
+        "verify_review_queue": {
+          "human_review_record": "Created with reason",
+          "sla_deadline": "Set to 48 hours from now",
+          "no_sms_sent": "Should not attempt SMS",
+          "processing_status": "Pending Review"
+        }
+      },
+      {
+        "name": "Cost Circuit Breaker Test",
+        "setup": "Set DAILY_COST_LIMIT=0.01 for this test",
+        "payload": {
+          "email": "circuit-test@expensive.com", 
+          "name": "Circuit Breaker Test",
+          "request_id": "circuit-test-001"
+        },
+        "expected_behavior": {
+          "circuit_breaker_triggered": true,
+          "processing_halted": "Should stop before expensive API calls",
+          "error_logged": "Cost limit exceeded error",
+          "alert_generated": "Should alert about limit hit"
+        },
+        "cleanup": "Reset DAILY_COST_LIMIT=50 after test"
+      }
+    ],
+      {
+        "name": "Invalid Email Format",
+        "payload": {
+          "email": "not-an-email",
+          "name": "Invalid Email Test",
+          "request_id": "error-test-001"
+        },
+        "expect_error": true,
+        "expected_error_type": "validation"
+      },
+      {
+        "name": "No Email Field",
+        "payload": {
+          "name": "No Email User",
+          "phone": "555-9999",
+          "request_id": "error-test-002"
+        },
+        "expect_error": true,
+        "expected_error_type": "validation",
+        "description": "Should error gracefully when no email found in any variation"
+      },
+      {
+        "name": "International Phone Format",
+        "payload": {
+          "email": "intl@example.com",
+          "name": "International User", 
+          "phone": "+44 7700 900123",
+          "request_id": "intl-test-001"
+        },
+        "expected_routing": "human_review",
+        "description": "International phones should route to human review"
+      }
+    ]
+  },
+
+  "verification_protocol": {
+    "pre_test_requirements": [
+      "Execute Workflow button clicked in n8n",
+      "Test mode active (TEST_MODE=true)",
+      "Webhook URL accessible",
+      "Airtable connection verified",
+      "Field_Mapping_Log table exists"
+    ],
+
+    "during_test_actions": [
+      "Send payload via external tool (curl/TestSprite)",
+      "Wait minimum 5 seconds for processing",
+      "Do NOT send next test until first completes"
+    ],
+
+    "post_test_verification": [
+      "Check Airtable record exists by email search",
+      "Verify all expected fields were captured",
+      "Confirm field_mapping_success_rate >= 90%",
+      "Check execution completed without errors",
+      "Verify test_mode_record = true",
+      "Log any unknown fields to Field_Mapping_Log"
+    ],
+
+    "evidence_collection": {
+      "required_for_success": [
+        "Airtable record ID",
+        "n8n execution ID", 
+        "Field capture count vs expected",
+        "Processing time (should be <5 minutes)",
+        "Any error messages from execution logs"
+      ],
+
+      "airtable_queries": [
+        {
+          "purpose": "Find record by email",
+          "query": "filterByFormula({email} = 'test@example.com')",
+          "expect": "exactly 1 record"
+        },
+        {
+          "purpose": "Verify test mode flag",
+          "query": "filterByFormula(AND({email} = 'test@example.com', {test_mode_record} = 1))",
+          "expect": "exactly 1 record"
+        },
+        {
+          "purpose": "Check duplicate handling",
+          "query": "filterByFormula({email} = 'duplicate@example.com')",
+          "expect": "exactly 1 record (updated, not duplicated)"
+        }
+      ]
+    }
+  },
+
+  "success_criteria": {
+    "field_mapping": {
+      "minimum_success_rate": "98%",
+      "description": "At least 95% of expected fields must be captured from webhook payload"
+    },
+
+    "duplicate_prevention": {
+      "requirement": "Zero duplicate records",
+      "description": "Same email should never create multiple People records"
+    },
+
+    "workflow_completion": {
+      "requirement": "100% execution success",
+      "description": "All test workflows must complete without errors"
+    },
+
+    "processing_time": {
+      "maximum": "5 minutes",
+      "description": "Each lead should complete processing in under 5 minutes"
+    },
+
+    "unknown_field_tracking": {
+      "requirement": "All unknown fields logged",
+      "description": "Any fields not recognized must be logged to Field_Mapping_Log"
+    }
+  },
+
+  "failure_scenarios": {
+    "no_record_created": {
+      "symptoms": ["200 OK response but no Airtable record"],
+      "likely_cause": "Missing field normalization",
+      "fix": "Add Smart Field Mapper as first node after webhook"
+    },
+
+    "fields_not_mapped": {
+      "symptoms": ["Record created but critical fields empty"],
+      "likely_cause": "New field variations not in mapper",
+      "fix": "Update field normalization code with new variations"
+    },
+
+    "duplicate_records": {
+      "symptoms": ["Multiple records for same email"],
+      "likely_cause": "Duplicate detection not working",
+      "fix": "Check Airtable search node and IF logic"
+    },
+
+    "workflow_stops": {
+      "symptoms": ["Execution stops at certain nodes"],
+      "likely_cause": "Missing 'Always Output Data' toggles",
+      "fix": "Enable in Settings tab of all IF/Switch nodes"
+    }
+  },
+
+  "test_automation": {
+    "sequential_testing": {
+      "description": "Tests must run one at a time due to n8n webhook test mode",
+      "procedure": [
+        "Click 'Execute Workflow' in n8n",
+        "Send single test payload",
+        "Wait for completion (check execution log)",
+        "Verify Airtable record",
+        "Repeat for next test"
+      ]
+    },
+
+    "batch_verification": {
+      "description": "After all tests complete, run batch verification",
+      "queries": [
+        "Count total test records: filterByFormula({test_mode_record} = 1)",
+        "Check for duplicates: Group by email, count > 1",
+        "Verify field success rates: Average {field_mapping_success_rate}",
+        "Review unknown fields: Count records in Field_Mapping_Log"
+      ]
+    }
+    "platform_gotcha_tests": [
+      {
+        "name": "Always Output Data Toggle Test",
+        "description": "Verify IF nodes continue when no output data",
+        "setup_required": "Human must enable 'Always Output Data' in Settings tab of all IF/Switch nodes",
+        "payload": {
+          "email": "no-phone@example.com",
+          "name": "No Phone User",
+          "request_id": "toggle-test-001"  
+        },
+        "expected_behavior": {
+          "workflow_continues": "Should not stop at phone validation IF node",
+          "processing_completes": "Should reach end despite missing phone",
+          "no_output_data_error": "Should NOT see 'No output data returned' error"
+        },
+        "failure_symptom": "Workflow stops with 'No output data returned'",
+        "manual_fix_required": true
+      },
+      {
+        "name": "Expression Spacing Test", 
+        "description": "Verify expressions work with proper spacing",
+        "test_expressions": [
+          "{{ $json.normalized.email }}", 
+          "{{ $node[\"Smart Field Mapper\"].json.normalized.email }}",
+          "{{ $env.TEST_MODE === 'true' }}"
+        ],
+        "verify_no_errors": [
+          "Expression error: filterByFormula",
+          "Cannot read property",
+          "Nested expressions not supported"
+        ]
+      },
+      {
+        "name": "Table ID vs Name Test",
+        "description": "Verify using table IDs not names",
+        "airtable_operations": [
+          "Search People table by ID (tblXXXXXX)",
+          "Create record using table ID",
+          "Update record using table ID"
+        ],
+        "verify_no_intermittent_failures": "Table not found errors",
+        "required_setup": "All Airtable nodes must use table IDs, never names"
+      }
+    ],
+    "field_mapping_review": {
+      "frequency": "Weekly",
+      "action": "Review Field_Mapping_Log for new field variations",
+      "update": "Add legitimate variations to Smart Field Mapper code"
+    },
+
+    "test_suite_updates": {
+      "frequency": "As needed", 
+      "action": "Add new test cases based on field variations discovered",
+      "documentation": "Update this test suite with new scenarios"
+    }
+  }
+}

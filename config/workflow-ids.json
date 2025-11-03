@@ -1,0 +1,26 @@
+{
+  "description": "This file contains the key identifiers for the production n8n workflows.",
+  "last_updated": "2024-10-27T12:00:00.000Z",
+  "workflows": {
+    "main_orchestrator": {
+      "id": "placeholder_main_orchestrator_id",
+      "file": "workflows/UYSP-Main-Orchestrator-PRODUCTION-READY.json",
+      "description": "Main entry point for lead processing."
+    },
+    "w2_enrichment": {
+      "id": "placeholder_w2_enrichment_id",
+      "file": "workflows/W2-Enrichment-Sub-Workflow-PRODUCTION.json",
+      "description": "Handles lead enrichment via provider waterfall."
+    },
+    "w3_scoring": {
+      "id": "placeholder_w3_scoring_id",
+      "file": "workflows/W3-Scoring-Sub-Workflow-PRODUCTION.json",
+      "description": "Scores leads using the ICP v4.0 methodology."
+    },
+    "w4_persistence": {
+      "id": "placeholder_w4_persistence_id",
+      "file": "workflows/W4-Persistence-Sub-Workflow-PRODUCTION.json",
+      "description": "Saves final lead data to Airtable."
+    }
+  }
+} 

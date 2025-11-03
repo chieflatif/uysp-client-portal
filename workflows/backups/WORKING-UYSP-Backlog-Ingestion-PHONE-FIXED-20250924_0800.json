@@ -1,0 +1,1242 @@
+{
+  "success": true,
+  "data": {
+    "createdAt": "2025-09-23T23:32:26.103Z",
+    "updatedAt": "2025-09-24T06:02:41.831Z",
+    "id": "A8L1TbEsqHY6d4dH",
+    "name": "UYSP Backlog Ingestion - Hardened Test",
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "manual",
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          -624,
+          -104
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://docs.google.com/spreadsheets/d/13zn4hMDC4wUSmSY12g-_tU74N3wlsBLX1fhjQrQpxik/export?format=csv&gid=1264650769",
+          "options": {}
+        },
+        "id": "fetch",
+        "name": "Fetch CSV",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -400,
+          -104
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.all();\nconst body = (input[0]?.binary?.data) || (input[0]?.json?.data) || (input[0]?.json?.body) || '';\nconst text = Buffer.isBuffer(body) ? body.toString('utf8') : String(body);\nconst normalized = text.replace(/\\r\\n/g,'\\n').trim();\nif (!normalized) { return []; }\n\nfunction parseCsvLine(line){\n  const out=[]; let cur=''; let inQ=false;\n  for (let i=0;i<line.length;i++){\n    const ch=line[i];\n    if(inQ){\n      if(ch==='\"'){\n        if(line[i+1]==='\"'){ cur+='\"'; i++; } else { inQ=false; }\n      } else { cur+=ch; }\n    } else {\n      if(ch==='\"'){ inQ=true; }\n      else if(ch===','){ out.push(cur); cur=''; }\n      else { cur+=ch; }\n    }\n  }\n  out.push(cur);\n  return out;\n}\n\nconst lines = normalized.split('\\n').filter(l=>l.trim().length>0);\nif (!lines.length) return [];\nconst headerRaw = parseCsvLine(lines.shift());\nconst header = headerRaw.map(h=>String(h||'').trim());\nconst headerLower = header.map(h=>h.toLowerCase());\n\nfunction idxExact(name){ return headerLower.indexOf(String(name||'').toLowerCase()); }\nfunction idxAny(names){ for(const n of names){ const i=idxExact(n); if(i>=0) return i; } return -1; }\nfunction idxIncludes(fragment){ const i = headerLower.findIndex(h=>h.includes(String(fragment||'').toLowerCase())); return i>=0?i:-1; }\n\nconst iFirst = idxAny(['First Name']);\nconst iLast  = idxAny(['Last Name']);\nlet iEmail   = idxAny(['Email','Email Address (email)','Email Address','email-address']);\nif (iEmail < 0) iEmail = idxIncludes('email');\nlet iPhone   = idxAny(['Phone Number (phone_number)','Mobile Phone Number (mobile_phone_number)','Phone','phone']);\nif (iPhone < 0) iPhone = idxIncludes('phone');\nconst iCompany = (()=>{ const i=idxAny(['Company Name (custom_10)','Company Name','Company']); return i>=0?i:idxIncludes('company'); })();\nconst iTags = idxAny(['Tags']);\nconst iInterestedA = idxAny(['Are you interested in learning more about coaching with Ian? (custom_67)']);\nconst iInterestedB = idxAny(['Are you interested in learning more about coaching with Ian?. (custom_70)']);\nconst iCampaignId = idxAny(['SMS Campaign ID','Campaign ID']);\n\nfunction val(row,i){ return i>=0 ? String(row[i]||'').trim() : ''; }\n\nconst items = [];\nfor (const line of lines){\n  const row = parseCsvLine(line);\n  while (row.length < header.length) row.push('');\n  const obj = {\n    email: val(row,iEmail),\n    phone: val(row,iPhone),\n    first_name: val(row,iFirst),\n    last_name: val(row,iLast),\n    company: val(row,iCompany),\n    tags: val(row,iTags),\n    interested_a: val(row,iInterestedA),\n    interested_b: val(row,iInterestedB),\n    campaign_id: val(row,iCampaignId)\n  };\n  const allBlank = Object.values(obj).every(v=>String(v||'').trim()==='');\n  if (!allBlank) items.push({ json: obj });\n}\n\nreturn items;"
+        },
+        "id": "parse",
+        "name": "Parse CSV",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -176,
+          -104
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "mode": "id",
+            "value": "appXfMWsDAcnuxavO"
+          },
+          "table": {
+            "mode": "list",
+            "value": "tblYUvhGADerbD8EO"
+          },
+          "filterByFormula": "={{$json.formula}}",
+          "options": {
+            "fields": [
+              "Email"
+            ]
+          }
+        },
+        "id": "get-all-emails",
+        "name": "Get All Existing Emails",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          272,
+          -272
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "WdyZ25N0TLnykzMq",
+            "name": "Airtable Personal Access Token account 3"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const parsed = $items('Parse CSV', 0) || [];\nconst existing = $items('Get All Existing Emails', 0) || [];\n\nconst existingEmails = new Set(\n  existing.map(i => String((i.json?.Email || i.json?.email || '')).trim().toLowerCase()).filter(Boolean)\n);\n\nconst out = parsed.map(it => {\n  const email = String((it.json?.email || it.json?.Email || '')).trim().toLowerCase();\n  const __isDuplicate = !!(email && existingEmails.has(email));\n  return { json: { ...it.json, __isDuplicate } };\n});\n\nreturn out;"
+        },
+        "id": "filter-duplicates",
+        "name": "Filter New vs. Duplicate",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          48,
+          -8
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const inputItems = $input.all() || [];\n\nfunction sanitizeEmail(v){ if(!v) return ''; return String(v).trim().toLowerCase().replace(/[\\s]+/g,'').replace(/[\\.,;:]+$/, ''); }\nfunction isValidEmail(e){ return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(e||'')); }\nfunction normalizePhone(v){ if(!v) return ''; let s=String(v).trim(); if(s.startsWith('+')) s='+'+s.slice(1).replace(/[^0-9]/g,''); else s=s.replace(/[^0-9]/g,''); if(s.startsWith('+')) return s; if(s.length===11 && s.startsWith('1')) return '+1'+s.slice(1); if(s.length===10) return '+1'+s; return s; }\nfunction deriveDomain(email){ const at=String(email||'').split('@')[1]; return at||''; }\nfunction toBool(v){ const s=String(v||'').trim().toLowerCase().replace(/[.!\\s]+$/g,''); return /^(yes|y|true|1|yeah|yep|yup)$/i.test(s); }\n\nconst out = [];\nfor (const it of inputItems) {\n  const x = it?.json ?? {};\n  if (x.__isDuplicate) continue;\n\n  const email = sanitizeEmail(x.email || x.Email);\n  const phone = normalizePhone(x.phone || x.Phone);\n  const first = x.first_name || x.firstName || x.first || '';\n  const last = x.last_name || x.lastName || x.last || '';\n  const company = String(x.company || x.Company || '');\n  const title = String(x.title || x.job_title || x.Title || '');\n  const domain = deriveDomain(email);\n\n  const invalidEmail = !isValidEmail(email);\n  const phoneDigits = phone.replace(/\\D/g,'').replace(/^1/,'');\n  const invalidPhone = phoneDigits.length!==10 || /^(.)\\1+$/.test(phoneDigits) || phoneDigits==='0000000000';\n\n  const tagsRaw = String(x.tags || x['Kajabi Tags'] || '');\n  const tagsLower = tagsRaw.toLowerCase();\n  const alumni = /\\balumni\\b/.test(tagsLower);\n  function hasMembershipContext(){ return /\\b(coach|annual|lifetime|member|membership)\\b/.test(tagsLower); }\n  function tierFromTags(){\n    if (alumni) return 'None';\n    const m = tagsLower.match(/\\b(platinum|gold|silver|bronze)\\b/);\n    if (!m) return 'None';\n    const tier = m[1];\n    if (/\\b(gold|silver|bronze|platinum)\\s*coach\\b/.test(tagsLower) || hasMembershipContext()) {\n      return tier.charAt(0).toUpperCase()+tier.slice(1);\n    }\n    return 'None';\n  }\n  const tier = tierFromTags();\n  const currentCoaching = !alumni && tier !== 'None';\n  const coachingTier = currentCoaching ? tier : 'None';\n  const interested = toBool(x.interested_a) || toBool(x.interested_b) || false;\n\n  let hrqStatus='None', hrqReason='', processing='Queued';\n  if(invalidEmail){ hrqStatus='Archive'; hrqReason='Invalid email format'; processing='Complete'; }\n  else if(invalidPhone){ hrqStatus='Archive'; hrqReason='Invalid phone'; processing='Complete'; }\n\n  out.push({ json: {\n    Email: email,\n    Phone: phone,\n    'First Name': first,\n    'Last Name': last,\n    Company: company,\n    Title: title,\n    'Company Domain': domain,\n    Source: 'Backlog',\n    'Processing Status': processing,\n    'HRQ Status': hrqStatus,\n    'HRQ Reason': hrqReason,\n    'Coaching Tier': coachingTier,\n    'Current Coaching Client': currentCoaching,\n    'Interested in Coaching': interested,\n    'Linkedin URL - Person': String(x.linkedin_url||x['Linkedin URL - Person']||''),\n    'Kajabi Tags': tagsRaw,\n    'SMS Campaign ID': String(x.campaign_id||x['SMS Campaign ID']||'')\n  }});\n}\n\nreturn out;",
+          "mode": "runOnceForAllItems"
+        },
+        "id": "normalize",
+        "name": "Normalize",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          272,
+          -80
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "create",
+          "base": {
+            "mode": "id",
+            "value": "appXfMWsDAcnuxavO"
+          },
+          "table": {
+            "mode": "list",
+            "value": "tblYUvhGADerbD8EO"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Email": "={{$json.Email}}",
+              "Phone": "={{$json.Phone}}",
+              "First Name": "={{$json['First Name']}}",
+              "Last Name": "={{$json['Last Name']}}",
+              "Company": "={{$json['Company']}}",
+              "Company Domain": "={{$json['Company Domain']}}",
+              "Linkedin URL - Person": "={{$json['Linkedin URL - Person']}}",
+              "Kajabi Tags": "={{$json['Kajabi Tags']}}",
+              "Coaching Tier": "={{$json['Coaching Tier']}}",
+              "Current Coaching Client": "={{$json['Current Coaching Client']}}",
+              "Interested in Coaching": "={{$json['Interested in Coaching']}}",
+              "Processing Status": "={{$json['Processing Status']}}",
+              "Source": "={{$json.Source}}",
+              "HRQ Status": "={{$json['HRQ Status']}}",
+              "HRQ Reason": "={{$json['HRQ Reason']}}",
+              "SMS Campaign ID": "={{$json['SMS Campaign ID']}}",
+              "Imported At": "={{$now}}",
+              "Company Score Component": 0,
+              "Role Score Component": 0,
+              "Dynamic Signals Score": 0,
+              "SMS Sequence Position": 0,
+              "SMS Sent Count": 0,
+              "SMS Cost": 0,
+              "Data Quality Score": 0,
+              "Total Processing Cost": 0,
+              "Processing Duration": 0,
+              "Click Count": 0
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "Lead",
+                "displayName": "Lead",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Processing Status",
+                "displayName": "Processing Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Backlog",
+                    "value": "Backlog"
+                  },
+                  {
+                    "name": "Queued",
+                    "value": "Queued"
+                  },
+                  {
+                    "name": "Processing",
+                    "value": "Processing"
+                  },
+                  {
+                    "name": "Ready for SMS",
+                    "value": "Ready for SMS"
+                  },
+                  {
+                    "name": "Failed",
+                    "value": "Failed"
+                  },
+                  {
+                    "name": "In Sequence",
+                    "value": "In Sequence"
+                  },
+                  {
+                    "name": "Stopped",
+                    "value": "Stopped"
+                  },
+                  {
+                    "name": "Completed",
+                    "value": "Completed"
+                  },
+                  {
+                    "name": "Complete",
+                    "value": "Complete"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Batch Control",
+                "displayName": "SMS Batch Control",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Active",
+                    "value": "Active"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Source",
+                "displayName": "Source",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Backlog",
+                    "value": "Backlog"
+                  },
+                  {
+                    "name": "Webhook",
+                    "value": "Webhook"
+                  },
+                  {
+                    "name": "Manual",
+                    "value": "Manual"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Email",
+                "displayName": "Email",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Phone",
+                "displayName": "Phone",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Phone Valid",
+                "displayName": "Phone Valid",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Eligible",
+                "displayName": "SMS Eligible",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "First Name",
+                "displayName": "First Name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Last Name",
+                "displayName": "Last Name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Company",
+                "displayName": "Company",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Job Title",
+                "displayName": "Job Title",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Linkedin URL - Person",
+                "displayName": "Linkedin URL - Person",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Location Country",
+                "displayName": "Location Country",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "ICP Score",
+                "displayName": "ICP Score",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Company Score Component",
+                "displayName": "Company Score Component",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Role Score Component",
+                "displayName": "Role Score Component",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Location Score Component",
+                "displayName": "Location Score Component",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Dynamic Signals Score",
+                "displayName": "Dynamic Signals Score",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Prime Fit Bonus",
+                "displayName": "Prime Fit Bonus",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Status",
+                "displayName": "SMS Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Not Sent",
+                    "value": "Not Sent"
+                  },
+                  {
+                    "name": "Queued",
+                    "value": "Queued"
+                  },
+                  {
+                    "name": "Sent",
+                    "value": "Sent"
+                  },
+                  {
+                    "name": "Delivered",
+                    "value": "Delivered"
+                  },
+                  {
+                    "name": "Clicked",
+                    "value": "Clicked"
+                  },
+                  {
+                    "name": "Replied",
+                    "value": "Replied"
+                  },
+                  {
+                    "name": "Meeting Booked",
+                    "value": "Meeting Booked"
+                  },
+                  {
+                    "name": "Success",
+                    "value": "Success"
+                  },
+                  {
+                    "name": "Failed",
+                    "value": "Failed"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Campaign ID",
+                "displayName": "SMS Campaign ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Sequence Position",
+                "displayName": "SMS Sequence Position",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Sent Count",
+                "displayName": "SMS Sent Count",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Cost",
+                "displayName": "SMS Cost",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Variant",
+                "displayName": "SMS Variant",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "A",
+                    "value": "A"
+                  },
+                  {
+                    "name": "B",
+                    "value": "B"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Stop",
+                "displayName": "SMS Stop",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Stop Reason",
+                "displayName": "SMS Stop Reason",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Last Sent At",
+                "displayName": "SMS Last Sent At",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "HRQ Status",
+                "displayName": "HRQ Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "None",
+                    "value": "None"
+                  },
+                  {
+                    "name": "Archive",
+                    "value": "Archive"
+                  },
+                  {
+                    "name": "Qualified",
+                    "value": "Qualified"
+                  },
+                  {
+                    "name": "Manual Process",
+                    "value": "Manual Process"
+                  },
+                  {
+                    "name": "Review",
+                    "value": "Review"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "HRQ Reason",
+                "displayName": "HRQ Reason",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Data Quality Score",
+                "displayName": "Data Quality Score",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Validation Errors",
+                "displayName": "Validation Errors",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Total Processing Cost",
+                "displayName": "Total Processing Cost",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Processing Duration",
+                "displayName": "Processing Duration",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Last Updated Manual",
+                "displayName": "Last Updated Manual",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Last Updated Auto",
+                "displayName": "Last Updated Auto",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Company Type",
+                "displayName": "Company Type",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "B2B SaaS",
+                    "value": "B2B SaaS"
+                  },
+                  {
+                    "name": "B2B Tech Services",
+                    "value": "B2B Tech Services"
+                  },
+                  {
+                    "name": "Other B2B",
+                    "value": "Other B2B"
+                  },
+                  {
+                    "name": "B2C/Unknown",
+                    "value": "B2C/Unknown"
+                  },
+                  {
+                    "name": "/company",
+                    "value": "/company"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Company Industry",
+                "displayName": "Company Industry",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Company Description",
+                "displayName": "Company Description",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Company LinkedIn",
+                "displayName": "Company LinkedIn",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Company Domain",
+                "displayName": "Company Domain",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Enrichment Outcome",
+                "displayName": "Enrichment Outcome",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Success",
+                    "value": "Success"
+                  },
+                  {
+                    "name": "No Match",
+                    "value": "No Match"
+                  },
+                  {
+                    "name": "Error",
+                    "value": "Error"
+                  },
+                  {
+                    "name": " Success",
+                    "value": " Success"
+                  },
+                  {
+                    "name": " No Match",
+                    "value": " No Match"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Enrichment Attempted At",
+                "displayName": "Enrichment Attempted At",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Booked",
+                "displayName": "Booked",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Campaign",
+                "displayName": "Campaign",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Booked At",
+                "displayName": "Booked At",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Coaching Tier",
+                "displayName": "Coaching Tier",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "None",
+                    "value": "None"
+                  },
+                  {
+                    "name": "Bronze",
+                    "value": "Bronze"
+                  },
+                  {
+                    "name": "Silver",
+                    "value": "Silver"
+                  },
+                  {
+                    "name": "Gold",
+                    "value": "Gold"
+                  },
+                  {
+                    "name": "Platinum",
+                    "value": "Platinum"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Kajabi Tags",
+                "displayName": "Kajabi Tags",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Current Coaching Client",
+                "displayName": "Current Coaching Client",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Interested in Coaching",
+                "displayName": "Interested in Coaching",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Record ID",
+                "displayName": "Record ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Error Log",
+                "displayName": "Error Log",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Clicked Link",
+                "displayName": "Clicked Link",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Short Link ID",
+                "displayName": "Short Link ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Short Link URL",
+                "displayName": "Short Link URL",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Click Count",
+                "displayName": "Click Count",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Imported At",
+                "displayName": "Imported At",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Record Created AT",
+                "displayName": "Record Created AT",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {
+            "typecast": true
+          }
+        },
+        "id": "create",
+        "name": "Create New Leads",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          496,
+          -80
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "WdyZ25N0TLnykzMq",
+            "name": "Airtable Personal Access Token account 3"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "function safeItems(name){\n  try {\n    const arr = $items(name, 0) || [];\n    return Array.isArray(arr) ? arr : [];\n  } catch (e) {\n    return [];\n  }\n}\n\nconst createdItems = safeItems('Create New Leads');\nconst filteredItems = safeItems('Filter New vs. Duplicate');\n\nconst duplicateItems = filteredItems.filter(i => i?.json?.__isDuplicate);\nconst createdCount = createdItems.length;\nconst duplicateCount = duplicateItems.length;\n\nlet message = `*Bulk Import Summary*\\n\\n:white_check_mark: *${createdCount} new leads* were successfully imported.\\n\\n`;\n\nif (duplicateCount > 0) {\n  message += `:warning: *${duplicateCount} duplicate leads* were found and rejected.\\n`;\n  const duplicateEmails = duplicateItems.map(item => `  - ${item?.json?.email || item?.json?.Email || ''}`).join('\\n');\n  if (duplicateEmails.trim()) message += '```\\n' + duplicateEmails + '\\n```';\n} else {\n  message += ':thumbsup: No duplicate emails were found.';\n}\n\nreturn { json: { message } };",
+          "mode": "runOnceForAllItems"
+        },
+        "id": "prepare-summary",
+        "name": "Prepare Summary",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          -8
+        ],
+        "executeOnce": true
+      },
+      {
+        "parameters": {
+          "authentication": "oAuth2",
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "value": "C097CHUHNTG",
+            "mode": "list",
+            "cachedResultName": "uysp-error-handler"
+          },
+          "text": "={{$json.message}}",
+          "otherOptions": {}
+        },
+        "id": "send-summary",
+        "name": "Send Slack Summary",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.3,
+        "position": [
+          944,
+          -8
+        ],
+        "webhookId": "d9ab5b5a-0e92-4f26-9edc-cad9f7243b5c",
+        "credentials": {
+          "slackOAuth2Api": {
+            "id": "OyxQzoqNPQocHdnn",
+            "name": "Slack account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $items('Parse CSV', 0) || [];\nconst emails = items\n  .map(it => String((it.json?.email || it.json?.Email || '')).trim().toLowerCase())\n  .filter(e => e && /.+@.+\\..+/.test(e));\n\nconst CHUNK_SIZE = 100;\nconst chunks = [];\nfor (let i = 0; i < emails.length; i += CHUNK_SIZE) {\n  const chunk = emails.slice(i, i + CHUNK_SIZE);\n  const ors = chunk.map(e => `LOWER({Email})='${e.replace(/'/g, \"\\\\'\")}'`);\n  const formula = ors.length === 1 ? ors[0] : `OR(${ors.join(',')})`;\n  chunks.push({ json: { formula } });\n}\nreturn chunks;"
+        },
+        "id": "build-formulas",
+        "name": "Build Chunk Formulas",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          48,
+          -272
+        ]
+      }
+    ],
+    "connections": {
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Fetch CSV",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch CSV": {
+        "main": [
+          [
+            {
+              "node": "Parse CSV",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse CSV": {
+        "main": [
+          [
+            {
+              "node": "Filter New vs. Duplicate",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Build Chunk Formulas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize": {
+        "main": [
+          [
+            {
+              "node": "Create New Leads",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create New Leads": {
+        "main": [
+          [
+            {
+              "node": "Prepare Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter New vs. Duplicate": {
+        "main": [
+          [
+            {
+              "node": "Normalize",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Prepare Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Summary": {
+        "main": [
+          [
+            {
+              "node": "Send Slack Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Chunk Formulas": {
+        "main": [
+          [
+            {
+              "node": "Get All Existing Emails",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "timezone": "UTC"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "288052b0-8eb6-453d-a151-fbd2f158a48a",
+    "triggerCount": 0,
+    "shared": [
+      {
+        "createdAt": "2025-09-24T03:46:04.764Z",
+        "updatedAt": "2025-09-24T03:46:04.764Z",
+        "role": "workflow:owner",
+        "workflowId": "A8L1TbEsqHY6d4dH",
+        "projectId": "H4VRaaZhd8VKQANf",
+        "project": {
+          "createdAt": "2025-07-20T10:20:07.367Z",
+          "updatedAt": "2025-07-20T10:23:14.000Z",
+          "id": "H4VRaaZhd8VKQANf",
+          "name": "UYSP Lead Qualification Agent ",
+          "type": "team",
+          "icon": {
+            "type": "icon",
+            "value": "layer-group"
+          },
+          "description": "Automated lead qualification and SMS outreach system that processes Kajabi form submissions, enriches B2B leads through two-phase qualification, scores them 0-100 using AI, and sends personalized SMS to qualified prospects while maintaining strict compliance and cost controls.",
+          "projectRelations": [
+            {
+              "createdAt": "2025-07-20T10:23:14.911Z",
+              "updatedAt": "2025-07-20T10:23:14.911Z",
+              "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "projectId": "H4VRaaZhd8VKQANf",
+              "user": {
+                "createdAt": "2025-07-01T09:55:15.012Z",
+                "updatedAt": "2025-09-23T22:00:55.000Z",
+                "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+                "email": "latifhorst@gmail.com",
+                "firstName": "LATIF",
+                "lastName": "HORST",
+                "personalizationAnswers": null,
+                "settings": {
+                  "userActivated": true,
+                  "easyAIWorkflowOnboarded": true,
+                  "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                  "userActivatedAt": 1751967003557,
+                  "npsSurvey": {
+                    "responded": true,
+                    "lastShownAt": 1753035927344
+                  }
+                },
+                "disabled": false,
+                "mfaEnabled": false,
+                "lastActiveAt": "2025-09-23",
+                "isPending": false
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "tags": []
+  }
+}

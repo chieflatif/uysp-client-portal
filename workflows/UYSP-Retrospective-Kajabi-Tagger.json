@@ -1,0 +1,219 @@
+{
+  "name": "UYSP-Retrospective-Kajabi-Tagger",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "filterByFormula": "AND({Status}='Sent', {Event}='Send Attempt', NOT({Kajabi Tagged}), LEN({Lead Record ID})>0)",
+        "options": {}
+      },
+      "id": "get-sent-sms",
+      "name": "Get Sent SMS Records",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [300, 200],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "RECORD_ID()='{{ $json.fields[\"Lead Record ID\"] }}'"
+      },
+      "id": "get-lead-details",
+      "name": "Get Lead Details",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [500, 200],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kajabi.com/v1/contacts/{{ $json.fields.Email }}/tags",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "name": "AI Webinar Campaign Sent"
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "tag-kajabi",
+      "name": "Tag in Kajabi",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "KAJABI_API_TOKEN",
+          "name": "Kajabi API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Kajabi Tagged": "={{ $json.success || $json.id ? true : false }}",
+            "Kajabi Tag Response": "={{ JSON.stringify($json) }}",
+            "id": "={{ $items('Get Sent SMS Records', 0)[$itemIndex].json.id }}"
+          },
+          "matchingColumns": ["id"]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "mark-tagged",
+      "name": "Mark as Tagged",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [900, 200],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": "list"
+        },
+        "text": "🏷️ KAJABI TAGGING COMPLETE\\n\\nProcessed: {{ $items('Get Sent SMS Records', 0).length }} records\\nSuccessfully tagged: {{ $items('Mark as Tagged', 0).filter(item => item.json.fields['Kajabi Tagged']).length }}\\nFailed: {{ $items('Mark as Tagged', 0).filter(item => !item.json.fields['Kajabi Tagged']).length }}\\n\\nAll sent AI Webinar campaign contacts now tagged in Kajabi for audit trail.",
+        "otherOptions": {}
+      },
+      "id": "notify-complete",
+      "name": "Notify Complete",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [1100, 200],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Sent SMS Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Sent SMS Records": {
+      "main": [
+        [
+          {
+            "node": "Get Lead Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Lead Details": {
+      "main": [
+        [
+          {
+            "node": "Tag in Kajabi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag in Kajabi": {
+      "main": [
+        [
+          {
+            "node": "Mark as Tagged",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark as Tagged": {
+      "main": [
+        [
+          {
+            "node": "Notify Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

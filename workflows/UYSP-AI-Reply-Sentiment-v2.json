@@ -1,0 +1,220 @@
+{
+  "name": "UYSP-AI-Reply-Sentiment-v2",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "authentication": "airtableTokenApi",
+        "baseId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "tableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "triggerField": "fldXwlhQMJZGXMVJ9",
+        "additionalFields": {}
+      },
+      "id": "trigger_node",
+      "name": "Trigger: Reply Updated",
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        64,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "base": {
+          "value": "app4wIsBfpJTg7pWS",
+          "__rl": true,
+          "mode": "id"
+        },
+        "table": {
+          "value": "tblYUvhGADerbD8EO",
+          "__rl": true,
+          "mode": "id"
+        },
+        "id": "={{$json.id}}",
+        "options": {}
+      },
+      "id": "get_record_node",
+      "name": "Get Lead Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        288,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "openai_model_node",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        592,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "inputText": "={{$json.fields['Last Reply Text']}}",
+        "options": {
+          "includeDetailedResults": true
+        }
+      },
+      "id": "sentiment_node",
+      "name": "Sentiment Analysis",
+      "type": "@n8n/n8n-nodes-langchain.sentimentAnalysis",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        64
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const sentiment = item.json.sentiment;\n  const confidence = item.json.sentimentScore || 0;\n  \n  const mapping = {\n    'Interested': 'Replied - Interested',\n    'Considering': 'Replied - Considering',\n    'NotInterested': 'Replied - Not Interested'\n  };\n  \n  const conversation_status = mapping[sentiment] || 'Replied - Considering';\n  \n  results.push({\n    json: {\n      record_id: $('Get Lead Record').first().json.id,\n      sentiment,\n      confidence: Math.round(confidence * 100) / 100,\n      conversation_status\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "map_node",
+      "name": "Map to Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "value": "app4wIsBfpJTg7pWS",
+          "__rl": true,
+          "mode": "id"
+        },
+        "table": {
+          "value": "tblYUvhGADerbD8EO",
+          "__rl": true,
+          "mode": "id"
+        },
+        "id": {
+          "__rl": true,
+          "mode": "expression",
+          "value": "={{$json.record_id}}"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fldBY5Tp54mJsExrW": "={{$json.conversation_status}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "update_node",
+      "name": "Update Status",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1088,
+        64
+      ]
+    }
+  ],
+  "connections": {
+    "Trigger: Reply Updated": {
+      "main": [
+        [
+          {
+            "node": "Get Lead Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Lead Record": {
+      "main": [
+        [
+          {
+            "node": "Sentiment Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sentiment Analysis",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sentiment Analysis": {
+      "main": [
+        [
+          {
+            "node": "Map to Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Map to Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Map to Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map to Status": {
+      "main": [
+        [
+          {
+            "node": "Update Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionOrder": "v1"
+  }
+}
+

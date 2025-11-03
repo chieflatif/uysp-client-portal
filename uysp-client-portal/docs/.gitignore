@@ -1,0 +1,6 @@
+# Documentation folder - git tracked
+# Include all .md files for version control
+# This ensures documentation is part of the repository
+
+!*.md
+!PROGRESS.md

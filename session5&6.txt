@@ -1,0 +1,453 @@
+========== SESSION 5: Utilities & Complete Flow ==========cat > "$CURSOR_PROJECT/context/session-5/README.md" << 'EOF'Session 5: Utilities & Complete System IntegrationWhat You're BuildingDaily metrics calculation, Calendly webhook handler, centralized error handling, and complete end-to-end workflow integration connecting all previous components.Why This MattersThis completes the system by adding monitoring, attribution tracking, and error recovery. Without these utilities, you're flying blind and can't optimize or troubleshoot effectively.PrerequisitesSessions 1-4 complete and tested
+Pattern 05 loaded (utility patterns)
+All components working individually
+Understanding of complete flow
+Calendly webhook access (optional)
+
+DeliverablesDaily metrics aggregation workflow
+Calendly meeting attribution handler
+Centralized error handler
+Human review queue view
+Complete system integration test
+
+Critical RequirementsMetrics run daily at 11pm
+All errors logged with context
+Cost tracking aggregated
+Human review items tracked
+End-to-end flow verified
+
+Success MetricsDaily metrics calculating accurately
+Errors categorized and logged
+Meeting attribution working
+Complete flow processes in <5 min
+All components integrated
+EOF
+
+cat > "$CURSOR_PROJECT/context/session-5/pattern.md" << 'EOF'Implementation Pattern: System UtilitiesDaily Metrics Workflowjavascript
+
+// Create separate workflow: uysp-daily-metrics-v1
+
+// Node: Schedule Trigger
+Type: n8n-nodes-base.scheduleTrigger
+Settings:
+  Trigger Times:
+    Hour: 23
+    Minute: 0
+  Trigger Days: All
+
+// Node: Get Today's Data
+Type: n8n-nodes-base.airtable
+Operation: Search
+Table: People
+Filter: {created_date} = TODAY()
+
+// Node: Calculate Metrics
+Type: n8n-nodes-base.code
+const leads = $items;
+const today = new Date().toISOString().split('T')[0];
+
+// Process leads by source
+const bySource = {};
+leads.forEach(lead => {
+  const source = lead.json.lead_source || 'unknown';
+  bySource[source] = (bySource[source] || 0) + 1;
+});
+
+// Calculate enrichment success
+const enriched = leads.filter(l => l.json.title_current).length;
+const enrichmentRate = leads.length > 0 ? (enriched / leads.length * 100) : 0;
+
+// Get SMS and meeting counts from other tables...
+
+return {
+  date: today,
+  leads_processed: leads.length,
+  leads_by_source: JSON.stringify(bySource),
+  enrichment_success_rate: enrichmentRate,
+  avg_processing_time: calculateAvgTime(leads),
+  // ... other metrics
+};
+
+// Node: Save Daily Metrics
+Type: n8n-nodes-base.airtable
+Operation: Create
+Table: Daily_Metrics
+
+Calendly Webhook Handlerjavascript
+
+// Create separate workflow: uysp-calendly-webhook-v1
+
+// Node: Webhook Receiver
+Type: n8n-nodes-base.webhook
+Path: calendly-events
+Method: POST
+
+// Node: Validate Calendly Signature
+Type: n8n-nodes-base.code
+// TODO: Implement signature validation when ready
+const isValid = true; // Placeholder
+if (!isValid) throw new Error('Invalid signature');
+
+return $json;
+
+// Node: Extract Meeting Data
+Type: n8n-nodes-base.code
+const event = $json.event;
+const invitee = $json.invitee;
+
+// Extract tracking parameters from URL
+const uri = new URL(invitee.cancel_url);
+const utmSource = uri.searchParams.get('utm_source');
+const utmContent = uri.searchParams.get('utm_content');
+
+return {
+  email: invitee.email,
+  meeting_time: event.start_time,
+  meeting_type: event.event_type,
+  tracking_source: utmSource,
+  tracking_content: utmContent,
+  calendly_event_id: event.id
+};
+
+// Node: Find Person Record
+Type: n8n-nodes-base.airtable
+Operation: Search
+Table: People
+Filter: {email} = '{{ $json.email }}'
+
+// Node: Create Meeting Record
+Type: n8n-nodes-base.airtable
+Operation: Create
+Table: Meetings
+
+Centralized Error Handlerjavascript
+
+// Add to main workflow error handling
+
+// Node: Capture Error Context
+Type: n8n-nodes-base.code
+const error = $json.error;
+const context = {
+  workflow: 'uysp-lead-processing-v1',
+  execution_id: $execution.id,
+  timestamp: new Date().toISOString(),
+  node_name: error.node?.name || 'unknown',
+  error_message: error.message,
+  error_type: classifyError(error),
+  lead_email: $items[0]?.json?.email || 'unknown'
+};
+
+function classifyError(err) {
+  if (err.message.includes('rate limit')) return 'rate_limit';
+  if (err.message.includes('Invalid API')) return 'auth_error';
+  if (err.message.includes('Network')) return 'network_error';
+  if (err.message.includes('compliance')) return 'compliance_block';
+  return 'unknown';
+}
+
+// Node: Log to Error Table
+Type: n8n-nodes-base.airtable
+Operation: Create
+Table: Error_Log
+Fields: [context object]
+
+// Node: Alert if Critical
+Type: n8n-nodes-base.switch
+Rules:
+  - When: {{ $json.error_type === 'auth_error' }}
+    Output: Send Alert
+  - Default: Log Only
+
+Human Review Queue (Airtable View)javascript
+
+// This is configured in Airtable UI, not n8n
+/*
+View Name: "Human Review Queue"
+Table: People
+Filters:
+  - routing = "human_review"
+  - reviewed = false
+  - created_date is within last 7 days
+Sort:
+  - priority DESC
+  - created_date ASC
+Fields shown:
+  - email
+  - company
+  - routing_reason
+  - created_date
+  - review button
+*/
+
+Complete System Testjavascript
+
+// Node: Generate Test Batch
+Type: n8n-nodes-base.code
+const testLeads = [
+  {
+    email: 'complete-test-1@salesforce.com',
+    name: 'High Score Test',
+    phone: '415-555-0001',
+    company: 'Salesforce',
+    source_form: 'system-test'
+  },
+  {
+    email: 'complete-test-2@unknown.com',
+    name: 'Medium Score Test',
+    phone: '415-555-0002',
+    company: 'Unknown Startup'
+  },
+  {
+    email: 'complete-test-3@gmail.com',
+    name: 'Low Score Test',
+    company: 'Personal'
+  }
+];
+
+return testLeads.map(lead => ({
+  json: { ...lead, request_id: `system-test-${Date.now()}` }
+}));
+
+// Process through complete workflow...
+
+EOFcat > "$CURSOR_PROJECT/context/session-5/tests.md" << 'EOF'Test Requirements: Session 5Component TestsDaily Metrics TestCreate test data for "today"
+Run metrics calculation
+Verify:Counts are accurate
+Percentages calculate correctly
+JSON fields properly formatted
+Record created in Daily_Metrics
+Error Handler TestSimulate various errors:API rate limit (429)
+Invalid credentials (401)
+Network timeout
+Airtable conflict
+SMS compliance block
+
+Verify each creates appropriate Error_Log entryCalendly Webhook Testjson
+
+{
+  "event": {
+    "id": "evt_123",
+    "start_time": "2024-01-15T14:00:00Z",
+    "event_type": "discovery_call"
+  },
+  "invitee": {
+    "email": "test@qualified.com",
+    "cancel_url": "https://calendly.com/cancel?utm_source=sms&utm_content=lead123"
+  }
+}
+
+End-to-End System TestRun 10 test leads through complete system:High ICP B2B (should get SMS)
+Medium ICP B2B (should get SMS)
+Low ICP B2B (should archive)
+Non-B2B (should archive at Phase 1)
+No Company Data (human review)
+International Phone (human review)
+DND Number (compliance block)
+After Hours (time window block)
+Duplicate (should update)
+Missing Email (should error gracefully)
+
+Success CriteriaAll 10 tests complete without system errors
+Appropriate routing for each test case
+Metrics accurately reflect activity
+Errors logged with proper classification
+Total processing time <5 minutes for batch
+EOF
+
+cat > "$CURSOR_PROJECT/context/session-5/evidence.md" << 'EOF'Evidence Requirements: Session 5After completing utilities and integration:
+
+COMPONENT: Utilities & Complete System
+STATUS: Complete
+EVIDENCE:
+- New Workflows:
+  - uysp-daily-metrics-v1: [workflow-id]
+  - uysp-calendly-webhook-v1: [workflow-id]
+- Error Handling:
+  - Rate limit logged: [error-id]
+  - Auth error logged: [error-id]
+  - Compliance block logged: [error-id]
+- Daily Metrics:
+  - Test run successful: [execution-id]
+  - Metrics record created: rec[xxx]
+- System Test Results:
+  - Test 1 (High B2B): SMS sent ✓
+  - Test 2 (Medium B2B): SMS sent ✓
+  - Test 3 (Low B2B): Archived ✓
+  - Test 4 (Non-B2B): Phase 1 stop ✓
+  - Test 5 (No company): Human review ✓
+  - Test 6 (International): Human review ✓
+  - Test 7 (DND): Blocked ✓
+  - Test 8 (After hours): Blocked ✓
+  - Test 9 (Duplicate): Updated ✓
+  - Test 10 (No email): Error handled ✓
+- Processing Metrics:
+  - Average time per lead: ___ seconds
+  - Total batch time: ___ minutes
+- Export Locations:
+  - Main: workflows/backups/session-5-complete.json
+  - Metrics: workflows/backups/session-5-metrics.json
+  - Calendly: workflows/backups/session-5-calendly.json
+
+System Readiness:All components connected
+Error handling comprehensive
+Metrics tracking working
+Ready for production testing
+EOF
+
+========== SESSION 6: Reality-Based Testing ==========cat > "$CURSOR_PROJECT/context/session-6/README.md" << 'EOF'Session 6: Reality-Based Testing & ValidationWhat You're BuildingA comprehensive testing suite that verifies the ENTIRE system end-to-end, focusing on actual Airtable records created, not just HTTP responses or console logs. This includes all 10+ payload variations, duplicate scenarios, compliance blocks, and qualification routing.Why This MattersPrevious "testing theater" (checking 200 OK but no records) caused 90% of failures. This ensures the system works in reality, with evidence like record IDs.PrerequisitesSessions 0-5 complete and integrated
+Pattern 06 loaded (reality-based protocol)
+All test payloads prepared (15+ consolidated)
+Field_Mapping_Log ready for unknowns
+
+DeliverablesAutomated test script for full system
+Verification queries for Airtable records
+Evidence report with IDs and rates
+Unknown field analysis
+Final system backup
+
+Critical RequirementsMUST use external triggers (curl/TestSprite)
+MUST wait 5s+ for processing
+MUST verify Airtable records by ID
+MUST check 98%+ field capture rate
+MUST test ALL edge cases (duplicates, international, errors)
+
+Success Metrics100% workflow execution success
+Zero duplicate records
+98%+ field mapping rate
+All compliance/routing works
+Full evidence collected
+EOF
+
+cat > "$CURSOR_PROJECT/context/session-6/pattern.md" << 'EOF'Implementation Pattern: Reality-Based TestingTest Execution Protocolbash
+
+# Manual Test Protocol (Run for EACH test)
+1. In n8n UI: Click "Execute Workflow" on main workflow
+2. Wait 5 seconds for webhook to listen
+3. Send payload via curl:
+curl -X POST https://[n8n-url]/webhook/kajabi-leads \
+  -H "X-API-Key: [key]" \
+  -H "Content-Type: application/json" \
+  -d '[test-payload-json]'
+
+4. Wait 10-30 seconds for processing
+5. Check n8n execution log for success
+6. Query Airtable for record: filterByFormula({email} = 'test@example.com')
+7. Verify fields populated correctly
+8. Repeat for next test - MUST re-click "Execute Workflow"
+
+Consolidated Test Payloads (15+ Unique)json
+
+[
+  // From Session 0 (10 basic variations)
+  { "email": "test1@example.com", "name": "John Doe", "phone": "555-0001", "company": "Acme Corp" },
+  { "EMAIL": "test2@example.com", "NAME": "Jane Doe", "PHONE": "555-0002" },
+  { "Email": "test3@example.com", "Name": "Bob Smith", "Phone": "555-0003" },
+  { "email_address": "test4@example.com", "full_name": "Alice Johnson", "phone_number": "555-0004" },
+  { "first_name": "Charlie", "last_name": "Brown", "email_address": "test5@example.com" },
+  { "emailAddress": "test6@example.com", "firstName": "David", "lastName": "Green" },
+  { "email": "test7@example.com", "interested_in_coaching": "yes", "qualified_lead": "true" },
+  { "email": "test8@example.com", "interested_in_coaching": true, "contacted": 1 },
+  { "email": "test9@example.com" },
+  { "email": "test10@example.com", "custom_field_xyz": "value", "another_unknown": "data" },
+  
+  // Additional from updates (new variations, international)
+  { "email_address_1 "test11@example.com", "phone_intl": "+1 555-0011", "user_email": "test11@example.com" },
+  { "email": "test12@example.com", "phone": "+44 7700 900123", "name": "International User" },
+  { "email": "test13@example.com", "interested_in_coaching": "checked", "qualified_lead": "y" },
+  { "email": "test14@example.com", "phone": "invalid", "name": "Invalid Phone Test" },
+  { "email": "test15@example.com", "name": "Duplicate Test", "request_id": "dup-test-001" } // Send twice for duplicate
+]
+
+Airtable Verification Queriesjavascript
+
+// Query for record existence
+filterByFormula: {email} = 'test1@example.com'
+Expect: Exactly 1 record
+
+// Verify field mapping
+Check fields: email, first_name, last_name, phone, company all populated
+
+// Check duplicates
+filterByFormula: {email} = 'test15@example.com'
+Expect: 1 record, duplicate_count >=1
+
+// Unknown fields
+Search Field_Mapping_Log for today's unknowns
+
+Evidence Collection Scriptjavascript
+
+// Run after all tests
+const testResults = [];
+// For each test...
+testResults.push({
+  test_id: 'test1',
+  execution_id: '[from n8n]',
+  record_id: '[from Airtable]',
+  capture_rate: '98%',
+  status: 'PASSED'
+});
+
+// Generate report
+console.log(JSON.stringify(testResults, null, 2));
+
+EOFcat > "$CURSOR_PROJECT/context/session-6/tests.md" << 'EOF'Test Requirements: Session 6Full System Edge CasesHigh ICP B2B (should get SMS)
+Medium ICP B2B (should get SMS)
+Low ICP B2B (should archive)
+Non-B2B (should archive at Phase 1)
+No Company Data (human review)
+International Phone (human review)
+DND Number (compliance block)
+After Hours (time window block)
+Duplicate (should update)
+Missing Email (should error gracefully)
+New Kajabi Variations (field mapping test)
+Boolean 'checked'/'y' (conversion test)
+Invalid Phone (validation fail)
+Cost Limit Exceeded (circuit breaker)
+Claude API Fail (fallback scoring)
+
+Verification ProtocolFor each: Send payload, wait, query Airtable
+Check: Record exists? Fields mapped? Routing correct?
+Measure: Processing time <5 min
+Log: Any unknowns to Field_Mapping_Log
+
+Success Criteria100% execution success (no errors)
+98%+ field mapping rate
+Zero duplicates created
+All compliance blocks work
+Evidence: Record IDs, execution IDs for all
+EOF
+
+cat > "$CURSOR_PROJECT/context/session-6/evidence.md" << 'EOF'Evidence Requirements: Session 6After running all tests:
+
+COMPONENT: Reality-Based System Testing
+STATUS: Complete
+EVIDENCE:
+- Test Coverage: 15/15 scenarios
+- Execution Success Rate: 100%
+- Field Mapping Rate: ___% average
+- Processing Times:
+  - Average: ___ seconds
+  - Max: ___ seconds
+- Key Verifications:
+  - Duplicates prevented: ✓
+  - International routed: ✓
+  - Compliance blocks: ✓
+  - Routing accurate: ✓
+- Sample Evidence:
+  - Test 1 (High B2B): Execution [id], Record rec[xxx], SMS logged
+  - Test 6 (International): Execution [id], Human review flagged
+  - Test 10 (No email): Execution [id], Error logged
+- Unknown Fields Discovered: [count/list]
+- Final Backup: workflows/backups/session-6-complete-system.json
+
+Platform Validation:All tests used external triggers
+Webhook re-activated per test
+No "testing theater" - All verified via Airtable
+EOF
+
+echo "=== Context Engineering Complete ==="
+echo "All session documents created in $CURSOR_PROJECT/context/"
+echo "Ready for Cursor AI sessions 0-6"
+echo "Session 7 directory created as stub - implement later"
+

@@ -1,0 +1,16 @@
+{
+  "workflows": {
+    "UYSP-Engagement-Score-Calculator-v1": "3nA0asUTWdgYuCMf",
+    "UYSP-AI-Reply-Sentiment-v2": "IzWhzHKBdA6JZWAH",
+    "UYSP-Workflow-Health-Monitor-v2": "MLnKXQYtfJDk9HXI",
+    "UYSP-Daily-Monitoring": "5xW2QG8x2RFQP8kx",
+    "UYSP-Calendly-Booked": "LiVE3BlxsFkHhG83",
+    "UYSP-SimpleTexting-Reply-Handler": "CmaISo2tBtYRqNs0",
+    "safety-check-module-v2": "3aOAIMbsSZYoeOpW"
+  },
+  "tables": {
+    "Leads": "tblYUvhGADerbD8EO",
+    "Workflow_Health_Status": "tblTeZVJ2eJ9BBN1b"
+  },
+  "base_id": "app4wIsBfpJTg7pWS"
+}

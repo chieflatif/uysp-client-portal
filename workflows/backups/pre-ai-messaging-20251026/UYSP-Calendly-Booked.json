@@ -1,0 +1,27 @@
+{
+  "name": "UYSP-Calendly-Booked",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "calendly",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "wb",
+      "name": "Webhook (Calendly)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [-800, 16],
+      "webhookId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    }
+  ],
+  "connections": {},
+  "_metadata": {
+    "workflowId": "LiVE3BlxsFkHhG83",
+    "projectId": "H4VRaaZhd8VKQANf",
+    "projectName": "UYSP Lead Qualification Agent",
+    "backedUpAt": "2025-10-26T13:55:00.000Z",
+    "note": "See full export via MCP - this is backup marker"
+  }
+}

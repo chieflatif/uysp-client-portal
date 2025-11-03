@@ -1,0 +1,44 @@
+{
+  "dataset_sizes": {
+    "dropcontact": 100,
+    "pdl_hunter": 95
+  },
+  "providers": {
+    "PDL": {
+      "title_rate": 71.6,
+      "company_rate": 35.8,
+      "linkedin_rate": 71.6
+    },
+    "Dropcontact": {
+      "linkedin_rate": 71,
+      "title_rate": 23,
+      "company_rate": 95,
+      "domain_consistent_rate": 82,
+      "email_quality": {
+        "nominatif_pro": 91,
+        "generic_pro": 0,
+        "other": 9
+      }
+    },
+    "Hunter": {
+      "counts": {
+        "deliverable": 70,
+        "undeliverable": 2,
+        "risky": 21,
+        "unknown": 2
+      },
+      "rates": {
+        "deliverable": 73.7,
+        "undeliverable": 2.1,
+        "risky": 22.1,
+        "unknown": 2.1
+      },
+      "total": 95
+    }
+  },
+  "deltas": {
+    "linkedin_diff_dc_minus_pdl": -0.6,
+    "title_diff_dc_minus_pdl": -48.6,
+    "company_diff_dc_minus_pdl": 59.2
+  }
+}

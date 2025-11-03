@@ -1,0 +1,606 @@
+{
+  "name": "UYSP-AI-Inbound-Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "twilio-ai",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-ai-inbound",
+      "name": "Twilio AI Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 400],
+      "webhookId": "twilio-ai-inbound"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Twilio webhook\nconst payload = $input.first().json;\n\nconst data = {\n  message_sid: payload.MessageSid || payload.SmsSid,\n  from: payload.From,\n  to: payload.To,\n  body: payload.Body || '',\n  num_media: parseInt(payload.NumMedia || 0),\n  received_at: new Date().toISOString(),\n  from_digits: payload.From.replace(/\\D/g, '').replace(/^1/, '')\n};\n\nconsole.log('=== AI INBOUND MESSAGE ===');\nconsole.log(`From: ${data.from} | Body: ${data.body}`);\n\nreturn { json: data };"
+      },
+      "id": "parse-webhook",
+      "name": "Parse Webhook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tbl09qmd60wivdby2"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.received_at }}",
+            "client_id": "uysp_001",
+            "lead_id": "pending_lookup",
+            "trigger_type": "inbound_reply",
+            "decision": "RECEIVED",
+            "message_content": "={{ $json.body }}",
+            "webhook_receipt_id": "={{ $json.message_sid }}"
+          }
+        },
+        "options": { "typecast": true }
+      },
+      "id": "log-webhook-receipt",
+      "name": "Log Webhook Receipt",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [680, 400],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "=SEARCH('{{ $json.from_digits }}', {Phone})",
+        "options": { "maxRecords": 1 }
+      },
+      "id": "find-lead",
+      "name": "Find Lead by Phone",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [900, 400],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $items('Find Lead by Phone')[0]?.json ? true : false }}",
+              "operation": "equals",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "lead-found",
+      "name": "Lead Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1120, 400],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.N8N_WEBHOOK_URL }}/webhook/safety-check",
+        "authentication": "none",
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "lead_id",
+              "value": "={{ $items('Find Lead by Phone')[0].json.id }}"
+            },
+            {
+              "name": "trigger_type",
+              "value": "inbound_reply"
+            },
+            {
+              "name": "client_id",
+              "value": "uysp_001"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "call-safety-check",
+      "name": "Call Safety Check Module",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1340, 300],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.decision }}",
+              "operation": "equals",
+              "value2": "SEND"
+            }
+          ]
+        }
+      },
+      "id": "safety-decision",
+      "name": "Safety Check: SEND?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1560, 300],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Backup conversation thread before modifying\nconst lead = $items('Find Lead by Phone')[0].json;\nconst currentThread = lead['🤖 conversation_thread'] || '';\n\nif (currentThread) {\n  return {\n    json: {\n      lead_id: lead.id,\n      backup_thread: currentThread,\n      needs_backup: true\n    }\n  };\n}\n\nreturn {\n  json: {\n    lead_id: lead.id,\n    needs_backup: false\n  }\n};"
+      },
+      "id": "backup-thread",
+      "name": "Backup Thread",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.lead_id }}",
+            "🤖 conversation_thread_backup": "={{ $json.backup_thread }}"
+          },
+          "matchingColumns": ["id"]
+        },
+        "options": { "typecast": true }
+      },
+      "id": "save-backup",
+      "name": "Save Thread Backup",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [2000, 200],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tbl34O5Cs0G1cDJbs"
+        },
+        "filterByFormula": "={client_id} = 'uysp_001'",
+        "options": { "maxRecords": 1 }
+      },
+      "id": "load-ai-config",
+      "name": "Load AI Config",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [2220, 200],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build AI prompt\nconst lead = $items('Find Lead by Phone')[0].json;\nconst inboundMessage = $items('Parse Webhook')[0].json;\nconst aiConfig = $items('Load AI Config')[0]?.json || null;\n\nif (!aiConfig) {\n  throw new Error('AI Config not found');\n}\n\n// Parse conversation thread safely\nlet thread = [];\ntry {\n  thread = JSON.parse(lead['🤖 conversation_thread'] || '[]');\n} catch (error) {\n  console.error('Thread parse failed, starting fresh:', error.message);\n  thread = [];\n}\n\n// Add inbound message to thread\nconst inboundEntry = {\n  message_id: inboundMessage.message_sid,\n  direction: 'inbound',\n  content: inboundMessage.body,\n  timestamp: inboundMessage.received_at,\n  sender: 'prospect'\n};\n\nthread.push(inboundEntry);\n\n// Build conversation context for AI\nconst conversationContext = thread.map(msg => {\n  return `${msg.sender === 'prospect' ? 'Prospect' : 'AI'}: ${msg.content}`;\n}).join('\\n');\n\n// Build system prompt\nconst systemPrompt = aiConfig.system_prompt || 'You are a helpful AI assistant for UYSP coaching.';\n\n// Build user prompt\nconst userPrompt = `CONVERSATION HISTORY:\n${conversationContext}\n\nYour task: Respond to the prospect's latest message naturally and helpfully. Keep responses conversational and brief (2-3 sentences max).`;\n\nconst leadName = `${lead['First Name'] || ''} ${lead['Last Name'] || ''}`.trim();\nconst campaignStage = lead['🤖 campaign_stage'] || 'confirmation';\n\nconsole.log('=== AI PROMPT BUILT ===');\nconsole.log(`Lead: ${leadName}`);\nconsole.log(`Campaign Stage: ${campaignStage}`);\nconsole.log(`Thread Length: ${thread.length} messages`);\n\nreturn {\n  json: {\n    lead_id: lead.id,\n    lead_name: leadName,\n    system_prompt: systemPrompt,\n    user_prompt: userPrompt,\n    conversation_thread: thread,\n    ai_model: aiConfig.ai_model || 'gpt-4o-mini',\n    max_tokens: aiConfig.max_tokens || 150\n  }\n};"
+      },
+      "id": "build-ai-prompt",
+      "name": "Build AI Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2440, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "={{ $json.ai_model }}"
+            },
+            {
+              "name": "messages",
+              "value": "={{ JSON.stringify([{role: 'system', content: $json.system_prompt}, {role: 'user', content: $json.user_prompt}]) }}"
+            },
+            {
+              "name": "max_tokens",
+              "value": "={{ $json.max_tokens }}"
+            },
+            {
+              "name": "temperature",
+              "value": 0.7
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "call-openai",
+      "name": "Call OpenAI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2660, 200],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error ? false : true }}",
+              "operation": "equals",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "ai-success",
+      "name": "AI Call Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2880, 200],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI response\nconst aiResponse = $input.first().json;\nconst aiMessage = aiResponse.choices?.[0]?.message?.content || '';\nconst usage = aiResponse.usage || {};\n\nconst responseTimeMs = Date.now() - new Date($items('Parse Webhook')[0].json.received_at).getTime();\n\nconsole.log('=== AI RESPONSE ===');\nconsole.log(`Message: ${aiMessage}`);\nconsole.log(`Tokens: ${usage.total_tokens || 0}`);\nconsole.log(`Response Time: ${responseTimeMs}ms`);\n\nreturn {\n  json: {\n    ai_message: aiMessage,\n    tokens_used: usage.total_tokens || 0,\n    prompt_tokens: usage.prompt_tokens || 0,\n    completion_tokens: usage.completion_tokens || 0,\n    response_time_ms: responseTimeMs,\n    response_time_sec: Math.round(responseTimeMs / 1000),\n    cost_usd: (usage.total_tokens || 0) * 0.00001  // Rough estimate\n  }\n};"
+      },
+      "id": "parse-ai-response",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3100, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get fallback response\nconst aiConfig = $items('Load AI Config')[0].json;\nconst error = $items('Call OpenAI')[0].json.error || {};\n\nconst fallbackResponses = JSON.parse(aiConfig.fallback_responses || '{}');\nconst fallbackMessage = fallbackResponses.ai_timeout || \"Thanks for your message! Let me get you the right information. Someone from our team will follow up within 24 hours.\";\n\nconsole.log('=== AI ERROR - USING FALLBACK ===');\nconsole.log(`Error: ${error.message || 'Unknown'}`);\nconsole.log(`Fallback: ${fallbackMessage}`);\n\nreturn {\n  json: {\n    ai_message: fallbackMessage,\n    fallback_used: true,\n    error_type: 'ai_timeout',\n    error_message: error.message || 'OpenAI call failed'\n  }\n};"
+      },
+      "id": "get-fallback",
+      "name": "Get Fallback Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3100, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twilio.com/2010-04-01/Accounts/{{ $vars.TWILIO_ACCOUNT_SID }}/Messages.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "twilioApi",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "MessagingServiceSid",
+              "value": "={{ $vars.TWILIO_MESSAGING_SERVICE_SID || '' }}"
+            },
+            {
+              "name": "To",
+              "value": "={{ $items('Parse Webhook')[0].json.from }}"
+            },
+            {
+              "name": "Body",
+              "value": "={{ $json.ai_message }}"
+            },
+            {
+              "name": "ShortenUrls",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "send-sms",
+      "name": "Send SMS via Twilio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [3320, 200],
+      "continueOnFail": true,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error ? false : true }}",
+              "operation": "equals",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "sms-sent",
+      "name": "SMS Sent Successfully?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [3540, 200],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Update conversation thread with both messages\nconst lead = $items('Find Lead by Phone')[0].json;\nconst promptData = $items('Build AI Prompt')[0].json;\nconst aiMessageText = $items('Parse AI Response', 0)?.[0]?.json.ai_message || $items('Get Fallback', 0)?.[0]?.json.ai_message;\nconst smsResult = $items('Send SMS via Twilio')[0].json;\n\n// Get thread with inbound message already added\nconst thread = promptData.conversation_thread;\n\n// Add outbound AI message\nconst outboundEntry = {\n  message_id: smsResult.sid || `ai_${Date.now()}`,\n  direction: 'outbound',\n  content: aiMessageText,\n  timestamp: new Date().toISOString(),\n  sender: 'ai'\n};\n\nthread.push(outboundEntry);\n\n// Validate JSON\ntry {\n  JSON.parse(JSON.stringify(thread));\n} catch (error) {\n  console.error('Thread validation failed:', error.message);\n  throw error;\n}\n\nreturn {\n  json: {\n    lead_id: lead.id,\n    new_thread: JSON.stringify(thread),\n    thread_length: thread.length\n  }\n};"
+      },
+      "id": "update-thread",
+      "name": "Update Conversation Thread",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3760, 100]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.lead_id }}",
+            "🤖 conversation_thread": "={{ $items('Update Conversation Thread')[0].json.new_thread }}",
+            "🤖 last_message_direction": "outbound",
+            "SMS Last Sent At": "={{ $now }}",
+            "🤖 total_ai_messages_sent": "={{ ($items('Find Lead by Phone')[0].json['🤖 total_ai_messages_sent'] || 0) + 1 }}",
+            "🤖 ai_message_count_today": "={{ ($items('Find Lead by Phone')[0].json['🤖 ai_message_count_today'] || 0) + 1 }}",
+            "🤖 messages_in_last_2_hours": "={{ ($items('Find Lead by Phone')[0].json['🤖 messages_in_last_2_hours'] || 0) + 1 }}",
+            "🤖 last_successful_ai_call_at": "={{ $now }}",
+            "🤖 last_ai_response_time_sec": "={{ $items('Parse AI Response', 0)?.[0]?.json.response_time_sec || 0 }}",
+            "🤖 total_ai_cost_usd": "={{ ($items('Find Lead by Phone')[0].json['🤖 total_ai_cost_usd'] || 0) + ($items('Parse AI Response', 0)?.[0]?.json.cost_usd || 0) }}"
+          },
+          "matchingColumns": ["id"]
+        },
+        "options": { "typecast": true }
+      },
+      "id": "update-lead-state",
+      "name": "Update Lead State",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [3980, 100],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tbl09qmd60wivdby2"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now }}",
+            "client_id": "uysp_001",
+            "lead_id": "={{ $items('Find Lead by Phone')[0].json.id }}",
+            "trigger_type": "inbound_reply",
+            "decision": "SENT",
+            "decision_reason": "AI responded successfully",
+            "message_content": "={{ $items('Parse AI Response', 0)?.[0]?.json.ai_message || $items('Get Fallback', 0)?.[0]?.json.ai_message }}",
+            "fallback_used": "={{ $items('Get Fallback', 0)?.[0]?.json.fallback_used || false }}",
+            "webhook_receipt_id": "={{ $items('Parse Webhook')[0].json.message_sid }}"
+          }
+        },
+        "options": { "typecast": true }
+      },
+      "id": "log-decision-sent",
+      "name": "Log Decision - SENT",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [4200, 100],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tbl09qmd60wivdby2"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now }}",
+            "client_id": "uysp_001",
+            "lead_id": "={{ $items('Find Lead by Phone')[0].json.id }}",
+            "trigger_type": "inbound_reply",
+            "decision": "BLOCK",
+            "decision_reason": "={{ $items('Call Safety Check Module')[0].json.decision_reason }}",
+            "message_content": "={{ $items('Parse Webhook')[0].json.body }}",
+            "safety_checks_results": "={{ JSON.stringify($items('Call Safety Check Module')[0].json.safety_checks) }}"
+          }
+        },
+        "options": { "typecast": true }
+      },
+      "id": "log-decision-block",
+      "name": "Log Decision - BLOCK",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [1780, 400],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Message received",
+        "options": {}
+      },
+      "id": "respond-ok",
+      "name": "Respond to Twilio",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [4420, 300]
+    }
+  ],
+  "connections": {
+    "Twilio AI Webhook": {
+      "main": [[{"node": "Parse Webhook", "type": "main", "index": 0}]]
+    },
+    "Parse Webhook": {
+      "main": [[{"node": "Log Webhook Receipt", "type": "main", "index": 0}]]
+    },
+    "Log Webhook Receipt": {
+      "main": [[{"node": "Find Lead by Phone", "type": "main", "index": 0}]]
+    },
+    "Find Lead by Phone": {
+      "main": [[{"node": "Lead Found?", "type": "main", "index": 0}]]
+    },
+    "Lead Found?": {
+      "main": [
+        [{"node": "Call Safety Check Module", "type": "main", "index": 0}],
+        [{"node": "Respond to Twilio", "type": "main", "index": 0}]
+      ]
+    },
+    "Call Safety Check Module": {
+      "main": [[{"node": "Safety Check: SEND?", "type": "main", "index": 0}]]
+    },
+    "Safety Check: SEND?": {
+      "main": [
+        [{"node": "Backup Thread", "type": "main", "index": 0}],
+        [{"node": "Log Decision - BLOCK", "type": "main", "index": 0}]
+      ]
+    },
+    "Backup Thread": {
+      "main": [[{"node": "Save Thread Backup", "type": "main", "index": 0}]]
+    },
+    "Save Thread Backup": {
+      "main": [[{"node": "Load AI Config", "type": "main", "index": 0}]]
+    },
+    "Load AI Config": {
+      "main": [[{"node": "Build AI Prompt", "type": "main", "index": 0}]]
+    },
+    "Build AI Prompt": {
+      "main": [[{"node": "Call OpenAI", "type": "main", "index": 0}]]
+    },
+    "Call OpenAI": {
+      "main": [[{"node": "AI Call Success?", "type": "main", "index": 0}]]
+    },
+    "AI Call Success?": {
+      "main": [
+        [{"node": "Parse AI Response", "type": "main", "index": 0}],
+        [{"node": "Get Fallback Response", "type": "main", "index": 0}]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [[{"node": "Send SMS via Twilio", "type": "main", "index": 0}]]
+    },
+    "Get Fallback Response": {
+      "main": [[{"node": "Send SMS via Twilio", "type": "main", "index": 0}]]
+    },
+    "Send SMS via Twilio": {
+      "main": [[{"node": "SMS Sent Successfully?", "type": "main", "index": 0}]]
+    },
+    "SMS Sent Successfully?": {
+      "main": [
+        [{"node": "Update Conversation Thread", "type": "main", "index": 0}],
+        [{"node": "Respond to Twilio", "type": "main", "index": 0}]
+      ]
+    },
+    "Update Conversation Thread": {
+      "main": [[{"node": "Update Lead State", "type": "main", "index": 0}]]
+    },
+    "Update Lead State": {
+      "main": [[{"node": "Log Decision - SENT", "type": "main", "index": 0}]]
+    },
+    "Log Decision - SENT": {
+      "main": [[{"node": "Respond to Twilio", "type": "main", "index": 0}]]
+    },
+    "Log Decision - BLOCK": {
+      "main": [[{"node": "Respond to Twilio", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "tags": []
+}
+

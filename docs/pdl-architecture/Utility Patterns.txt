@@ -1,0 +1,521 @@
+# Utility Patterns - PDL Integration
+*Metrics, error handling, and system utilities optimized for PDL*
+
+# PREREQUISITE: Pattern 00 (Field Normalization) MUST be implemented first
+# This pattern assumes Smart Field Mapper is the first node after any webhook
+
+## Pattern: Daily Metrics with Cost Monitoring - PDL Enhanced
+**Purpose**: Aggregate daily performance metrics and enforce cost limits with PDL tracking
+**Required Nodes**: Schedule Trigger, Airtable (get data), Code (calculate), Airtable (save), Slack (report), Switch (alerts)
+
+**Configuration**:
+```javascript
+// Node 1: Daily Trigger
+Type: Schedule Trigger
+Cron: 0 23 * * * // 11 PM daily
+
+// Node 2: Get Today's Activity
+Type: Airtable
+// Get all relevant tables for metrics
+
+// Node 3: Calculate Metrics - ENHANCED FOR PDL
+Type: Code
+const today = new Date().toISOString().split('T')[0];
+
+// Get daily activities
+const people = await airtable.searchRecords({
+  table: 'People',
+  filter: `{created_date} = '${today}'`
+});
+
+const communications = await airtable.searchRecords({
+  table: 'Communications', 
+  filter: `{sent_time} >= '${today}T00:00:00.000Z'`
+});
+
+const meetings = await airtable.searchRecords({
+  table: 'Meetings',
+  filter: `{created_at} >= '${today}T00:00:00.000Z'`
+});
+
+const costs = await airtable.searchRecords({
+  table: 'Daily_Costs',
+  filter: `{date} = '${today}'`
+});
+
+// Calculate PDL-specific metrics
+const pdlMetrics = {
+  // Company enrichment metrics
+  pdl_company_attempts: people.filter(p => p.fields.phase1_attempted).length,
+  pdl_company_matches: people.filter(p => p.fields.phase1_passed).length,
+  pdl_company_match_rate: 0,
+  
+  // Person enrichment metrics  
+  pdl_person_attempts: people.filter(p => p.fields.phase2_attempted).length,
+  pdl_person_matches: people.filter(p => p.fields.phase2_passed).length,
+  pdl_person_match_rate: 0,
+  
+  // Job history enrichment
+  job_history_found: people.filter(p => 
+    p.fields.phase2_passed && 
+    p.fields.scoring_method_used === 'claude_ai' &&
+    p.fields.score_breakdown.includes('job_history')
+  ).length,
+  
+  // LinkedIn URL capture
+  linkedin_urls_found: people.filter(p => p.fields.linkedin_url).length,
+  
+  // Recent move detection
+  recent_moves_detected: people.filter(p => 
+    p.fields.score_breakdown && 
+    p.fields.score_breakdown.includes('recent_move')
+  ).length
+};
+
+// Calculate match rates
+if (pdlMetrics.pdl_company_attempts > 0) {
+  pdlMetrics.pdl_company_match_rate = 
+    (pdlMetrics.pdl_company_matches / pdlMetrics.pdl_company_attempts * 100).toFixed(2);
+}
+
+if (pdlMetrics.pdl_person_attempts > 0) {
+  pdlMetrics.pdl_person_match_rate = 
+    (pdlMetrics.pdl_person_matches / pdlMetrics.pdl_person_attempts * 100).toFixed(2);
+}
+
+// Overall metrics
+const metrics = {
+  date: today,
+  leads_processed: people.length,
+  leads_by_source: people.reduce((acc, p) => {
+    const source = p.fields.lead_source || 'unknown';
+    acc[source] = (acc[source] || 0) + 1;
+    return acc;
+  }, {}),
+  
+  // SMS metrics
+  sms_sent: communications.filter(c => c.fields.message_type === 'SMS').length,
+  sms_clicked: communications.filter(c => 
+    c.fields.message_type === 'SMS' && c.fields.clicked
+  ).length,
+  sms_opt_outs: communications.filter(c => c.fields.opt_out_received).length,
+  
+  // Meeting metrics
+  meetings_booked: meetings.length,
+  
+  // Cost metrics - ENHANCED FOR PDL
+  pdl_company_costs: costs[0]?.fields.pdl_company_costs || 0,
+  pdl_person_costs: costs[0]?.fields.pdl_person_costs || 0,
+  apollo_org_costs: costs[0]?.fields.apollo_org_costs || 0, // Keep for transition
+  apollo_people_costs: costs[0]?.fields.apollo_people_costs || 0,
+  twilio_costs: costs[0]?.fields.twilio_costs || 0,
+  sms_costs: costs[0]?.fields.sms_costs || 0,
+  claude_costs: costs[0]?.fields.claude_costs || 0,
+  total_costs: costs[0]?.fields.total_costs || 0,
+  
+  // Enhanced performance metrics
+  field_mapping_success_rate: people.length > 0 ? 
+    people.reduce((sum, p) => sum + (p.fields.field_mapping_success_rate || 0), 0) / people.length 
+    : 0,
+  
+  avg_processing_time: people.length > 0 ?
+    people
+      .filter(p => p.fields.processing_started && p.fields.processing_completed)
+      .reduce((sum, p) => {
+        const start = new Date(p.fields.processing_started);
+        const end = new Date(p.fields.processing_completed);
+        return sum + (end - start) / (1000 * 60); // minutes
+      }, 0) / people.length
+    : 0,
+  
+  enrichment_success_rate: pdlMetrics.pdl_person_attempts > 0 ?
+    (pdlMetrics.pdl_person_matches / pdlMetrics.pdl_person_attempts * 100).toFixed(2)
+    : 0,
+    
+  cost_per_meeting: meetings.length > 0 ? 
+    (costs[0]?.fields.total_costs || 0) / meetings.length 
+    : 0,
+    
+  // PDL-specific metrics
+  ...pdlMetrics
+};
+
+return metrics;
+
+// Node 4: Save Daily Metrics - UPDATED SCHEMA
+Type: Airtable
+Operation: Create or Update
+Table: Daily_Metrics
+Fields: {
+  date: '{{$json.date}}',
+  leads_processed: '{{$json.leads_processed}}',
+  leads_by_source: '{{JSON.stringify($json.leads_by_source)}}',
+  sms_sent: '{{$json.sms_sent}}',
+  sms_clicked: '{{$json.sms_clicked}}', 
+  sms_opt_outs: '{{$json.sms_opt_outs}}',
+  meetings_booked: '{{$json.meetings_booked}}',
+  
+  // Enhanced cost tracking
+  pdl_company_costs: '{{$json.pdl_company_costs}}',
+  pdl_person_costs: '{{$json.pdl_person_costs}}',
+  total_costs: '{{$json.total_costs}}',
+  
+  // Performance metrics
+  field_mapping_success_rate: '{{$json.field_mapping_success_rate}}',
+  avg_processing_time: '{{$json.avg_processing_time}}',
+  enrichment_success_rate: '{{$json.enrichment_success_rate}}',
+  cost_per_meeting: '{{$json.cost_per_meeting}}',
+  
+  // PDL-specific metrics
+  pdl_company_match_rate: '{{$json.pdl_company_match_rate}}',
+  pdl_person_match_rate: '{{$json.pdl_person_match_rate}}',
+  job_history_found: '{{$json.job_history_found}}',
+  linkedin_urls_found: '{{$json.linkedin_urls_found}}',
+  recent_moves_detected: '{{$json.recent_moves_detected}}'
+}
+
+// Node 5: Check Alert Conditions - PDL ENHANCED
+Type: Code
+const alerts = [];
+
+// Cost alerts
+if ($json.total_costs > parseFloat($vars.DAILY_COST_LIMIT) * 0.9) {
+  alerts.push(`Daily costs at ${($json.total_costs / parseFloat($vars.DAILY_COST_LIMIT) * 100).toFixed(1)}% of limit`);
+}
+
+// PDL performance alerts
+if ($json.pdl_company_match_rate < 80) {
+  alerts.push(`PDL company match rate low: ${$json.pdl_company_match_rate}%`);
+}
+
+if ($json.pdl_person_match_rate < 85) {
+  alerts.push(`PDL person match rate low: ${$json.pdl_person_match_rate}%`);
+}
+
+// Field mapping alerts
+if ($json.field_mapping_success_rate < 90) {
+  alerts.push(`Field mapping success rate low: ${$json.field_mapping_success_rate.toFixed(1)}%`);
+}
+
+// SMS performance alerts
+const smsConversion = $json.sms_sent > 0 ? 
+  ($json.sms_clicked / $json.sms_sent * 100) : 0;
+if (smsConversion < 3) {
+  alerts.push(`SMS click rate low: ${smsConversion.toFixed(1)}%`);
+}
+
+return { 
+  alerts,
+  needs_attention: alerts.length > 0,
+  metrics_summary: {
+    leads: $json.leads_processed,
+    meetings: $json.meetings_booked,
+    cost_per_meeting: $json.cost_per_meeting,
+    pdl_performance: `${$json.pdl_person_match_rate}% match rate`
+  }
+};
+
+// Node 6: Send Report/Alert - ENHANCED
+Type: Slack  
+Channel: #uysp-metrics
+Message: Daily UYSP Metrics Report - {{$json.date}}
+
+📊 **Lead Processing**
+• Leads Processed: {{$json.leads_processed}}
+• Field Mapping: {{$json.field_mapping_success_rate}}%
+• Avg Processing Time: {{$json.avg_processing_time}} min
+
+🔍 **PDL Enrichment Performance**  
+• Company Matches: {{$json.pdl_company_matches}}/{{$json.pdl_company_attempts}} ({{$json.pdl_company_match_rate}}%)
+• Person Matches: {{$json.pdl_person_matches}}/{{$json.pdl_person_attempts}} ({{$json.pdl_person_match_rate}}%)
+• Job History Found: {{$json.job_history_found}}
+• LinkedIn URLs: {{$json.linkedin_urls_found}}
+• Recent Moves: {{$json.recent_moves_detected}}
+
+📱 **SMS & Meetings**
+• SMS Sent: {{$json.sms_sent}}
+• SMS Clicked: {{$json.sms_clicked}}
+• Meetings Booked: {{$json.meetings_booked}}
+• Conversion Rate: {{($json.sms_sent > 0 ? ($json.meetings_booked / $json.sms_sent * 100) : 0)}}%
+
+💰 **Cost Breakdown**
+• PDL Company: ${{$json.pdl_company_costs}}
+• PDL Person: ${{$json.pdl_person_costs}}  
+• SMS: ${{$json.sms_costs}}
+• Total: ${{$json.total_costs}}
+• Cost/Meeting: ${{$json.cost_per_meeting}}
+
+{{#if alerts}}
+🚨 **Alerts**: {{alerts.join(', ')}}
+{{/if}}
+```
+
+**Error Handling**: Alert on critical metrics, log calculation errors.
+
+---
+
+## Pattern: Calendly Webhook Handler
+**Purpose**: Process Calendly booking events with signature validation placeholder
+**Required Nodes**: Webhook, Code (validate), Switch (filter), Airtable (find/update), Slack (notify)
+
+**Configuration**:
+```javascript
+// Node 1: Calendly Webhook
+Type: Webhook
+Path: /calendly-events
+
+// Node 2: Validate Signature
+Type: Code (TODO: enable signature validation)
+// For now, just validate event structure
+const event = $json;
+if (event.event === 'invitee.created' && event.payload) {
+  return { valid: true, event_data: event.payload };
+}
+
+// Node 3: Find Associated Lead - ENHANCED FOR PDL TRACKING
+Type: Airtable
+Table: People
+Filter: {email} = '{{$json.event_data.email}}'
+
+// Node 4: Update Lead Record - PDL METRICS
+Type: Code
+if ($json.length > 0) {
+  const lead = $json[0];
+  
+  // Track meeting attribution
+  const updateFields = {
+    meeting_booked: true,
+    meeting_time: new Date($json.event_data.start_time),
+    last_activity: new Date().toISOString()
+  };
+  
+  // If this was a PDL-enriched lead, note successful conversion
+  if (lead.fields.pdl_person_match_rate) {
+    updateFields.pdl_conversion = true;
+  }
+  
+  return { update_needed: true, fields: updateFields, lead_id: lead.id };
+}
+```
+
+**Error Handling**: Log webhook validation failures, alert on processing errors.
+
+---
+
+## Pattern: Enrichment Cache Logging (Hunter/PDL)
+**Purpose**: Persist enrichment attempts for performance and cost analysis
+**Required Nodes**: Code (prepare), HTTP (Airtable upsert to Enrichment_Cache)
+
+**Configuration**:
+```javascript
+// Prepare cache payload
+const item = $input.first().json;
+return {
+  email: item.email,
+  source: item.enrichment_vendor,
+  response_data: JSON.stringify(item),
+  cached_date: new Date().toISOString(),
+  cache_expiry: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+  cost: item.enrichment_vendor === 'hunter' ? (item.hunter_cost || 0.049) : (item.pdl_person_cost || 0),
+  success: !item.enrichment_failed,
+  error_message: item.enrichment_failed ? 'Both PDL and Hunter failed' : null
+};
+
+// HTTP Request (Airtable) - predefinedCredentialType/airtableTokenApi
+{
+  "parameters": {
+    "method": "POST",
+    "url": "https://api.airtable.com/v0/{{$vars.AIRTABLE_BASE_ID}}/Enrichment_Cache",
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "airtableTokenApi",
+    "sendHeaders": false,
+    "sendBody": true,
+    "bodyParameters": { "fields": {
+      "email": "={{$json.email}}",
+      "source": "={{$json.source}}",
+      "response_data": "={{$json.response_data}}",
+      "cached_date": "={{$json.cached_date}}",
+      "cache_expiry": "={{$json.cache_expiry}}",
+      "cost": "={{$json.cost}}",
+      "success": "={{$json.success}}",
+      "error_message": "={{$json.error_message}}"
+    }}
+  }
+}
+```
+
+---
+
+## Pattern: Person Data Precedence Merge (PDL > Hunter)
+**Purpose**: Deterministically merge person data with provider precedence
+**Required Nodes**: Code
+
+**Implementation**:
+```javascript
+const items = $input.all();
+for (const item of items) {
+  const d = item.json || {};
+  if (d.pdl_person_success === true) {
+    d.enrichment_vendor = 'pdl';
+    d.enrichment_method_primary = 'pdl';
+  } else if (d.hunter_person_success === true) {
+    d.enrichment_vendor = 'hunter';
+    d.enrichment_method_primary = 'hunter';
+    d.enrichment_failed = false;
+  } else {
+    d.enrichment_failed = true;
+    d.routing_decision = 'human_review';
+    d.routing_reason = 'person_enrichment_failed_both_providers';
+  }
+  if (d.linkedin_url && !String(d.linkedin_url).startsWith('http')) {
+    d.linkedin_url = `https://www.linkedin.com/in/${d.linkedin_url}`;
+  }
+  item.json = d;
+}
+return items;
+```
+
+## Pattern: Centralized Error Handler - PDL Enhanced
+**Purpose**: Standardized error handling across all workflows with PDL-specific handling
+**Required Nodes**: Code (error handler)
+
+**Configuration**:
+```javascript
+// Node 1: Centralized Error Handler - PDL ENHANCED
+Type: Code
+async function handleError(err, context) {
+  const errorLog = {
+    timestamp: new Date().toISOString(),
+    workflow_name: context.workflow_name,
+    execution_id: context.execution_id,
+    error_message: err.message,
+    error_node: context.node_name,
+    error_type: determineErrorType(err),
+    lead_email: context.lead_email || 'unknown',
+    resolved: false,
+    raw_error: JSON.stringify(err)
+  };
+  
+  // PDL-specific error handling
+  if (err.message.includes('peopledatalabs.com')) {
+    errorLog.error_type = 'pdl_api';
+    
+    // Handle specific PDL errors
+    if (err.status === 429) {
+      errorLog.resolution_notes = 'PDL rate limit - implement exponential backoff';
+    } else if (err.status === 402) {
+      errorLog.resolution_notes = 'PDL credits exhausted - trigger circuit breaker';
+      // Trigger cost alert
+      await triggerCostAlert('PDL credits exhausted');
+    } else if (err.status === 404) {
+      errorLog.error_type = 'pdl_no_match';
+      errorLog.resolution_notes = 'No PDL match found - route to human review';
+    }
+  }
+  
+  // Log to Airtable
+  await airtable.createRecord('Error_Log', errorLog);
+  
+  // Alert for critical errors
+  if (isCriticalError(err)) {
+    await sendSlackAlert(errorLog);
+  }
+  
+  // Route non-critical to human review
+  if (context.lead_email && !isCriticalError(err)) {
+    await addToHumanReview(context.lead_email, errorLog.error_type);
+  }
+  
+  return errorLog;
+}
+
+function determineErrorType(err) {
+  if (err.message.includes('rate limit') || err.status === 429) return 'rate_limit';
+  if (err.message.includes('authentication') || err.status === 401) return 'auth';
+  if (err.message.includes('timeout')) return 'timeout';
+  if (err.message.includes('peopledatalabs')) return 'pdl_api';
+  if (err.message.includes('apollo')) return 'apollo_api';
+  if (err.message.includes('field mapping')) return 'field_mapping';
+  return 'unknown';
+}
+
+async function triggerCostAlert(message) {
+  // Immediate Slack alert for cost issues
+  await sendSlackMessage('#uysp-alerts', `🚨 Cost Alert: ${message}`);
+  
+  // Set emergency circuit breaker
+  await setVariable('EMERGENCY_STOP', 'true');
+}
+```
+
+**Error Handling**: Self-contained error handling with escalation paths.
+
+---
+
+## Pattern: PDL Cache Optimization
+**Purpose**: Optimize PDL API usage through intelligent caching
+**Required Nodes**: Code (cache management)
+
+**Configuration**:
+```javascript
+// Node 1: PDL Cache Management
+Type: Code
+async function optimizePdlCache() {
+  const cacheExpiry = 90; // days
+  const now = new Date();
+  const cutoffDate = new Date(now.getTime() - (cacheExpiry * 24 * 60 * 60 * 1000));
+  
+  // Clean expired cache entries
+  const expiredEntries = await airtable.searchRecords({
+    table: 'Enrichment_Cache',
+    filter: `{cached_date} < '${cutoffDate.toISOString()}'`
+  });
+  
+  if (expiredEntries.length > 0) {
+    await airtable.deleteRecords('Enrichment_Cache', 
+      expiredEntries.map(e => e.id)
+    );
+  }
+  
+  // Calculate cache performance metrics
+  const cacheStats = await calculateCacheStats();
+  
+  return {
+    cache_cleaned: expiredEntries.length,
+    cache_hit_rate: cacheStats.hit_rate,
+    cache_size: cacheStats.total_entries,
+    savings_estimate: cacheStats.cost_savings
+  };
+}
+
+async function calculateCacheStats() {
+  const last30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  
+  const cacheHits = await airtable.searchRecords({
+    table: 'Enrichment_Cache',
+    filter: `{hit_count} > 1 AND {cached_date} >= '${last30Days.toISOString()}'`
+  });
+  
+  const totalRequests = await airtable.searchRecords({
+    table: 'People',
+    filter: `{enrichment_attempted} = true AND {created_date} >= '${last30Days.toISOString()}'`
+  });
+  
+  const hitRate = totalRequests.length > 0 ? 
+    (cacheHits.length / totalRequests.length * 100) : 0;
+  
+  const costSavings = cacheHits.reduce((sum, hit) => 
+    sum + (hit.fields.hit_count - 1) * hit.fields.cost, 0
+  );
+  
+  return {
+    hit_rate: hitRate.toFixed(2),
+    total_entries: cacheHits.length,
+    cost_savings: costSavings
+  };
+}
+```
+
+**Error Handling**: Log cache management operations, alert on performance degradation.
+
+*Updated for PDL integration with enhanced cost tracking, performance monitoring, and error handling specific to PDL API characteristics.*

@@ -1,0 +1,304 @@
+{
+  "name": "UYSP-Twilio-Click-Tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "twilio-click",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-click",
+      "name": "Twilio Click Event Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "twilio-click-tracking"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Twilio click event\nconst payload = $input.first().json;\nconst eventData = payload.data || payload;\n\nconst clickData = {\n  message_sid: eventData.message_sid,\n  phone: eventData.to,  // Who clicked\n  phone_digits: eventData.to?.replace(/\\D/g, '').replace(/^1/, '') || '',\n  original_url: eventData.link,\n  shortened_url: eventData.shortened_link,\n  click_time: eventData.click_time,\n  link_create_time: eventData.link_create_time,\n  user_agent: eventData.user_agent || ''\n};\n\n// Calculate click timing\nconst sendTime = new Date(clickData.link_create_time);\nconst clickTime = new Date(clickData.click_time);\nconst minutesSinceSend = Math.round((clickTime - sendTime) / 1000 / 60);\n\nclickData.minutes_since_send = minutesSinceSend;\nclickData.is_hot_lead = minutesSinceSend <= 5;  // Clicked within 5 minutes = hot!\n\nconsole.log('=== TWILIO CLICK EVENT ===');\nconsole.log(`Phone: ${clickData.phone}`);\nconsole.log(`Link: ${clickData.original_url}`);\nconsole.log(`Clicked: ${minutesSinceSend} min after send`);\nconsole.log(`Hot Lead: ${clickData.is_hot_lead}`);\nconsole.log('=== END ===');\n\nreturn { json: clickData };"
+      },
+      "id": "parse-click",
+      "name": "Parse Click Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "=SEARCH('{{ $json.phone_digits }}', {Phone})",
+        "options": {
+          "maxRecords": 1
+        }
+      },
+      "id": "find-lead",
+      "name": "Find Lead by Phone",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $items('Find Lead by Phone')[0]?.json ? true : false }}",
+              "operation": "equals",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "lead-found",
+      "name": "Lead Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $items('Find Lead by Phone')[0].json.id }}",
+            "Clicked Link": true,
+            "Click Count": "={{ ($items('Find Lead by Phone')[0].json['Click Count'] || 0) + 1 }}",
+            "Last Reply At": "={{ $items('Parse Click Event')[0].json.click_time }}",
+            "🤖 active_conversation": true
+          },
+          "matchingColumns": ["id"]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "update-lead",
+      "name": "Update Lead - Click Tracked",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [1120, 200],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "filterByFormula": "=SEARCH('{{ $items('Parse Click Event')[0].json.message_sid }}', {Webhook Raw})",
+        "options": {
+          "maxRecords": 1
+        }
+      },
+      "id": "find-sms",
+      "name": "Find SMS in Audit",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [1340, 200],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $items('Find SMS in Audit')[0]?.json ? true : false }}",
+              "operation": "equals",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "sms-found",
+      "name": "SMS Audit Record Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1560, 200],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $items('Find SMS in Audit')[0].json.id }}",
+            "Clicked": true,
+            "Clicked At": "={{ $items('Parse Click Event')[0].json.click_time }}"
+          },
+          "matchingColumns": ["id"]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "update-sms-audit",
+      "name": "Update SMS Audit - Clicked",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [1780, 100],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $items('Parse Click Event')[0].json.is_hot_lead }}",
+              "operation": "equals",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "is-hot-lead",
+      "name": "Hot Lead? (< 5 min)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2000, 100],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare hot lead alert\nconst lead = $items('Find Lead by Phone')[0].json;\nconst clickData = $items('Parse Click Event')[0].json;\n\nconst leadName = `${lead['First Name'] || ''} ${lead['Last Name'] || ''}`.trim();\nconst leadEmail = lead['Email'] || 'No email';\nconst leadCompany = lead['Company'] || 'No company';\n\nconst slackMessage = `🔥 *HOT LEAD ALERT!*\\n\\n*Name:* ${leadName}\\n*Email:* ${leadEmail}\\n*Company:* ${leadCompany}\\n*Phone:* ${clickData.phone}\\n\\n*Clicked:* ${clickData.minutes_since_send} minutes after message sent!\\n*Link:* ${clickData.original_url}\\n\\n*Action:* Follow up immediately - prospect is actively engaged!`;\n\nreturn {\n  json: {\n    slackMessage: slackMessage,\n    lead_name: leadName,\n    lead_email: leadEmail,\n    minutes_since_send: clickData.minutes_since_send\n  }\n};"
+      },
+      "id": "prepare-alert",
+      "name": "Prepare Hot Lead Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2220, 0]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09DAEWGUSY",
+          "mode": "list",
+          "cachedResultName": "uysp-ops-alerts"
+        },
+        "text": "={{ $json.slackMessage }}",
+        "otherOptions": {}
+      },
+      "id": "send-slack",
+      "name": "Send Slack Alert - Hot Lead",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [2440, 0],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'click_tracked', lead_found: true, hot_lead: $items('Parse Click Event')[0].json.is_hot_lead }) }}",
+        "options": {}
+      },
+      "id": "respond-ok",
+      "name": "Respond to Twilio",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2660, 200]
+    }
+  ],
+  "connections": {
+    "Twilio Click Event Webhook": {
+      "main": [[{"node": "Parse Click Event", "type": "main", "index": 0}]]
+    },
+    "Parse Click Event": {
+      "main": [[{"node": "Find Lead by Phone", "type": "main", "index": 0}]]
+    },
+    "Find Lead by Phone": {
+      "main": [[{"node": "Lead Found?", "type": "main", "index": 0}]]
+    },
+    "Lead Found?": {
+      "main": [
+        [{"node": "Update Lead - Click Tracked", "type": "main", "index": 0}],
+        [{"node": "Respond to Twilio", "type": "main", "index": 0}]
+      ]
+    },
+    "Update Lead - Click Tracked": {
+      "main": [[{"node": "Find SMS in Audit", "type": "main", "index": 0}]]
+    },
+    "Find SMS in Audit": {
+      "main": [[{"node": "SMS Audit Record Found?", "type": "main", "index": 0}]]
+    },
+    "SMS Audit Record Found?": {
+      "main": [
+        [{"node": "Update SMS Audit - Clicked", "type": "main", "index": 0}],
+        [{"node": "Respond to Twilio", "type": "main", "index": 0}]
+      ]
+    },
+    "Update SMS Audit - Clicked": {
+      "main": [[{"node": "Hot Lead? (< 5 min)", "type": "main", "index": 0}]]
+    },
+    "Hot Lead? (< 5 min)": {
+      "main": [
+        [{"node": "Prepare Hot Lead Alert", "type": "main", "index": 0}],
+        [{"node": "Respond to Twilio", "type": "main", "index": 0}]
+      ]
+    },
+    "Prepare Hot Lead Alert": {
+      "main": [[{"node": "Send Slack Alert - Hot Lead", "type": "main", "index": 0}]]
+    },
+    "Send Slack Alert - Hot Lead": {
+      "main": [[{"node": "Respond to Twilio", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "tags": []
+}
+

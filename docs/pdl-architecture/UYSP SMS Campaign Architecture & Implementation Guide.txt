@@ -1,0 +1,397 @@
+# UYSP SMS Campaign Architecture & Implementation Guide
+*How Database-Driven SMS Campaigns Work Within Your Current Architecture*
+
+## Current UYSP Architecture Capabilities
+
+Based on your existing system (Sessions 0-1 complete), here's exactly how SMS campaigns integrate:
+
+### Your Current Foundation ✅
+- **Field Normalization**: Smart Field Mapper handles all webhook variations
+- **Webhook Processing**: Leads flow into n8n → Airtable
+- **Lead Qualification**: Two-phase (Company → Person enrichment)
+- **ICP Scoring**: 0-100 scoring with routing logic
+- **SMS Integration**: SimpleTexting API ready via HTTP nodes
+
+---
+
+## Database SMS Campaign Implementation
+
+### Campaign Activation Process
+
+#### 1. Database List Preparation (Your n8n Workflow)
+```javascript
+// Node 1: Get Database Leads for Campaign
+Type: Airtable
+Operation: List records
+Table: People
+Filter: {ready_for_sms} = true AND {sms_sent} = false
+Max Records: 2000 // Your batch size
+
+// Node 2: Duplicate & Recent Contact Cleanup  
+Type: Code
+const cleanLeads = rawLeads.filter(lead => {
+  // Remove if contacted in last 30 days
+  const lastContact = new Date(lead.fields.last_sms_time || '2000-01-01');
+  const daysSince = (Date.now() - lastContact) / (1000 * 60 * 60 * 24);
+  
+  // Remove duplicates by phone/email
+  const isDuplicate = processedNumbers.has(lead.fields.phone_primary);
+  processedNumbers.add(lead.fields.phone_primary);
+  
+  return daysSince > 30 && !isDuplicate;
+});
+
+// Node 3: Re-Score & Filter (Optional)
+Type: Execute Workflow
+Workflow: uysp-icp-scoring-v1
+// Update scores if data is >90 days old
+
+// Node 4: Final Campaign List
+Type: Code
+const campaignLeads = cleanLeads.filter(lead => 
+  lead.fields.icp_score >= 70 && 
+  lead.fields.phone_primary &&
+  !lead.fields.sms_opted_out
+);
+
+return { campaign_size: campaignLeads.length, leads: campaignLeads };
+```
+
+#### 2. Campaign Creation via SimpleTexting API
+```javascript
+// Node 5: Create SimpleTexting Campaign
+Type: HTTP Request
+Method: POST
+URL: https://api-app2.simpletexting.com/v2/api/campaigns
+Headers: 
+  Authorization: Bearer {{$credentials.simpleTextingApiKey}}
+  Content-Type: application/json
+
+Body:
+{
+  "title": "UYSP Database Campaign {{$now}}",
+  "accountPhone": "{{$vars.SIMPLETEXTING_PHONE}}",
+  "messageTemplate": {
+    "title": "Lead Qualification Outreach",
+    "text": "Hi {{first_name}}, noticed you're the {{title}} at {{company}}. Other {{title}}s at similar companies love our framework. Worth a quick chat with Davidson? {{tracking_link}}",
+    "fallbackText": "Hi there! Worth a quick chat about our sales framework? {{tracking_link}}"
+  },
+  "customFieldsMaxLength": {
+    "firstName": 20,
+    "title": 30,
+    "company": 40
+  }
+}
+
+// This creates campaign in SimpleTexting but doesn't send yet
+```
+
+#### 3. Contact Upload & Campaign Send
+```javascript
+// Node 6: Upload Contacts to SimpleTexting List
+Type: HTTP Request (Loop over batches of 100)
+Method: POST  
+URL: https://api-app2.simpletexting.com/v2/api/contacts
+Body: {
+  "phone": "{{$json.phone_primary}}",
+  "firstName": "{{$json.first_name}}",
+  "lastName": "{{$json.last_name}}",
+  "customFields": {
+    "title": "{{$json.title_current}}",
+    "company": "{{$json.company_enriched}}",
+    "icp_score": "{{$json.icp_score}}"
+  },
+  "lists": ["UYSP_Campaign_{{$now}}"]
+}
+
+// Node 7: Send Campaign
+Type: HTTP Request
+Method: POST
+URL: https://api-app2.simpletexting.com/v2/api/campaigns/{{$json.campaign_id}}/send
+// This actually sends to the uploaded list
+```
+
+---
+
+## Click Tracking & Response Management
+
+### SimpleTexting's Built-in Click Tracking
+SimpleTexting automatically shortens and tracks all links, providing click-through rates and detailed analytics in their dashboard. You can view link stats in Analytics > Campaigns report under "Detailed breakdown" section.
+
+#### How Link Tracking Works in Your System:
+```javascript
+// Your n8n webhook receives SimpleTexting delivery data
+// Node 1: SimpleTexting Delivery Webhook
+Type: Webhook  
+Path: /simpletexting-delivery
+Authentication: Header Auth
+
+// Node 2: Process Click/Delivery Data
+Type: Code
+const eventData = $json;
+
+switch(eventData.status) {
+  case 'delivered':
+    // Update Communications table
+    await updateAirtable('Communications', {
+      simpletexting_id: eventData.id,
+      delivery_status: 'delivered',
+      delivered_time: new Date()
+    });
+    break;
+    
+  case 'clicked':
+    // CRITICAL: Someone clicked your link
+    await updateAirtable('Communications', {
+      simpletexting_id: eventData.id,
+      clicked: true,
+      click_time: new Date()
+    });
+    
+    // Update lead status for follow-up logic
+    await updateAirtable('People', {
+      phone_primary: eventData.destination,
+      last_activity: new Date(),
+      engagement_level: 'clicked_sms'
+    });
+    break;
+}
+```
+
+### Your Three Campaign Scenarios
+
+#### Scenario 1: No Response (Default Flow)
+```javascript
+// Automated Follow-up Sequence in n8n
+// Daily scheduled workflow
+
+// Node 1: Find Non-Responders (Day 3)
+Type: Airtable
+Filter: {sms_sent_time} >= '3 days ago' AND {clicked} = false AND {follow_up_count} < 2
+
+// Node 2: Send Follow-up via SimpleTexting
+Type: HTTP Request
+// Different message: "Hi {{first_name}}, following up on our framework. Quick 15-min call?"
+
+// Node 3: Final Follow-up (Day 7)  
+Filter: {sms_sent_time} >= '7 days ago' AND {clicked} = false AND {follow_up_count} = 1
+// Final message: "Last chance - other {{title}}s seeing 20% lift. {{link}}"
+```
+
+#### Scenario 2: Clicked But No Booking
+```javascript
+// Node 1: Find Clickers Without Meetings
+Type: Airtable  
+Filter: {clicked} = true AND {meeting_booked} = false AND {last_activity} >= '24 hours ago'
+
+// Node 2: Send Specialized Follow-up
+Type: HTTP Request (SimpleTexting)
+// Enhanced message: "Saw you checked out our framework! Other {{company}} teams are seeing results. Quick call? {{calendly_link}}"
+
+// Node 3: Route to Sales Rep
+Type: Slack/Email
+// Alert: "Hot lead {{name}} from {{company}} clicked but didn't book"
+```
+
+#### Scenario 3: Meeting Booked (Stop Sequence)
+```javascript
+// Via Calendly webhook integration
+
+// Node 1: Meeting Booked Webhook
+Type: Webhook
+Path: /calendly-meeting-booked
+
+// Node 2: Stop All Sequences
+Type: Airtable Update
+Fields: {
+  meeting_booked: true,
+  sms_sequence_active: false,
+  last_activity: new Date(),
+  lead_status: 'Meeting Scheduled'
+}
+
+// Node 3: Send Confirmation SMS
+Type: HTTP Request (SimpleTexting)
+// "Thanks {{first_name}}! Looking forward to our chat on {{meeting_date}}. Prep questions: {{prep_link}}"
+```
+
+---
+
+## Technical Integration Details
+
+### SimpleTexting Webhook Configuration
+SimpleTexting provides three types of webhooks: delivery reports, unsubscribes, and incoming messages. For delivery reports, they send JSON data including message ID, status, destination phone, and carrier.
+
+#### Required Webhook Endpoints in Your n8n:
+```javascript
+// 1. Delivery Status Webhook
+POST /webhook/simpletexting-delivery
+{
+  "id": "message_id", 
+  "type": "SMS",
+  "status": "delivered|clicked|failed",
+  "destination": "1234567890",
+  "carrier": "Sprint"
+}
+
+// 2. Opt-out Webhook  
+POST /webhook/simpletexting-unsubscribe
+{
+  "phone": "1234567890"
+}
+
+// 3. Reply Webhook (for two-way conversations)
+POST /webhook/simpletexting-incoming
+{
+  "from": "1234567890",
+  "to": "your_number", 
+  "text": "reply message"
+}
+```
+
+### Analytics & Performance Tracking
+
+#### Your Airtable Tracking Schema (Already Built):
+```json
+// Communications Table Updates for Campaigns
+{
+  "campaign_type": "database_campaign",
+  "campaign_batch_id": "20250131_batch_1", 
+  "simpletexting_campaign_id": "campaign_id_from_api",
+  "sequence_position": 1, // 1st, 2nd, or 3rd message
+  "clicked": false,
+  "click_time": null,
+  "delivery_status": "pending",
+  "opt_out_received": false,
+  "response_received": false,
+  "meeting_attribution": false
+}
+```
+
+#### Campaign Performance Dashboard:
+SimpleTexting provides detailed analytics including click-through rates, delivery status, and subscriber behavior in their Analytics dashboard under Campaigns report.
+
+---
+
+## Cost & Compliance Management
+
+### Cost Calculation for Database Campaigns:
+```javascript
+// Pre-Campaign Cost Check
+const estimatedCosts = {
+  sms_cost: campaignSize * 0.02, // $0.02 per SMS
+  simpletexting_platform: 0,     // Included in monthly plan
+  tracking_links: 0,             // Free with SimpleTexting
+  total: campaignSize * 0.02
+};
+
+// Daily limit enforcement (your existing circuit breaker)
+if (todaysCosts + estimatedCosts.total > DAILY_COST_LIMIT) {
+  throw new Error('Campaign would exceed daily limit');
+}
+```
+
+### Compliance (Handled by SimpleTexting):
+- **10DLC Registration**: SimpleTexting handles automatic compliance including unsubscribe requests and industry regulations
+- **Opt-out Management**: Automatic STOP keyword handling
+- **Time Windows**: TCPA compliance built-in
+- **DND Integration**: Platform-managed
+
+---
+
+## Campaign Sequence Logic Within Your Architecture
+
+### Full Implementation in n8n:
+
+#### Main Campaign Workflow:
+```
+Database SMS Campaign v1:
+├── Node 1: Get Campaign Leads (Airtable query)
+├── Node 2: Clean & Dedupe (Code)  
+├── Node 3: Create SimpleTexting Campaign (HTTP)
+├── Node 4: Upload Contacts in Batches (Loop + HTTP)
+├── Node 5: Send Campaign (HTTP)
+├── Node 6: Log Initial Send (Airtable)
+└── Node 7: Schedule Follow-up Check (Wait 3 days)
+```
+
+#### Response Processing Workflow:
+```
+SMS Response Handler v1:
+├── Node 1: SimpleTexting Webhook (Delivery/Click)
+├── Node 2: Parse Event Type (Code)
+├── Node 3: Update Communications (Airtable)
+├── Node 4: Update Lead Status (Airtable) 
+├── Node 5: Route Response (Switch)
+│   ├── Clicked → Enhanced Follow-up Sequence
+│   ├── Delivered → Add to Day 3 Follow-up Queue
+│   └── Opted Out → Remove from All Sequences
+└── Node 6: Log Activity (Airtable)
+```
+
+#### Follow-up Sequence Workflow:
+```
+SMS Follow-up Sequence v1:
+├── Node 1: Daily Schedule Trigger
+├── Node 2: Find Day 3 Non-Responders (Airtable)
+├── Node 3: Send Follow-up Message (SimpleTexting HTTP)
+├── Node 4: Find Day 7 Final Follow-up (Airtable)
+├── Node 5: Send Final Message (SimpleTexting HTTP)
+└── Node 6: Archive Non-Responders (Airtable)
+```
+
+---
+
+## Integration with Your Current System
+
+### How This Fits Your Existing Architecture:
+
+1. **Session 0-1 Foundation** ✅: Field normalization and webhook processing ready
+2. **Session 2 Qualification** ✅: Leads already scored and ready_for_sms marked
+3. **Session 3-4 Addition**: Database campaign functionality
+4. **Session 5 Integration**: Full system with campaigns + real-time leads
+
+### Database Campaign Trigger Options:
+- **Manual**: Admin runs campaign workflow on demand
+- **Scheduled**: Weekly/monthly batch campaigns
+- **Threshold**: When ready_for_sms count hits target number
+- **Score-based**: When average ICP scores indicate good batch quality
+
+### Testing Protocol for Database Campaigns:
+```javascript
+// Test with small batch first (10 leads)
+// Use TEST_MODE=true to prevent real sends
+// Verify all tracking workflows respond correctly
+// Check Airtable updates happen properly
+// Confirm SimpleTexting dashboard shows campaign
+```
+
+---
+
+## Immediate Next Steps for Implementation
+
+### What Cursor Needs to Build (Session 3 Enhancement):
+
+1. **Database Campaign Workflow**:
+   - Query Airtable for ready leads
+   - Create SimpleTexting campaign via API
+   - Upload contacts and send
+   - Set up response webhooks
+
+2. **Response Processing System**:
+   - Webhook handlers for delivery/click/opt-out
+   - Lead status updates based on engagement
+   - Automatic routing for different response types
+
+3. **Follow-up Sequence Logic**:
+   - Time-based follow-up scheduling
+   - Different messages for different behaviors
+   - Sequence termination on booking/opt-out
+
+### SimpleTexting Setup Requirements:
+- **API Access**: Request from support@simpletexting.net
+- **Webhook URLs**: Configure in SimpleTexting dashboard
+- **Phone Number**: 10DLC registered number for campaigns
+- **Lists**: Dynamic list creation via API for each campaign batch
+
+This architecture gives you the complete SMS campaign system you described: database batch processing, automatic cleanup, personalized messaging, click tracking, response-based routing, and sequence management - all integrated with your existing UYSP qualification and scoring system.

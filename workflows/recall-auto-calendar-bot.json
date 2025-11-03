@@ -1,0 +1,157 @@
+{
+  "name": "UYSP-Auto-Send-Recall-Bot-to-Meetings",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "schedule",
+      "name": "Every 5 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "resource": "event",
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "primary",
+          "mode": "list",
+          "cachedResultName": "primary"
+        },
+        "returnAll": false,
+        "limit": 10,
+        "options": {
+          "timeMin": "={{ $now.toISO() }}",
+          "timeMax": "={{ $now.plus({minutes: 10}).toISO() }}"
+        }
+      },
+      "id": "get-calendar",
+      "name": "Get Upcoming Meetings",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "NEEDS_SETUP",
+          "name": "Google Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-meet-link",
+              "leftValue": "={{ $json.hangoutLink }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists"
+              }
+            },
+            {
+              "id": "not-organizer",
+              "leftValue": "={{ $json.organizer.email }}",
+              "rightValue": "latifhorst@rebelhq.ai",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "filter-new",
+      "name": "Filter: Other People's Meetings Only",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://us-west-2.recall.ai/api/v1/bot",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Token 6db84e8ce832506dbef532c81e85bd1fe290ce17"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({meeting_url: $json.hangoutLink, bot_name: 'RebelHQ Admin Assassin', join_at: $json.start.dateTime}) }}"
+      },
+      "id": "send-bot",
+      "name": "Send Recall Bot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "schedule": {
+      "main": [
+        [
+          {
+            "node": "get-calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-calendar": {
+      "main": [
+        [
+          {
+            "node": "filter-new",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filter-new": {
+      "main": [
+        [
+          {
+            "node": "send-bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": []
+}
+

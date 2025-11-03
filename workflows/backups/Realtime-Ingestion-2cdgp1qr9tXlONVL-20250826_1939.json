@@ -1,0 +1,67 @@
+{
+  "createdAt": "2025-08-21T06:48:38.719Z",
+  "updatedAt": "2025-08-26T05:50:53.846Z",
+  "id": "2cdgp1qr9tXlONVL",
+  "name": "UYSP-Realtime-Ingestion",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "leads-intake", "options": {}},
+      "id": "585e6072-155c-4be3-a15f-88adbdc8bece",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [-16, -48],
+      "webhookId": "9a0b595d-f358-46c5-beb2-c5b5f3e3db3c"
+    },
+    {
+      "parameters": {"jsCode": "const first = $input.first();\\nconst root = first.json && first.json.body ? first.json.body : first.json;\\nfunction sanitizeEmail(v){ if(!v) return ''; const s=String(v).trim().toLowerCase(); return s.replace(/[\\s]+/g,'').replace(/[\\.,;:]+$/, ''); }\\nfunction normalizePhone(v){ if(!v) return ''; let s=String(v).trim(); if (s.startsWith('+')) s = '+'+s.slice(1).replace(/[^0-9]/g,''); else s=s.replace(/[^0-9]/g,''); if (s.startsWith('+')) return s; if (s.length===11 && s.startsWith('1')) return '+1'+s.slice(1); if (s.length===10) return '+1'+s; return s; }\\nfunction deriveDomain(email, company){ if(email){ const at=email.split('@')[1]; if(at) return at; } if(company){ return String(company).toLowerCase().replace(/[^a-z0-9-]/g,'') + '.com'; } return ''; }\\nconst email = sanitizeEmail(root.email || root.Email || root.email_address || '');\\nconst phone = normalizePhone(root.phone || root.Phone || root.phone_number || '');\\nconst firstName = root.first_name || root.firstName || root.first || '';\\nconst lastName = root.last_name || root.lastName || root.last || '';\\nconst company = root.company || root.Company || '';\\nconst title = root.title || root.job_title || '';\\nconst domain = deriveDomain(email, company);\\nconst out = {\\n  'Email': email,\\n  'Phone': phone,\\n  'First Name': firstName,\\n  'Last Name': lastName,\\n  'Company': company,\\n  'Title': title,\\n  'Company Domain': domain,\\n  'Source': 'Webhook',\\n  'Processing Status': 'Queued'\\n};\\nreturn [{ json: out }];"},
+      "id": "2b9715be-f6ac-4a4c-a47c-cbd8e8a01b18",
+      "name": "Normalize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [208, -48]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {"__rl": true, "mode": "list", "value": "tblYUvhGADerbD8EO", "cachedResultName": "Leads", "cachedResultUrl": "https://airtable.com/app6cU9HecxLpgT0P/tblYUvhGADerbD8EO"},
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{$json.Email}}",
+            "Phone": "={{$json.Phone}}",
+            "First Name": "={{$json['First Name']}}",
+            "Last Name": "={{$json['Last Name']}}",
+            "Company Domain": "={{$json['Company Domain']}}",
+            "Processing Status": "={{$json['Processing Status']}}",
+            "Source": "={{$json.Source}}"
+          },
+          "matchingColumns": ["Email"],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {"typecast": true, "updateAllMatches": false}
+      },
+      "id": "aca5c821-9132-4d7e-a206-685227c09f6e",
+      "name": "Airtable Upsert Leads",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [432, -48],
+      "credentials": {"airtableTokenApi": {"id": "Zir5IhIPeSQs72LR", "name": "Airtable UYSP Option C"}}
+    }
+  ],
+  "connections": {
+    "Webhook": {"main": [[{"node": "Normalize", "type": "main", "index": 0}]]},
+    "Normalize": {"main": [[{"node": "Airtable Upsert Leads", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"}
+}
+
+

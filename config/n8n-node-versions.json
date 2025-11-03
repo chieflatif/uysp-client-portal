@@ -1,0 +1,14 @@
+{
+  "n8n-nodes-base.manualTrigger": 1,
+  "n8n-nodes-base.webhook": 2,
+  "n8n-nodes-base.code": 2,
+  "n8n-nodes-base.airtable": 2.1,
+  "n8n-nodes-base.if": 2.2,
+  "n8n-nodes-base.httpRequest": 4.2,
+  "n8n-nodes-base.set": 3.4,
+  "n8n-nodes-base.dateTime": 2.2,
+  "n8n-nodes-base.scheduleTrigger": 1.2,
+  "n8n-nodes-base.switch": 3,
+  "n8n-nodes-base.merge": 3,
+  "n8n-nodes-base.splitInBatches": 3.2
+}

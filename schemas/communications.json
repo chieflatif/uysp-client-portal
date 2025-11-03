@@ -1,0 +1,79 @@
+{
+    "name": "Communications",
+    "fields": [
+        {
+            "name": "person_id",
+            "type": "lookup"
+        },
+        {
+            "name": "message_type",
+            "type": "singleSelect",
+            "options": {
+                "choices": [
+                    {
+                        "name": "SMS"
+                    },
+                    {
+                        "name": "Email"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "message_content",
+            "type": "richText"
+        },
+        {
+            "name": "sent_time",
+            "type": "date"
+        },
+        {
+            "name": "template_used",
+            "type": "singleLineText"
+        },
+        {
+            "name": "tracking_link",
+            "type": "url"
+        },
+        {
+            "name": "clicked",
+            "type": "checkbox"
+        },
+        {
+            "name": "click_time",
+            "type": "date"
+        },
+        {
+            "name": "campaign",
+            "type": "singleLineText"
+        },
+        {
+            "name": "simpletexting_id",
+            "type": "singleLineText"
+        },
+        {
+            "name": "delivery_status",
+            "type": "singleLineText"
+        },
+        {
+            "name": "opt_out_received",
+            "type": "checkbox"
+        },
+        {
+            "name": "test_mode_send",
+            "type": "checkbox"
+        },
+        {
+            "name": "cost_logged",
+            "type": "currency"
+        },
+        {
+            "name": "dnd_checked",
+            "type": "checkbox"
+        },
+        {
+            "name": "time_window_checked",
+            "type": "checkbox"
+        }
+    ]
+}

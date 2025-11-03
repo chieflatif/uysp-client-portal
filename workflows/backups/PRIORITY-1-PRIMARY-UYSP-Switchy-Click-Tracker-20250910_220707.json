@@ -1,0 +1,532 @@
+{
+  "createdAt": "2025-09-09T05:00:58.550Z",
+  "updatedAt": "2025-09-10T19:08:51.000Z",
+  "id": "bA3vEZvfokE84AGY",
+  "name": "UYSP-Switchy-Click-Tracker",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        208,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "custom",
+              "cronExpression": "*/10 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron",
+      "name": "Schedule",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        208,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblErXnFNMKYhh3Xr"
+        },
+        "options": {}
+      },
+      "id": "get-settings",
+      "name": "Get Settings",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        384,
+        416
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graphql.switchy.io/v1/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Authorization",
+              "value": "0ea65170-03e2-41d6-ae53-a7cbd7dc273d"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "query": "query { links(where: {id: {_eq: \"UYSP\"}}) { id clicks createdDate }}"
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "query-clicks",
+      "name": "Query Switchy Clicks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        592,
+        416
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $items('Query Switchy Clicks', 0)[0]?.json || {};\nconst settingsItems = $items('Get Settings', 0) || [];\nconst settings = settingsItems.find(s => s.json.fields?.['UYSP Link Total Clicks'] !== undefined) || settingsItems[settingsItems.length - 1];\nconst currentClicks = settings?.json?.fields?.['UYSP Link Total Clicks'] || 0;\n\nif (response.errors) {\n  return [{ json: { error: 'GraphQL Error', details: response.errors, hasNewClicks: false } }];\n}\n\nconst links = response.data?.links || [];\nconst uyspLink = links.find(l => l.id === 'UYSP');\n\nif (!uyspLink) {\n  return [{ json: { error: 'UYSP link not found', hasNewClicks: false } }];\n}\n\nconst newClicks = Number(uyspLink.clicks || 0);\nconst hasNewClicks = newClicks > currentClicks;\n\nreturn [{ json: {\n  settingsRecordId: settings?.json?.id || '',\n  currentClicks,\n  newClicks, \n  hasNewClicks,\n  clickDifference: newClicks - currentClicks\n}}];"
+      },
+      "id": "parse-clicks",
+      "name": "Parse Click Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        416
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblErXnFNMKYhh3Xr"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "UYSP Link Total Clicks": "={{ $json.newClicks }}",
+            "Last Click Check": "={{ $now }}",
+            "id": "={{ $json.settingsRecordId }}"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "update-settings",
+      "name": "Update Settings",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        992,
+        416
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": "list"
+        },
+        "text": "🎯 UYSP Link Clicked! Total clicks: {{ $('Parse Click Data').item.json.newClicks }} ({{ $('Parse Click Data').item.json.clickDifference > 0 ? '+' + $('Parse Click Data').item.json.clickDifference : 'no change' }})",
+        "otherOptions": {}
+      },
+      "id": "slack-notify",
+      "name": "Click Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1184,
+        416
+      ],
+      "webhookId": "61d680be-9ed9-416d-a7de-2d95d34c8433",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn",
+          "name": "Slack account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "filterByFormula": "NOT({Short Link ID} = '')",
+        "options": {}
+      },
+      "id": "leads-to-check",
+      "name": "Leads to Check",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        432,
+        176
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graphql.switchy.io/v1/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Authorization",
+              "value": "0ea65170-03e2-41d6-ae53-a7cbd7dc273d"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "query": "query($id: String!) { links(where: {id: {_eq: $id}}) { id clicks } }",
+          "variables": {
+            "id": "={{$json['Short Link ID']}}"
+          }
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "query-clicks-per-lead",
+      "name": "Query Clicks (Per Lead)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        656,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const api = $items('Query Clicks (Per Lead)', 0)[$itemIndex]?.json || {};\nconst link = api?.data?.links?.[0] || {};\nconst newClicks = Number(link.clicks || 0);\nconst prev = Number($json['Click Count'] || 0);\nconst delta = newClicks - prev;\nreturn [{ json: { ...$json, newClicks, delta } }];"
+      },
+      "id": "compare-clicks",
+      "name": "Compare Clicks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id || $json['Record ID'] }}",
+            "Click Count": "={{ $json.newClicks }}",
+            "Clicked Link": "={{ $json.newClicks > 0 }}"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "update-lead-clicks",
+      "name": "Update Lead Clicks",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        176
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": "list"
+        },
+        "text": "🔗 Lead clicked: {{$json['First Name'] || ''}} {{$json['Last Name'] || ''}} ({{$json['Email'] || ''}})\nTotal clicks: {{$json.newClicks}} (Δ {{$json.delta}})",
+        "otherOptions": {}
+      },
+      "id": "lead-click-alert",
+      "name": "Lead Click Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1328,
+        176
+      ],
+      "webhookId": "b755ded9-334e-44b2-8c66-3f23e452e94f",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Leads to Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule": {
+      "main": [
+        [
+          {
+            "node": "Leads to Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Settings": {
+      "main": [
+        [
+          {
+            "node": "Query Switchy Clicks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Switchy Clicks": {
+      "main": [
+        [
+          {
+            "node": "Parse Click Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Click Data": {
+      "main": [
+        [
+          {
+            "node": "Update Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Settings": {
+      "main": [
+        [
+          {
+            "node": "Click Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leads to Check": {
+      "main": [
+        [
+          {
+            "node": "Query Clicks (Per Lead)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Clicks (Per Lead)": {
+      "main": [
+        [
+          {
+            "node": "Compare Clicks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Clicks": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Clicks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Lead Clicks": {
+      "main": [
+        [
+          {
+            "node": "Lead Click Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "fc40ff32-5333-4d81-b581-d204db5582ea",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-09-09T05:01:34.767Z",
+      "updatedAt": "2025-09-09T05:01:34.767Z",
+      "role": "workflow:owner",
+      "workflowId": "bA3vEZvfokE84AGY",
+      "projectId": "H4VRaaZhd8VKQANf",
+      "project": {
+        "createdAt": "2025-07-20T10:20:07.367Z",
+        "updatedAt": "2025-07-20T10:23:14.000Z",
+        "id": "H4VRaaZhd8VKQANf",
+        "name": "UYSP Lead Qualification Agent ",
+        "type": "team",
+        "icon": {
+          "type": "icon",
+          "value": "layer-group"
+        },
+        "description": "Automated lead qualification and SMS outreach system that processes Kajabi form submissions, enriches B2B leads through two-phase qualification, scores them 0-100 using AI, and sends personalized SMS to qualified prospects while maintaining strict compliance and cost controls.",
+        "projectRelations": [
+          {
+            "createdAt": "2025-07-20T10:23:14.911Z",
+            "updatedAt": "2025-07-20T10:23:14.911Z",
+            "role": "project:admin",
+            "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+            "projectId": "H4VRaaZhd8VKQANf",
+            "user": {
+              "createdAt": "2025-07-01T09:55:15.012Z",
+              "updatedAt": "2025-09-10T22:00:48.000Z",
+              "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "email": "latifhorst@gmail.com",
+              "firstName": "LATIF",
+              "lastName": "HORST",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                "userActivatedAt": 1751967003557,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1753035927344
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-10",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

@@ -1,0 +1,18 @@
+{
+  "scenarios": [
+    {
+      "id": "AP-001",
+      "email": "apollo-first@example.com",
+      "company": "ApolloCo",
+      "title": "AE",
+      "note": "Apollo-first enrichment path"
+    },
+    {
+      "id": "AP-002",
+      "email": "apollo-fallback@example.com",
+      "company": "FallbackCo",
+      "title": "SDR",
+      "note": "Apollo miss → fallback path"
+    }
+  ]
+}

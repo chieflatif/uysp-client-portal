@@ -1,0 +1,212 @@
+{
+  "meta": {
+    "instanceId": "n8n"
+  },
+  "name": "UYSP-Click-Proxy",
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Click Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 200],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "click/:token",
+        "options": {}
+      },
+      "webhookId": "click-tracking-webhook-2025"
+    },
+    {
+      "id": "parse-token",
+      "name": "Parse Token", 
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 200],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const crypto = require('crypto');\n\n// Extract token from URL parameter\nconst token = $json.params?.token || '';\nif (!token) {\n  return { json: { error: 'Missing token', statusCode: 400 } };\n}\n\n// HMAC secret (should be in environment, using placeholder for now)\nconst secret = 'uysp-click-tracking-secret-2025';\n\ntry {\n  // Decode base64 token\n  const decoded = Buffer.from(token, 'base64url').toString('utf8');\n  const [payload, signature] = decoded.split('.');\n  \n  // Verify HMAC signature\n  const expectedSignature = crypto.createHmac('sha256', secret)\n    .update(payload)\n    .digest('hex');\n  \n  if (signature !== expectedSignature) {\n    return { json: { error: 'Invalid token signature', statusCode: 403 } };\n  }\n  \n  // Parse payload\n  const data = JSON.parse(Buffer.from(payload, 'base64').toString('utf8'));\n  \n  // Check expiration (7 days)\n  const now = Date.now();\n  const tokenAge = now - data.ts;\n  const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days\n  \n  if (tokenAge > maxAge) {\n    return { json: { error: 'Token expired', statusCode: 410 } };\n  }\n  \n  return { json: { \n    leadId: data.leadId,\n    campaignId: data.campaignId, \n    targetUrl: data.targetUrl,\n    valid: true\n  }};\n  \n} catch (error) {\n  return { json: { error: 'Invalid token format', statusCode: 400 } };\n}"
+      }
+    },
+    {
+      "id": "find-lead",
+      "name": "Find Lead",
+      "type": "n8n-nodes-base.airtable", 
+      "typeVersion": 2,
+      "position": [500, 200],
+      "parameters": {
+        "authentication": "airtableTokenApi",
+        "resource": "record",
+        "operation": "get",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "mode": "list", 
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "id": "={{ $json.leadId }}",
+        "options": {}
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "id": "update-lead",
+      "name": "Update Lead Click",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2, 
+      "position": [700, 100],
+      "parameters": {
+        "authentication": "airtableTokenApi",
+        "resource": "record",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "SMS Status": "Clicked"
+          },
+          "matchingColumns": ["id"]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR", 
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "id": "audit-click",
+      "name": "Write Click Audit",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [700, 300], 
+      "parameters": {
+        "authentication": "airtableTokenApi",
+        "resource": "record",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "mode": "list",
+          "value": "tbl5TOGNGdWXTjhzP"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Event": "Click",
+            "Campaign ID": "={{ $('Parse Token').item.json.campaignId || '' }}",
+            "Phone": "={{ $('Find Lead').item.json.Phone || '' }}",
+            "Status": "Clicked", 
+            "Lead Record ID": "={{ $('Parse Token').item.json.leadId || '' }}",
+            "Delivery At": "={{ $now }}"
+          },
+          "matchingColumns": []
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "id": "redirect",
+      "name": "302 Redirect",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 200],
+      "parameters": {
+        "options": {
+          "responseCode": 302,
+          "responseHeaders": {
+            "Location": "={{ $('Parse Token').item.json.targetUrl || 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr' }}"
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Click Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Token",
+            "type": "main", 
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Token": {
+      "main": [
+        [
+          {
+            "node": "Find Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Lead": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Click",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Write Click Audit", 
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "302 Redirect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all", 
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": {},
+  "tags": [],
+  "triggerCount": 0,
+  "versionId": "1"
+}

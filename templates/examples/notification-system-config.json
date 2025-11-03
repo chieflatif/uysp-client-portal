@@ -1,0 +1,114 @@
+{
+  "projectName": "Multi-Channel Notification Hub",
+  "projectDescription": "Intelligent notification routing and delivery system with multi-channel support and compliance management",
+  "projectSlug": "notification-hub",
+  "services": {
+    "n8n": {
+      "workflowId": "NEW_WORKFLOW_ID_HERE",
+      "workflowName": "notification-hub-main-workflow", 
+      "webhookPath": "notification-webhook",
+      "domain": "your-n8n-instance.com"
+    },
+    "airtable": {
+      "baseId": "NEW_AIRTABLE_BASE_ID",
+      "keyTables": ["Notifications", "Recipients", "Templates", "Delivery_Log", "Opt_Outs", "Preferences"]
+    },
+    "integrations": [
+      "twilio",
+      "sendgrid",
+      "slack",
+      "discord",
+      "webhooks",
+      "push-notifications"
+    ],
+    "channels": [
+      "sms",
+      "email", 
+      "slack",
+      "webhook",
+      "push"
+    ]
+  },
+  "framework": {
+    "agentSystem": true,
+    "mcpTools": true,
+    "testingFramework": true,
+    "backupSystem": true,
+    "deliveryTracking": true
+  },
+  "customization": {
+    "patterns": [
+      "channel-routing-logic",
+      "template-management",
+      "delivery-optimization",
+      "compliance-enforcement",
+      "retry-logic",
+      "preference-management"
+    ],
+    "fieldMappings": {
+      "primaryEntity": "notifications",
+      "keyFields": [
+        "recipient_id",
+        "message_type",
+        "priority", 
+        "channel_preference",
+        "delivery_status"
+      ],
+      "recipientFields": [
+        "email",
+        "phone",
+        "slack_user_id",
+        "push_token",
+        "timezone"
+      ],
+      "preferenceFields": [
+        "email_enabled",
+        "sms_enabled", 
+        "slack_enabled",
+        "quiet_hours_start",
+        "quiet_hours_end"
+      ]
+    },
+    "testingFocus": [
+      "channel_routing",
+      "template_rendering",
+      "delivery_tracking",
+      "opt_out_handling",
+      "compliance_validation"
+    ],
+    "dataFlow": "Event → Routing Logic → Channel Selection → Template Rendering → Delivery → Tracking",
+    "deliveryStrategy": "intelligent_routing_with_fallback"
+  },
+  "compliance": {
+    "tcpa": true,
+    "canSpam": true,
+    "gdpr": true,
+    "optOutHandling": "automatic",
+    "quietHours": "per_timezone"
+  },
+  "templates": {
+    "categories": [
+      "transactional",
+      "marketing", 
+      "alerts",
+      "reminders",
+      "confirmations"
+    ],
+    "personalization": true,
+    "multiLanguage": false,
+    "dynamicContent": true
+  },
+  "delivery": {
+    "retryLogic": {
+      "maxAttempts": 3,
+      "backoffStrategy": "exponential",
+      "failoverChannels": true
+    },
+    "priorityQueues": ["urgent", "normal", "low"],
+    "rateLimiting": {
+      "sms": "100_per_hour",
+      "email": "1000_per_hour",
+      "slack": "unlimited"
+    }
+  }
+}

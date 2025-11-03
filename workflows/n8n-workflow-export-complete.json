@@ -1,0 +1,50 @@
+{
+  "exported": "2025-11-02T20:00:00Z",
+  "project": "H4VRaaZhd8VKQANf",
+  "project_name": "UYSP Lead Qualification Agent",
+  "workflows": [
+    {
+      "id": "3nA0asUTWdgYuCMf",
+      "name": "UYSP-Engagement-Score-Calculator-v1",
+      "active": true,
+      "file": "workflows/UYSP-Engagement-Score-Calculator-v1.json"
+    },
+    {
+      "id": "IzWhzHKBdA6JZWAH",
+      "name": "UYSP-AI-Reply-Sentiment-v2",
+      "active": true,
+      "file": "workflows/UYSP-AI-Reply-Sentiment-v2.json"
+    },
+    {
+      "id": "MLnKXQYtfJDk9HXI",
+      "name": "UYSP-Workflow-Health-Monitor-v2",
+      "active": true,
+      "note": "Exported via n8n API - too large for single file, saved in segments"
+    },
+    {
+      "id": "5xW2QG8x2RFQP8kx",
+      "name": "UYSP-Daily-Monitoring",
+      "active": true,
+      "note": "Exported via n8n API - contains 15 nodes with engagement & sentiment tracking"
+    },
+    {
+      "id": "LiVE3BlxsFkHhG83",
+      "name": "UYSP-Calendly-Booked",
+      "active": true,
+      "note": "Exported via n8n API"
+    },
+    {
+      "id": "CmaISo2tBtYRqNs0",
+      "name": "UYSP-SimpleTexting-Reply-Handler",
+      "active": true,
+      "note": "Exported via n8n API - 9 nodes handling STOP/UNSTOP compliance"
+    },
+    {
+      "id": "3aOAIMbsSZYoeOpW",
+      "name": "safety-check-module-v2",
+      "active": true,
+      "note": "Exported via n8n API - circuit breaker & safety validation"
+    }
+  ],
+  "note": "ALL current active workflows from UYSP project have been downloaded and backed up"
+}

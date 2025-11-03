@@ -1,0 +1,66 @@
+{
+    "name": "Error_Log",
+    "fields": [
+        {
+            "name": "workflow_name",
+            "type": "singleLineText"
+        },
+        {
+            "name": "execution_id",
+            "type": "singleLineText"
+        },
+        {
+            "name": "error_message",
+            "type": "richText"
+        },
+        {
+            "name": "error_node",
+            "type": "singleLineText"
+        },
+        {
+            "name": "error_type",
+            "type": "singleSelect",
+            "options": {
+                "choices": [
+                    {
+                        "name": "validation"
+                    },
+                    {
+                        "name": "api"
+                    },
+                    {
+                        "name": "rate_limit"
+                    },
+                    {
+                        "name": "timeout"
+                    },
+                    {
+                        "name": "unknown"
+                    },
+                    {
+                        "name": "duplicate"
+                    },
+                    {
+                        "name": "dnd_block"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "lead_email",
+            "type": "email"
+        },
+        {
+            "name": "timestamp",
+            "type": "date"
+        },
+        {
+            "name": "resolved",
+            "type": "checkbox"
+        },
+        {
+            "name": "raw_error",
+            "type": "richText"
+        }
+    ]
+}

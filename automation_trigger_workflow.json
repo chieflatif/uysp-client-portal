@@ -1,0 +1,122 @@
+{
+  "name": "Airtable Automation Trigger",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id", 
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "operation": "search",
+        "filterByFormula": "AND({SMS Eligible}, {Phone Valid}, OR({HRQ Status} = 'None', {HRQ Status} = 'Review'))",
+        "maxRecords": 50
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Airtable UYSP Production"
+        }
+      },
+      "id": "list-eligible",
+      "name": "List Eligible Leads",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "Processing Status",
+              "value": "Ready for SMS"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-ready-status",
+      "name": "Set Ready Status",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "base": {
+          "mode": "id",
+          "value": "app4wIsBfpJTg7pWS"
+        },
+        "table": {
+          "mode": "id",
+          "value": "tblYUvhGADerbD8EO"
+        },
+        "operation": "update",
+        "recordId": "={{ $json.id }}",
+        "fields": "={{ $json.fields }}"
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_CREDENTIAL_ID", 
+          "name": "Airtable UYSP Production"
+        }
+      },
+      "id": "update-records",
+      "name": "Update Records",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "List Eligible Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Eligible Leads": {
+      "main": [
+        [
+          {
+            "node": "Set Ready Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Ready Status": {
+      "main": [
+        [
+          {
+            "node": "Update Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}

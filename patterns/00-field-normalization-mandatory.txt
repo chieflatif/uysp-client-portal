@@ -1,0 +1,177 @@
+00-field-normalization-mandatory.txt
+# MANDATORY PATTERN - Field Normalization Layer
+# This MUST be the first node after EVERY webhook
+
+## CRITICAL: This MUST be implemented before ANY webhook integration
+
+### The Problem We're Solving
+Webhook fields are NEVER stable. We discovered:
+- Kajabi sends 15+ variations of core fields
+- Case sensitivity varies randomly
+- Field names change without notice
+- Missing this = 100% failure rate
+
+### Implementation Requirements
+
+#### 1. Smart Field Mapper Node (REQUIRED)
+Position: Immediately after webhook node
+Type: Code node
+Language: JavaScript
+
+#### 2. Production Code (DO NOT MODIFY WITHOUT TESTING)
+const input = $input.first().json;
+const normalized = {};
+const mappedFields = new Set();
+
+// GOTCHA: Expressions need spaces: {{ $json.normalized.field }} not {{$json.field}}. Use ternaries for false: {{$json.field !== undefined ? $json.field : null}}.
+
+// Core field mappings - UPDATE WEEKLY from Field_Mapping_Log
+const fieldMappings = {
+  email: ['email', 'Email', 'EMAIL', 'email_address', 'emailAddress', 'e-mail', 'contact_email', 'email_address_1', 'user_email', 'primary_email'],
+  phone: ['phone', 'Phone', 'PHONE', 'phone_number', 'phoneNumber', 'mobile', 'cellphone', 'telephone', 'phone_intl', 'mobile_intl'],
+  name: ['name', 'Name', 'NAME', 'full_name', 'fullName', 'contact_name', 'display_name'],
+  first_name: ['first_name', 'firstName', 'fname', 'given_name', 'forename'],
+  last_name: ['last_name', 'lastName', 'lname', 'surname', 'family_name'],
+  company: ['company', 'Company', 'COMPANY', 'company_name', 'companyName', 'organization', 'org', 'business'],
+  title: ['title', 'Title', 'job_title', 'jobTitle', 'position', 'role'],
+  source_form: ['source_form', 'form_name', 'formName', 'source', 'form_id'],
+  interested_in_coaching: ['interested_in_coaching', 'coaching_interest', 'wants_coaching'],
+  linkedin_url: ['linkedin_url', 'linkedin', 'linkedinUrl', 'linkedin_profile']
+};
+
+// TECHNICAL LEARNING: n8n Expression Preservation
+// Use ternary operators to preserve false values that might get omitted
+// Pattern: {{$json.field !== undefined ? $json.field : null}}
+
+// Case-insensitive field finder
+function findField(aliases) {
+  for (const key of Object.keys(input)) {
+    if (aliases.some(alias => alias.toLowerCase() === key.toLowerCase())) {
+      mappedFields.add(key);
+      return input[key];
+    }
+  }
+  return null;
+}
+
+// Map all fields
+Object.entries(fieldMappings).forEach(([normalizedName, aliases]) => {
+  const value = findField(aliases);
+  if (value !== null && value !== undefined && value !== '') {
+    normalized[normalizedName] = value;
+  }
+});
+
+// Auto-split full name
+if (normalized.name && !normalized.first_name) {
+  const parts = normalized.name.trim().split(/\s+/);
+  normalized.first_name = parts[0] || '';
+  normalized.last_name = parts.slice(1).join(' ') || '';
+}
+
+// TECHNICAL LEARNING: Enhanced Boolean Conversion for Airtable API
+// Airtable ignores false values completely - must use null for unchecked
+// This is critical for checkbox fields
+['interested_in_coaching', 'qualified_lead', 'contacted'].forEach(field => {
+  if (normalized[field] !== undefined) {
+    const val = String(normalized[field]).toLowerCase();
+    // Enhanced true detection (added 'y'/'enabled')
+    const isTruthy = ['true', 'yes', '1', 'on', 'y', 'checked', 'enabled'].includes(val);
+    // CRITICAL: Map false → null (Airtable API gotcha), true → true
+    normalized[field] = isTruthy ? true : null;
+  }
+});
+
+// TECHNICAL LEARNING: 3-Field Phone Number Strategy Implementation
+// CRITICAL: Implements phone_original (never changes) + phone_recent (always updates) + phone_validated (enrichment only)
+
+// Enhanced phone processing for 3-field strategy
+if (normalized.phone) {
+  // Phone field is present in payload
+  
+  // Set phone_recent to always capture latest phone number
+  normalized.phone_recent = normalized.phone;
+  
+  // Set phone_original only if this will be a NEW record
+  // Note: Duplicate detection logic will handle preserving original on updates
+  normalized.phone_original = normalized.phone;
+  
+  // phone_validated is NEVER set by webhook processing
+  // This field is reserved for enrichment/validation workflows only
+  
+  // International phone detection (preserves existing logic)
+  const isInternational = !normalized.phone.match(/^(\+1|1)?[2-9]/);
+  normalized.international_phone = isInternational;
+  normalized.phone_country_code = isInternational ? 
+    normalized.phone.match(/^\+\d{1,3}/)?.[0] || 'unknown' : '+1';
+}
+
+// CRITICAL IMPLEMENTATION NOTE:
+// - phone_original: Set on creation, preserved forever on duplicates
+// - phone_recent: Always updated to incoming phone value  
+// - phone_validated: Only set by enrichment phase (Phase 2)
+// - Campaign workflows MUST use phone_validated for SMS delivery
+
+// Track unknown fields for weekly review
+const unknownFields = Object.keys(input).filter(k => !mappedFields.has(k));
+
+// Log to monitoring table if unknowns found
+if (unknownFields.length > 0) {
+  // Will be handled by separate Airtable logging node
+}
+
+return {
+  normalized,
+  original: input,
+  unknownFields,
+  mappingSuccess: Object.keys(normalized).length > 0,
+  timestamp: new Date().toISOString()
+};
+// Updated 2025-07-22: Added new Kajabi variations and boolean options from external validation; confirmed Airtable checkbox support for 'checked'/'y'.
+
+### Testing Requirements
+- Test with minimum 10 payload variations
+- Verify 95%+ field capture rate
+- Check Field_Mapping_Log table for unknowns
+- Only mark complete after ALL tests pass
+- Reference reality-based test JSON for 10+ payloads.
+- Automate tests via n8n API (PUT /activate) before curl; cleanup post-tests.
+- Update weekly from Field_Mapping_Log.
+
+### TECHNICAL LEARNING: Automated Testing Protocol
+# Use n8n REST API for workflow activation and execution
+# Required headers: X-N8N-API-KEY: your_api_key
+# Activation: PUT /api/v1/workflows/{id}/activate
+# Execution: POST /api/v1/workflows/{id}/execute
+# Benefits: Enables batch testing with 5-second waits between tests
+# Post-test: Deactivate and run cleanup scripts
+
+### API Automation Script Template
+```bash
+#!/bin/bash
+# Activate workflow for testing
+curl -X PUT "https://n8n.domain.com/api/v1/workflows/${WORKFLOW_ID}/activate" \
+  -H "X-N8N-API-KEY: ${API_KEY}"
+
+# Wait 5 seconds for activation
+sleep 5
+
+# Execute test payload sequence
+for payload in test-payloads/*.json; do
+  curl -X POST "${WEBHOOK_URL}" \
+    -H "Content-Type: application/json" \
+    -H "X-API-Key: ${WEBHOOK_KEY}" \
+    -d "@${payload}"
+  sleep 2  # Rate limiting
+done
+
+# Deactivate workflow post-testing
+curl -X PUT "https://n8n.domain.com/api/v1/workflows/${WORKFLOW_ID}/activate" \
+  -H "X-N8N-API-KEY: ${API_KEY}" \
+  -d '{"active": false}'
+```
+
+### Integration Rules
+- ALL downstream nodes must reference: $node["Smart Field Mapper"].json.normalized
+- NEVER reference webhook data directly
+- If mapping fails, route to human review queue

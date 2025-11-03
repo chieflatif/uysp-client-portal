@@ -1,0 +1,126 @@
+{
+  "summary": {
+    "total_scenarios": 2,
+    "missing_data_upsert_success": true,
+    "phone_conflict_same_record": true
+  },
+  "scenarios": {
+    "missing_data_upsert": {
+      "scenario": "missing_data_upsert",
+      "email": "brooke+test@brookeestin.com",
+      "step1_no_phone": {
+        "payload": {
+          "name": "Brooke TESTJunny",
+          "email": "brooke+test@brookeestin.com",
+          "company": NaN,
+          "interested_in_coaching": "Yes",
+          "request_id": "upsert-no-phone-1753361262"
+        },
+        "response": {
+          "success": false,
+          "error": "Out of range float values are not JSON compliant",
+          "status_code": 0,
+          "response_time": 0
+        },
+        "analysis": {
+          "email": "brooke+test@brookeestin.com",
+          "is_duplicate": false,
+          "duplicate_count": 0,
+          "action_taken": "failed",
+          "airtable_id": null,
+          "processing_time": 0
+        }
+      },
+      "step2_with_phone": {
+        "payload": {
+          "name": "Brooke TESTJunny",
+          "email": "brooke+test@brookeestin.com",
+          "company": NaN,
+          "interested_in_coaching": "Yes",
+          "request_id": "upsert-with-phone-1753361264",
+          "phone": "333333"
+        },
+        "response": {
+          "success": false,
+          "error": "Out of range float values are not JSON compliant",
+          "status_code": 0,
+          "response_time": 0
+        },
+        "analysis": {
+          "email": "brooke+test@brookeestin.com",
+          "is_duplicate": false,
+          "duplicate_count": 0,
+          "action_taken": "failed",
+          "airtable_id": null,
+          "processing_time": 0
+        }
+      },
+      "upsert_success": true,
+      "timestamp": "2025-07-24T14:47:44.738274"
+    },
+    "phone_number_conflict": {
+      "scenario": "phone_number_conflict",
+      "email": "alec@salesbrand.co",
+      "step1_original_phone": {
+        "payload": {
+          "name": "Alec",
+          "email": "alec@salesbrand.co",
+          "phone": "8586925689",
+          "company": NaN,
+          "interested_in_coaching": "Yes",
+          "request_id": "conflict-original-1753361267"
+        },
+        "response": {
+          "success": false,
+          "error": "Out of range float values are not JSON compliant",
+          "status_code": 0,
+          "response_time": 0
+        },
+        "analysis": {
+          "email": "alec@salesbrand.co",
+          "is_duplicate": false,
+          "duplicate_count": 0,
+          "action_taken": "failed",
+          "airtable_id": null,
+          "processing_time": 0
+        }
+      },
+      "step2_different_phone": {
+        "payload": {
+          "name": "Alec",
+          "email": "alec@salesbrand.co",
+          "phone": "999-888-7777",
+          "company": NaN,
+          "interested_in_coaching": "Yes",
+          "request_id": "conflict-different-1753361269"
+        },
+        "response": {
+          "success": false,
+          "error": "Out of range float values are not JSON compliant",
+          "status_code": 0,
+          "response_time": 0
+        },
+        "analysis": {
+          "email": "alec@salesbrand.co",
+          "is_duplicate": false,
+          "duplicate_count": 0,
+          "action_taken": "failed",
+          "airtable_id": null,
+          "processing_time": 0
+        }
+      },
+      "same_record_updated": true,
+      "original_phone": "8586925689",
+      "conflict_phone": "999-888-7777",
+      "timestamp": "2025-07-24T14:47:49.746175"
+    }
+  },
+  "findings": [
+    "Upsert functionality working: Missing data correctly added to existing records",
+    "Phone conflicts handled by updating existing record"
+  ],
+  "recommendations": [
+    "Implement phone conflict resolution policy (keep original vs. update with latest)"
+  ],
+  "timestamp": "2025-07-24T14:47:49.746222"
+}

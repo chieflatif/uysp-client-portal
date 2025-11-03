@@ -1,0 +1,77 @@
+{
+    "name": "Daily_Metrics",
+    "fields": [
+        {
+            "name": "date",
+            "type": "date"
+        },
+        {
+            "name": "leads_processed",
+            "type": "number"
+        },
+        {
+            "name": "leads_by_source",
+            "type": "richText"
+        },
+        {
+            "name": "sms_sent",
+            "type": "number"
+        },
+        {
+            "name": "sms_clicked",
+            "type": "number"
+        },
+        {
+            "name": "meetings_booked",
+            "type": "number"
+        },
+        {
+            "name": "enrichment_costs",
+            "type": "currency"
+        },
+        {
+            "name": "sms_costs",
+            "type": "currency"
+        },
+        {
+            "name": "total_costs",
+            "type": "currency"
+        },
+        {
+            "name": "duplicate_requests",
+            "type": "number"
+        },
+        {
+            "name": "international_leads",
+            "type": "number"
+        },
+        {
+            "name": "ai_scoring_fallbacks",
+            "type": "number"
+        },
+        {
+            "name": "alerts",
+            "type": "richText"
+        },
+        {
+            "name": "human_reviews",
+            "type": "number"
+        },
+        {
+            "name": "enhancement_rate",
+            "type": "singleLineText"
+        },
+        {
+            "name": "avg_processing_time",
+            "type": "singleLineText"
+        },
+        {
+            "name": "sms_delivery_rate",
+            "type": "singleLineText"
+        },
+        {
+            "name": "compliance_check_rate",
+            "type": "singleLineText"
+        }
+    ]
+}

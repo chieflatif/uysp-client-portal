@@ -1,0 +1,150 @@
+03-enrichment-patterns.txt
+patterns/03-enrichment-patterns.txt
+From 03-enrichment-patterns.txt:
+
+Enrichment Patterns for qualification, caching, scoring, and cost tracking.
+
+# PREREQUISITE: Pattern 00 (Field Normalization) MUST be implemented first
+# BASELINE: PRE COMPLIANCE workflow (ID: wpg9K9s8wlfofv1u) with Smart Field Mapper v4.6
+# PDL INTEGRATION: These patterns designed for PDL Company + Person API integration
+# This pattern assumes Smart Field Mapper is the first node after any webhook
+
+Pattern: PDL Two-Phase Qualification with Human Review  
+Purpose: PDL Company API ($0.01) → PDL Person API ($0.03) → OpenAI ICP Scoring V4.0 (Company 25, Role 45, Location 20, Dynamic Signals 10) for AE-focused qualification
+Foundation: PRE COMPLIANCE workflow provides superior cost tracking and error handling infrastructure
+Required Nodes: Code (10DLC/cost checks), Airtable (costs), HTTP (Apollo Org/Person), Switch (decisions), Slack (alerts)
+Configuration:
+// Node 1: Check 10DLC Registration
+Type: Code
+// Node 2: Get Today's Costs
+Type: Airtable
+// Node 3: Check Daily Cost Limit
+Type: Code
+// Node 4: Phase 1 - PDL Company Qualification  
+Type: HTTP Request (PDL Company API - $0.01/call)
+// Node 5: Process Phase 1
+Type: Code
+// ... Up to Node 13: Auto-Archive Unreviewed
+Error Handling: Handle 429, 401/403; route non-critical to human review.
+
+Pattern: Phone Validation with International Routing
+Purpose: Validate phone numbers, filter non-mobile, and route international to human review
+Required Nodes: Code (format phone), HTTP (Twilio), Code (check type), Switch, Airtable (update)
+Configuration:
+// Node 1: Format Phone Number
+Type: Code
+// Node 2: Twilio Lookup
+Type: HTTP Request
+// Node 3: Process Lookup Result
+Type: Code
+// Node 4: Route by Phone Type
+Type: Switch
+Error Handling: Log non-mobile/international.
+
+Pattern: Enrichment Cache Check
+Purpose: Check and use cached enrichment data before making expensive API calls
+Required Nodes: Airtable (search cache), Code (check expiry), Switch, Code (parse), Airtable (store)
+Configuration:
+// Node 1: Search Enrichment Cache
+Type: Airtable
+// Node 2: Check Cache Valid
+Type: Code
+// Node 3: Route Cache Decision
+Type: Switch
+Error Handling: Track cache performance.
+// Post-test: Clean cache via Airtable delete for test emails.
+
+Pattern: ICP Scoring with AI (V3.2 Hybrid)
+Purpose: Calculate ICP base score (Company 15, Role 40, Engagement 30) and apply PERSON location (15) post-enrichment
+Required Nodes: Code (prepare data), HTTP (Claude), Code (parse), Switch, Code (fallback), Airtable (update)
+Configuration:
+// Node 1: Prepare Scoring Data
+Type: Code
+// Node 2: Call Claude API
+Type: HTTP Request
+// Node 3: Parse Claude Score
+Type: Code
+// Node 4: Domain Fallback Scoring (base only)
+Type: Code
+// GOTCHA: Boolean inputs to scoring: Map false to null before API.
+Error Handling: Log fallbacks.
+
+Pattern: Phone Enrichment for High-Value Leads
+Purpose: Find mobile phone numbers for Ultra/High tier leads without phones
+Required Nodes: Code (check 10DLC/tier), Switch, HTTP (LeadMagic/SMARte), Code (process), Phone validation
+Configuration:
+// Node 1: Check 10DLC
+Type: Code
+// Node 2: Check Need Phone Enrichment
+Type: Switch
+// Node 3: Try LeadMagic
+Type: HTTP Request
+Error Handling: If both fail, route to human review.
+
+Pattern: Cost Logging to Airtable
+Purpose: Actually update Daily_Costs table after calculating costs
+Required Nodes: Airtable (get costs), Code (calculate), Airtable (update)
+Configuration:
+// Node 1: Get Today's Costs
+Type: Airtable
+// Node 2: Calculate New Costs
+Type: Code
+// Node 3: Upsert Daily Costs
+Type: Airtable
+Error Handling: Alert if overrun.
+
+Pattern: API Call with Cost Tracking
+Purpose: Standardized pattern for any paid API call with cost tracking
+Required Nodes: Code (pre-check), HTTP (call), Execute Workflow (logging)
+Configuration:
+// Node 1: Pre-Call Cost Check
+Type: Code
+// Node 2: Make API Call
+Type: HTTP Request
+// Node 3: Log Cost
+Type: Execute Workflow
+Error Handling: Handle 429, auth errors.
+Pattern: Human Review Queue View
+Purpose: Simple Airtable view for manual review
+Required: No workflow needed - just Airtable view
+Configuration:
+// In Airtable UI:
+// Create view: "Human Review Queue"
+// Filter: routing = 'human_review' AND reviewed = false
+// Sort: created_date ASC
+// Show fields: email, company, routing, review_notes, created_date
+// Group by: None
+// This is a manual process - check daily
+Error Handling: None - manual process
+
+Pattern: AI-Enhanced ICP Scoring V4.0 with Dynamic Signals
+Purpose: Score leads 0-100 using V3.2 hybrid methodology; PERSON location only; post-enrichment gating
+Required Nodes: HTTP (Claude AI), Code (Hybrid Fallback Base), Code (Apply Person Location), Code (Outreach Router), HTTP (Slack), Airtable (Update)
+Configuration:
+// Node 1: Claude AI Enhanced ICP Base Scoring
+Type: HTTP Request (Anthropic API)
+URL: https://api.anthropic.com/v1/messages
+Headers: {"x-api-key": "${ANTHROPIC_API_KEY}", "anthropic-version": "2023-06-01"}
+Body: {
+  "model": "claude-3-5-sonnet-20241022",
+  "max_tokens": 1000,
+  "temperature": 0.1,
+  "messages": [{"role": "user", "content": "You are an expert ICP scoring system for UYSP. Score 0-100 using V3.2 Hybrid. Base only: Company (15 max, +15 tech, -10 generic), Role (40 max), Engagement (30 max). Person Location (15) is applied post-enrichment (not in this step). Return JSON with base fields. Data: {{$json.normalized}}"}]
+}
+// Node 2: Domain Fallback Scoring (if Claude fails)
+Type: Code
+// Node 3: Apply Person Location (post-enrichment)
+Type: Code
+// Node 4: Score-Based Routing
+Type: IF Node
+Conditions: 
+- "={{$json.icp_score >= 90}}" → Ultra High Path
+- "={{$json.icp_score >= 75}}" → High Priority Path  
+- "={{$json.icp_score >= 70}}" → Qualified Path
+- Default → Archive Path
+// Node 4: Slack Alert (75+ scores)
+Type: HTTP Request (Slack Webhook)
+// Node 5: Update Airtable with Scores
+Type: Airtable Update
+Fields: icp_score, icp_tier, score_breakdown, scoring_method, person_location_country, location_confidence, affordability_tier, location_points_applied, location_source, location_from_linkedin
+Error Handling: Claude timeout → Domain fallback (base), apply location when available

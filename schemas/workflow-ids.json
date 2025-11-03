@@ -1,0 +1,21 @@
+{
+    "name": "Workflow_IDs",
+    "fields": [
+        {
+            "name": "name",
+            "type": "singleLineText"
+        },
+        {
+            "name": "id",
+            "type": "number"
+        },
+        {
+            "name": "created_date",
+            "type": "date"
+        },
+        {
+            "name": "description",
+            "type": "richText"
+        }
+    ]
+}
