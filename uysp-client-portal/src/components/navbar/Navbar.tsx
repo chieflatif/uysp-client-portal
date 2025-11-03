@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { theme } from '@/theme';
-import { Menu, X, LogOut, Settings, Home, BarChart3, Shield, Briefcase, Users, Activity } from 'lucide-react';
+import { Menu, X, LogOut, Settings, Home, BarChart3, Shield, Briefcase, Users, Activity, Megaphone, Database } from 'lucide-react';
 import { ClientSelector } from './ClientSelector';
 import { canManageUsers } from '@/lib/auth/permissions-client';
 
@@ -26,10 +26,12 @@ export function Navbar() {
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/leads', label: 'Leads', icon: Users },
+    { href: '/admin/campaigns', label: 'Campaigns', icon: Megaphone },
     { href: '/analytics', label: 'Analytics', icon: BarChart3 },
     ...(hasAdminAccess ? [{ href: '/project-management', label: 'Project Management', icon: Briefcase }] : []),
     ...(hasUserManagement ? [{ href: '/admin/users', label: 'Users', icon: Shield }] : []),
     ...(isSuperAdmin ? [{ href: '/admin/user-activity', label: 'User Activity', icon: Activity }] : []),
+    ...(isSuperAdmin ? [{ href: '/admin/sync', label: 'Sync', icon: Database }] : []),
   ];
 
   const isActive = (href: string) => pathname === href;

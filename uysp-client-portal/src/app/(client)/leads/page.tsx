@@ -20,9 +20,13 @@ interface Lead {
   linkedinUrl?: string;
   enrichmentOutcome?: string;
   createdAt: string;
+  // Week 4 additions
+  campaignName?: string;
+  leadSource?: string;
+  lastActivity?: string | null;
 }
 
-type SortField = 'name' | 'company' | 'icpScore' | 'status';
+type SortField = 'name' | 'company' | 'icpScore' | 'status' | 'lastActivity' | 'campaign';
 type SortDirection = 'asc' | 'desc';
 
 export default function LeadsPage() {
@@ -82,7 +86,7 @@ export default function LeadsPage() {
     // Apply sort
     const sorted = [...filtered].sort((a: Lead, b: Lead) => {
       let aVal, bVal;
-      
+
       switch (sortField) {
         case 'name':
           aVal = `${a.firstName} ${a.lastName}`.toLowerCase();
@@ -99,6 +103,14 @@ export default function LeadsPage() {
         case 'status':
           aVal = a.status.toLowerCase();
           bVal = b.status.toLowerCase();
+          break;
+        case 'campaign':
+          aVal = (a.campaignName || '').toLowerCase();
+          bVal = (b.campaignName || '').toLowerCase();
+          break;
+        case 'lastActivity':
+          aVal = a.lastActivity ? new Date(a.lastActivity).getTime() : 0;
+          bVal = b.lastActivity ? new Date(b.lastActivity).getTime() : 0;
           break;
         default:
           aVal = a.icpScore;
@@ -131,6 +143,22 @@ export default function LeadsPage() {
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-30" />;
     return <ArrowUpDown className={`h-3 w-3 ml-1 ${theme.accents.tertiary.class}`} />;
+  };
+
+  const formatRelativeTime = (date: string | null): string => {
+    if (!date) return 'No activity';
+
+    const now = new Date();
+    const activity = new Date(date);
+    const diffMs = now.getTime() - activity.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 30) return `${diffDays}d ago`;
+    return activity.toLocaleDateString();
   };
 
   const getScoreColor = (score: number) => {
@@ -256,7 +284,7 @@ export default function LeadsPage() {
           <table className="w-full">
             <thead className="bg-gray-900 border-b border-gray-700">
               <tr>
-                <th 
+                <th
                   className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
                   onClick={() => handleSort('name')}
                 >
@@ -264,7 +292,7 @@ export default function LeadsPage() {
                     Lead Info {getSortIcon('name')}
                   </div>
                 </th>
-                <th 
+                <th
                   className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
                   onClick={() => handleSort('company')}
                 >
@@ -272,10 +300,26 @@ export default function LeadsPage() {
                     Company {getSortIcon('company')}
                   </div>
                 </th>
-                <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
-                  LinkedIn Profile
+                <th
+                  className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
+                  onClick={() => handleSort('campaign')}
+                >
+                  <div className="flex items-center">
+                    Campaign {getSortIcon('campaign')}
+                  </div>
                 </th>
-                <th 
+                <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
+                  Lead Source
+                </th>
+                <th
+                  className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
+                  onClick={() => handleSort('lastActivity')}
+                >
+                  <div className="flex items-center">
+                    Last Activity {getSortIcon('lastActivity')}
+                  </div>
+                </th>
+                <th
                   className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
                   onClick={() => handleSort('icpScore')}
                 >
@@ -283,10 +327,10 @@ export default function LeadsPage() {
                     ICP {getSortIcon('icpScore')}
                   </div>
                 </th>
-                <th className={`px-6 py-4 text-center text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
-                  Data
+                <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
+                  LinkedIn
                 </th>
-                <th 
+                <th
                   className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
                   onClick={() => handleSort('status')}
                 >
@@ -299,7 +343,7 @@ export default function LeadsPage() {
             <tbody className="divide-y divide-gray-700">
               {paginatedLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className={`px-6 py-12 text-center ${theme.core.bodyText}`}>
+                  <td colSpan={8} className={`px-6 py-12 text-center ${theme.core.bodyText}`}>
                     No leads found
                   </td>
                 </tr>
@@ -319,33 +363,40 @@ export default function LeadsPage() {
                         {lead.title || 'No title specified'}
                       </div>
                     </td>
-                    
+
                     {/* Company */}
                     <td className={`px-6 py-4 ${theme.core.white} font-medium`}>
                       {lead.company || '—'}
                     </td>
-                    
-                    {/* LinkedIn Profile - MOST IMPORTANT */}
-                    <td className="px-6 py-4">
-                      {lead.linkedinUrl ? (
-                        <a
-                          href={lead.linkedinUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 ${theme.accents.tertiary.class} border-cyan-400/30 hover:border-cyan-400 hover:bg-cyan-400/10 transition font-medium`}
-                        >
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                          </svg>
-                          View LinkedIn
-                        </a>
+
+                    {/* Campaign */}
+                    <td className={`px-6 py-4 ${theme.core.bodyText} text-sm`}>
+                      {lead.campaignName || '—'}
+                    </td>
+
+                    {/* Lead Source */}
+                    <td className={`px-6 py-4 text-sm`}>
+                      {lead.leadSource ? (
+                        <span className={`inline-block px-2 py-1 rounded ${
+                          lead.leadSource === 'Webinar Form'
+                            ? 'bg-purple-500/20 text-purple-300'
+                            : 'bg-blue-500/20 text-blue-300'
+                        }`}>
+                          {lead.leadSource}
+                        </span>
                       ) : (
-                        <span className={`text-sm ${theme.core.bodyText} italic`}>No LinkedIn</span>
+                        <span className={theme.core.bodyText}>—</span>
                       )}
                     </td>
-                    
-                    {/* ICP Score + Enrichment Status */}
+
+                    {/* Last Activity */}
+                    <td className={`px-6 py-4 text-sm`}>
+                      <span className={lead.lastActivity ? theme.core.white : theme.core.bodyText}>
+                        {formatRelativeTime(lead.lastActivity)}
+                      </span>
+                    </td>
+
+                    {/* ICP Score */}
                     <td className="px-6 py-4">
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${getScoreColor(
@@ -355,26 +406,27 @@ export default function LeadsPage() {
                         {lead.icpScore}
                       </span>
                     </td>
-                    
-                    {/* Data Quality Indicator */}
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        {lead.enrichmentOutcome === 'Success' && (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-500/20 text-green-400" title="Successfully enriched">
-                            ✓
-                          </span>
-                        )}
-                        {lead.enrichmentOutcome === 'No Match' && (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-500/20 text-yellow-400" title="No match found">
-                            ⚠
-                          </span>
-                        )}
-                        {!lead.enrichmentOutcome && (
-                          <span className={`text-xs ${theme.core.bodyText}`}>—</span>
-                        )}
-                      </div>
+
+                    {/* LinkedIn Profile */}
+                    <td className="px-6 py-4">
+                      {lead.linkedinUrl ? (
+                        <a
+                          href={lead.linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border ${theme.accents.tertiary.class} border-cyan-400/30 hover:border-cyan-400 hover:bg-cyan-400/10 transition text-xs`}
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                          </svg>
+                          View
+                        </a>
+                      ) : (
+                        <span className={`text-xs ${theme.core.bodyText} italic`}>—</span>
+                      )}
                     </td>
-                    
+
                     {/* Status */}
                     <td className="px-6 py-4">
                       <span

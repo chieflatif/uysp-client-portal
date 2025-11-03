@@ -27,9 +27,9 @@ export const users = pgTable(
     clientId: uuid('client_id'),
     isActive: boolean('is_active').notNull().default(true),
     mustChangePassword: boolean('must_change_password').notNull().default(false),
-    lastLoginAt: timestamp('last_login_at'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    lastLoginAt: timestamp('last_login_at', { withTimezone: true }), // FIXED: Add timezone support
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     emailIdx: index('idx_users_email').on(table.email),
@@ -47,11 +47,11 @@ export const clients = pgTable(
     companyName: varchar('company_name', { length: 255 }).notNull(),
     email: varchar('email', { length: 255 }).notNull(),
     phone: varchar('phone', { length: 20 }),
-    airtableBaseId: varchar('airtable_base_id', { length: 255 }).notNull(),
+    airtableBaseId: varchar('airtable_base_id', { length: 255 }).notNull().unique(), // FIXED: Add unique constraint
     isActive: boolean('is_active').notNull().default(true),
-    lastSyncAt: timestamp('last_sync_at'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    lastSyncAt: timestamp('last_sync_at', { withTimezone: true }), // FIXED: Add timezone support
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     airtableBaseIdx: index('idx_clients_airtable_base').on(table.airtableBaseId),
@@ -66,7 +66,7 @@ export const leads = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     clientId: uuid('client_id').notNull(),
-    airtableRecordId: varchar('airtable_record_id', { length: 255 }).notNull(),
+    airtableRecordId: varchar('airtable_record_id', { length: 255 }).notNull().unique(), // FIXED: Add unique constraint for upsert conflict detection
     firstName: varchar('first_name', { length: 255 }).notNull(),
     lastName: varchar('last_name', { length: 255 }).notNull(),
     email: varchar('email', { length: 255 }).notNull(),
@@ -76,47 +76,57 @@ export const leads = pgTable(
     icpScore: integer('icp_score').notNull().default(0),
     status: varchar('status', { length: 50 }).notNull().default('New'),
     claimedBy: uuid('claimed_by'),
-    claimedAt: timestamp('claimed_at'),
+    claimedAt: timestamp('claimed_at', { withTimezone: true }), // FIXED: Add timezone support
     campaignId: uuid('campaign_id'),
-    lastMessageAt: timestamp('last_message_at'),
+    lastMessageAt: timestamp('last_message_at', { withTimezone: true }), // FIXED: Add timezone support
     isActive: boolean('is_active').notNull().default(true),
-    
+
     // Campaign & Sequence Tracking (from Airtable)
     campaignName: varchar('campaign_name', { length: 255 }), // Maps from "SMS Campaign ID"
     campaignVariant: varchar('campaign_variant', { length: 10 }), // A or B (from "SMS Variant")
     campaignBatch: varchar('campaign_batch', { length: 100 }), // From "SMS Batch Control"
     smsSequencePosition: integer('sms_sequence_position').default(0),
     smsSentCount: integer('sms_sent_count').default(0),
-    smsLastSentAt: timestamp('sms_last_sent_at'),
+    smsLastSentAt: timestamp('sms_last_sent_at', { withTimezone: true }), // FIXED: Add timezone support - CRITICAL for SMS scheduling
     smsEligible: boolean('sms_eligible').default(true), // From "SMS Eligible"
-    
+
     // Status Fields (from Airtable)
     processingStatus: varchar('processing_status', { length: 50 }),
     hrqStatus: varchar('hrq_status', { length: 50 }),
     smsStop: boolean('sms_stop').default(false),
     smsStopReason: varchar('sms_stop_reason', { length: 500 }),
     booked: boolean('booked').default(false),
-    bookedAt: timestamp('booked_at'),
-    
+    bookedAt: timestamp('booked_at', { withTimezone: true }), // FIXED: Add timezone support
+
     // Click Tracking (from Airtable)
     shortLinkId: varchar('short_link_id', { length: 100 }),
     shortLinkUrl: varchar('short_link_url', { length: 500 }),
     clickCount: integer('click_count').default(0),
     clickedLink: boolean('clicked_link').default(false),
-    firstClickedAt: timestamp('first_clicked_at'),
-    
+    firstClickedAt: timestamp('first_clicked_at', { withTimezone: true }), // FIXED: Add timezone support
+
     // LinkedIn & Enrichment (from Airtable)
     linkedinUrl: varchar('linkedin_url', { length: 500 }), // From "Linkedin URL - Person"
     companyLinkedin: varchar('company_linkedin', { length: 500 }), // From "Company LinkedIn"
     enrichmentOutcome: varchar('enrichment_outcome', { length: 100 }), // Success, No Match, etc.
-    enrichmentAttemptedAt: timestamp('enrichment_attempted_at'),
-    
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    enrichmentAttemptedAt: timestamp('enrichment_attempted_at', { withTimezone: true }), // FIXED: Add timezone support
+
+    // NEW WEBINAR FIELDS (Phase A)
+    formId: varchar('form_id', { length: 255 }),
+    webinarDatetime: timestamp('webinar_datetime', { withTimezone: true }),
+    leadSource: varchar('lead_source', { length: 50 }).default('Standard Form'),
+    campaignLinkId: uuid('campaign_link_id').references(() => campaigns.id, { onDelete: 'set null' }), // FIXED: Add cascade behavior
+
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     clientIdIdx: index('idx_leads_client_id').on(table.clientId),
     emailIdx: index('idx_leads_email').on(table.email),
+    formIdIdx: index('idx_leads_form_id').on(table.formId), // NEW: For campaign lookup
+    leadSourceIdx: index('idx_leads_lead_source').on(table.leadSource), // NEW: For scheduler routing
+    webinarDatetimeIdx: index('idx_leads_webinar_datetime').on(table.webinarDatetime), // NEW: For timing logic
+    campaignLinkIdx: index('idx_leads_campaign_link').on(table.campaignLinkId), // NEW: For reporting
     statusIdx: index('idx_leads_status').on(table.status),
     claimedByIdx: index('idx_leads_claimed_by').on(table.claimedBy),
     airtableRecordIdx: index('idx_leads_airtable_record').on(table.airtableRecordId),
@@ -125,6 +135,8 @@ export const leads = pgTable(
     processingStatusIdx: index('idx_leads_processing_status').on(table.processingStatus),
     smsSequenceIdx: index('idx_leads_sms_sequence').on(table.smsSequencePosition),
     enrichmentOutcomeIdx: index('idx_leads_enrichment_outcome').on(table.enrichmentOutcome),
+    // PERFORMANCE FIX: Compound index for deletion query (clientId + airtableRecordId NOT IN)
+    clientAirtableIdx: index('idx_leads_client_airtable').on(table.clientId, table.airtableRecordId),
   })
 );
 
@@ -143,13 +155,15 @@ export const smsTemplates = pgTable(
     delayDays: integer('delay_days'),
     fastDelayMinutes: integer('fast_delay_minutes'),
     body: text('body').notNull(),
-    
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    templateType: varchar('template_type', { length: 50 }).default('Standard'), // NEW: Webinar or Standard
+
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     campaignIdx: index('idx_sms_templates_campaign').on(table.campaign),
     stepIdx: index('idx_sms_templates_step').on(table.step),
+    typeIdx: index('idx_sms_templates_type').on(table.templateType), // NEW: Index for filtering
   })
 );
 
@@ -163,15 +177,30 @@ export const campaigns = pgTable(
     clientId: uuid('client_id').notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
-    airtableRecordId: varchar('airtable_record_id', { length: 255 }),
+    airtableRecordId: varchar('airtable_record_id', { length: 255 }).notNull().unique(),
     messageTemplate: text('message_template'),
     sendInterval: integer('send_interval').default(3600), // seconds
     isPaused: boolean('is_paused').notNull().default(false),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    
+    // NEW WEBINAR FIELDS (Phase A)
+    campaignType: varchar('campaign_type', { length: 50 }).default('Standard'),
+    formId: varchar('form_id', { length: 255 }),
+    webinarDatetime: timestamp('webinar_datetime', { withTimezone: true }),
+    zoomLink: varchar('zoom_link', { length: 500 }),
+    resourceLink: varchar('resource_link', { length: 500 }),
+    resourceName: varchar('resource_name', { length: 255 }),
+    autoDiscovered: boolean('auto_discovered').default(false),
+    messagesSent: integer('messages_sent').default(0),
+    totalLeads: integer('total_leads').default(0),
+
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     clientIdIdx: index('idx_campaigns_client_id').on(table.clientId),
+    formIdIdx: index('idx_campaigns_form_id').on(table.formId), // NEW: For lead routing
+    typeIdx: index('idx_campaigns_type').on(table.campaignType), // NEW: For filtering
+    activeIdx: index('idx_campaigns_active').on(table.isPaused), // NEW: For active campaign queries
   })
 );
 
@@ -188,8 +217,8 @@ export const notes = pgTable(
     type: varchar('type', { length: 50 }).notNull(), // Call, Email, Text, Meeting, General, Issue, Success
     isPrivate: boolean('is_private').notNull().default(false),
     isSystemGenerated: boolean('is_system_generated').notNull().default(false),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     leadIdIdx: index('idx_notes_lead_id').on(table.leadId),
@@ -218,18 +247,18 @@ export const smsAudit = pgTable(
     carrier: varchar('carrier', { length: 100 }),
     
     // Timestamps
-    sentAt: timestamp('sent_at'),
-    deliveryAt: timestamp('delivery_at'),
-    clickedAt: timestamp('clicked_at'),
-    
+    sentAt: timestamp('sent_at', { withTimezone: true }), // FIXED: Add timezone support
+    deliveryAt: timestamp('delivery_at', { withTimezone: true }), // FIXED: Add timezone support
+    clickedAt: timestamp('clicked_at', { withTimezone: true }), // FIXED: Add timezone support
+
     // Flags
     clicked: boolean('clicked').default(false),
-    
+
     // Raw data
     webhookRaw: text('webhook_raw'),
-    
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     phoneIdx: index('idx_sms_audit_phone').on(table.phone),
@@ -252,7 +281,7 @@ export const activityLog = pgTable(
     action: varchar('action', { length: 255 }).notNull(),
     details: text('details'),
     ipAddress: varchar('ip_address', { length: 45 }),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     userIdIdx: index('idx_activity_user_id').on(table.userId),
@@ -275,11 +304,11 @@ export const clientProjectTasks = pgTable(
     priority: varchar('priority', { length: 50 }).notNull(),
     taskType: varchar('task_type', { length: 50 }).notNull().default('Task'), // Feature, Bug, Task, Improvement, Documentation, Research
     owner: varchar('owner', { length: 100 }),
-    dueDate: timestamp('due_date'),
+    dueDate: timestamp('due_date', { withTimezone: true }), // FIXED: Add timezone support - CRITICAL for task scheduling
     notes: text('notes'),
     dependencies: text('dependencies'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     clientIdIdx: index('idx_project_tasks_client_id').on(table.clientId),
@@ -300,8 +329,8 @@ export const clientProjectBlockers = pgTable(
     severity: varchar('severity', { length: 50 }).notNull(),
     actionToResolve: text('action_to_resolve'),
     status: varchar('status', { length: 50 }).notNull(),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    resolvedAt: timestamp('resolved_at'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }), // FIXED: Add timezone support
   },
   (table) => ({
     clientIdIdx: index('idx_project_blockers_client_id').on(table.clientId),
@@ -321,7 +350,7 @@ export const clientProjectStatus = pgTable(
     value: text('value').notNull(),
     category: varchar('category', { length: 50 }).notNull(),
     displayOrder: integer('display_order'),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     clientIdIdx: index('idx_project_status_client_id').on(table.clientId),
@@ -387,7 +416,7 @@ export const userActivityLogs = pgTable(
     browser: varchar('browser', { length: 50 }),
     deviceType: varchar('device_type', { length: 50 }),
     os: varchar('os', { length: 50 }),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     userIdIdx: index('idx_activity_logs_user_id').on(table.userId, table.createdAt),
@@ -406,9 +435,9 @@ export const userActivitySessions = pgTable(
     sessionId: varchar('session_id', { length: 100 }).notNull().unique(),
     userId: uuid('user_id').notNull(),
     clientId: uuid('client_id'),
-    sessionStart: timestamp('session_start').notNull().defaultNow(),
-    sessionEnd: timestamp('session_end'),
-    lastActivity: timestamp('last_activity').notNull().defaultNow(),
+    sessionStart: timestamp('session_start', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    sessionEnd: timestamp('session_end', { withTimezone: true }), // FIXED: Add timezone support
+    lastActivity: timestamp('last_activity', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
     pageViews: integer('page_views').default(0),
     durationSeconds: integer('duration_seconds'),
     deviceType: varchar('device_type', { length: 50 }),
@@ -416,8 +445,8 @@ export const userActivitySessions = pgTable(
     os: varchar('os', { length: 50 }),
     ipAddress: inet('ip_address'),
     userAgent: text('user_agent'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     userIdIdx: index('idx_activity_sessions_user_id').on(table.userId, table.sessionStart),
@@ -439,10 +468,10 @@ export const userActivitySummary = pgTable(
     totalPageViews: integer('total_page_views').default(0),
     totalEvents: integer('total_events').default(0),
     totalDurationSeconds: integer('total_duration_seconds').default(0),
-    firstActivity: timestamp('first_activity'),
-    lastActivity: timestamp('last_activity'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    firstActivity: timestamp('first_activity', { withTimezone: true }), // FIXED: Add timezone support
+    lastActivity: timestamp('last_activity', { withTimezone: true }), // FIXED: Add timezone support
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     userDateIdx: index('idx_summary_user_date').on(table.userId, table.activityDate),
@@ -477,8 +506,8 @@ export const emailAuditLog = pgTable(
     status: varchar('status', { length: 50 }).notNull().default('sent'),
     errorMessage: text('error_message'),
     metadata: jsonb('metadata'),
-    sentAt: timestamp('sent_at').notNull().defaultNow(),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    sentAt: timestamp('sent_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     recipientIdx: index('idx_email_audit_recipient').on(table.recipient, table.sentAt),
@@ -501,7 +530,7 @@ export const airtableSyncQueue = pgTable(
   'airtable_sync_queue',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
+    clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'restrict' }), // FIXED: Prevent accidental deletion
     tableName: varchar('table_name', { length: 100 }).notNull(), // 'Tasks', 'Blockers', etc.
     recordId: varchar('record_id', { length: 100 }).notNull(), // Airtable record ID
     operation: varchar('operation', { length: 20 }).notNull(), // 'update', 'create', 'delete'
@@ -510,11 +539,11 @@ export const airtableSyncQueue = pgTable(
     attempts: integer('attempts').notNull().default(0),
     maxAttempts: integer('max_attempts').notNull().default(5),
     lastError: text('last_error'),
-    lastAttemptAt: timestamp('last_attempt_at'),
-    nextRetryAt: timestamp('next_retry_at'),
-    completedAt: timestamp('completed_at'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    lastAttemptAt: timestamp('last_attempt_at', { withTimezone: true }), // FIXED: Add timezone support
+    nextRetryAt: timestamp('next_retry_at', { withTimezone: true }), // FIXED: Add timezone support - CRITICAL for retry scheduling
+    completedAt: timestamp('completed_at', { withTimezone: true }), // FIXED: Add timezone support
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     statusIdx: index('idx_sync_queue_status').on(table.status, table.nextRetryAt),
@@ -544,7 +573,7 @@ export const securityAuditLog = pgTable(
     metadata: jsonb('metadata'), // Additional context (non-sensitive)
     success: boolean('success').notNull().default(true), // Was action successful?
     errorMessage: text('error_message'), // If failed, why?
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
   (table) => ({
     userIdx: index('idx_audit_user').on(table.userId),

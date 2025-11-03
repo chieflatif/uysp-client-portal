@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { db } from '../db';
 import { users } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 // Type augmentation for NextAuth
 declare module 'next-auth' {
@@ -66,9 +66,9 @@ export const authOptions: NextAuthOptions = {
           // Add timeout to database query
           const startTime = Date.now();
 
-          // Query user from database (case-insensitive email lookup)
+          // Query user from database (case-insensitive email lookup using ILIKE)
           const user = await db.query.users.findFirst({
-            where: eq(users.email, email.toLowerCase()),
+            where: sql`LOWER(${users.email}) = LOWER(${email})`,
           });
 
           console.log(`[Auth] DB query took ${Date.now() - startTime}ms`);
