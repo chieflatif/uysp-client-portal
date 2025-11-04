@@ -1,0 +1,53 @@
+{
+  "name": "Kajabi Form Name Test",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "start-node",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.kajabi.com/v1/forms/2149013599",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
+        "options": {}
+      },
+      "id": "get-form-name",
+      "name": "Get Form Name",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        460,
+        300
+      ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "8ptvvz2OxejUnrK6",
+          "name": "Kajabi 0Auth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "start-node": {
+      "main": [
+        [
+          {
+            "node": "Get Form Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null
+}
