@@ -117,6 +117,10 @@ export const leads = pgTable(
     leadSource: varchar('lead_source', { length: 50 }).default('Standard Form'),
     campaignLinkId: uuid('campaign_link_id').references(() => campaigns.id, { onDelete: 'set null' }), // FIXED: Add cascade behavior
 
+    // CUSTOM CAMPAIGNS FIELDS (Migration 0010)
+    kajabiTags: text('kajabi_tags').array(), // Array of Kajabi tags from Airtable
+    engagementLevel: varchar('engagement_level', { length: 50 }), // High, Medium, Low (mapped from Green/Yellow/Red)
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
@@ -135,6 +139,7 @@ export const leads = pgTable(
     processingStatusIdx: index('idx_leads_processing_status').on(table.processingStatus),
     smsSequenceIdx: index('idx_leads_sms_sequence').on(table.smsSequencePosition),
     enrichmentOutcomeIdx: index('idx_leads_enrichment_outcome').on(table.enrichmentOutcome),
+    engagementLevelIdx: index('idx_leads_engagement_level').on(table.engagementLevel), // NEW: For custom campaigns filtering
     // PERFORMANCE FIX: Compound index for deletion query (clientId + airtableRecordId NOT IN)
     clientAirtableIdx: index('idx_leads_client_airtable').on(table.clientId, table.airtableRecordId),
   })
@@ -193,6 +198,17 @@ export const campaigns = pgTable(
     messagesSent: integer('messages_sent').default(0),
     totalLeads: integer('total_leads').default(0),
 
+    // CUSTOM CAMPAIGNS FIELDS (Migration 0010)
+    targetTags: text('target_tags').array(), // Array of Kajabi tags to filter leads by
+    messages: jsonb('messages'), // JSONB array of message sequence steps
+    startDatetime: timestamp('start_datetime', { withTimezone: true }), // When to start enrolling leads (scheduled activation)
+    enrollmentStatus: varchar('enrollment_status', { length: 50 }).default('active'), // scheduled, active, paused, completed
+    maxLeadsToEnroll: integer('max_leads_to_enroll'), // Optional cap on enrollment
+    leadsEnrolled: integer('leads_enrolled').default(0), // Counter of leads enrolled
+
+    // BOOKING LINK FIELD (Migration 0014)
+    bookingLink: varchar('booking_link', { length: 500 }), // Campaign-specific booking link
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
@@ -201,6 +217,26 @@ export const campaigns = pgTable(
     formIdIdx: index('idx_campaigns_form_id').on(table.formId), // NEW: For lead routing
     typeIdx: index('idx_campaigns_type').on(table.campaignType), // NEW: For filtering
     activeIdx: index('idx_campaigns_active').on(table.isPaused), // NEW: For active campaign queries
+    enrollmentStatusIdx: index('idx_campaigns_enrollment_status').on(table.enrollmentStatus), // NEW: For cron job queries (Migration 0012)
+    startDatetimeIdx: index('idx_campaigns_start_datetime').on(table.startDatetime), // NEW: For scheduled activation queries (Migration 0012)
+  })
+);
+
+// ==============================================================================
+// CAMPAIGN TAGS CACHE TABLE (Migration 0010)
+// ==============================================================================
+export const campaignTagsCache = pgTable(
+  'campaign_tags_cache',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clientId: uuid('client_id').notNull().unique(),
+    tags: jsonb('tags').notNull(), // JSON array of valid Kajabi tags
+    generatedAt: timestamp('generated_at', { withTimezone: true }).notNull(), // When tags were last aggregated
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    clientIdIdx: index('idx_tags_cache_client').on(table.clientId),
   })
 );
 

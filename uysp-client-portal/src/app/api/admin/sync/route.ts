@@ -74,6 +74,8 @@ const SYNC_CONFIG = {
  * Body: { clientId: string } - which client to sync
  */
 export async function POST(request: NextRequest) {
+  let clientId: string | undefined; // Declare at function scope for error handler access
+
   try {
     // Authentication
     const session = await getServerSession(authOptions);
@@ -112,7 +114,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { clientId, dryRun } = validation.data;
+    const validatedData = validation.data;
+    clientId = validatedData.clientId; // Assign to function-scoped variable
+    const { dryRun } = validatedData;
 
     if (dryRun) {
       console.log('🔍 DRY RUN MODE: Changes will be previewed but not committed');
@@ -676,7 +680,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Sync failed:', error);
     // CRITICAL FIX: Only release lock if clientId exists (lock was acquired)
-    // clientId is defined at line 83, so early errors won't have it
+    // clientId is undefined for early errors (before validation), so check before unlocking
     if (typeof clientId !== 'undefined') {
       try {
         await db.execute(sql`SELECT pg_advisory_unlock(hashtext(${clientId}))`);

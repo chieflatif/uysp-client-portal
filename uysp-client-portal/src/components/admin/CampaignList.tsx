@@ -8,7 +8,7 @@ interface Campaign {
   id: string;
   clientId: string;
   name: string;
-  campaignType: 'Webinar' | 'Standard';
+  campaignType: 'Webinar' | 'Standard' | 'Custom';
   formId: string;
   isPaused: boolean;
   webinarDatetime?: string | null;
@@ -34,7 +34,7 @@ export default function CampaignList({
   onTogglePause,
   onDelete,
 }: CampaignListProps) {
-  const [typeFilter, setTypeFilter] = useState<'All' | 'Webinar' | 'Standard'>('All');
+  const [typeFilter, setTypeFilter] = useState<'All' | 'Webinar' | 'Standard' | 'Custom'>('All');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Paused'>('All');
 
   // Apply filters
@@ -70,7 +70,7 @@ export default function CampaignList({
           <span className={`text-sm font-semibold ${theme.accents.tertiary.class} self-center`}>
             Type:
           </span>
-          {(['All', 'Webinar', 'Standard'] as const).map((type) => (
+          {(['All', 'Webinar', 'Standard', 'Custom'] as const).map((type) => (
             <button
               key={type}
               onClick={() => setTypeFilter(type)}
@@ -80,6 +80,8 @@ export default function CampaignList({
                     ? 'bg-purple-600 text-white'
                     : type === 'Standard'
                     ? `${theme.accents.primary.bgClass} text-white`
+                    : type === 'Custom'
+                    ? 'bg-orange-600 text-white'
                     : `${theme.accents.tertiary.bgClass} text-gray-900`
                   : `bg-gray-700 ${theme.core.bodyText} hover:bg-gray-600`
               }`}
@@ -178,6 +180,8 @@ export default function CampaignList({
                       className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
                         campaign.campaignType === 'Webinar'
                           ? 'bg-purple-500/20 text-purple-300'
+                          : campaign.campaignType === 'Custom'
+                          ? 'bg-orange-500/20 text-orange-300'
                           : 'bg-blue-500/20 text-blue-300'
                       }`}
                     >
