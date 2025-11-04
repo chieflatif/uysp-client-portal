@@ -30,16 +30,24 @@ const generateMessageSchema = z.object({
 
 type GenerateMessageInput = z.infer<typeof generateMessageSchema>;
 
-// Azure OpenAI configuration from user's account
-const AZURE_OPENAI_ENDPOINT = 'https://cursor-agent.services.ai.azure.com';
-const AZURE_OPENAI_KEY = process.env.AZURE_OPENAI_KEY;
-const PRIMARY_MODEL = 'gpt-4.1-mini';
-const FALLBACK_MODEL = 'gpt-5-mini';
+// Azure OpenAI configuration - DUAL ENDPOINT for redundancy
+// Primary: Fastest model on cursor-agent endpoint (460ms average)
+const PRIMARY_ENDPOINT = 'https://cursor-agent.services.ai.azure.com';
+const PRIMARY_KEY = process.env.AZURE_OPENAI_KEY;
+const PRIMARY_MODEL = 'gpt-5-mini';
 
-// SECURITY: Validate API key is set at module load time
-if (!AZURE_OPENAI_KEY) {
+// Fallback: Different endpoint for geographic redundancy (1210ms average)
+const FALLBACK_ENDPOINT = 'https://chief-1020-resource.cognitiveservices.azure.com';
+const FALLBACK_KEY = process.env.AZURE_OPENAI_KEY_FALLBACK;
+const FALLBACK_MODEL = 'gpt-5-nano';
+
+// SECURITY: Validate API keys are set at module load time
+if (!PRIMARY_KEY) {
   console.error('❌ CRITICAL: AZURE_OPENAI_KEY environment variable is not set');
   // Note: This will be caught by the handler and return 500 to the client
+}
+if (!FALLBACK_KEY) {
+  console.warn('⚠️ WARNING: AZURE_OPENAI_KEY_FALLBACK not set - fallback will not work');
 }
 
 // RATE LIMITING: Database-based rate limiting (works across serverless instances)
@@ -48,8 +56,8 @@ if (!AZURE_OPENAI_KEY) {
 
 export async function POST(request: NextRequest) {
   try {
-    // SECURITY: Fail fast if API key is not configured
-    if (!AZURE_OPENAI_KEY) {
+    // SECURITY: Fail fast if primary API key is not configured
+    if (!PRIMARY_KEY) {
       console.error('❌ Cannot generate message: AZURE_OPENAI_KEY not configured');
       return NextResponse.json(
         { error: 'AI service not configured. Please contact system administrator.' },
@@ -126,26 +134,32 @@ export async function POST(request: NextRequest) {
     let generatedMessage: string | undefined;
     let modelUsed: string;
 
-    console.log(`🤖 Attempting message generation with ${PRIMARY_MODEL}...`);
+    console.log(`🤖 Attempting message generation with ${PRIMARY_MODEL} @ ${PRIMARY_ENDPOINT}...`);
 
     try {
-      generatedMessage = await callAzureOpenAI(prompt, PRIMARY_MODEL);
+      generatedMessage = await callAzureOpenAI(prompt, PRIMARY_MODEL, PRIMARY_ENDPOINT, PRIMARY_KEY!);
       modelUsed = PRIMARY_MODEL;
       console.log(`✅ Primary model (${PRIMARY_MODEL}) succeeded`);
     } catch (primaryError) {
       const primaryErrorMsg = primaryError instanceof Error ? primaryError.message : String(primaryError);
       console.warn(`⚠️ Primary model (${PRIMARY_MODEL}) failed:`, primaryErrorMsg);
-      console.warn(`🔄 Attempting fallback to ${FALLBACK_MODEL}...`);
+      console.warn(`🔄 Attempting fallback to ${FALLBACK_MODEL} @ ${FALLBACK_ENDPOINT}...`);
+
+      // Check if fallback is configured
+      if (!FALLBACK_KEY) {
+        console.error(`❌ Fallback not available: AZURE_OPENAI_KEY_FALLBACK not configured`);
+        throw primaryError; // Re-throw primary error since fallback unavailable
+      }
 
       try {
-        generatedMessage = await callAzureOpenAI(prompt, FALLBACK_MODEL);
+        generatedMessage = await callAzureOpenAI(prompt, FALLBACK_MODEL, FALLBACK_ENDPOINT, FALLBACK_KEY);
         modelUsed = FALLBACK_MODEL;
-        console.log(`✅ Fallback model (${FALLBACK_MODEL}) succeeded`);
+        console.log(`✅ Fallback model (${FALLBACK_MODEL}) succeeded on different endpoint`);
       } catch (fallbackError) {
         const fallbackErrorMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
-        console.error(`❌ Both models failed!`);
-        console.error(`Primary error:`, primaryErrorMsg);
-        console.error(`Fallback error:`, fallbackErrorMsg);
+        console.error(`❌ Both endpoints/models failed!`);
+        console.error(`Primary (${PRIMARY_ENDPOINT}):`, primaryErrorMsg);
+        console.error(`Fallback (${FALLBACK_ENDPOINT}):`, fallbackErrorMsg);
         throw fallbackError; // Let outer catch handle it
       }
     }
@@ -316,22 +330,28 @@ Write ONLY the SMS message text, no explanations or meta-commentary. Keep it bet
 }
 
 /**
- * Call Azure OpenAI API
+ * Call Azure OpenAI API with dual-endpoint support
  * BUG #20 FIX: Added 30-second timeout to prevent Vercel function timeout
  * ENHANCED: Comprehensive error logging for production debugging
+ * DUAL-ENDPOINT: Supports different endpoints for primary/fallback (geographic redundancy)
  */
-async function callAzureOpenAI(prompt: string, model: string): Promise<string> {
+async function callAzureOpenAI(
+  prompt: string,
+  model: string,
+  endpoint: string,
+  apiKey: string
+): Promise<string> {
   const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const startTime = Date.now();
 
   console.log(`[AI-MSG ${requestId}] 🚀 Starting Azure OpenAI request`);
   console.log(`[AI-MSG ${requestId}] Model: ${model}`);
-  console.log(`[AI-MSG ${requestId}] Endpoint: ${AZURE_OPENAI_ENDPOINT}`);
-  console.log(`[AI-MSG ${requestId}] API Key present: ${!!AZURE_OPENAI_KEY}`);
-  console.log(`[AI-MSG ${requestId}] API Key length: ${AZURE_OPENAI_KEY?.length || 0}`);
+  console.log(`[AI-MSG ${requestId}] Endpoint: ${endpoint}`);
+  console.log(`[AI-MSG ${requestId}] API Key present: ${!!apiKey}`);
+  console.log(`[AI-MSG ${requestId}] API Key length: ${apiKey?.length || 0}`);
   console.log(`[AI-MSG ${requestId}] Prompt length: ${prompt.length} chars`);
 
-  const url = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${model}/chat/completions?api-version=2024-08-01-preview`;
+  const url = `${endpoint}/openai/deployments/${model}/chat/completions?api-version=2024-08-01-preview`;
 
   // GPT-5 uses extensive reasoning tokens (2000-3000+) before generating output
   // Must allocate enough tokens for both reasoning AND visible output
@@ -373,7 +393,7 @@ async function callAzureOpenAI(prompt: string, model: string): Promise<string> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'api-key': AZURE_OPENAI_KEY!,
+        'api-key': apiKey,
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal, // Pass abort signal for timeout
