@@ -1,15 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { theme } from '@/theme';
-import { Edit, Pause, Play, Trash2 } from 'lucide-react';
+import { Edit, Pause, Play, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Eye } from 'lucide-react';
 
 interface Campaign {
   id: string;
   clientId: string;
   name: string;
-  campaignType: 'Webinar' | 'Standard';
-  formId: string;
+  campaignType: 'Webinar' | 'Standard' | 'Custom';
+  formId?: string;
   isPaused: boolean;
   webinarDatetime?: string | null;
   zoomLink?: string | null;
@@ -19,6 +20,10 @@ interface Campaign {
   totalLeads: number;
   createdAt: string;
   updatedAt: string;
+  // Custom campaign fields
+  targetTags?: string[];
+  enrollmentStatus?: 'scheduled' | 'active' | 'paused' | 'completed';
+  leadsEnrolled?: number;
 }
 
 interface CampaignListProps {
@@ -28,14 +33,32 @@ interface CampaignListProps {
   onDelete: (campaignId: string) => void;
 }
 
+type SortField = 'name' | 'totalLeads' | 'messagesSent' | 'createdAt' | 'webinarDatetime';
+type SortDirection = 'asc' | 'desc';
+
 export default function CampaignList({
   campaigns,
   onEdit,
   onTogglePause,
   onDelete,
 }: CampaignListProps) {
-  const [typeFilter, setTypeFilter] = useState<'All' | 'Webinar' | 'Standard'>('All');
+  const router = useRouter();
+  const [typeFilter, setTypeFilter] = useState<'All' | 'Webinar' | 'Standard' | 'Custom'>('All');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Paused'>('All');
+  const [sortField, setSortField] = useState<SortField>('createdAt');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  // Handle sort column click
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if clicking same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Default to descending for new field
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
 
   // Apply filters
   const filteredCampaigns = campaigns.filter((campaign) => {
@@ -50,6 +73,53 @@ export default function CampaignList({
     }
     return true;
   });
+
+  // Apply sorting
+  const sortedCampaigns = [...filteredCampaigns].sort((a, b) => {
+    let aVal: any;
+    let bVal: any;
+
+    switch (sortField) {
+      case 'name':
+        aVal = a.name.toLowerCase();
+        bVal = b.name.toLowerCase();
+        break;
+      case 'totalLeads':
+        aVal = a.totalLeads;
+        bVal = b.totalLeads;
+        break;
+      case 'messagesSent':
+        aVal = a.messagesSent;
+        bVal = b.messagesSent;
+        break;
+      case 'createdAt':
+        aVal = new Date(a.createdAt).getTime();
+        bVal = new Date(b.createdAt).getTime();
+        break;
+      case 'webinarDatetime':
+        aVal = a.webinarDatetime ? new Date(a.webinarDatetime).getTime() : 0;
+        bVal = b.webinarDatetime ? new Date(b.webinarDatetime).getTime() : 0;
+        break;
+      default:
+        return 0;
+    }
+
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // Sort indicator component
+  const SortIndicator = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-3 w-3 opacity-50" />;
+    }
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="h-3 w-3" />
+    ) : (
+      <ArrowDown className="h-3 w-3" />
+    );
+  };
 
   const formatDate = (date: string | null | undefined): string => {
     if (!date) return '—';
@@ -70,7 +140,7 @@ export default function CampaignList({
           <span className={`text-sm font-semibold ${theme.accents.tertiary.class} self-center`}>
             Type:
           </span>
-          {(['All', 'Webinar', 'Standard'] as const).map((type) => (
+          {(['All', 'Webinar', 'Standard', 'Custom'] as const).map((type) => (
             <button
               key={type}
               onClick={() => setTypeFilter(type)}
@@ -80,6 +150,8 @@ export default function CampaignList({
                     ? 'bg-purple-600 text-white'
                     : type === 'Standard'
                     ? `${theme.accents.primary.bgClass} text-white`
+                    : type === 'Custom'
+                    ? 'bg-orange-600 text-white'
                     : `${theme.accents.tertiary.bgClass} text-gray-900`
                   : `bg-gray-700 ${theme.core.bodyText} hover:bg-gray-600`
               }`}
@@ -115,7 +187,7 @@ export default function CampaignList({
 
       {/* Campaign Count */}
       <div className={`text-sm ${theme.core.bodyText}`}>
-        Showing {filteredCampaigns.length} of {campaigns.length} campaigns
+        Showing {sortedCampaigns.length} of {campaigns.length} campaigns
       </div>
 
       {/* Table */}
@@ -123,8 +195,14 @@ export default function CampaignList({
         <table className="w-full">
           <thead className="bg-gray-900 border-b border-gray-700">
             <tr>
-              <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
-                Campaign
+              <th
+                className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
+                onClick={() => handleSort('name')}
+              >
+                <div className="flex items-center gap-2">
+                  Campaign
+                  <SortIndicator field="name" />
+                </div>
               </th>
               <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
                 Type
@@ -135,14 +213,32 @@ export default function CampaignList({
               <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
                 Status
               </th>
-              <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
-                Webinar Date
+              <th
+                className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
+                onClick={() => handleSort('webinarDatetime')}
+              >
+                <div className="flex items-center gap-2">
+                  Webinar Date
+                  <SortIndicator field="webinarDatetime" />
+                </div>
               </th>
-              <th className={`px-6 py-4 text-center text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
-                Leads
+              <th
+                className={`px-6 py-4 text-center text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
+                onClick={() => handleSort('totalLeads')}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  Leads
+                  <SortIndicator field="totalLeads" />
+                </div>
               </th>
-              <th className={`px-6 py-4 text-center text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
-                Messages
+              <th
+                className={`px-6 py-4 text-center text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
+                onClick={() => handleSort('messagesSent')}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  Messages
+                  <SortIndicator field="messagesSent" />
+                </div>
               </th>
               <th className={`px-6 py-4 text-center text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
                 Actions
@@ -150,17 +246,18 @@ export default function CampaignList({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-700">
-            {filteredCampaigns.length === 0 ? (
+            {sortedCampaigns.length === 0 ? (
               <tr>
                 <td colSpan={8} className={`px-6 py-12 text-center ${theme.core.bodyText}`}>
                   No campaigns found
                 </td>
               </tr>
             ) : (
-              filteredCampaigns.map((campaign) => (
+              sortedCampaigns.map((campaign) => (
                 <tr
                   key={campaign.id}
-                  className="hover:bg-gray-700 transition"
+                  onClick={() => router.push(`/admin/campaigns/${campaign.id}`)}
+                  className="hover:bg-gray-700 transition cursor-pointer"
                 >
                   {/* Campaign Name */}
                   <td className="px-6 py-4">
@@ -178,18 +275,31 @@ export default function CampaignList({
                       className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
                         campaign.campaignType === 'Webinar'
                           ? 'bg-purple-500/20 text-purple-300'
+                          : campaign.campaignType === 'Custom'
+                          ? 'bg-orange-500/20 text-orange-300'
                           : 'bg-blue-500/20 text-blue-300'
                       }`}
                     >
                       {campaign.campaignType}
                     </span>
+                    {/* Show custom campaign details */}
+                    {campaign.campaignType === 'Custom' && campaign.targetTags && (
+                      <div className={`text-xs ${theme.core.bodyText} mt-1`}>
+                        {campaign.targetTags.slice(0, 2).join(', ')}
+                        {campaign.targetTags.length > 2 && ` +${campaign.targetTags.length - 2}`}
+                      </div>
+                    )}
                   </td>
 
                   {/* Form ID */}
                   <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
-                    <code className="bg-gray-900 px-2 py-1 rounded text-xs">
-                      {campaign.formId}
-                    </code>
+                    {campaign.formId ? (
+                      <code className="bg-gray-900 px-2 py-1 rounded text-xs">
+                        {campaign.formId}
+                      </code>
+                    ) : (
+                      <span className="text-gray-500 text-xs">—</span>
+                    )}
                   </td>
 
                   {/* Status */}
@@ -203,6 +313,18 @@ export default function CampaignList({
                     >
                       {campaign.isPaused ? 'Paused' : 'Active'}
                     </span>
+                    {/* Show enrollment status for custom campaigns */}
+                    {campaign.campaignType === 'Custom' && campaign.enrollmentStatus && (
+                      <div className={`text-xs mt-1 ${
+                        campaign.enrollmentStatus === 'scheduled'
+                          ? 'text-yellow-400'
+                          : campaign.enrollmentStatus === 'completed'
+                          ? 'text-gray-400'
+                          : 'text-cyan-400'
+                      }`}>
+                        {campaign.enrollmentStatus}
+                      </div>
+                    )}
                   </td>
 
                   {/* Webinar Date */}
@@ -215,6 +337,12 @@ export default function CampaignList({
                   {/* Leads Count */}
                   <td className={`px-6 py-4 text-center text-sm ${theme.core.white} font-semibold`}>
                     {campaign.totalLeads}
+                    {/* Show enrolled count for custom campaigns */}
+                    {campaign.campaignType === 'Custom' && campaign.leadsEnrolled !== undefined && (
+                      <div className={`text-xs ${theme.core.bodyText} font-normal mt-1`}>
+                        {campaign.leadsEnrolled} enrolled
+                      </div>
+                    )}
                   </td>
 
                   {/* Messages Sent */}
@@ -225,15 +353,35 @@ export default function CampaignList({
                   {/* Actions */}
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
+                      {/* View Campaign Details */}
                       <button
-                        onClick={() => onEdit(campaign)}
-                        className={`p-2 rounded ${theme.accents.tertiary.class} hover:bg-cyan-400/10 transition`}
-                        title="Edit campaign"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/admin/campaigns/${campaign.id}`);
+                        }}
+                        className={`p-2 rounded ${theme.accents.primary.class} hover:bg-cyan-400/10 transition`}
+                        title="View campaign details and leads"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                       </button>
+                      {/* Only allow editing Standard/Webinar campaigns (not Custom) */}
+                      {campaign.campaignType !== 'Custom' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(campaign);
+                          }}
+                          className={`p-2 rounded ${theme.accents.tertiary.class} hover:bg-cyan-400/10 transition`}
+                          title="Edit campaign"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
                       <button
-                        onClick={() => onTogglePause(campaign.id, campaign.isPaused)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTogglePause(campaign.id, campaign.isPaused);
+                        }}
                         className={`p-2 rounded ${
                           campaign.isPaused
                             ? 'text-green-400 hover:bg-green-400/10'
@@ -248,7 +396,8 @@ export default function CampaignList({
                         )}
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (confirm(`Are you sure you want to deactivate "${campaign.name}"?`)) {
                             onDelete(campaign.id);
                           }

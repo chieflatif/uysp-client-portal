@@ -80,8 +80,8 @@ export default function DashboardPage() {
         setLoading(true);
         setError(null);
         
-        // Fetch leads for stats
-        const leadsResponse = await fetch('/api/leads');
+        // Fetch leads for stats (CRITICAL FIX: Fetch ALL leads with high limit)
+        const leadsResponse = await fetch('/api/leads?limit=50000');
         if (!leadsResponse.ok) {
           throw new Error(`Failed to fetch leads: ${leadsResponse.status}`);
         }
@@ -122,13 +122,17 @@ export default function DashboardPage() {
             const campaignsData = await campaignsResponse.json();
             const allCampaigns = campaignsData.campaigns || [];
 
-            // Count leads per campaign
+            // Count leads per campaign - Match by campaignName, leadSource, or formId
             const campaignsWithCounts = allCampaigns.map((campaign: any) => ({
               id: campaign.id,
               name: campaign.name,
               campaignType: campaign.campaignType,
               isPaused: campaign.isPaused,
-              totalLeads: leads.filter((l: any) => l.campaignLinkId === campaign.id).length,
+              totalLeads: leads.filter((l: any) =>
+                l.campaignName === campaign.id ||
+                l.leadSource === campaign.name ||
+                (campaign.formId && l.formId === campaign.formId)
+              ).length,
             }));
 
             setCampaigns(campaignsWithCounts);

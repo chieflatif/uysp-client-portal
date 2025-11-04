@@ -61,7 +61,7 @@ export default function LeadDetailPage() {
         }
 
         const data = await response.json();
-        setLead(data.lead);
+        setLead(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error loading lead');
       } finally {
@@ -91,7 +91,7 @@ export default function LeadDetailPage() {
       }
 
       const data = await response.json();
-      setLead(data.lead);
+      setLead(data);
       setSuccess('Lead claimed successfully!');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error claiming lead');
@@ -117,7 +117,7 @@ export default function LeadDetailPage() {
       }
 
       const data = await response.json();
-      setLead(data.lead);
+      setLead(data);
       setSuccess('Lead unclaimed successfully!');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error unclaiming lead');
@@ -160,7 +160,7 @@ export default function LeadDetailPage() {
       const leadRes = await fetch(`/api/leads/${id}`);
       if (leadRes.ok) {
         const data = await leadRes.json();
-        setLead(data.lead);
+        setLead(data);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error removing lead from campaign');
