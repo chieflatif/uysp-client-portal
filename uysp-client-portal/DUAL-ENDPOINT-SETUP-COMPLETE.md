@@ -7,16 +7,16 @@
 ## Configuration Summary
 
 ### Primary (Fastest)
-- **Model:** gpt-5-mini
-- **Endpoint:** https://cursor-agent.services.ai.azure.com
-- **Speed:** 460-520ms average
-- **API Key:** `AZURE_OPENAI_KEY`
+- **Model:** gpt-4o (GPT-4o-2024-11-20)
+- **Endpoint:** https://chief-1020-resource.cognitiveservices.azure.com
+- **Speed:** 355ms average (43% faster than previous primary)
+- **API Key:** `AZURE_OPENAI_KEY_FALLBACK`
 
 ### Fallback (Geographic Redundancy)
-- **Model:** gpt-5-nano
-- **Endpoint:** https://chief-1020-resource.cognitiveservices.azure.com
-- **Speed:** 1200-2200ms average
-- **API Key:** `AZURE_OPENAI_KEY_FALLBACK`
+- **Model:** gpt-5-mini
+- **Endpoint:** https://cursor-agent.services.ai.azure.com
+- **Speed:** 621ms average
+- **API Key:** `AZURE_OPENAI_KEY`
 
 ---
 
@@ -33,11 +33,11 @@
 ### Local (.env files) - ✅ Already Set
 
 ```bash
-# Primary: gpt-5-mini @ cursor-agent (460ms)
-AZURE_OPENAI_KEY=your-cursor-agent-api-key-here
-
-# Fallback: gpt-5-nano @ chief-1020 (1210ms, different endpoint for redundancy)
+# Primary: gpt-4o @ chief-1020 (355ms - FASTEST)
 AZURE_OPENAI_KEY_FALLBACK=your-chief-1020-api-key-here
+
+# Fallback: gpt-5-mini @ cursor-agent (621ms, different endpoint for redundancy)
+AZURE_OPENAI_KEY=your-cursor-agent-api-key-here
 ```
 
 ### Production (Render) - ⚠️ You Need to Add
@@ -75,28 +75,30 @@ const FALLBACK_MODEL = 'gpt-5-mini';
 
 **After:**
 ```typescript
-// Primary: Fastest model on cursor-agent endpoint (460ms average)
-const PRIMARY_ENDPOINT = 'https://cursor-agent.services.ai.azure.com';
-const PRIMARY_KEY = process.env.AZURE_OPENAI_KEY;
-const PRIMARY_MODEL = 'gpt-5-mini';
+// Primary: GPT-4o on chief-1020 endpoint (355ms average - 43% faster than gpt-5-mini)
+const PRIMARY_ENDPOINT = 'https://chief-1020-resource.cognitiveservices.azure.com';
+const PRIMARY_KEY = process.env.AZURE_OPENAI_KEY_FALLBACK;
+const PRIMARY_MODEL = 'gpt-4o';
 
-// Fallback: Different endpoint for geographic redundancy (1210ms average)
-const FALLBACK_ENDPOINT = 'https://chief-1020-resource.cognitiveservices.azure.com';
-const FALLBACK_KEY = process.env.AZURE_OPENAI_KEY_FALLBACK;
-const FALLBACK_MODEL = 'gpt-5-nano';
+// Fallback: gpt-5-mini on cursor-agent endpoint (621ms average - different geographic endpoint for redundancy)
+const FALLBACK_ENDPOINT = 'https://cursor-agent.services.ai.azure.com';
+const FALLBACK_KEY = process.env.AZURE_OPENAI_KEY;
+const FALLBACK_MODEL = 'gpt-5-mini';
 ```
 
 ---
 
 ## Test Results
 
-### Simple Connectivity Test (✅ PASSED)
+### Latest Performance Test (✅ PASSED - 2025-11-04)
 
-| Model | Endpoint | Speed | Status |
-|-------|----------|-------|--------|
-| gpt-5-mini | cursor-agent | 519ms | ✅ Works |
-| gpt-4.1-mini | cursor-agent | 679ms | ✅ Works |
-| gpt-5-nano | chief-1020 | 2211ms | ✅ Works |
+| Rank | Model | Endpoint | Speed | Status |
+|------|-------|----------|-------|--------|
+| 🏆 #1 | gpt-4o | chief-1020 | 355ms | ✅ Works (FASTEST) |
+| 🥈 #2 | gpt-5-mini | cursor-agent | 621ms | ✅ Works |
+| 🥉 #3 | gpt-5-nano | chief-1020 | 743ms | ✅ Works |
+
+**Winner:** gpt-4o is 43% faster than gpt-5-mini (355ms vs 621ms)
 
 All endpoints are reachable and responding correctly.
 
@@ -116,10 +118,10 @@ Production has proper timeout handling (30s timeout with graceful fallback).
 ### Request Flow
 
 1. **User clicks "Generate AI Message"**
-2. **Try Primary:** gpt-5-mini @ cursor-agent (fast, 460ms average)
+2. **Try Primary:** gpt-4o @ chief-1020 (fastest, 355ms average)
    - If success → return message ✅
    - If fails → proceed to fallback
-3. **Try Fallback:** gpt-5-nano @ chief-1020 (slower but different endpoint)
+3. **Try Fallback:** gpt-5-mini @ cursor-agent (slower but different endpoint, 621ms average)
    - If success → return message ✅
    - If fails → show error to user ❌
 
@@ -127,21 +129,21 @@ Production has proper timeout handling (30s timeout with graceful fallback).
 
 **Scenario 1: Primary endpoint down**
 ```
-Primary (cursor-agent): ❌ Connection failed
+Primary (chief-1020): ❌ Connection failed
   ↓
-Fallback (chief-1020): ✅ Success (different endpoint saved the day!)
+Fallback (cursor-agent): ✅ Success (different endpoint saved the day!)
 ```
 
 **Scenario 2: Primary model rate limited**
 ```
-Primary (gpt-5-mini): ❌ 429 Rate Limit
+Primary (gpt-4o): ❌ 429 Rate Limit
   ↓
-Fallback (gpt-5-nano): ✅ Success (different API quota)
+Fallback (gpt-5-mini): ✅ Success (different API quota)
 ```
 
 **Scenario 3: Both endpoints healthy**
 ```
-Primary (gpt-5-mini): ✅ Success in 460ms (fallback never called)
+Primary (gpt-4o): ✅ Success in 355ms (fallback never called)
 ```
 
 ---
@@ -156,18 +158,18 @@ grep "[AI-MSG"
 **What you'll see:**
 ```
 [AI-MSG 1762290010698] 🚀 Starting Azure OpenAI request
-[AI-MSG 1762290010698] Model: gpt-5-mini
-[AI-MSG 1762290010698] Endpoint: https://cursor-agent.services.ai.azure.com
-[AI-MSG 1762290010698] ✅ Success in 460ms
+[AI-MSG 1762290010698] Model: gpt-4o
+[AI-MSG 1762290010698] Endpoint: https://chief-1020-resource.cognitiveservices.azure.com
+[AI-MSG 1762290010698] ✅ Success in 355ms
 ```
 
 **If fallback triggers:**
 ```
-[AI-MSG 1762290010698] ⚠️ Primary model (gpt-5-mini) failed: Connection timeout
-[AI-MSG 1762290010698] 🔄 Attempting fallback to gpt-5-nano @ chief-1020...
+[AI-MSG 1762290010698] ⚠️ Primary model (gpt-4o) failed: Connection timeout
+[AI-MSG 1762290010698] 🔄 Attempting fallback to gpt-5-mini @ cursor-agent...
 [AI-MSG 1762290010699] 🚀 Starting Azure OpenAI request
-[AI-MSG 1762290010699] Model: gpt-5-nano
-[AI-MSG 1762290010699] Endpoint: https://chief-1020-resource.cognitiveservices.azure.com
+[AI-MSG 1762290010699] Model: gpt-5-mini
+[AI-MSG 1762290010699] Endpoint: https://cursor-agent.services.ai.azure.com
 [AI-MSG 1762290010699] ✅ Fallback model succeeded on different endpoint
 ```
 
@@ -217,13 +219,13 @@ Watch Render logs for:
 
 **Log Pattern:**
 ```
-[AI-MSG xxxxx] ⚠️ Primary model (gpt-5-mini) failed
-[AI-MSG xxxxx] 🔄 Attempting fallback to gpt-5-nano
+[AI-MSG xxxxx] ⚠️ Primary model (gpt-4o) failed
+[AI-MSG xxxxx] 🔄 Attempting fallback to gpt-5-mini
 ```
 
 **Check:**
-1. Is `AZURE_OPENAI_KEY` set correctly in Render?
-2. Is cursor-agent endpoint accessible?
+1. Is `AZURE_OPENAI_KEY_FALLBACK` set correctly in Render?
+2. Is chief-1020 endpoint accessible?
 3. Check Azure status: https://status.azure.com
 
 ### If Fallback Not Working
@@ -253,14 +255,14 @@ Watch Render logs for:
 
 ## Performance Expectations
 
-### Primary (gpt-5-mini)
-- **Average:** 460-520ms
-- **Max:** ~1-2s
+### Primary (gpt-4o)
+- **Average:** 355ms
+- **Max:** ~500ms-1s
 - **Timeout:** 30s
 
-### Fallback (gpt-5-nano)
-- **Average:** 1200-2200ms (slower due to reasoning tokens)
-- **Max:** ~15-25s
+### Fallback (gpt-5-mini)
+- **Average:** 621ms
+- **Max:** ~1-2s
 - **Timeout:** 30s
 
 ### Total Max Time
@@ -275,13 +277,19 @@ Watch Render logs for:
 **Status:** ✅ Code Complete, Tested, Ready for Production
 
 **What's New:**
+- Switched to GPT-4o as primary model (43% faster than previous)
 - Dual-endpoint configuration (primary + fallback on different servers)
-- Faster primary model (gpt-5-mini @ 460ms)
+- Ultra-fast response times (355ms average with gpt-4o)
 - Geographic redundancy (2 different Azure regions)
 - Enhanced logging showing which endpoint is used
 
+**Performance Improvement:**
+- Previous: gpt-5-mini @ 621ms
+- Current: gpt-4o @ 355ms
+- **Improvement: 43% faster** (266ms saved per request)
+
 **What You Need to Do:**
-1. Add `AZURE_OPENAI_KEY_FALLBACK` to Render
+1. Add `AZURE_OPENAI_KEY_FALLBACK` to Render (if not already there)
 2. Push code to production
 3. Test in the UI
 
