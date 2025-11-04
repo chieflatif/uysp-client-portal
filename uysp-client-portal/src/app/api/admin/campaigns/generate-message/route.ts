@@ -31,23 +31,23 @@ const generateMessageSchema = z.object({
 type GenerateMessageInput = z.infer<typeof generateMessageSchema>;
 
 // Azure OpenAI configuration - DUAL ENDPOINT for redundancy
-// Primary: GPT-4o on chief-1020 endpoint (355ms average - 43% faster than gpt-5-mini)
-const PRIMARY_ENDPOINT = 'https://chief-1020-resource.cognitiveservices.azure.com';
-const PRIMARY_KEY = process.env.AZURE_OPENAI_KEY_FALLBACK;
-const PRIMARY_MODEL = 'gpt-4o';
+// Primary: gpt-5-mini on cursor-agent endpoint (621ms average)
+const PRIMARY_ENDPOINT = 'https://cursor-agent.services.ai.azure.com';
+const PRIMARY_KEY = process.env.AZURE_OPENAI_KEY;
+const PRIMARY_MODEL = 'gpt-5-mini';
 
-// Fallback: gpt-5-mini on cursor-agent endpoint (621ms average - different geographic endpoint for redundancy)
-const FALLBACK_ENDPOINT = 'https://cursor-agent.services.ai.azure.com';
-const FALLBACK_KEY = process.env.AZURE_OPENAI_KEY;
-const FALLBACK_MODEL = 'gpt-5-mini';
+// Fallback: gpt-4o on chief-1020 endpoint (380ms average - different geographic endpoint for redundancy)
+const FALLBACK_ENDPOINT = 'https://chief-1020-resource.cognitiveservices.azure.com';
+const FALLBACK_KEY = process.env.AZURE_OPENAI_KEY_FALLBACK;
+const FALLBACK_MODEL = 'gpt-4o';
 
 // SECURITY: Validate API keys are set at module load time
 if (!PRIMARY_KEY) {
-  console.error('❌ CRITICAL: AZURE_OPENAI_KEY_FALLBACK environment variable is not set (primary endpoint)');
+  console.error('❌ CRITICAL: AZURE_OPENAI_KEY environment variable is not set (primary endpoint)');
   // Note: This will be caught by the handler and return 500 to the client
 }
 if (!FALLBACK_KEY) {
-  console.warn('⚠️ WARNING: AZURE_OPENAI_KEY not set - fallback endpoint will not work');
+  console.warn('⚠️ WARNING: AZURE_OPENAI_KEY_FALLBACK not set - fallback endpoint will not work');
 }
 
 // RATE LIMITING: Database-based rate limiting (works across serverless instances)
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
   try {
     // SECURITY: Fail fast if primary API key is not configured
     if (!PRIMARY_KEY) {
-      console.error('❌ Cannot generate message: AZURE_OPENAI_KEY_FALLBACK not configured (primary endpoint)');
+      console.error('❌ Cannot generate message: AZURE_OPENAI_KEY not configured (primary endpoint)');
       return NextResponse.json(
         { error: 'AI service not configured. Please contact system administrator.' },
         { status: 503 }
@@ -362,8 +362,8 @@ async function callAzureOpenAI(
 
   // TIMEOUT CONFIGURATION:
   // - Vercel/Render serverless functions: 60s max execution time
-  // - Primary model (gpt-4o): Usually <1s response time (355ms average)
-  // - Fallback model (gpt-5-mini): Usually 1-2s response time (621ms average)
+  // - Primary model (gpt-5-mini): Usually 1-2s response time (621ms average)
+  // - Fallback model (gpt-4o): Usually <1s response time (380ms average)
   // - 30s timeout allows for slow responses while preventing full serverless timeout
   // - This leaves 30s buffer for fallback attempts + error handling + response serialization
   const controller = new AbortController();
