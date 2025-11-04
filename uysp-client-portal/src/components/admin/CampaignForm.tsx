@@ -2,19 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import { theme } from '@/theme';
-import { X } from 'lucide-react';
+import { X, Sparkles, Loader2 } from 'lucide-react';
+
+interface Message {
+  stage: 'thank_you' | 'value_add' | '24h_reminder' | '1h_reminder';
+  label: string;
+  delayMinutes: number;
+  text: string;
+}
 
 interface Campaign {
   id?: string;
   clientId?: string;
   name: string;
-  campaignType: 'Webinar' | 'Standard' | 'Custom';
+  campaignType: 'Webinar' | 'Standard';
   formId: string;
   isPaused: boolean;
   webinarDatetime?: string | null;
   zoomLink?: string | null;
   resourceLink?: string | null;
   resourceName?: string | null;
+  bookingLink?: string | null;
 }
 
 interface CampaignFormProps {
@@ -22,6 +30,7 @@ interface CampaignFormProps {
   clientId: string;
   onClose: () => void;
   onSuccess: () => void;
+  initialCampaignType?: 'Webinar' | 'Standard';
 }
 
 export default function CampaignForm({
@@ -29,23 +38,78 @@ export default function CampaignForm({
   clientId,
   onClose,
   onSuccess,
+  initialCampaignType = 'Standard',
 }: CampaignFormProps) {
   const isEditing = Boolean(campaign?.id);
 
   const [formData, setFormData] = useState<Campaign>({
     name: campaign?.name || '',
-    campaignType: campaign?.campaignType || 'Standard',
+    campaignType: 'Webinar', // Always webinar
     formId: campaign?.formId || '',
     isPaused: campaign?.isPaused ?? false,
     webinarDatetime: campaign?.webinarDatetime || null,
     zoomLink: campaign?.zoomLink || null,
     resourceLink: campaign?.resourceLink || null,
     resourceName: campaign?.resourceName || null,
+    bookingLink: campaign?.bookingLink || 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr', // Default UYSP link
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [generatingMessage, setGeneratingMessage] = useState<number | null>(null);
+
+  // Tag selection state
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [selectedTag, setSelectedTag] = useState<string>(campaign?.formId || '');
+  const [loadingTags, setLoadingTags] = useState(false);
+
+  // Webinar-specific message sequence (4 stages)
+  const [messages, setMessages] = useState<Message[]>([
+    { stage: 'thank_you', label: 'Thank You & Calendar Invite', delayMinutes: 0, text: '' },
+    { stage: 'value_add', label: 'Value Add Resource', delayMinutes: 1440, text: '' }, // 1 day
+    { stage: '24h_reminder', label: '24-Hour Reminder', delayMinutes: 2880, text: '' }, // 2 days (will be dynamic based on webinar date)
+    { stage: '1h_reminder', label: '1-Hour Reminder', delayMinutes: 4260, text: '' }, // ~3 days (will be dynamic based on webinar date)
+  ]);
+
+  // Fetch available tags on mount
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        setLoadingTags(true);
+        const response = await fetch(`/api/admin/campaigns/available-tags?clientId=${clientId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAvailableTags(data.tags || []);
+        }
+      } catch (error) {
+        console.error('Error fetching tags:', error);
+      } finally {
+        setLoadingTags(false);
+      }
+    };
+    fetchTags();
+  }, [clientId]);
+
+  // When tag is selected, update formId and auto-generate name
+  useEffect(() => {
+    if (selectedTag && !isEditing) {
+      setFormData((prev) => ({
+        ...prev,
+        formId: selectedTag,
+        name: prev.name || tagToFriendlyName(selectedTag),
+      }));
+    }
+  }, [selectedTag, isEditing]);
+
+  // Helper to convert tag to friendly name
+  const tagToFriendlyName = (tag: string): string => {
+    return tag
+      .replace(/[-_]/g, ' ')
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
 
   // Validate form
   const validate = (): boolean => {
@@ -55,8 +119,8 @@ export default function CampaignForm({
       newErrors.name = 'Campaign name is required';
     }
 
-    if (!formData.formId.trim()) {
-      newErrors.formId = 'Form ID is required';
+    if (!selectedTag.trim()) {
+      newErrors.tag = 'Webinar tag is required';
     }
 
     // Webinar-specific validation
@@ -83,6 +147,18 @@ export default function CampaignForm({
       if (formData.resourceLink && !isValidUrl(formData.resourceLink)) {
         newErrors.resourceLink = 'Resource link must be a valid URL';
       }
+      if (formData.bookingLink && !isValidUrl(formData.bookingLink)) {
+        newErrors.bookingLink = 'Booking link must be a valid URL';
+      }
+
+      // Validate webinar messages
+      messages.forEach((msg, idx) => {
+        if (!msg.text.trim()) {
+          newErrors[`message_${idx}`] = `${msg.label} message is required`;
+        } else if (msg.text.length > 1600) {
+          newErrors[`message_${idx}`] = 'Message exceeds 1600 character SMS limit';
+        }
+      });
     }
 
     setErrors(newErrors);
@@ -95,6 +171,110 @@ export default function CampaignForm({
       return true;
     } catch {
       return false;
+    }
+  };
+
+  const updateMessage = (index: number, text: string) => {
+    setMessages((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], text };
+      return updated;
+    });
+    // Clear message error
+    if (errors[`message_${index}`]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[`message_${index}`];
+        return newErrors;
+      });
+    }
+  };
+
+  // AI generation for webinar messages
+  const generateMessage = async (index: number) => {
+    try {
+      setGeneratingMessage(index);
+      const message = messages[index];
+
+      // Build context for AI
+      const webinarContext = {
+        campaignName: formData.name || 'Webinar',
+        webinarDatetime: formData.webinarDatetime,
+        zoomLink: formData.zoomLink,
+        resourceLink: formData.resourceLink,
+        resourceName: formData.resourceName,
+        stage: message.stage,
+      };
+
+      // Create stage-specific prompt - map to valid messageGoal enum values
+      let messageGoal: 'book_call' | 'provide_value' | 'nurture' | 'follow_up' = 'provide_value';
+      let stageInstructions = '';
+      let bookingLink = '';
+
+      switch (message.stage) {
+        case 'thank_you':
+          messageGoal = 'nurture';
+          stageInstructions = 'Include confirmation that they\'re registered and will receive calendar invite. Keep it warm and welcoming.';
+          bookingLink = formData.zoomLink || '';
+          break;
+        case 'value_add':
+          messageGoal = 'provide_value';
+          stageInstructions = formData.resourceLink
+            ? `Share the resource: "${formData.resourceName || 'resource'}". Make it valuable and relevant to preparing for the webinar.`
+            : 'Share valuable pre-webinar content or tips. Make them excited about the upcoming session.';
+          break;
+        case '24h_reminder':
+          messageGoal = 'follow_up';
+          stageInstructions = 'Remind them about the webinar happening in 24 hours. Build anticipation and excitement.';
+          break;
+        case '1h_reminder':
+          messageGoal = 'follow_up';
+          stageInstructions = 'Final reminder - webinar starting in 1 hour. Include clear call-to-action to join. Create urgency.';
+          bookingLink = formData.zoomLink || '';
+          break;
+      }
+
+      // Combine context into customInstructions
+      const webinarDetails = `Webinar: ${formData.name || 'Webinar Campaign'}. Date/Time: ${formData.webinarDatetime || 'TBD'}. Stage: ${message.stage}.`;
+      const customInstructions = `${webinarDetails} ${stageInstructions}`;
+
+      const response = await fetch('/api/admin/campaigns/generate-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaignName: formData.name || 'Webinar Campaign',
+          targetAudience: 'Webinar registrants',
+          messageGoal,
+          tone: 'friendly',
+          includeLink: message.stage === 'thank_you' || message.stage === '1h_reminder',
+          bookingLink: bookingLink || undefined,
+          customInstructions,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        updateMessage(index, data.message);
+      } else if (response.status === 429) {
+        const resetTime = data.resetAt ? new Date(data.resetAt).toLocaleTimeString() : 'later';
+        setErrors((prev) => ({
+          ...prev,
+          [`ai_${index}`]: `Rate limit exceeded. ${data.details || `Try again at ${resetTime}`}`,
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          [`ai_${index}`]: `Failed to generate: ${data.error || 'Unknown error'}`,
+        }));
+      }
+    } catch (error: any) {
+      console.error('Error generating message:', error);
+      setErrors((prev) => ({
+        ...prev,
+        [`ai_${index}`]: `Network error: ${error.message || 'Failed to generate'}`,
+      }));
+    } finally {
+      setGeneratingMessage(null);
     }
   };
 
@@ -112,6 +292,8 @@ export default function CampaignForm({
       const payload = {
         ...formData,
         clientId,
+        // Include messages for webinar campaigns
+        ...(formData.campaignType === 'Webinar' ? { messages } : {}),
       };
 
       const url = isEditing
@@ -157,26 +339,13 @@ export default function CampaignForm({
     }
   };
 
-  // When campaign type changes, clear webinar-specific fields if switching to Standard
-  useEffect(() => {
-    if (formData.campaignType === 'Standard') {
-      setFormData((prev) => ({
-        ...prev,
-        webinarDatetime: null,
-        zoomLink: null,
-        resourceLink: null,
-        resourceName: null,
-      }));
-    }
-  }, [formData.campaignType]);
-
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className="bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <h2 className={`text-2xl font-bold ${theme.core.white}`}>
-            {isEditing ? 'Edit Campaign' : 'Create New Campaign'}
+            {isEditing ? 'Edit Webinar Campaign' : 'Create Webinar Campaign'}
           </h2>
           <button
             onClick={onClose}
@@ -210,52 +379,34 @@ export default function CampaignForm({
             {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
           </div>
 
-          {/* Campaign Type */}
+          {/* Webinar Tag Selector */}
           <div>
             <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
-              Campaign Type <span className="text-red-400">*</span>
+              Webinar Tag <span className="text-red-400">*</span>
             </label>
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => handleChange('campaignType', 'Standard')}
-                className={`flex-1 py-3 px-4 rounded-lg border-2 font-semibold transition ${
-                  formData.campaignType === 'Standard'
-                    ? `${theme.accents.primary.bgClass} text-white border-green-500`
-                    : `bg-gray-700 ${theme.core.bodyText} border-gray-600 hover:border-gray-500`
-                }`}
+            {loadingTags ? (
+              <div className="flex items-center gap-2 p-3 bg-gray-700 rounded-lg">
+                <Loader2 className="h-4 w-4 animate-spin text-purple-400" />
+                <span className={theme.core.bodyText}>Loading webinar tags...</span>
+              </div>
+            ) : (
+              <select
+                value={selectedTag}
+                onChange={(e) => setSelectedTag(e.target.value)}
+                className={`${theme.components.input} w-full ${errors.tag ? 'border-red-500' : ''}`}
+                disabled={isEditing}
               >
-                Standard
-              </button>
-              <button
-                type="button"
-                onClick={() => handleChange('campaignType', 'Webinar')}
-                className={`flex-1 py-3 px-4 rounded-lg border-2 font-semibold transition ${
-                  formData.campaignType === 'Webinar'
-                    ? `bg-purple-600 text-white border-purple-500`
-                    : `bg-gray-700 ${theme.core.bodyText} border-gray-600 hover:border-gray-500`
-                }`}
-              >
-                Webinar
-              </button>
-            </div>
-          </div>
-
-          {/* Form ID */}
-          <div>
-            <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
-              Form ID <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.formId}
-              onChange={(e) => handleChange('formId', e.target.value)}
-              className={`${theme.components.input} w-full ${errors.formId ? 'border-red-500' : ''}`}
-              placeholder="e.g., form_abc123"
-            />
-            {errors.formId && <p className="text-red-400 text-sm mt-1">{errors.formId}</p>}
+                <option value="">-- Select a webinar tag --</option>
+                {availableTags.map((tag) => (
+                  <option key={tag} value={tag}>
+                    {tag}
+                  </option>
+                ))}
+              </select>
+            )}
+            {errors.tag && <p className="text-red-400 text-sm mt-1">{errors.tag}</p>}
             <p className={`text-xs ${theme.core.bodyText} mt-1`}>
-              Unique identifier for the form (e.g., Kajabi form ID)
+              Select the Kajabi tag for this webinar registration form
             </p>
           </div>
 
@@ -284,12 +435,11 @@ export default function CampaignForm({
             </button>
           </div>
 
-          {/* Webinar-Specific Fields */}
-          {formData.campaignType === 'Webinar' && (
-            <div className="space-y-6 pt-6 border-t border-gray-700">
-              <h3 className={`text-lg font-bold ${theme.accents.tertiary.class}`}>
-                Webinar Details
-              </h3>
+          {/* Webinar Details */}
+          <div className="space-y-6 pt-6 border-t border-gray-700">
+            <h3 className={`text-lg font-bold ${theme.accents.tertiary.class}`}>
+              Webinar Details
+            </h3>
 
               {/* Webinar Datetime */}
               <div>
@@ -352,8 +502,100 @@ export default function CampaignForm({
                   placeholder="e.g., Webinar Slides"
                 />
               </div>
-            </div>
-          )}
+
+              {/* Booking Link */}
+              <div>
+                <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
+                  Booking/Calendly Link
+                </label>
+                <input
+                  type="url"
+                  value={formData.bookingLink || ''}
+                  onChange={(e) => handleChange('bookingLink', e.target.value || null)}
+                  className={`${theme.components.input} w-full ${errors.bookingLink ? 'border-red-500' : ''}`}
+                  placeholder="https://calendly.com/..."
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  This link will be included in AI-generated messages. Defaults to UYSP link.
+                </p>
+                {errors.bookingLink && (
+                  <p className="text-red-400 text-sm mt-1">{errors.bookingLink}</p>
+                )}
+              </div>
+
+              {/* Message Sequence */}
+              <div className="space-y-4 pt-6 border-t border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h3 className={`text-lg font-bold ${theme.accents.tertiary.class}`}>
+                    Message Sequence
+                  </h3>
+                  <p className={`text-xs ${theme.core.bodyText}`}>
+                    4 automated messages for your webinar flow
+                  </p>
+                </div>
+
+                {messages.map((message, index) => (
+                  <div key={index} className="bg-gray-900 rounded-lg p-4 border border-gray-700 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className={`font-semibold ${theme.core.white}`}>
+                        {index + 1}. {message.label}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => generateMessage(index)}
+                        disabled={generatingMessage === index}
+                        className="flex items-center gap-1 text-xs font-semibold text-purple-400 hover:text-purple-300 disabled:opacity-50"
+                      >
+                        {generatingMessage === index ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-3 w-3" />
+                            AI Generate
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* AI Error Messages */}
+                    {errors[`ai_${index}`] && (
+                      <div className="p-2 bg-yellow-500/10 border border-yellow-500/50 rounded text-yellow-300 text-xs">
+                        {errors[`ai_${index}`]}
+                      </div>
+                    )}
+
+                    {/* Message Text */}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">
+                        Message Text <span className="text-red-400">*</span>
+                      </label>
+                      <textarea
+                        value={message.text}
+                        onChange={(e) => updateMessage(index, e.target.value)}
+                        rows={4}
+                        maxLength={1600}
+                        className={`${theme.components.input} w-full resize-none ${errors[`message_${index}`] ? 'border-red-500' : ''}`}
+                        placeholder={`Enter ${message.label.toLowerCase()} message...`}
+                      />
+                      <div className="flex items-center justify-between mt-1">
+                        {errors[`message_${index}`] && (
+                          <p className="text-red-400 text-xs">{errors[`message_${index}`]}</p>
+                        )}
+                        <p className={`text-xs ${message.text.length > 1600 ? 'text-red-400' : theme.core.bodyText} ml-auto`}>
+                          {message.text.length} / 1600 characters
+                        </p>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Use {'{{'} first_name {'}}' } for personalization
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+          </div>
 
           {/* Action Buttons */}
           <div className="flex gap-4 pt-6 border-t border-gray-700">
