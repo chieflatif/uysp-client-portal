@@ -4,7 +4,7 @@ services:
     name: uysp-portal-v2
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: rm -rf .next && npm install && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
