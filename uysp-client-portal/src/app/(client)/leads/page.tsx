@@ -41,20 +41,28 @@ export default function LeadsPage() {
 
   const itemsPerPage = 50;
 
-  // React Query: Fetch leads with aggressive caching for instant navigation
+  // React Query: Fetch ALL leads with aggressive caching for instant navigation
+  // Using high limit (10000) to fetch all leads for client-side filtering/sorting
   const { data: leadsData, isLoading: loading } = useQuery({
     queryKey: ['leads'],
     queryFn: async () => {
-      const response = await fetch('/api/leads');
+      // Fetch all leads (up to 10K per client) for client-side pagination
+      const response = await fetch('/api/leads?limit=10000&offset=0');
       if (!response.ok) throw new Error('Failed to fetch leads');
       const data = await response.json();
-      return data.leads || [];
+      return {
+        leads: data.leads || [],
+        total: data.total || 0,
+        hasMore: data.hasMore || false,
+      };
     },
     enabled: status === 'authenticated',
     // Use global defaults (5 min stale, 10 min cache)
   });
 
-  const leads = leadsData || [];
+  const leads = leadsData?.leads || [];
+  const totalInDatabase = leadsData?.total || 0;
+  const hasMoreInDatabase = leadsData?.hasMore || false;
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -211,6 +219,11 @@ export default function LeadsPage() {
             <p className="text-xs">
               Page {page} of {totalPages}
             </p>
+            {hasMoreInDatabase && (
+              <p className="text-xs text-orange-400 mt-1">
+                ⚠️ {totalInDatabase.toLocaleString()} total in database (showing first 10,000)
+              </p>
+            )}
           </div>
         </div>
 
@@ -489,11 +502,16 @@ export default function LeadsPage() {
         <div className={`grid grid-cols-3 gap-4 pt-6 border-t border-gray-700`}>
           <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
             <p className={`text-xs ${theme.accents.tertiary.class} font-semibold uppercase mb-1`}>
-              Total Leads
+              Total Leads {hasMoreInDatabase && '(in DB)'}
             </p>
             <p className={`text-2xl font-bold ${theme.core.white}`}>
-              {leads.length.toLocaleString()}
+              {hasMoreInDatabase ? totalInDatabase.toLocaleString() : leads.length.toLocaleString()}
             </p>
+            {hasMoreInDatabase && (
+              <p className="text-xs text-orange-400 mt-1">
+                Fetched: {leads.length.toLocaleString()}
+              </p>
+            )}
           </div>
           <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
             <p className={`text-xs ${theme.accents.primary.class} font-semibold uppercase mb-1`}>

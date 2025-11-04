@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     const lockResult = await db.execute(
       sql`SELECT pg_try_advisory_lock(hashtext(${clientId})) as acquired`
     );
-    const lockAcquired = lockResult.rows[0]?.acquired;
+    const lockAcquired = (lockResult as unknown as Array<{ acquired: boolean }>)[0]?.acquired;
 
     if (!lockAcquired) {
       return NextResponse.json({
@@ -161,6 +161,9 @@ export async function POST(request: NextRequest) {
         );
       }
 
+    // Type assertion: clientId is guaranteed to be string after client existence check
+    const validatedClientId: string = clientId;
+
     // Initialize Airtable client with THIS client's base ID
     const airtable = getAirtableClient(client.airtableBaseId);
     let totalFetched = 0;
@@ -180,7 +183,7 @@ export async function POST(request: NextRequest) {
         totalFetched++;
 
         try {
-          const leadData = airtable.mapToDatabaseLead(record, clientId);
+          const leadData = airtable.mapToDatabaseLead(record, validatedClientId);
           batch.push({ record, leadData });
 
           // Process batch when full
@@ -474,7 +477,7 @@ export async function POST(request: NextRequest) {
       await airtable.streamAllProjectTasks(async (record) => {
         tasksFetched++;
         try {
-          const taskData = airtable.mapToDatabaseTask(record, clientId);
+          const taskData = airtable.mapToDatabaseTask(record, validatedClientId);
 
           // CONFLICT DETECTION: Check if PostgreSQL has newer data (using prefetched Map)
           const existing = existingTasksMap.get(record.id);
@@ -500,7 +503,7 @@ export async function POST(request: NextRequest) {
 
             // CRITICAL FIX 3: Use Airtable's Last Modified timestamp if available
             const airtableModified = record.fields['Last Modified Time']
-              ? new Date(record.fields['Last Modified Time'])
+              ? new Date(record.fields['Last Modified Time'] as string)
               : new Date(record.createdTime);
 
             // Only overwrite if Airtable data is NEWER than PostgreSQL
@@ -515,7 +518,7 @@ export async function POST(request: NextRequest) {
           // Proceed with sync (skip if dry run)
           if (!dryRun) {
             await db.insert(clientProjectTasks)
-              .values(taskData)
+              .values(taskData as any)
               .onConflictDoUpdate({
                 target: clientProjectTasks.airtableRecordId,
                 set: {
@@ -539,10 +542,10 @@ export async function POST(request: NextRequest) {
       await airtable.streamAllProjectBlockers(async (record) => {
         blockersFetched++;
         try {
-          const blockerData = airtable.mapToDatabaseBlocker(record, clientId);
+          const blockerData = airtable.mapToDatabaseBlocker(record, validatedClientId);
           if (!dryRun) {
             await db.insert(clientProjectBlockers)
-              .values(blockerData)
+              .values(blockerData as any)
               .onConflictDoUpdate({
                 target: clientProjectBlockers.airtableRecordId,
                 set: {
@@ -565,10 +568,10 @@ export async function POST(request: NextRequest) {
       await airtable.streamAllProjectStatus(async (record) => {
         statusFetched++;
         try {
-          const statusData = airtable.mapToDatabaseProjectStatus(record, clientId);
+          const statusData = airtable.mapToDatabaseProjectStatus(record, validatedClientId);
           if (!dryRun) {
             await db.insert(clientProjectStatus)
-              .values(statusData)
+              .values(statusData as any)
               .onConflictDoUpdate({
                 target: clientProjectStatus.airtableRecordId,
                 set: {

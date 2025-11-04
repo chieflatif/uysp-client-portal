@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { campaigns, airtableSyncQueue } from '@/lib/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { z } from 'zod';
+import { sanitizePlainText, sanitizeUrl } from '@/lib/utils/sanitization';
 
 /**
  * GET /api/admin/campaigns
@@ -123,8 +124,32 @@ export async function POST(request: NextRequest) {
 
     const data = validation.data;
 
+    // SECURITY: Sanitize all text fields to prevent XSS
+    const sanitizedData = {
+      ...data,
+      name: sanitizePlainText(data.name, 255),
+      formId: sanitizePlainText(data.formId, 255),
+      resourceName: data.resourceName ? sanitizePlainText(data.resourceName, 255) : null,
+      zoomLink: data.zoomLink ? sanitizeUrl(data.zoomLink) : null,
+      resourceLink: data.resourceLink ? sanitizeUrl(data.resourceLink) : null,
+    };
+
+    // Validate sanitized URLs are still valid
+    if (data.zoomLink && !sanitizedData.zoomLink) {
+      return NextResponse.json(
+        { error: 'Invalid or unsafe Zoom link URL' },
+        { status: 400 }
+      );
+    }
+    if (data.resourceLink && !sanitizedData.resourceLink) {
+      return NextResponse.json(
+        { error: 'Invalid or unsafe resource link URL' },
+        { status: 400 }
+      );
+    }
+
     // Additional validation for webinar campaigns
-    if (data.campaignType === 'Webinar') {
+    if (sanitizedData.campaignType === 'Webinar') {
       if (!data.isPaused && (!data.webinarDatetime || !data.zoomLink)) {
         return NextResponse.json(
           {
@@ -143,31 +168,31 @@ export async function POST(request: NextRequest) {
     // Check form_id uniqueness within client
     const existingCampaign = await db.query.campaigns.findFirst({
       where: and(
-        eq(campaigns.clientId, data.clientId),
-        eq(campaigns.formId, data.formId)
+        eq(campaigns.clientId, sanitizedData.clientId),
+        eq(campaigns.formId, sanitizedData.formId)
       ),
     });
 
     if (existingCampaign) {
       return NextResponse.json(
         {
-          error: `Form ID "${data.formId}" is already in use for this client`,
+          error: `Form ID "${sanitizedData.formId}" is already in use for this client`,
         },
         { status: 409 }
       );
     }
 
-    // Insert into PostgreSQL
+    // Insert into PostgreSQL (using sanitized data)
     const newCampaign = await db.insert(campaigns).values({
-      clientId: data.clientId,
-      name: data.name,
-      campaignType: data.campaignType,
-      formId: data.formId,
-      isPaused: data.isPaused,
-      webinarDatetime: data.webinarDatetime ? new Date(data.webinarDatetime) : null,
-      zoomLink: data.zoomLink || null,
-      resourceLink: data.resourceLink || null,
-      resourceName: data.resourceName || null,
+      clientId: sanitizedData.clientId,
+      name: sanitizedData.name,
+      campaignType: sanitizedData.campaignType,
+      formId: sanitizedData.formId,
+      isPaused: sanitizedData.isPaused,
+      webinarDatetime: sanitizedData.webinarDatetime ? new Date(sanitizedData.webinarDatetime) : null,
+      zoomLink: sanitizedData.zoomLink,
+      resourceLink: sanitizedData.resourceLink,
+      resourceName: sanitizedData.resourceName,
       airtableRecordId: '', // Will be filled when synced to Airtable
       messagesSent: 0,
       totalLeads: 0,
@@ -177,7 +202,7 @@ export async function POST(request: NextRequest) {
 
     // Queue to Airtable sync
     await db.insert(airtableSyncQueue).values({
-      clientId: data.clientId,
+      clientId: sanitizedData.clientId,
       tableName: 'Campaigns',
       recordId: campaign.id,
       operation: 'create',

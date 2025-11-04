@@ -1,0 +1,91 @@
+{
+  "form_mapping": {
+    "2149174698": {
+      "title": "Top 4 ChatGPT Use Cases For Tech Sellers",
+      "campaign": "chatgpt_use_cases",
+      "message_template": "Hi {{first_name}}, this is Ian's team at Untap Your Sales Potential. Saw you grabbed our \"Top 4 ChatGPT Use Cases\" guide, great move. If you want help implementing these strategies or want to see how coaching could help you get to the next level in your sales career, book a free strategy call here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2147877779": {
+      "title": "6 Golden Rules of Pricing",
+      "campaign": "pricing_rules",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you downloaded our \"6 Golden Rules of Pricing\" resource. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2147867344": {
+      "title": "6-step Consensus Building Process",
+      "campaign": "consensus_building",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you grabbed the \"6-step Consensus\" guide. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2147904936": {
+      "title": "3 tips to hold impactful meetings",
+      "campaign": "impactful_meetings",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you grabbed our \"3 Tips to Hold Impactful Meetings\" resource. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2147983338": {
+      "title": "Executive E-mail template",
+      "campaign": "executive_email",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you grabbed our \"Executive Email Template\" resource. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2148989824": {
+      "title": "Problem Mapping Template",
+      "campaign": "problem_mapping",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you grabbed our \"Problem Mapping Template\" resource. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2148989802": {
+      "title": "Killer Proposal Template",
+      "campaign": "killer_proposal",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you grabbed our \"Killer Proposal Template\" resource. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2148989754": {
+      "title": "Proven Executive Outreach Template & Examples",
+      "campaign": "executive_outreach",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you grabbed our \"Proven Executive Outreach\" resource. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2148989816": {
+      "title": "Income Planner Tool",
+      "campaign": "income_planner",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you grabbed our \"Income Planner Tool.\" If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2148166902": {
+      "title": "VSL: Make 500K-1M in tech sales",
+      "campaign": "vsl_500k_1m",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you watched our \"Make 500K–1M in Tech Sales\" video. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2148730236": {
+      "title": "Training: Fundamentals of Elite Tech Sales",
+      "campaign": "fundamentals_training",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you joined our \"Fundamentals of Elite Tech Sales\" training. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2148087527": {
+      "title": "12 week year Weekly Scorecard",
+      "campaign": "weekly_scorecard",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you grabbed our \"12-Week Year\" Weekly Scorecard. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2148138291": {
+      "title": "PREDICT Selling - Free training",
+      "campaign": "predict_selling",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you joined our \"PREDICT Selling\" free training. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    },
+    "2147886939": {
+      "title": "7 opportunity cost questions",
+      "campaign": "opportunity_cost",
+      "message_template": "Hi {{first_name}}, this is Ian Koniak's assistant. Noticed you grabbed our \"7 Opportunity Cost Questions\" resource. If you want help implementing or are interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr"
+    }
+  },
+  "default_campaign": "default_nurture",
+  "default_message": "Hi {{first_name}}, this is Ian Koniak's assistant. Thanks for your interest in Untap Your Sales Potential. If you're interested in exploring what it could be like to have a sales coach tackle your biggest challenges with you, book a free strategy call with our team here: https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr",
+  "email_notifications": {
+    "primary": "davidson@iankoniak.com",
+    "secondary": "rebel@rebelhq.ai"
+  },
+  "timing_config": {
+    "min_delay_minutes": 60,
+    "max_delay_minutes": 180,
+    "time_window_start_hour": 8,
+    "time_window_end_hour": 20,
+    "timezone": "America/New_York"
+  }
+}
+
+
+
+

@@ -622,3 +622,52 @@ export const securityAuditLog = pgTable(
 
 export type SecurityAuditLog = typeof securityAuditLog.$inferSelect;
 export type NewSecurityAuditLog = typeof securityAuditLog.$inferInsert;
+
+// ==============================================================================
+// PASSWORD SETUP TOKENS TABLE (Added 2025-11-04 to fix CVE 9.1 auth bypass)
+// ==============================================================================
+export const passwordSetupTokens = pgTable(
+  'password_setup_tokens',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull(),
+    token: varchar('token', { length: 255 }).notNull().unique(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdByUserId: uuid('created_by_user_id'),
+  },
+  (table) => ({
+    tokenIdx: index('idx_password_setup_tokens_token').on(table.token),
+    userIdx: index('idx_password_setup_tokens_user_id').on(table.userId),
+    expiresIdx: index('idx_password_setup_tokens_expires_at').on(table.expiresAt),
+  })
+);
+
+export type PasswordSetupToken = typeof passwordSetupTokens.$inferSelect;
+export type NewPasswordSetupToken = typeof passwordSetupTokens.$inferInsert;
+
+// ==============================================================================
+// RATE LIMITS TABLE (Added 2025-11-04 to fix serverless rate limiting)
+// ==============================================================================
+export const rateLimits = pgTable(
+  'rate_limits',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull(),
+    endpoint: varchar('endpoint', { length: 255 }).notNull(),
+    requestCount: integer('request_count').notNull().default(1),
+    windowStart: timestamp('window_start', { withTimezone: true }).notNull(),
+    windowEnd: timestamp('window_end', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userEndpointIdx: index('idx_rate_limits_user_endpoint').on(table.userId, table.endpoint),
+    windowIdx: index('idx_rate_limits_window').on(table.windowEnd),
+    lookupIdx: index('idx_rate_limits_lookup').on(table.userId, table.endpoint, table.windowEnd),
+  })
+);
+
+export type RateLimit = typeof rateLimits.$inferSelect;
+export type NewRateLimit = typeof rateLimits.$inferInsert;

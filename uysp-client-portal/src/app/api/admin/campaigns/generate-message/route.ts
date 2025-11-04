@@ -71,16 +71,19 @@ export async function POST(request: NextRequest) {
     }
 
     // RATE LIMIT: Check if user has exceeded rate limit (database-based)
+    console.log(`🔒 Checking rate limit for user ${session.user.id}...`);
     const rateLimitResult = await checkRateLimit(
       session.user.id,
       RATE_LIMIT_CONFIGS.AI_MESSAGE_GENERATION
     );
 
+    console.log(`🔒 Rate limit check: ${rateLimitResult.allowed ? '✅ ALLOWED' : '❌ BLOCKED'} (${rateLimitResult.remaining}/${rateLimitResult.limit} remaining)`);
+
     if (!rateLimitResult.allowed) {
       const minutesUntilReset = Math.ceil(
         (rateLimitResult.resetAt.getTime() - Date.now()) / 60000
       );
-      console.warn(`⚠️ Rate limit exceeded for user ${session.user.id}`);
+      console.warn(`⚠️ Rate limit exceeded for user ${session.user.id} - resets in ${minutesUntilReset} minutes`);
       return NextResponse.json(
         {
           error: 'Rate limit exceeded',
@@ -120,7 +123,7 @@ export async function POST(request: NextRequest) {
     const prompt = buildMessagePrompt(data);
 
     // Try primary model first, fallback to mini if it fails
-    let generatedMessage: string;
+    let generatedMessage: string | undefined;
     let modelUsed: string;
 
     console.log(`🤖 Attempting message generation with ${PRIMARY_MODEL}...`);
@@ -129,20 +132,27 @@ export async function POST(request: NextRequest) {
       generatedMessage = await callAzureOpenAI(prompt, PRIMARY_MODEL);
       modelUsed = PRIMARY_MODEL;
       console.log(`✅ Primary model (${PRIMARY_MODEL}) succeeded`);
-    } catch (primaryError: any) {
-      console.warn(`⚠️ Primary model (${PRIMARY_MODEL}) failed:`, primaryError.message);
+    } catch (primaryError) {
+      const primaryErrorMsg = primaryError instanceof Error ? primaryError.message : String(primaryError);
+      console.warn(`⚠️ Primary model (${PRIMARY_MODEL}) failed:`, primaryErrorMsg);
       console.warn(`🔄 Attempting fallback to ${FALLBACK_MODEL}...`);
 
       try {
         generatedMessage = await callAzureOpenAI(prompt, FALLBACK_MODEL);
         modelUsed = FALLBACK_MODEL;
         console.log(`✅ Fallback model (${FALLBACK_MODEL}) succeeded`);
-      } catch (fallbackError: any) {
+      } catch (fallbackError) {
+        const fallbackErrorMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
         console.error(`❌ Both models failed!`);
-        console.error(`Primary error:`, primaryError.message);
-        console.error(`Fallback error:`, fallbackError.message);
+        console.error(`Primary error:`, primaryErrorMsg);
+        console.error(`Fallback error:`, fallbackErrorMsg);
         throw fallbackError; // Let outer catch handle it
       }
+    }
+
+    // SAFETY: Ensure message was generated (TypeScript safety check)
+    if (!generatedMessage) {
+      throw new Error('No message generated - both primary and fallback models failed or returned empty');
     }
 
     // BUG #17 FIX: Calculate SMS segments and cost warnings
@@ -180,23 +190,43 @@ export async function POST(request: NextRequest) {
       modelUsed,
       suggestions,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ CRITICAL ERROR in generate-message endpoint:');
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    console.error('Error object:', JSON.stringify(error, null, 2));
+
+    // Safely extract error details
+    const errorName = error instanceof Error ? error.name : 'UnknownError';
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    console.error('Error name:', errorName);
+    console.error('Error message:', errorMessage);
+    console.error('Error stack:', errorStack);
+
+    // Serialize error object safely (Error objects don't stringify well)
+    try {
+      if (error instanceof Error) {
+        console.error('Error details:', JSON.stringify({
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        }, null, 2));
+      } else {
+        console.error('Error object:', JSON.stringify(error, null, 2));
+      }
+    } catch {
+      // JSON.stringify can fail for circular references or non-serializable objects
+      console.error('Could not stringify error:', String(error));
+    }
 
     // Return detailed error information for debugging
     return NextResponse.json(
       {
         error: 'Failed to generate message',
-        details: error.message || 'Unknown error',
-        errorType: error.name || 'Error',
+        details: errorMessage,
+        errorType: errorName,
         // In development, return full error details
         ...(process.env.NODE_ENV === 'development' && {
-          stack: error.stack,
-          fullError: error,
+          stack: errorStack,
         }),
       },
       { status: 500 }
@@ -308,9 +338,12 @@ async function callAzureOpenAI(prompt: string, model: string): Promise<string> {
   const maxTokens = model === PRIMARY_MODEL ? 8000 : 2000;
   console.log(`[AI-MSG ${requestId}] Max tokens: ${maxTokens}`);
 
-  // BUG #20 FIX: Add timeout to prevent hanging requests
-  // Vercel functions have 60s max execution time (serverless)
-  // Set 30s timeout to allow for retries and error handling
+  // TIMEOUT CONFIGURATION:
+  // - Vercel/Render serverless functions: 60s max execution time
+  // - Primary model (gpt-4.1-mini): Usually 2-5s response time
+  // - Fallback model (gpt-5-mini): May take 15-25s due to reasoning tokens
+  // - 30s timeout allows for slow responses while preventing full serverless timeout
+  // - This leaves 30s buffer for fallback attempts + error handling + response serialization
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     console.error(`[AI-MSG ${requestId}] ⏱️ TIMEOUT: Request exceeded 30 seconds`);
@@ -383,17 +416,21 @@ async function callAzureOpenAI(prompt: string, model: string): Promise<string> {
     console.log(`[AI-MSG ${requestId}] Message preview:`, message.substring(0, 100));
     return message.trim();
 
-  } catch (error: any) {
+  } catch (error) {
     clearTimeout(timeoutId); // Always clear timeout
 
     const elapsed = Date.now() - startTime;
+    const errorName = error instanceof Error ? error.name : 'UnknownError';
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
     console.error(`[AI-MSG ${requestId}] ❌ ERROR after ${elapsed}ms:`, error);
-    console.error(`[AI-MSG ${requestId}] Error name:`, error.name);
-    console.error(`[AI-MSG ${requestId}] Error message:`, error.message);
-    console.error(`[AI-MSG ${requestId}] Error stack:`, error.stack);
+    console.error(`[AI-MSG ${requestId}] Error name:`, errorName);
+    console.error(`[AI-MSG ${requestId}] Error message:`, errorMessage);
+    console.error(`[AI-MSG ${requestId}] Error stack:`, errorStack);
 
     // Handle timeout specifically with user-friendly message
-    if (error.name === 'AbortError') {
+    if (errorName === 'AbortError') {
       console.error(`[AI-MSG ${requestId}] ⏱️ Request was aborted due to timeout`);
       throw new Error(
         `Azure OpenAI API timeout after 30 seconds. The AI service is taking longer than expected. Please try again or use the fallback model.`

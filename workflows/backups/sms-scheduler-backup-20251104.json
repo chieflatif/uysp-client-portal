@@ -1,0 +1,151 @@
+[
+  {
+    "op": "add",
+    "path": "/nodes/0/parameters/rule/interval/0/minutesInterval",
+    "value": 30
+  },
+  {
+    "op": "add",
+    "path": "/settings",
+    "value": {
+      "errorWorkflow": "MLnKXQYtfJDk9HXI"
+    }
+  },
+  {
+    "op": "add",
+    "path": "/nodes/-",
+    "value": {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblErXnFNMKYhh3Xr",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "=recygZ32OZNHuAa4k",
+            "SMS Scheduler Last Run": "={{ $now }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "heartbeat-node",
+      "name": "Update Heartbeat Timestamp",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        100
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    }
+  },
+  {
+    "op": "replace",
+    "path": "/nodes/2/parameters/jsCode",
+    "value": "const settings = $('Get Settings & Validate').first().json.fields || $('Get Settings & Validate').first().json;\nconst testMode = settings['Test Mode'] || false;\nconst executionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;\n\nif (testMode) {\n  return [{ json: { in_window: true, test_mode: true, execution_id: executionId, test_phone: settings['Test Phone'], admin_email: settings['Admin Alert Email'], account_phone: settings['SimpleTexting Phone'] }}];\n}\n\n// Using UTC offset for reliability. -4 for EDT, -5 for EST.\nconst now = new Date();\nconst utcOffset = -4; \nconst etTime = new Date(now.getTime() + utcOffset * 3600 * 1000);\nconst hour = etTime.getUTCHours();\nconst day = etTime.getUTCDay();\nconst isWeekend = day === 0 || day === 6;\n\nif (hour >= 8 && hour < 20 && !isWeekend) {\n  return [{ json: { in_window: true, execution_id: executionId, test_mode: false, test_phone: null, admin_email: settings['Admin Alert Email'], account_phone: settings['SimpleTexting Phone'] }}];\n} else {\n  return [];\n}"
+  },
+  {
+    "op": "add",
+    "path": "/nodes/-",
+    "value": {
+      "parameters": {
+        "jsCode": "const missing = $input.item.json.missing;\nif (!missing || missing.length === 0) return [];\n\nconst lines = ['⚠️ *SMS Scheduler Alert: Template Mismatch*'];\nmissing.forEach(item => {\n  lines.push(`> Lead \`<https://airtable.com/tblYUvhGADerbD8EO/${item.lead_id}|${item.lead_id}>\` skipped. Reason: No active template for campaign \\\`${item.campaign}\\\`.`);\n});\nlines.push('\\n_Please create or activate the campaign template in Airtable._');\n\nreturn [{ json: { text: lines.join('\\n') } }];"
+      },
+      "id": "alert-missing-template",
+      "name": "Format Missing Template Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2032,
+        100
+      ]
+    }
+  },
+  {
+    "op": "add",
+    "path": "/nodes/-",
+    "value": {
+      "parameters": {
+        "authentication": "oAuth2",
+        "channelId": {
+          "__rl": true,
+          "value": "C097CHUHNTG",
+          "mode": "list"
+        },
+        "text": "={{ $json.text }}"
+      },
+      "id": "send-missing-template-alert",
+      "name": "Send Alert to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2256,
+        100
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "OyxQzoqNPQocHdnn",
+          "name": "Slack account"
+        }
+      }
+    }
+  },
+  {
+    "op": "replace",
+    "path": "/nodes/7/parameters/jsCode",
+    "value": "const leads = $('Filter: Min 60 Minutes').all().map(i => i.json);\nconst templates = $input.all().map(i => i.json.fields || i.json);\nconst settings = $('Check 8 AM - 8 PM ET').first().json;\n\nconst templateCache = {};\ntemplates.forEach(t => {\n  const campaign = t.Campaign || '';\n  if (campaign) templateCache[campaign] = t;\n});\n\nconst results = [];\nconst missing = [];\n\nleads.forEach(lead => {\n  const campaign = lead['Campaign (CORRECTED)'] || lead['Campaign Assignment'] || 'default_nurture';\n  const template = templateCache[campaign];\n  if (!template) { missing.push({campaign, lead_id: lead.id}); return; }\n  const firstName = lead['First Name'] || 'there';\n  const lastName = lead['Last Name'] || '';\n  let messageBody = template.Body || '';\n  if (!messageBody) { missing.push({lead_id: lead.id, error: 'empty_body'}); return; }\n  messageBody = messageBody.replace(/\\{\\{first_name\\}\\}/gi, firstName).replace(/\\{\\{last_name\\}\\}/gi, lastName);\n  if (messageBody.length > 1600) { missing.push({lead_id: lead.id, error: 'too_long'}); return; }\n  let phone = (lead.Phone || '').replace(/[^0-9]/g, '').replace(/^1/, '');\n  if (phone.length !== 10) { missing.push({lead_id: lead.id, error: 'invalid_phone'}); return; }\n  const testMode = lead.test_mode || settings.test_mode || false;\n  const testPhone = (lead.test_phone || settings.test_phone || '').replace(/[^0-9]/g, '').replace(/^1/, '');\n  const finalPhone = (testMode && testPhone) ? testPhone : phone;\n  if (testMode && testPhone) { console.log(`[TEST MODE] ${phone} -> ${finalPhone}`); }\n  results.push({...lead, message_text: messageBody, phone_digits: finalPhone, original_phone: phone, campaign: campaign, template_id: template.id, test_mode: testMode, execution_id: settings.execution_id, account_phone: settings.account_phone});\n});\n\nconsole.log(`[RESULT] Success: ${results.length} | Skipped: ${missing.length}`);\n\n$item.missing = missing;\n\nreturn results.map(lead => ({ json: lead }));"
+  },
+  {
+    "op": "replace",
+    "path": "/nodes/8/parameters/jsonBody",
+    "value": "={{ { \"contactPhone\": $json.phone_digits, \"accountPhone\": $json.account_phone, \"mode\": \"AUTO\", \"text\": $json.message_text } }}"
+  },
+  {
+    "op": "add",
+    "path": "/connections/schedule/main/0/0",
+    "value": {
+      "node": "heartbeat-node",
+      "type": "main",
+      "index": 0
+    }
+  },
+  {
+    "op": "add",
+    "path": "/connections/template-found-check/main/-",
+    "value": [
+      {
+        "node": "alert-missing-template",
+        "type": "main",
+        "index": 0
+      }
+    ]
+  },
+  {
+    "op": "add",
+    "path": "/connections/alert-missing-template",
+    "value": {
+      "main": [
+        [
+          {
+            "node": "send-missing-template-alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+]

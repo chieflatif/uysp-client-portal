@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { db } from '../db';
 import { users } from '../db/schema';
 import { eq, sql } from 'drizzle-orm';
+import { checkRateLimit, RATE_LIMIT_CONFIGS } from '../utils/rate-limit';
 
 // Type augmentation for NextAuth
 declare module 'next-auth' {
@@ -63,10 +64,29 @@ export const authOptions: NextAuthOptions = {
         const { email, password } = result.data;
 
         try {
+          // RATE LIMIT: Check login attempts for this email (brute force protection)
+          // Use email as identifier since we don't have user ID yet
+          const rateLimitResult = await checkRateLimit(
+            email.toLowerCase(), // Use lowercase email as consistent identifier
+            RATE_LIMIT_CONFIGS.LOGIN
+          );
+
+          if (!rateLimitResult.allowed) {
+            const minutesUntilReset = Math.ceil(
+              (rateLimitResult.resetAt.getTime() - Date.now()) / 60000
+            );
+            console.warn(`[Auth] Rate limit exceeded for email: ${email}`);
+            throw new Error(
+              `Too many login attempts. Please try again in ${minutesUntilReset} minutes.`
+            );
+          }
+
           // Add timeout to database query
           const startTime = Date.now();
 
-          // Query user from database (case-insensitive email lookup using ILIKE)
+          // Query user from database (case-insensitive email lookup)
+          // SECURITY: Using Drizzle ORM's sql template tag with parameterized queries
+          // This is safe from SQL injection - the email is automatically escaped
           const user = await db.query.users.findFirst({
             where: sql`LOWER(${users.email}) = LOWER(${email})`,
           });

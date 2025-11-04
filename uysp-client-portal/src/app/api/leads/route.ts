@@ -7,8 +7,8 @@ import { eq, and, sql } from 'drizzle-orm';
 
 // Pagination constants
 const PAGINATION_DEFAULTS = {
-  DEFAULT_LIMIT: 100,
-  MAX_LIMIT: 500,
+  DEFAULT_LIMIT: 10000, // High default for client-side pagination (fetch all leads)
+  MAX_LIMIT: 10000,     // Max 10K leads per client (reasonable for SMB use case)
   MIN_LIMIT: 1,
   MIN_OFFSET: 0,
 } as const;
@@ -37,12 +37,15 @@ export async function GET(request: Request) {
 
     // Parse and validate pagination params
     const { searchParams } = new URL(request.url);
-    const rawLimit = Number(searchParams.get('limit')) || 100;
-    const rawOffset = Number(searchParams.get('offset')) || 0;
+    const rawLimit = Number(searchParams.get('limit')) || PAGINATION_DEFAULTS.DEFAULT_LIMIT;
+    const rawOffset = Number(searchParams.get('offset')) || PAGINATION_DEFAULTS.MIN_OFFSET;
 
-    // CRITICAL FIX: Validate pagination parameters
-    const limit = Math.min(Math.max(rawLimit, 1), 50000); // Between 1 and 50000
-    const offset = Math.max(rawOffset, 0); // Must be non-negative
+    // Validate pagination parameters
+    const limit = Math.min(
+      Math.max(rawLimit, PAGINATION_DEFAULTS.MIN_LIMIT),
+      PAGINATION_DEFAULTS.MAX_LIMIT
+    );
+    const offset = Math.max(rawOffset, PAGINATION_DEFAULTS.MIN_OFFSET);
 
     // CRITICAL FIX: Filter by clientId and isActive
     const allLeads = await db.query.leads.findMany({

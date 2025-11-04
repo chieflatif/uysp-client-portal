@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { activityLog } from '@/lib/db/schema';
 import { getAirtableClient } from '@/lib/airtable/client';
+import { sanitizeNoteInput, sanitizePlainText } from '@/lib/utils/sanitization';
 
 /**
  * GET /api/leads/[id]/notes
@@ -80,45 +81,23 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { content, type = 'General' } = body;
     const { id: leadId } = await params;
 
-    // Validate required fields
-    if (!content || typeof content !== 'string' || content.trim() === '') {
+    // SECURITY: Validate and sanitize input (XSS protection)
+    const sanitizationResult = sanitizeNoteInput(body);
+
+    if (!sanitizationResult.isValid) {
       return NextResponse.json(
         {
-          error: 'Content is required',
+          error: sanitizationResult.errors.join(', '),
           code: 'VALIDATION_ERROR',
-          field: 'content',
+          errors: sanitizationResult.errors,
         },
         { status: 400 }
       );
     }
 
-    // Validate content length
-    if (content.length > 5000) {
-      return NextResponse.json(
-        {
-          error: 'Content must be 5000 characters or less',
-          code: 'VALIDATION_ERROR',
-          field: 'content',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Validate type
-    const validTypes = ['Call', 'Email', 'Text', 'Meeting', 'General', 'Issue', 'Success'];
-    if (!validTypes.includes(type)) {
-      return NextResponse.json(
-        {
-          error: `Type must be one of: ${validTypes.join(', ')}`,
-          code: 'VALIDATION_ERROR',
-          field: 'type',
-        },
-        { status: 400 }
-      );
-    }
+    const { content: sanitizedContent, type } = sanitizationResult.sanitized;
 
     // Get lead from PostgreSQL to find Airtable record ID
     const lead = await db.query.leads.findFirst({
@@ -139,12 +118,6 @@ export async function POST(
         { status: 403 }
       );
     }
-
-    // Sanitize content (prevent XSS)
-    const sanitizedContent = content
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-      .trim();
 
     try {
       // Write note to Airtable (source of truth)
@@ -199,6 +172,8 @@ export async function POST(
 
 /**
  * Helper function to parse Airtable Notes field into structured array
+ *
+ * SECURITY: Sanitizes output to prevent XSS from Airtable data
  */
 function parseNotesFromAirtable(notesText: string) {
   if (!notesText || notesText.trim() === '') {
@@ -212,10 +187,11 @@ function parseNotesFromAirtable(notesText: string) {
 
   while ((match = notePattern.exec(notesText)) !== null) {
     notes.push({
-      type: match[1],
-      timestamp: match[2].trim(),
-      user: match[3].trim(),
-      content: match[4].trim(),
+      // SECURITY: Sanitize all fields to prevent XSS
+      type: sanitizePlainText(match[1], 50),
+      timestamp: sanitizePlainText(match[2].trim(), 100),
+      user: sanitizePlainText(match[3].trim(), 255),
+      content: sanitizePlainText(match[4].trim(), 5000),
     });
   }
 
