@@ -103,10 +103,21 @@ export default function CampaignDetailPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Analytics
           </Link>
-          <h1 className={`text-4xl font-bold ${theme.core.white}`}>
-            <span className={theme.accents.primary.class}>{campaign.name}</span> Campaign
-          </h1>
-          <p className={theme.core.bodyText}>Detailed performance analytics</p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className={`text-4xl font-bold ${theme.core.white}`}>
+                <span className={theme.accents.primary.class}>{campaign.name}</span> Campaign
+              </h1>
+              <p className={theme.core.bodyText}>Detailed performance analytics</p>
+            </div>
+            <button
+              onClick={() => router.push(`/leads?campaign=${encodeURIComponent(campaign.name)}`)}
+              className={`${theme.components.button.primary} flex items-center gap-2`}
+            >
+              <Users className="w-4 h-4" />
+              View Leads
+            </button>
+          </div>
         </div>
 
         {/* Time Period Filter */}

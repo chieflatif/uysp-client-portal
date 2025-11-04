@@ -68,12 +68,14 @@ const SYNC_CONFIG = {
 
 /**
  * POST /api/admin/sync
- * 
+ *
  * Manually trigger Airtable → PostgreSQL sync for a specific client
  * SUPER_ADMIN only
  * Body: { clientId: string } - which client to sync
  */
 export async function POST(request: NextRequest) {
+  let clientId: string | undefined = undefined;
+
   try {
     // Authentication
     const session = await getServerSession(authOptions);
@@ -112,7 +114,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { clientId, dryRun } = validation.data;
+    const { clientId: validatedClientId, dryRun } = validation.data;
+    clientId = validatedClientId;
 
     if (dryRun) {
       console.log('🔍 DRY RUN MODE: Changes will be previewed but not committed');
@@ -123,7 +126,7 @@ export async function POST(request: NextRequest) {
     const lockResult = await db.execute(
       sql`SELECT pg_try_advisory_lock(hashtext(${clientId})) as acquired`
     );
-    const lockAcquired = lockResult.rows[0]?.acquired;
+    const lockAcquired = (lockResult[0] as any)?.acquired;
 
     if (!lockAcquired) {
       return NextResponse.json({
@@ -176,7 +179,7 @@ export async function POST(request: NextRequest) {
         totalFetched++;
 
         try {
-          const leadData = airtable.mapToDatabaseLead(record, clientId);
+          const leadData = airtable.mapToDatabaseLead(record, clientId!);
           batch.push({ record, leadData });
 
           // Process batch when full
@@ -470,7 +473,7 @@ export async function POST(request: NextRequest) {
       await airtable.streamAllProjectTasks(async (record) => {
         tasksFetched++;
         try {
-          const taskData = airtable.mapToDatabaseTask(record, clientId);
+          const taskData = airtable.mapToDatabaseTask(record, clientId!);
 
           // CONFLICT DETECTION: Check if PostgreSQL has newer data (using prefetched Map)
           const existing = existingTasksMap.get(record.id);
@@ -495,8 +498,9 @@ export async function POST(request: NextRequest) {
             }
 
             // CRITICAL FIX 3: Use Airtable's Last Modified timestamp if available
-            const airtableModified = record.fields['Last Modified Time']
-              ? new Date(record.fields['Last Modified Time'])
+            const lastModifiedTime = record.fields['Last Modified Time'];
+            const airtableModified = lastModifiedTime && typeof lastModifiedTime === 'string'
+              ? new Date(lastModifiedTime)
               : new Date(record.createdTime);
 
             // Only overwrite if Airtable data is NEWER than PostgreSQL
@@ -511,7 +515,7 @@ export async function POST(request: NextRequest) {
           // Proceed with sync (skip if dry run)
           if (!dryRun) {
             await db.insert(clientProjectTasks)
-              .values(taskData)
+              .values(taskData as any)
               .onConflictDoUpdate({
                 target: clientProjectTasks.airtableRecordId,
                 set: {
@@ -535,10 +539,10 @@ export async function POST(request: NextRequest) {
       await airtable.streamAllProjectBlockers(async (record) => {
         blockersFetched++;
         try {
-          const blockerData = airtable.mapToDatabaseBlocker(record, clientId);
+          const blockerData = airtable.mapToDatabaseBlocker(record, clientId!);
           if (!dryRun) {
             await db.insert(clientProjectBlockers)
-              .values(blockerData)
+              .values(blockerData as any)
               .onConflictDoUpdate({
                 target: clientProjectBlockers.airtableRecordId,
                 set: {
@@ -561,10 +565,10 @@ export async function POST(request: NextRequest) {
       await airtable.streamAllProjectStatus(async (record) => {
         statusFetched++;
         try {
-          const statusData = airtable.mapToDatabaseProjectStatus(record, clientId);
+          const statusData = airtable.mapToDatabaseProjectStatus(record, clientId!);
           if (!dryRun) {
             await db.insert(clientProjectStatus)
-              .values(statusData)
+              .values(statusData as any)
               .onConflictDoUpdate({
                 target: clientProjectStatus.airtableRecordId,
                 set: {

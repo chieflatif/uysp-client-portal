@@ -59,16 +59,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Fetch all campaigns for this client to get name mappings
+    const allCampaigns = await db.query.campaigns.findMany({
+      where: clientId
+        ? (campaigns, { eq }) => eq(campaigns.clientId, clientId)
+        : undefined,
+    });
+
+    // Create formId -> campaign name mapping
+    const formIdToCampaignName = new Map<string, string>();
+    for (const campaign of allCampaigns) {
+      if (campaign.formId) {
+        formIdToCampaignName.set(campaign.formId!, campaign.name);
+      }
+    }
+
     // Fetch all leads matching criteria
     const allLeads = await db.query.leads.findMany({
       where: (leads, { eq, and, gte: gteOp, lte: lteOp }) => {
         const conditions = [];
-        
+
         if (clientId) {
           conditions.push(eq(leads.clientId, clientId));
         }
         if (campaignFilter) {
-          conditions.push(eq(leads.campaignName, campaignFilter));
+          // Filter by campaign name - need to find formId first
+          const matchingCampaign = allCampaigns.find(c => c.name === campaignFilter);
+          if (matchingCampaign && matchingCampaign.formId) {
+            conditions.push(eq(leads.formId, matchingCampaign.formId));
+          }
         }
         if (startDate) {
           conditions.push(gteOp(leads.createdAt, new Date(startDate)));
@@ -76,20 +95,23 @@ export async function GET(request: NextRequest) {
         if (endDate) {
           conditions.push(lteOp(leads.createdAt, new Date(endDate)));
         }
-        
+
         return conditions.length > 1 ? and(...conditions) : conditions[0];
       },
     });
 
-    // Group leads by campaign
+    // Group leads by campaign (using formId)
     const campaignGroups = new Map<string, typeof allLeads>();
-    
+
     for (const lead of allLeads) {
-      const campaign = lead.campaignName || 'Unassigned';
-      if (!campaignGroups.has(campaign)) {
-        campaignGroups.set(campaign, []);
+      // Use formId to group leads
+      const formId = lead.formId || 'unassigned';
+      const campaignName = formIdToCampaignName.get(formId) || formId;
+
+      if (!campaignGroups.has(campaignName)) {
+        campaignGroups.set(campaignName, []);
       }
-      campaignGroups.get(campaign)!.push(lead);
+      campaignGroups.get(campaignName)!.push(lead);
     }
 
     // Calculate analytics for each campaign

@@ -3,11 +3,16 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
+/**
+ * GET /api/leads/[id]
+ *
+ * Get single lead details by ID
+ */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,9 +20,21 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = await params;
+    const leadId = params.id;
+
+    // Build where clause based on role
+    const whereClause =
+      session.user.role === 'SUPER_ADMIN'
+        ? and(eq(leads.id, leadId), eq(leads.isActive, true))
+        : and(
+            eq(leads.id, leadId),
+            eq(leads.clientId, session.user.clientId!),
+            eq(leads.isActive, true)
+          );
+
+    // Fetch lead
     const lead = await db.query.leads.findFirst({
-      where: eq(leads.id, id),
+      where: whereClause,
     });
 
     if (!lead) {
@@ -27,19 +44,7 @@ export async function GET(
       );
     }
 
-    // SECURITY FIX: Enforce multi-tenancy isolation
-    // SUPER_ADMIN can view any lead
-    if (session.user.role === 'SUPER_ADMIN') {
-      // No restriction for SUPER_ADMIN
-    } else if (session.user.clientId !== lead.clientId) {
-      // CLIENT_ADMIN and CLIENT_USER must match clientId
-      return NextResponse.json(
-        { error: 'Forbidden - You can only view leads in your own client' },
-        { status: 403 }
-      );
-    }
-
-    return NextResponse.json({ lead });
+    return NextResponse.json(lead);
   } catch (error) {
     console.error('Error fetching lead:', error);
     return NextResponse.json(

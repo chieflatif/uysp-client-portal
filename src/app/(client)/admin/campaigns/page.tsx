@@ -4,17 +4,19 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { Plus, Tag } from 'lucide-react';
 import { theme } from '@/theme';
+import { useClient } from '@/contexts/ClientContext';
 import CampaignForm from '@/components/admin/CampaignForm';
+import CustomCampaignForm from '@/components/admin/CustomCampaignForm';
 import CampaignList from '@/components/admin/CampaignList';
 
 interface Campaign {
   id: string;
   clientId: string;
   name: string;
-  campaignType: 'Webinar' | 'Standard';
-  formId: string;
+  campaignType: 'Webinar' | 'Standard' | 'Custom';
+  formId?: string;
   isPaused: boolean;
   webinarDatetime?: string | null;
   zoomLink?: string | null;
@@ -24,21 +26,23 @@ interface Campaign {
   totalLeads: number;
   createdAt: string;
   updatedAt: string;
-}
-
-interface Client {
-  id: string;
-  companyName: string;
+  // Custom campaign fields
+  targetTags?: string[];
+  enrollmentStatus?: 'scheduled' | 'active' | 'paused' | 'completed';
+  leadsEnrolled?: number;
 }
 
 export default function CampaignsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { selectedClientId, isLoading: clientLoading } = useClient();
 
-  const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [showForm, setShowForm] = useState(false);
+  const [showCustomForm, setShowCustomForm] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [newCampaignType, setNewCampaignType] = useState<'Standard' | 'Webinar'>('Standard');
+  const [customCampaignMode, setCustomCampaignMode] = useState<'leadForm' | 'nurture'>('nurture');
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -52,28 +56,7 @@ export default function CampaignsPage() {
     }
   }, [status, session, router]);
 
-  // Set default client ID
-  useEffect(() => {
-    if (session?.user?.clientId && !selectedClientId) {
-      setSelectedClientId(session.user.clientId);
-    }
-  }, [session, selectedClientId]);
-
-  // Fetch clients (SUPER_ADMIN only)
-  const { data: clientsData } = useQuery({
-    queryKey: ['clients'],
-    queryFn: async () => {
-      const response = await fetch('/api/admin/clients');
-      if (!response.ok) throw new Error('Failed to fetch clients');
-      const data = await response.json();
-      return data.clients || [];
-    },
-    enabled: status === 'authenticated' && session?.user?.role === 'SUPER_ADMIN',
-  });
-
-  const clients: Client[] = clientsData || [];
-
-  // Fetch campaigns
+  // CRITICAL FIX: Use selectedClientId from ClientContext (controlled by top nav dropdown)
   const {
     data: campaignsData,
     isLoading: loadingCampaigns,
@@ -81,15 +64,13 @@ export default function CampaignsPage() {
   } = useQuery({
     queryKey: ['campaigns', selectedClientId],
     queryFn: async () => {
-      const url = selectedClientId
-        ? `/api/admin/campaigns?clientId=${selectedClientId}`
-        : '/api/admin/campaigns';
-      const response = await fetch(url);
+      if (!selectedClientId) return [];
+      const response = await fetch(`/api/admin/campaigns?clientId=${selectedClientId}`);
       if (!response.ok) throw new Error('Failed to fetch campaigns');
       const data = await response.json();
       return data.campaigns || [];
     },
-    enabled: status === 'authenticated' && Boolean(selectedClientId),
+    enabled: status === 'authenticated' && !clientLoading && Boolean(selectedClientId),
   });
 
   const campaigns: Campaign[] = campaignsData || [];
@@ -139,17 +120,24 @@ export default function CampaignsPage() {
   };
 
   const handleEdit = (campaign: Campaign) => {
+    // Only allow editing Standard/Webinar campaigns (Custom campaigns can't be edited)
+    if (campaign.campaignType === 'Custom') {
+      alert('Custom campaigns cannot be edited. Please create a new custom campaign instead.');
+      return;
+    }
     setEditingCampaign(campaign);
     setShowForm(true);
   };
 
   const handleCloseForm = () => {
     setShowForm(false);
+    setShowCustomForm(false);
     setEditingCampaign(null);
   };
 
   const handleFormSuccess = () => {
     setShowForm(false);
+    setShowCustomForm(false);
     setEditingCampaign(null);
     refetchCampaigns();
   };
@@ -175,44 +163,57 @@ export default function CampaignsPage() {
               Campaign <span className={theme.accents.primary.class}>Management</span>
             </h1>
             <p className={theme.core.bodyText}>
-              Create and manage webinar and standard campaigns
+              Create and manage lead form, webinar, and nurture campaigns
             </p>
           </div>
-          <button
-            onClick={() => {
-              setEditingCampaign(null);
-              setShowForm(true);
-            }}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition ${theme.accents.primary.bgClass} hover:bg-green-600`}
-          >
-            <Plus className="h-5 w-5" />
-            New Campaign
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setEditingCampaign(null);
+                setCustomCampaignMode('leadForm');
+                setShowCustomForm(true);
+              }}
+              className={`flex items-center gap-2 px-5 py-3 rounded-lg font-semibold text-white transition bg-green-600 hover:bg-green-700`}
+            >
+              <Plus className="h-5 w-5" />
+              <div className="text-left">
+                <div className="text-sm leading-tight">New Lead Form</div>
+                <div className="text-sm leading-tight">Campaign</div>
+              </div>
+            </button>
+            <button
+              onClick={() => {
+                setEditingCampaign(null);
+                setNewCampaignType('Webinar');
+                setShowForm(true);
+              }}
+              className="flex items-center gap-2 px-5 py-3 rounded-lg font-semibold text-white transition bg-purple-600 hover:bg-purple-700"
+            >
+              <Plus className="h-5 w-5" />
+              <div className="text-left">
+                <div className="text-sm leading-tight">New Webinar</div>
+                <div className="text-sm leading-tight">Campaign</div>
+              </div>
+            </button>
+            <button
+              onClick={() => {
+                setEditingCampaign(null);
+                setCustomCampaignMode('nurture');
+                setShowCustomForm(true);
+              }}
+              className="flex items-center gap-2 px-5 py-3 rounded-lg font-semibold text-white transition bg-cyan-600 hover:bg-cyan-700"
+            >
+              <Tag className="h-5 w-5" />
+              <div className="text-left">
+                <div className="text-sm leading-tight">New Nurture</div>
+                <div className="text-sm leading-tight">Campaign</div>
+              </div>
+            </button>
+          </div>
         </div>
 
-        {/* Client Selector (SUPER_ADMIN only) */}
-        {session?.user?.role === 'SUPER_ADMIN' && clients.length > 0 && (
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
-              Select Client
-            </label>
-            <select
-              value={selectedClientId}
-              onChange={(e) => setSelectedClientId(e.target.value)}
-              className={`${theme.components.input} w-full max-w-md`}
-            >
-              <option value="">-- Select a client --</option>
-              {clients.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.companyName}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
         {/* Stats Cards */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-5 gap-4">
           <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
             <p className={`text-xs ${theme.accents.tertiary.class} font-semibold uppercase mb-1`}>
               Total Campaigns
@@ -230,6 +231,14 @@ export default function CampaignsPage() {
             </p>
           </div>
           <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <p className={`text-xs text-green-400 font-semibold uppercase mb-1`}>
+              Lead Forms
+            </p>
+            <p className={`text-2xl font-bold ${theme.core.white}`}>
+              {campaigns.filter((c) => c.campaignType === 'Standard').length}
+            </p>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
             <p className={`text-xs text-purple-400 font-semibold uppercase mb-1`}>
               Webinars
             </p>
@@ -238,11 +247,11 @@ export default function CampaignsPage() {
             </p>
           </div>
           <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <p className={`text-xs text-blue-400 font-semibold uppercase mb-1`}>
-              Standard
+            <p className={`text-xs text-cyan-400 font-semibold uppercase mb-1`}>
+              Nurture
             </p>
             <p className={`text-2xl font-bold ${theme.core.white}`}>
-              {campaigns.filter((c) => c.campaignType === 'Standard').length}
+              {campaigns.filter((c) => c.campaignType === 'Custom').length}
             </p>
           </div>
         </div>
@@ -258,18 +267,29 @@ export default function CampaignsPage() {
         ) : (
           <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
             <p className={`${theme.core.bodyText} text-lg`}>
-              Please select a client to view campaigns
+              {clientLoading ? 'Loading client data...' : 'Please select a client from the top navigation'}
             </p>
           </div>
         )}
 
         {/* Campaign Form Modal */}
-        {showForm && (
+        {showForm && selectedClientId && (
           <CampaignForm
-            campaign={editingCampaign}
+            campaign={editingCampaign as any}
             clientId={selectedClientId}
             onClose={handleCloseForm}
             onSuccess={handleFormSuccess}
+            initialCampaignType={newCampaignType}
+          />
+        )}
+
+        {/* Custom Campaign Form Modal */}
+        {showCustomForm && selectedClientId && (
+          <CustomCampaignForm
+            clientId={selectedClientId}
+            onClose={handleCloseForm}
+            onSuccess={handleFormSuccess}
+            mode={customCampaignMode}
           />
         )}
       </div>

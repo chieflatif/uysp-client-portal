@@ -50,10 +50,15 @@ interface AirtableLeadFields {
   'Company LinkedIn'?: string;
   'Enrichment Outcome'?: string;
   'Enrichment Attempted At'?: string;
-  
+
+  // Custom Campaigns fields (Phase B)
+  'Kajabi Tags'?: string; // Comma-separated string of tags
+  'Engagement - Level'?: string; // Green/Yellow/Red
+  'Engagement - Total Score'?: number;
+
   // Notes field
   'Notes'?: string;
-  
+
   [key: string]: unknown;
 }
 
@@ -95,6 +100,50 @@ function parseTimestamp(value: string | undefined): Date | undefined {
   } catch (error) {
     console.warn(`⚠️ Error parsing date "${value}":`, error);
     return undefined;
+  }
+}
+
+/**
+ * Parse Kajabi Tags from comma-separated string to array
+ * CUSTOM CAMPAIGNS: Handles tags from Airtable "Kajabi Tags" field
+ * Example: "Tag 1, Tag 2, Tag 3" → ["Tag 1", "Tag 2", "Tag 3"]
+ */
+function parseKajabiTags(value: string | undefined): string[] | undefined {
+  if (!value || typeof value !== 'string') return undefined;
+
+  // Split by comma, trim whitespace, filter out empty strings
+  const tags = value
+    .split(',')
+    .map(tag => tag.trim())
+    .filter(tag => tag.length > 0);
+
+  return tags.length > 0 ? tags : undefined;
+}
+
+/**
+ * Map engagement level from Airtable color coding to High/Medium/Low
+ * CUSTOM CAMPAIGNS: Maps Airtable "Engagement - Level" to database format
+ * Green → High, Yellow → Medium, Red → Low
+ */
+function mapEngagementLevel(value: string | undefined): string | undefined {
+  if (!value || typeof value !== 'string') return undefined;
+
+  const normalized = value.toLowerCase().trim();
+
+  switch (normalized) {
+    case 'green':
+      return 'High';
+    case 'yellow':
+      return 'Medium';
+    case 'red':
+      return 'Low';
+    default:
+      // If already in correct format, return as-is
+      if (['high', 'medium', 'low'].includes(normalized)) {
+        return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+      }
+      console.warn(`⚠️ Unknown engagement level: "${value}" - skipping`);
+      return undefined;
   }
 }
 
@@ -437,10 +486,8 @@ export class AirtableClient {
       isActive: true, // CRITICAL FIX: isActive only for deletion tracking, NOT booking status
       
       // Campaign & Sequence Tracking (CORRECTED FIELD NAMES)
-      campaignName: fields['SMS Campaign ID'] as string | undefined, // FIXED: was 'Campaign Name'
-      // FIXED: Handle schema inconsistency where field may have been renamed
-      // Prefer 'Campaign (CORRECTED)' if it exists, otherwise fall back to 'Campaign'
-      // This handles migration period where both field names may exist
+      campaignName: fields['SMS Campaign ID'] as string | undefined,
+      // Lead Source: Pull from Campaign (CORRECTED) field
       leadSource: (() => {
         const corrected = fields['Campaign (CORRECTED)'];
         const original = fields['Campaign'];
@@ -477,7 +524,11 @@ export class AirtableClient {
       companyLinkedin: fields['Company LinkedIn'] as string | undefined,
       enrichmentOutcome: fields['Enrichment Outcome'] as string | undefined,
       enrichmentAttemptedAt: parseTimestamp(fields['Enrichment Attempted At'] as string | undefined), // FIXED: Use validated parser
-      
+
+      // Custom Campaigns fields (Phase B)
+      kajabiTags: parseKajabiTags(fields['Kajabi Tags'] as string | undefined),
+      engagementLevel: mapEngagementLevel(fields['Engagement - Level'] as string | undefined),
+
       createdAt: new Date(record.createdTime),
     };
   }
@@ -526,7 +577,7 @@ export class AirtableClient {
   mapToDatabaseTask(
     record: AirtableRecord,
     clientId: string
-  ): Partial<NewClientProjectTask> {
+  ): NewClientProjectTask {
     const fields = record.fields;
 
     return {
@@ -552,7 +603,7 @@ export class AirtableClient {
   mapToDatabaseBlocker(
     record: AirtableRecord,
     clientId: string
-  ): Partial<NewClientProjectBlocker> {
+  ): NewClientProjectBlocker {
     const fields = record.fields;
 
     return {
@@ -574,7 +625,7 @@ export class AirtableClient {
   mapToDatabaseProjectStatus(
     record: AirtableRecord,
     clientId: string
-  ): Partial<NewClientProjectStatus> {
+  ): NewClientProjectStatus {
     const fields = record.fields;
 
     return {

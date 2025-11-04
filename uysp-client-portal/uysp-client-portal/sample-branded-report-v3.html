@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #111827;
+      color: #d1d5db;
+      line-height: 1.5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #111827;
+    }
+    .header {
+      background: #1f2937;
+      padding: 24px;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #be185d;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .hq {
+      color: #be185d;
+    }
+    .client-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .week {
+      background: #1f2937;
+      padding: 12px 24px;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+    .email-wrapper {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .section {
+      background: #1f2937;
+      padding: 24px;
+      border-top: 1px solid #374151;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #be185d;
+    }
+    .call-summary {
+      margin-top: 12px;
+    }
+    .call-date {
+      font-size: 14px;
+      color: #22d3ee;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .call-summary-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+    .call-summary-text {
+      font-size: 14px;
+      color: #d1d5db;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    .task-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .task-row {
+      border-bottom: 1px solid #374151;
+    }
+    .task-row:last-child {
+      border-bottom: none;
+    }
+    .task-cell {
+      padding: 12px 8px;
+      vertical-align: top;
+    }
+    .task-name {
+      color: #ffffff;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .task-meta {
+      font-size: 12px;
+      color: #9ca3af;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .task-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .priority-critical { background: #dc2626; color: white; }
+    .priority-high { background: #ea580c; color: white; }
+    .priority-medium { background: #f59e0b; color: white; }
+    .priority-low { background: #10b981; color: white; }
+    .status-done { background: #10b981; color: white; }
+    .status-progress { background: #3b82f6; color: white; }
+    .status-blocked { background: #ef4444; color: white; }
+    .status-todo { background: #6b7280; color: white; }
+    .blocker-list {
+      margin-top: 12px;
+    }
+    .blocker-item {
+      background: #1f2937;
+      border-left: 3px solid #ef4444;
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+    }
+    .blocker-item:last-child {
+      margin-bottom: 0;
+    }
+    .blocker-header {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .blocker-text {
+      color: #ffffff;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .blocker-action {
+      color: #9ca3af;
+      font-size: 12px;
+    }
+    .severity-critical { background: #dc2626; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+    .severity-high { background: #ea580c; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+    .footer {
+      background: #1f2937;
+      padding: 24px;
+      border-radius: 0 0 8px 8px;
+      padding-top: 24px;
+      border-top: 1px solid #374151;
+      text-align: center;
+    }
+    .footer-text {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">Rebel <span class="hq">HQ</span></div>
+      <div class="client-name">Acme Corporation</div>
+    </div>
+    <div class="week">Weekly Report · December 19, 2024</div>
+
+    <a href="https://uysp-portal-v2.onrender.com/project-management?clientId=123" class="email-wrapper">
+    <!-- Call Summary -->
+    <div class="section">
+      <div class="section-title">Last Call Summary</div>
+      <div class="call-summary">
+        <div class="call-date">📞 December 18, 2024</div>
+
+        <div class="call-summary-title">Executive Summary</div>
+        <div class="call-summary-text">Discussed Q1 2025 product roadmap priorities and timeline adjustments. Team aligned on feature delivery schedule with updated resource allocation.</div>
+
+        <div class="call-summary-title">Top Priorities</div>
+        <div class="call-summary-text">1. Complete user authentication redesign by EOW
+2. Begin API integration testing phase
+3. Finalize mobile app wireframes</div>
+
+        <div class="call-summary-title">Key Decisions</div>
+        <div class="call-summary-text">- Moved dashboard analytics from P1 to P2
+- Approved design system update
+- Confirmed weekly sync meeting time change</div>
+
+        <div class="call-summary-title">Next Steps</div>
+        <div class="call-summary-text">- Engineering team to provide API documentation by Friday
+- Design to share updated prototypes Monday
+- Schedule follow-up with stakeholders next week</div>
+
+        <div class="call-date">👥 John Smith, Sarah Johnson, Mike Chen</div>
+      </div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="section">
+      <div class="section-title">Tasks (8)</div>
+      <table class="task-table">
+        <tr class="task-row">
+          <td class="task-cell">
+            <div class="task-name">Complete user authentication system redesign</div>
+            <div class="task-meta">
+              <span class="task-badge priority-critical">🔴 Critical</span>
+              <span class="task-badge status-progress">In Progress</span>
+              <span style="color: #9ca3af;">Feature</span>
+              <span style="color: #9ca3af;">👤 John Smith</span>
+              <span style="color: #9ca3af;">📅 Dec 22, 2024</span>
+            </div>
+          </td>
+        </tr>
+        <tr class="task-row">
+          <td class="task-cell">
+            <div class="task-name">Fix payment processing bug on checkout page</div>
+            <div class="task-meta">
+              <span class="task-badge priority-high">🟠 High</span>
+              <span class="task-badge status-progress">In Progress</span>
+              <span style="color: #9ca3af;">Bug</span>
+              <span style="color: #9ca3af;">👤 Sarah Johnson</span>
+              <span style="color: #9ca3af;">📅 Dec 20, 2024</span>
+            </div>
+          </td>
+        </tr>
+        <tr class="task-row">
+          <td class="task-cell">
+            <div class="task-name">Update API documentation for v2.0 endpoints</div>
+            <div class="task-meta">
+              <span class="task-badge priority-high">🟠 High</span>
+              <span class="task-badge status-todo">To Do</span>
+              <span style="color: #9ca3af;">Documentation</span>
+              <span style="color: #9ca3af;">👤 Mike Chen</span>
+              <span style="color: #9ca3af;">📅 Dec 21, 2024</span>
+            </div>
+          </td>
+        </tr>
+        <tr class="task-row">
+          <td class="task-cell">
+            <div class="task-name">Design mobile app wireframes for dashboard</div>
+            <div class="task-meta">
+              <span class="task-badge priority-medium">🟡 Medium</span>
+              <span class="task-badge status-progress">In Progress</span>
+              <span style="color: #9ca3af;">Design</span>
+              <span style="color: #9ca3af;">👤 Lisa Park</span>
+              <span style="color: #9ca3af;">📅 Dec 23, 2024</span>
+            </div>
+          </td>
+        </tr>
+        <tr class="task-row">
+          <td class="task-cell">
+            <div class="task-name">Implement unit tests for new API endpoints</div>
+            <div class="task-meta">
+              <span class="task-badge priority-medium">🟡 Medium</span>
+              <span class="task-badge status-todo">To Do</span>
+              <span style="color: #9ca3af;">Task</span>
+              <span style="color: #9ca3af;">👤 John Smith</span>
+              <span style="color: #9ca3af;">📅 Dec 27, 2024</span>
+            </div>
+          </td>
+        </tr>
+        <tr class="task-row">
+          <td class="task-cell">
+            <div class="task-name">Set up staging environment for client UAT</div>
+            <div class="task-meta">
+              <span class="task-badge priority-high">🟠 High</span>
+              <span class="task-badge status-done">Done</span>
+              <span style="color: #9ca3af;">Infrastructure</span>
+              <span style="color: #9ca3af;">👤 DevOps Team</span>
+              <span style="color: #9ca3af;">📅 Dec 18, 2024</span>
+            </div>
+          </td>
+        </tr>
+        <tr class="task-row">
+          <td class="task-cell">
+            <div class="task-name">Conduct security audit on payment processing</div>
+            <div class="task-meta">
+              <span class="task-badge priority-critical">🔴 Critical</span>
+              <span class="task-badge status-blocked">Blocked</span>
+              <span style="color: #9ca3af;">Security</span>
+              <span style="color: #9ca3af;">👤 Security Team</span>
+              <span style="color: #9ca3af;">📅 Dec 19, 2024</span>
+            </div>
+          </td>
+        </tr>
+        <tr class="task-row">
+          <td class="task-cell">
+            <div class="task-name">Refactor database queries for performance</div>
+            <div class="task-meta">
+              <span class="task-badge priority-low">🟢 Low</span>
+              <span class="task-badge status-todo">To Do</span>
+              <span style="color: #9ca3af;">Improvement</span>
+              <span style="color: #9ca3af;">👤 Mike Chen</span>
+              <span style="color: #9ca3af;">📅 Jan 5, 2025</span>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Blockers -->
+    <div class="section">
+      <div class="section-title">Blockers (2)</div>
+      <div class="blocker-list">
+        <div class="blocker-item">
+          <div class="blocker-header">
+            <span class="severity-critical">CRITICAL</span>
+          </div>
+          <div class="blocker-text">Waiting on third-party API keys from payment provider</div>
+          <div class="blocker-action">→ Follow up with account manager, escalate to VP if not resolved by EOD Friday</div>
+        </div>
+        <div class="blocker-item">
+          <div class="blocker-header">
+            <span class="severity-high">HIGH</span>
+          </div>
+          <div class="blocker-text">Database migration blocked pending client approval on data schema changes</div>
+          <div class="blocker-action">→ Schedule meeting with client stakeholders to review proposed changes</div>
+        </div>
+      </div>
+    </div>
+
+    </a>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-text">Automated weekly report from Rebel HQ</div>
+      <div class="footer-text" style="margin-top: 8px; font-size: 11px;">Click anywhere to view full dashboard</div>
+    </div>
+  </div>
+</body>
+</html>

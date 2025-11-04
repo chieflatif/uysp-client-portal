@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Search, ArrowUpDown } from 'lucide-react';
+import { Search, ArrowUpDown, X } from 'lucide-react';
 import { theme } from '@/theme';
 
 interface Lead {
@@ -32,6 +32,9 @@ type SortDirection = 'asc' | 'desc';
 export default function LeadsPage() {
   const { status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const campaignFilter = searchParams.get('campaign');
+
   const [filter, setFilter] = useState<'all' | 'high' | 'medium'>('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -45,7 +48,8 @@ export default function LeadsPage() {
   const { data: leadsData, isLoading: loading } = useQuery({
     queryKey: ['leads'],
     queryFn: async () => {
-      const response = await fetch('/api/leads');
+      // CRITICAL FIX: Fetch ALL leads with high limit (was defaulting to 100)
+      const response = await fetch('/api/leads?limit=50000');
       if (!response.ok) throw new Error('Failed to fetch leads');
       const data = await response.json();
       return data.leads || [];
@@ -70,6 +74,13 @@ export default function LeadsPage() {
       if (filter === 'medium') return lead.icpScore >= 40 && lead.icpScore < 70;
       return true;
     });
+
+    // Apply campaign filter from URL
+    if (campaignFilter) {
+      filtered = filtered.filter((lead: Lead) =>
+        lead.campaignName?.toLowerCase() === campaignFilter.toLowerCase()
+      );
+    }
 
     // Apply search
     if (searchQuery) {
@@ -123,7 +134,7 @@ export default function LeadsPage() {
     });
 
     return sorted;
-  }, [leads, filter, searchQuery, sortField, sortDirection]);
+  }, [leads, filter, campaignFilter, searchQuery, sortField, sortDirection]);
 
   // Update total pages when processedLeads changes
   useEffect(() => {
@@ -207,6 +218,7 @@ export default function LeadsPage() {
             <p className="text-sm font-semibold">
               {processedLeads.length} leads
               {searchQuery && ` matching "${searchQuery}"`}
+              {campaignFilter && ` in campaign "${campaignFilter}"`}
             </p>
             <p className="text-xs">
               Page {page} of {totalPages}
@@ -235,6 +247,22 @@ export default function LeadsPage() {
             </button>
           )}
         </div>
+
+        {/* Campaign Filter Badge */}
+        {campaignFilter && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-indigo-900/50 border border-indigo-600 rounded-lg">
+            <span className={`text-sm font-medium ${theme.core.white}`}>
+              Campaign: <span className={theme.accents.primary.class}>{campaignFilter}</span>
+            </span>
+            <button
+              onClick={() => router.push('/leads')}
+              className={`ml-2 p-1 rounded ${theme.core.bodyText} hover:text-white hover:bg-gray-700 transition`}
+              title="Clear campaign filter"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {/* Filter Buttons */}
         <div className="flex gap-3">
@@ -508,7 +536,7 @@ export default function LeadsPage() {
               Avg Score
             </p>
             <p className={`text-2xl font-bold ${theme.core.white}`}>
-              {Math.round((leads.reduce((sum: number, l: Lead) => sum + l.icpScore, 0) / leads.length) * 10) / 10}
+              {leads.length > 0 ? Math.round((leads.reduce((sum: number, l: Lead) => sum + l.icpScore, 0) / leads.length) * 10) / 10 : 0}
             </p>
           </div>
         </div>

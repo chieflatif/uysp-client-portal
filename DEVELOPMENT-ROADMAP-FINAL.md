@@ -32,40 +32,59 @@
 
 ---
 
-### Feature 1B: Two-Way Messaging Visibility (16-20 hours) ⭐ CRITICAL
-**Priority**: P0 - Build SECOND
+### Feature 1B: Two-Way AI Messaging System (86 hours over 5 weeks) ⭐ CRITICAL
+**Priority**: P0 - Build SECOND  
+**Complete Specification**: `PRD-TWO-WAY-AI-MESSAGING-SYSTEM.md`  
+**Deployment Guide**: `DEPLOYMENT-GUIDE-TWO-WAY-AI.md`
 
 **What it does:**
-- Show full conversation history for each lead
-- Highlight new responses on dashboard
-- Filter leads by "Has Responded"
-- Beautiful chat UI (like iMessage)
+- AI handles 70-80% of conversations automatically
+- Full two-way messaging with context awareness
+- Safety-first (prevents double-messaging, runaway bugs)
+- Multi-tenant architecture (scalable to 25+ clients)
+- Prospect-controlled timing (respects "check back in 3 months")
+- Content library with AI-powered retrieval
+- Human takeover for complex situations
 
-**Airtable Changes (Manual - 30 min):**
-```
-Add these fields to Leads table:
-1. conversation_thread (Long Text) - stores JSON array
-2. has_responded (Checkbox)
-3. last_inbound_message (Long Text)
-4. last_inbound_at (DateTime)
-5. response_count (Number)
-```
+**Implementation Phases** (must complete in order):
 
-**Implementation:**
-1. Update sync to include conversation fields (2h)
-2. Add "Responses" card to dashboard (1h)
-3. Add "Has Responded" filter to leads table (2h)
-4. Create conversation view modal component (6-8h)
-5. Add conversation API endpoint (2h)
-6. n8n workflow updates (3-4h)
+**Phase 1: Safety Infrastructure** (Week 1 - 16h) ⚠️ FOUNDATION
+- Airtable schema: Add 15 safety fields
+- Build safety check module
+- Circuit breaker implementation
+- 100% decision logging
+- Emergency controls
+- **Blocker**: Cannot proceed without this
 
-**Files to create:**
-- `src/components/ConversationView.tsx`
-- `src/app/api/leads/[id]/conversation/route.ts`
-- `migrations/add-conversation-fields.sql`
+**Phase 2: AI Engine** (Week 2 - 24h)
+- Inbound message handler workflow
+- AI prompt construction
+- Action tag parsing
+- State management
+- Next-contact calculation
 
-**Effort:** 16-20 hours  
-**Value:** Critical for sales team
+**Phase 3: Frontend UI** (Week 3 - 18h)
+- Conversation view component
+- Dashboard "Responses" card
+- Human takeover UI
+- Manual message sending
+
+**Phase 4: Content Library** (Week 4 - 12h)
+- Content management table
+- Content admin UI
+- AI content retrieval
+- Performance tracking
+
+**Phase 5: Multi-Tenant** (Week 5 - 16h)
+- Template base creation
+- Client duplication script
+- Multi-tenant testing
+- Client onboarding docs
+
+**Total Effort:** 86 hours  
+**Critical Path**: Phase 1 → Phase 2 → Phase 3 (rest can overlap)
+
+**Complete Details**: See PRD and Deployment Guide referenced above
 
 ---
 
@@ -285,6 +304,9 @@ Add fields:
 ---
 
 **ROADMAP FINALIZED - Ready for Implementation** 🚀
+
+
+
 
 
 

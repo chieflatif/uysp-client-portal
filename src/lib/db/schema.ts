@@ -11,6 +11,7 @@ import {
   jsonb,
   inet,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 // ==============================================================================
 // USERS TABLE
@@ -117,6 +118,10 @@ export const leads = pgTable(
     leadSource: varchar('lead_source', { length: 50 }).default('Standard Form'),
     campaignLinkId: uuid('campaign_link_id').references(() => campaigns.id, { onDelete: 'set null' }), // FIXED: Add cascade behavior
 
+    // CUSTOM CAMPAIGNS FIELDS (Phase B)
+    kajabiTags: text('kajabi_tags').array(), // Array of tags from Kajabi (imported from Airtable "Kajabi Tags")
+    engagementLevel: varchar('engagement_level', { length: 50 }), // High/Medium/Low (from Airtable "Engagement - Level")
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
@@ -137,6 +142,9 @@ export const leads = pgTable(
     enrichmentOutcomeIdx: index('idx_leads_enrichment_outcome').on(table.enrichmentOutcome),
     // PERFORMANCE FIX: Compound index for deletion query (clientId + airtableRecordId NOT IN)
     clientAirtableIdx: index('idx_leads_client_airtable').on(table.clientId, table.airtableRecordId),
+    // CUSTOM CAMPAIGNS: GIN index for array operations on kajabi_tags
+    kajabiTagsIdx: index('idx_leads_kajabi_tags').using('gin', sql`${table.kajabiTags}`),
+    engagementLevelIdx: index('idx_leads_engagement_level').on(table.engagementLevel),
   })
 );
 
@@ -192,6 +200,15 @@ export const campaigns = pgTable(
     autoDiscovered: boolean('auto_discovered').default(false),
     messagesSent: integer('messages_sent').default(0),
     totalLeads: integer('total_leads').default(0),
+    bookingLink: varchar('booking_link', { length: 500 }), // Calendly/booking link for AI message generation
+
+    // CUSTOM CAMPAIGNS FIELDS (Phase B)
+    targetTags: text('target_tags').array(), // Tags to filter leads by (for Custom campaigns)
+    messages: jsonb('messages'), // Message sequence: [{step: 1, delayMinutes: 60, text: '...'}]
+    startDatetime: timestamp('start_datetime', { withTimezone: true }), // When to start enrolling leads (null = immediate)
+    enrollmentStatus: varchar('enrollment_status', { length: 50 }).default('active'), // 'scheduled', 'active', 'paused', 'completed'
+    maxLeadsToEnroll: integer('max_leads_to_enroll'), // Optional cap on number of leads to enroll
+    leadsEnrolled: integer('leads_enrolled').default(0), // Counter for enrolled leads
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
@@ -201,6 +218,10 @@ export const campaigns = pgTable(
     formIdIdx: index('idx_campaigns_form_id').on(table.formId), // NEW: For lead routing
     typeIdx: index('idx_campaigns_type').on(table.campaignType), // NEW: For filtering
     activeIdx: index('idx_campaigns_active').on(table.isPaused), // NEW: For active campaign queries
+    // CUSTOM CAMPAIGNS: Indexes for scheduling and enrollment
+    enrollmentStatusIdx: index('idx_campaigns_enrollment_status').on(table.enrollmentStatus),
+    startDatetimeIdx: index('idx_campaigns_start_datetime').on(table.startDatetime),
+    targetTagsIdx: index('idx_campaigns_target_tags').using('gin', sql`${table.targetTags}`),
   })
 );
 
@@ -521,6 +542,28 @@ export const emailAuditLog = pgTable(
 
 export type EmailAuditLog = typeof emailAuditLog.$inferSelect;
 export type NewEmailAuditLog = typeof emailAuditLog.$inferInsert;
+
+// ==============================================================================
+// CAMPAIGN TAGS CACHE (Auto-discovered from Leads)
+// ==============================================================================
+
+export const campaignTagsCache = pgTable(
+  'campaign_tags_cache',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clientId: uuid('client_id').notNull().unique().references(() => clients.id, { onDelete: 'cascade' }),
+    tags: jsonb('tags').notNull(), // JSON array of tag strings
+    generatedAt: timestamp('generated_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    clientIdIdx: index('idx_tags_cache_client').on(table.clientId),
+  })
+);
+
+export type CampaignTagsCache = typeof campaignTagsCache.$inferSelect;
+export type NewCampaignTagsCache = typeof campaignTagsCache.$inferInsert;
 
 // ==============================================================================
 // AIRTABLE SYNC QUEUE (Retry Failed Updates)

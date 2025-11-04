@@ -133,3 +133,6 @@ After syncing leads, also sync Tasks, Blockers, Project Status from Airtable.
 
 **All patterns exist in codebase. Follow them. Build it.** 🚀
 
+
+
+

@@ -1,48 +1,43 @@
 # Production Deployment Checklist
 
-**Date:** October 23, 2025
-**Application:** UYSP Client Portal
-**Status:** ✅ Ready for Production
+**Date Created**: 2025-11-03
+**Purpose**: Step-by-step verification guide for deploying UYSP Client Portal to production
 
 ---
 
-## ✅ Pre-Deployment Verification Complete
+## Pre-Deployment: Environment Variables
 
-### 1. Security ✅
-- ✅ NEXTAUTH_SECRET set and validated
-- ✅ HTTPS enforcement active in middleware
-- ✅ Security headers configured (X-Frame-Options, CSP, etc.)
-- ✅ Client data isolation fixed in all analytics endpoints
-- ✅ Role-based access control properly restricted
-- ✅ Password requirements: 12+ characters with complexity
-- ✅ SUPER_ADMIN hidden from CLIENT_ADMIN views
-- ✅ Self-deletion prevention implemented
+```bash
+npm run validate:env:prod
+```
 
-### 2. Environment Variables ✅
-All required variables verified in .env.local
+Expected: "Environment validation PASSED"
 
-### 3. Email System ✅
-- ✅ Gmail SMTP working
-- ✅ Test email sent successfully
-- ✅ Self-service password setup functional
+## Pre-Deployment: Database Migrations
 
-### 4. Performance ✅
-- ✅ Analytics page optimized (parallel API calls)
-- ✅ Response compression enabled
-- ✅ Build passes without errors
+Verify migrations 0010, 0012, 0013 applied
 
-### 5. Features Complete ✅
-- ✅ User limit: 4 per client (2 admins + 2 users)
-- ✅ Delete vs Deactivate options with confirmations
-- ✅ Organization column for SUPER_ADMIN
-- ✅ Clean role naming throughout
+## Pre-Deployment: Code Quality
+
+```bash
+npm run type-check && npm run lint && npm run test:all && npm run build
+```
+
+## Deployment: Apply Migrations First
+
+Then deploy application code to Vercel
+
+## Post-Deployment: Smoke Tests
+
+1. Login works
+2. Campaign preview matches enrollment (BUG #15)
+3. AI generation works with timeouts/segments (BUG #17, #20)
+4. Duplicate campaign names rejected (BUG #18)
+
+## Post-Deployment: Cron Jobs
+
+Configure Vercel cron for scheduled campaign activation
 
 ---
 
-## 🚀 READY FOR PRODUCTION DEPLOYMENT
-
-**Security Score:** 9/10 ✅
-**Performance Score:** 9/10 ✅
-**Build Status:** Passing ✅
-**Email Testing:** Working ✅
-
+See full details in SESSION-COMPLETE-BUG-FIXES-AI-TESTING-2025-11-03.md

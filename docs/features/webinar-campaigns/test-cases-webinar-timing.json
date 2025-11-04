@@ -1,0 +1,414 @@
+{
+  "test_suite": "Webinar Nurture - Timing Logic Validation",
+  "created": "2025-11-02",
+  "purpose": "Validate message scheduling logic for various registration windows",
+  "test_cases": [
+    {
+      "test_id": "WN-001",
+      "name": "Week Advance Registration (Full Sequence)",
+      "scenario": "Lead registers 7 days (168 hours) before webinar",
+      "input": {
+        "registration_time": "2025-11-04T09:00:00Z",
+        "webinar_time": "2025-11-11T19:00:00Z",
+        "hours_until_webinar": 166,
+        "lead_data": {
+          "first_name": "Sarah",
+          "company": "TechCorp",
+          "title": "VP Sales",
+          "webinar_name": "AI BDR Masterclass"
+        }
+      },
+      "expected_output": {
+        "total_messages": 4,
+        "messages": [
+          {
+            "step": 1,
+            "type": "acknowledgment",
+            "send_at": "2025-11-04T09:05:00Z",
+            "delay_hours": 0
+          },
+          {
+            "step": 2,
+            "type": "value_builder",
+            "send_at": "2025-11-05T09:05:00Z",
+            "delay_hours": 24
+          },
+          {
+            "step": 3,
+            "type": "24hr_reminder",
+            "send_at": "2025-11-10T19:00:00Z",
+            "delay_hours": 130
+          },
+          {
+            "step": 4,
+            "type": "1hr_reminder",
+            "send_at": "2025-11-11T18:00:00Z",
+            "delay_hours": 23
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "WN-002",
+      "name": "3-Day Advance Registration",
+      "scenario": "Lead registers exactly 72 hours before webinar",
+      "input": {
+        "registration_time": "2025-11-08T19:00:00Z",
+        "webinar_time": "2025-11-11T19:00:00Z",
+        "hours_until_webinar": 72,
+        "lead_data": {
+          "first_name": "Michael",
+          "company": "SaaS Inc",
+          "title": "CRO"
+        }
+      },
+      "expected_output": {
+        "total_messages": 4,
+        "messages": [
+          {
+            "step": 1,
+            "type": "acknowledgment",
+            "send_at": "2025-11-08T19:05:00Z"
+          },
+          {
+            "step": 2,
+            "type": "value_builder",
+            "send_at": "2025-11-09T19:05:00Z",
+            "delay_hours": 24
+          },
+          {
+            "step": 3,
+            "type": "24hr_reminder",
+            "send_at": "2025-11-10T19:00:00Z"
+          },
+          {
+            "step": 4,
+            "type": "1hr_reminder",
+            "send_at": "2025-11-11T18:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "WN-003",
+      "name": "2-Day Advance Registration",
+      "scenario": "Lead registers 48 hours before webinar",
+      "input": {
+        "registration_time": "2025-11-09T19:00:00Z",
+        "webinar_time": "2025-11-11T19:00:00Z",
+        "hours_until_webinar": 48
+      },
+      "expected_output": {
+        "total_messages": 4,
+        "messages": [
+          {
+            "step": 1,
+            "type": "acknowledgment",
+            "send_at": "2025-11-09T19:05:00Z"
+          },
+          {
+            "step": 2,
+            "type": "value_builder",
+            "send_at": "2025-11-10T04:00:00Z",
+            "note": "Calculated as 40% into available window"
+          },
+          {
+            "step": 3,
+            "type": "24hr_reminder",
+            "send_at": "2025-11-10T19:00:00Z"
+          },
+          {
+            "step": 4,
+            "type": "1hr_reminder",
+            "send_at": "2025-11-11T18:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "WN-004",
+      "name": "30-Hour Window (Skip 24hr Reminder)",
+      "scenario": "Lead registers 30 hours before, 24hr window already passed",
+      "input": {
+        "registration_time": "2025-11-10T13:00:00Z",
+        "webinar_time": "2025-11-11T19:00:00Z",
+        "hours_until_webinar": 30
+      },
+      "expected_output": {
+        "total_messages": 3,
+        "messages": [
+          {
+            "step": 1,
+            "type": "acknowledgment",
+            "send_at": "2025-11-10T13:05:00Z"
+          },
+          {
+            "step": 2,
+            "type": "value_builder",
+            "send_at": "2025-11-11T01:05:00Z",
+            "delay_hours": 12,
+            "note": "Send at night to maintain spacing"
+          },
+          {
+            "step": 4,
+            "type": "1hr_reminder",
+            "send_at": "2025-11-11T18:00:00Z"
+          }
+        ],
+        "skipped": [
+          {
+            "step": 3,
+            "type": "24hr_reminder",
+            "reason": "24-hour window already passed at registration time"
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "WN-005",
+      "name": "Same Day Morning Registration (6 hours)",
+      "scenario": "Lead registers morning of webinar",
+      "input": {
+        "registration_time": "2025-11-11T13:00:00Z",
+        "webinar_time": "2025-11-11T19:00:00Z",
+        "hours_until_webinar": 6
+      },
+      "expected_output": {
+        "total_messages": 2,
+        "messages": [
+          {
+            "step": 1,
+            "type": "acknowledgment",
+            "send_at": "2025-11-11T13:05:00Z"
+          },
+          {
+            "step": 4,
+            "type": "1hr_reminder",
+            "send_at": "2025-11-11T18:00:00Z"
+          }
+        ],
+        "skipped": [
+          {
+            "step": 2,
+            "type": "value_builder",
+            "reason": "Not enough time (< 12 hours)"
+          },
+          {
+            "step": 3,
+            "type": "24hr_reminder",
+            "reason": "Already past 24-hour mark"
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "WN-006",
+      "name": "Last Minute Registration (90 minutes)",
+      "scenario": "Lead registers 1.5 hours before webinar",
+      "input": {
+        "registration_time": "2025-11-11T17:30:00Z",
+        "webinar_time": "2025-11-11T19:00:00Z",
+        "hours_until_webinar": 1.5
+      },
+      "expected_output": {
+        "total_messages": 2,
+        "messages": [
+          {
+            "step": 1,
+            "type": "acknowledgment",
+            "send_at": "2025-11-11T17:35:00Z"
+          },
+          {
+            "step": 4,
+            "type": "1hr_reminder",
+            "send_at": "2025-11-11T18:00:00Z",
+            "note": "Still time for 1hr reminder"
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "WN-007",
+      "name": "Emergency Registration (45 minutes)",
+      "scenario": "Lead registers 45 minutes before webinar",
+      "input": {
+        "registration_time": "2025-11-11T18:15:00Z",
+        "webinar_time": "2025-11-11T19:00:00Z",
+        "hours_until_webinar": 0.75
+      },
+      "expected_output": {
+        "total_messages": 1,
+        "messages": [
+          {
+            "step": 1,
+            "type": "acknowledgment",
+            "send_at": "2025-11-11T18:20:00Z",
+            "note": "Emergency acknowledgment only"
+          }
+        ],
+        "skipped": [
+          {
+            "step": 4,
+            "type": "1hr_reminder",
+            "reason": "Not enough time before 1hr reminder window"
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "WN-008",
+      "name": "Already Started Registration",
+      "scenario": "Lead registers after webinar has started",
+      "input": {
+        "registration_time": "2025-11-11T19:15:00Z",
+        "webinar_time": "2025-11-11T19:00:00Z",
+        "hours_until_webinar": -0.25
+      },
+      "expected_output": {
+        "total_messages": 1,
+        "messages": [
+          {
+            "step": 1,
+            "type": "acknowledgment",
+            "send_at": "2025-11-11T19:20:00Z",
+            "template_override": "late_registration",
+            "note": "Special template: Thanks + replay link"
+          }
+        ],
+        "special_handling": true
+      }
+    },
+    {
+      "test_id": "WN-009",
+      "name": "Optimal Window (36 hours)",
+      "scenario": "Lead registers at ideal timing for all messages with good spacing",
+      "input": {
+        "registration_time": "2025-11-10T07:00:00Z",
+        "webinar_time": "2025-11-11T19:00:00Z",
+        "hours_until_webinar": 36
+      },
+      "expected_output": {
+        "total_messages": 4,
+        "messages": [
+          {
+            "step": 1,
+            "type": "acknowledgment",
+            "send_at": "2025-11-10T07:05:00Z"
+          },
+          {
+            "step": 2,
+            "type": "value_builder",
+            "send_at": "2025-11-10T14:00:00Z",
+            "delay_hours": 7,
+            "note": "Calculated to fit all messages"
+          },
+          {
+            "step": 3,
+            "type": "24hr_reminder",
+            "send_at": "2025-11-10T19:00:00Z"
+          },
+          {
+            "step": 4,
+            "type": "1hr_reminder",
+            "send_at": "2025-11-11T18:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "test_id": "WN-010",
+      "name": "Weekend Registration for Monday Webinar",
+      "scenario": "Lead registers Friday evening for Monday afternoon webinar",
+      "input": {
+        "registration_time": "2025-11-07T22:00:00Z",
+        "webinar_time": "2025-11-10T19:00:00Z",
+        "hours_until_webinar": 69
+      },
+      "expected_output": {
+        "total_messages": 4,
+        "messages": [
+          {
+            "step": 1,
+            "type": "acknowledgment",
+            "send_at": "2025-11-07T22:05:00Z",
+            "note": "Friday night send OK"
+          },
+          {
+            "step": 2,
+            "type": "value_builder",
+            "send_at": "2025-11-08T22:05:00Z",
+            "note": "Saturday night send OK for webinars"
+          },
+          {
+            "step": 3,
+            "type": "24hr_reminder",
+            "send_at": "2025-11-09T19:00:00Z",
+            "note": "Sunday evening OK"
+          },
+          {
+            "step": 4,
+            "type": "1hr_reminder",
+            "send_at": "2025-11-10T18:00:00Z"
+          }
+        ],
+        "business_hours_override": true,
+        "note": "Webinar messages should send 24/7, not restricted to business hours"
+      }
+    }
+  ],
+  "validation_rules": {
+    "acknowledgment": {
+      "delay_minutes": 5,
+      "always_send": true,
+      "skip_conditions": []
+    },
+    "value_builder": {
+      "minimum_delay_hours": 12,
+      "maximum_delay_hours": 36,
+      "skip_if_less_than_hours": 24
+    },
+    "24hr_reminder": {
+      "exact_time_before_webinar_hours": 24,
+      "tolerance_minutes": 60,
+      "skip_if_registered_less_than_hours": 36
+    },
+    "1hr_reminder": {
+      "exact_time_before_webinar_hours": 1,
+      "tolerance_minutes": 5,
+      "skip_if_registered_less_than_hours": 2
+    },
+    "duplicate_prevention": {
+      "minimum_gap_hours": 1,
+      "applies_to_all_messages": true
+    }
+  },
+  "edge_cases": [
+    {
+      "case": "Timezone confusion",
+      "handling": "Store all times in UTC, convert webinar time from form submission to UTC"
+    },
+    {
+      "case": "Webinar rescheduled",
+      "handling": "Recalculate entire schedule, reset SMS Sequence Position to 0"
+    },
+    {
+      "case": "Lead books meeting before webinar",
+      "handling": "Set SMS Stop = TRUE, cease all webinar messages"
+    },
+    {
+      "case": "Lead opts out via STOP",
+      "handling": "Set SMS Stop = TRUE, Processing Status = Complete immediately"
+    },
+    {
+      "case": "Multiple webinar registrations",
+      "handling": "Separate schedule per webinar, track in different records or JSON array"
+    }
+  ],
+  "success_criteria": {
+    "timing_accuracy": "95% of messages sent within ±5 minutes of scheduled time",
+    "sequence_completion": "90% of leads receive all eligible messages",
+    "failed_sends": "< 2% failure rate",
+    "duplicate_prevention": "0% duplicate messages within 1-hour window"
+  }
+}
+

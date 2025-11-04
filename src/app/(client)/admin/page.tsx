@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  Shield, 
-  Users, 
-  Building2, 
+import {
+  Shield,
+  Users,
+  Building2,
   Activity,
   Plus,
   Loader2,
@@ -15,9 +15,7 @@ import {
   CheckCircle2,
   XCircle,
   Database,
-  Pause,
-  Trash2,
-  Eye
+  Pause
 } from 'lucide-react';
 import { theme } from '@/theme';
 
@@ -798,7 +796,7 @@ export default function AdminDashboardPage() {
                   required
                 />
                 <p className={`text-xs ${theme.core.bodyText} mt-1`}>
-                  Find this in your Airtable base URL (starts with "app")
+                  Find this in your Airtable base URL (starts with &quot;app&quot;)
                 </p>
               </div>
 
@@ -913,7 +911,7 @@ export default function AdminDashboardPage() {
                 {clients.length === 0 && (
                   <tr>
                     <td colSpan={7} className={`py-12 text-center ${theme.core.bodyText}`}>
-                      No clients yet. Click "Add Client" to get started.
+                      No clients yet. Click &quot;Add Client&quot; to get started.
                     </td>
                   </tr>
                 )}

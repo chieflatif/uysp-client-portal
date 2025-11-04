@@ -1,8 +1,14 @@
 # UYSP Portal - Next Features Planning
 
-**Date**: 2025-10-21  
-**Status**: Planning Phase  
+**Date**: 2025-10-21 (Updated: Oct 23, 2025)  
+**Status**: Planning Phase → Specifications Complete  
 **Priority**: HIGH - Core workflow enhancements
+
+**⚠️ IMPORTANT**: Two-Way Messaging now has complete PRD  
+**See**: `PRD-TWO-WAY-AI-MESSAGING-SYSTEM.md` for full specification  
+**Deploy**: `DEPLOYMENT-GUIDE-TWO-WAY-AI.md` for implementation steps
+
+This document provides original feature planning. For AI messaging implementation, use PRD referenced above.
 
 ---
 
@@ -134,7 +140,25 @@ Filter: [Added in last hour ▼] [Campaign: All ▼] [Status: All ▼]
 
 ## 🎯 FEATURE 3: Two-Way Messaging Visibility
 
-### Dashboard Integration
+**⚠️ UPDATED SPECIFICATION AVAILABLE**
+
+This section provided original planning. For complete, updated specification see:
+- **Complete PRD**: `PRD-TWO-WAY-AI-MESSAGING-SYSTEM.md`
+- **Implementation**: `DEPLOYMENT-GUIDE-TWO-WAY-AI.md`
+
+**Major Updates from Original Plan:**
+- ✅ Multi-tenant architecture added
+- ✅ Safety-first design (circuit breakers, last-word protocol)
+- ✅ Expanded to 86 hours (from 16-20h) due to safety requirements
+- ✅ Content library added
+- ✅ AI configuration management added
+- ✅ 5-phase deployment (vs 1-phase)
+
+**Original concept retained, significantly enhanced for production readiness and multi-tenant support.**
+
+---
+
+### Dashboard Integration (Original Concept)
 
 **New Dashboard Card:**
 ```
@@ -146,60 +170,48 @@ Filter: [Added in last hour ▼] [Campaign: All ▼] [Status: All ▼]
 └──────────────────────────┘
 ```
 
-**Quick Access:**
-- Click "Responses" card → filtered leads view
-- Shows only leads with `conversation_thread` field populated
-- Highlight unreviewed responses
+**Updated Implementation**: See PRD Section "Feature 1: Two-Way Conversation Visibility"
 
-### Airtable Schema Upgrades Required
+---
 
-**New Fields Needed:**
-```
-1. conversation_thread (Long Text / JSON)
-   - Stores full conversation history
-   - Format: [{ role: 'user', message: '...', timestamp: '...' }, { role: 'ai', ... }]
+### Airtable Schema (Expanded from Original)
 
-2. has_responded (Checkbox)
-   - TRUE if lead has sent any inbound message
-   - Auto-set by n8n when inbound SMS received
+**Original Plan: 6 fields**
+**Updated Plan: 15 fields + 4 new tables**
 
-3. last_inbound_message (Long Text)
-   - Most recent message from lead
-   
-4. last_inbound_at (DateTime)
-   - When they last responded
+**Core Fields (Original):**
+- conversation_thread
+- has_responded
+- last_inbound_message
+- last_inbound_at
+- response_status
+- ai_agent_status
 
-5. response_status (Single Select)
-   - Options: "No Response", "Responded", "Needs Review", "Resolved"
-   
-6. ai_agent_status (Single Select)
-   - Options: "Active", "Paused", "Escalated to Human"
-```
+**Safety Fields (Added):**
+- last_message_direction (PRIMARY SAFETY)
+- last_message_sent_at
+- last_message_received_at
+- active_conversation
+- ai_message_count_today
+- messages_in_last_2_hours
+- conversation_locked_by_human
+- pause_reason
+- campaign_stage
 
-### Frontend Display
+**Complete Details**: PRD Section "Complete Airtable Schema"
 
-**Leads table adds column:**
-```
-| Name | Company | Status | Responded | Last Message | Actions |
-|------|---------|--------|-----------|--------------|---------|
-| John | Acme    | Step 2 | ✅ 2h ago | "Interested" | [View]  |
-```
+---
 
-**Conversation View (Modal or Sidebar):**
-```
-┌─────────────────────────────────────┐
-│ Conversation with John Doe          │
-├─────────────────────────────────────┤
-│ [OUTBOUND] 3 days ago               │
-│ Hi John, saw you're at Acme...      │
-├─────────────────────────────────────┤
-│ [INBOUND] 2 days ago                │
-│ Yes, tell me more                   │
-├─────────────────────────────────────┤
-│ [AI RESPONSE] 2 days ago            │
-│ Great! Here's our calendar link...  │
-└─────────────────────────────────────┘
-```
+### Frontend Display (Enhanced from Original)
+
+**Original concept maintained, enhanced with:**
+- Human takeover controls
+- Safety status indicators
+- AI confidence scores
+- Cost tracking per message
+- Manual override buttons
+
+**Complete UI Specs**: PRD Section "Feature Specifications"
 
 ---
 
@@ -690,6 +702,9 @@ migrations/add-engagement-score.sql           - Engagement tracking
 ---
 
 **Ready to proceed with implementation or need clarification on any features?**
+
+
+
 
 
 

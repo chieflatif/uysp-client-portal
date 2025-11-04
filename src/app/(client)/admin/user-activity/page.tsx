@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Activity, Users, Clock, BarChart3, TrendingUp, Monitor } from 'lucide-react';
 
@@ -45,13 +45,8 @@ export default function UserActivityPage() {
   // Check if user is super admin
   const isSuperAdmin = session?.user?.role === 'SUPER_ADMIN';
 
-  useEffect(() => {
-    if (session) {
-      fetchStats();
-    }
-  }, [period, session]);
-
-  const fetchStats = async () => {
+  // CRITICAL FIX: Move fetchStats definition BEFORE useEffect to avoid hoisting error
+  const fetchStats = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -69,7 +64,13 @@ export default function UserActivityPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [period]);
+
+  useEffect(() => {
+    if (session) {
+      fetchStats();
+    }
+  }, [period, session, fetchStats]);
 
   // Show access denied if not super admin
   if (session && !isSuperAdmin) {

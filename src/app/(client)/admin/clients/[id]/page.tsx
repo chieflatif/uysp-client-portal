@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import { 
@@ -122,41 +122,8 @@ export default function ClientDetailPage() {
   // Time period filter for campaigns
   const [campaignsPeriod, setCampaignsPeriod] = useState<'all' | '7d' | '30d'>('all');
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (status === 'unauthenticated') {
-      router.push('/login');
-      return;
-    }
-
-    if (session?.user?.role !== 'SUPER_ADMIN' && session?.user?.role !== 'ADMIN') {
-      router.push('/dashboard');
-      return;
-    }
-
-    fetchClientData();
-  }, [status, session, router, clientId]);
-
-  // Refetch campaigns when period changes
-  useEffect(() => {
-    if (clientId) {
-      const fetchCampaignsOnly = async () => {
-        try {
-          const campaignsAnalyticsRes = await fetch(`/api/admin/clients/${clientId}/campaigns?period=${campaignsPeriod}`);
-          if (campaignsAnalyticsRes.ok) {
-            const campaignsData = await campaignsAnalyticsRes.json();
-            setCampaignsWithAnalytics(campaignsData.campaigns || []);
-          }
-        } catch (error) {
-          console.error('Error fetching campaigns:', error);
-        }
-      };
-      fetchCampaignsOnly();
-    }
-  }, [campaignsPeriod, clientId]);
-
-  const fetchClientData = async () => {
+  // CRITICAL FIX: Move fetchClientData definition BEFORE useEffect to avoid hoisting error
+  const fetchClientData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -199,7 +166,41 @@ export default function ClientDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [clientId, campaignsPeriod]);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+
+    if (status === 'unauthenticated') {
+      router.push('/login');
+      return;
+    }
+
+    if (session?.user?.role !== 'SUPER_ADMIN' && session?.user?.role !== 'ADMIN') {
+      router.push('/dashboard');
+      return;
+    }
+
+    fetchClientData();
+  }, [status, session, router, clientId, fetchClientData]);
+
+  // Refetch campaigns when period changes
+  useEffect(() => {
+    if (clientId) {
+      const fetchCampaignsOnly = async () => {
+        try {
+          const campaignsAnalyticsRes = await fetch(`/api/admin/clients/${clientId}/campaigns?period=${campaignsPeriod}`);
+          if (campaignsAnalyticsRes.ok) {
+            const campaignsData = await campaignsAnalyticsRes.json();
+            setCampaignsWithAnalytics(campaignsData.campaigns || []);
+          }
+        } catch (error) {
+          console.error('Error fetching campaigns:', error);
+        }
+      };
+      fetchCampaignsOnly();
+    }
+  }, [campaignsPeriod, clientId]);
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();

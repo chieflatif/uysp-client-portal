@@ -88,38 +88,56 @@
 
 ---
 
-### Feature 2: Two-Way Messaging (16-20 hours) - P0
-**Status**: Backend ready, UI not built  
-**Priority**: Build SECOND (critical for sales)
+### Feature 2: Two-Way AI Messaging (86 hours over 5 weeks) - P0
+**Status**: Complete architecture defined  
+**Priority**: Build SECOND (critical for sales)  
+**Specification**: See `PRD-TWO-WAY-AI-MESSAGING-SYSTEM.md` (complete PRD)  
+**Deployment**: See `DEPLOYMENT-GUIDE-TWO-WAY-AI.md` (step-by-step guide)
 
 **What it does:**
-- See full SMS conversation history per lead
-- AI agent responds to 60-70% of messages automatically
-- Complex/negative responses escalate to human review queue
-- Sales team sees responses instantly in portal
+- AI handles 70-80% of prospect conversations automatically
+- Full two-way messaging with context awareness
+- Safety-first architecture (prevents double-messaging, runaway bugs)
+- Multi-tenant (shared workflows, isolated data)
+- Human takeover for complex situations
+- Content library with AI-powered retrieval
+- Prospect-controlled timing ("check back in 3 months" works)
 
-**Airtable Changes** (manual, 30 min):
-```
-Add to Leads table:
-- conversation_thread (Long Text) - stores JSON array of full conversation
-- has_responded (Checkbox) - TRUE if lead replied
-- last_inbound_message (Long Text) - latest reply
-- last_inbound_at (DateTime) - when they replied
-- response_count (Number) - engagement metric
-- response_sentiment (Single Select) - positive/neutral/negative
-- human_review_flag (Checkbox) - TRUE if needs human
-- ai_agent_status (Single Select) - active/paused
-```
+**Architecture**: Configuration-driven multi-tenancy
+- One set of n8n workflows serves all clients
+- Client customization via Airtable config tables
+- Separate Airtable base per client (data isolation)
+- Dynamic context loading per conversation
 
-**n8n Workflows** (4 new, 11-17 hours):
-1. Inbound Message Router (receives SMS webhook)
-2. Sentiment Analyzer (OpenAI classification)
-3. AI Response Generator (GPT-4 contextual responses)
-4. Human Review Notifier (alerts sales team)
-5. Update SMS Scheduler (skip paused leads)
+**Key Safety Features:**
+- ✅ Last-word protocol (AI never double-messages)
+- ✅ Circuit breakers (detects runaway conversations)
+- ✅ Schedule auto-invalidation (prevents stale messages)
+- ✅ Budget protection (cost limits)
+- ✅ 100% decision audit logging
+- ✅ Emergency controls (global pause, manual override)
 
-**Frontend** (18-20 hours):
-1. Human Review Queue page (/leads/review-queue)
+**Implementation Phases:**
+1. Phase 1: Safety Infrastructure (Week 1 - 16h)
+2. Phase 2: AI Conversation Engine (Week 2 - 24h)
+3. Phase 3: Frontend Conversation View (Week 3 - 18h)
+4. Phase 4: Content Library (Week 4 - 12h)
+5. Phase 5: Multi-Tenant Deployment (Week 5 - 16h)
+
+**Total Effort**: 86 hours over 5 weeks
+
+**Airtable Schema Changes**:
+- People table: +15 safety and conversation fields
+- Communications table: +6 AI tracking fields
+- NEW: AI_Config table (client customization)
+- NEW: Content_Library table (resources)
+- NEW: Client_Safety_Config table (limits)
+- NEW: Message_Decision_Log table (audit)
+- NEW: Campaign_Timing_Rules table (flow config)
+
+**n8n Workflows** (2 new core workflows):
+1. Inbound Message Handler (conversation engine with full safety)
+2. Scheduled Nurture Trigger (respects conversation state)
 2. Conversation view component (chat-style UI)
 3. Response status dashboard widget
 4. Notification system (real-time alerts)
@@ -640,6 +658,9 @@ Full history in one field. AI reads all. Perfect context.
 ---
 
 **📍 THIS IS THE CANONICAL DOCUMENT - All other planning docs point here**
+
+
+
 
 
 
