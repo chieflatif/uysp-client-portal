@@ -353,11 +353,12 @@ async function callAzureOpenAI(
 
   const url = `${endpoint}/openai/deployments/${model}/chat/completions?api-version=2024-08-01-preview`;
 
-  // Token allocation by model:
-  // - gpt-5-mini: Uses extensive reasoning tokens (2000-3000+) before generating output
-  // - gpt-4o: Standard completion model, doesn't need as many tokens
-  // - Other models: Standard 2000 tokens
-  const maxTokens = model === 'gpt-5-mini' ? 8000 : 2000;
+  // Token allocation for SMS generation:
+  // - SMS messages are ~300 chars = ~100-150 tokens max
+  // - We only need ~200-500 tokens for the completion
+  // - High token counts cause unnecessary processing time and timeouts
+  // - Previous value of 8000 was causing 30s timeouts!
+  const maxTokens = 500;
   console.log(`[AI-MSG ${requestId}] Max tokens: ${maxTokens}`);
 
   // TIMEOUT CONFIGURATION:
