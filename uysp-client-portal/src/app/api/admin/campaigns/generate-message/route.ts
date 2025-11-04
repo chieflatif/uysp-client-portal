@@ -31,15 +31,15 @@ const generateMessageSchema = z.object({
 type GenerateMessageInput = z.infer<typeof generateMessageSchema>;
 
 // Azure OpenAI configuration - DUAL ENDPOINT for redundancy
-// Primary: gpt-5-mini on cursor-agent endpoint (621ms average)
-const PRIMARY_ENDPOINT = 'https://cursor-agent.services.ai.azure.com';
-const PRIMARY_KEY = process.env.AZURE_OPENAI_KEY;
-const PRIMARY_MODEL = 'gpt-5-mini';
+// Primary: gpt-4o on chief-1020 endpoint (284ms average - FAST, no reasoning overhead)
+const PRIMARY_ENDPOINT = 'https://chief-1020-resource.cognitiveservices.azure.com';
+const PRIMARY_KEY = process.env.AZURE_OPENAI_KEY_FALLBACK;
+const PRIMARY_MODEL = 'gpt-4o';
 
-// Fallback: gpt-4o on chief-1020 endpoint (380ms average - different geographic endpoint for redundancy)
-const FALLBACK_ENDPOINT = 'https://chief-1020-resource.cognitiveservices.azure.com';
-const FALLBACK_KEY = process.env.AZURE_OPENAI_KEY_FALLBACK;
-const FALLBACK_MODEL = 'gpt-4o';
+// Fallback: gpt-4.1-mini on cursor-agent endpoint (318ms average - different geographic endpoint for redundancy)
+const FALLBACK_ENDPOINT = 'https://cursor-agent.services.ai.azure.com';
+const FALLBACK_KEY = process.env.AZURE_OPENAI_KEY;
+const FALLBACK_MODEL = 'gpt-4.1-mini';
 
 // SECURITY: Validate API keys are set at module load time
 if (!PRIMARY_KEY) {
@@ -363,8 +363,8 @@ async function callAzureOpenAI(
 
   // TIMEOUT CONFIGURATION:
   // - Vercel/Render serverless functions: 60s max execution time
-  // - Primary model (gpt-5-mini): Usually 1-2s response time (621ms average)
-  // - Fallback model (gpt-4o): Usually <1s response time (380ms average)
+  // - Primary model (gpt-4o): Usually <500ms response time (284ms average)
+  // - Fallback model (gpt-4.1-mini): Usually <500ms response time (318ms average)
   // - 30s timeout allows for slow responses while preventing full serverless timeout
   // - This leaves 30s buffer for fallback attempts + error handling + response serialization
   const controller = new AbortController();
