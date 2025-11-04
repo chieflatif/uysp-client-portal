@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     const rawOffset = Number(searchParams.get('offset')) || 0;
 
     // CRITICAL FIX: Validate pagination parameters
-    const limit = Math.min(Math.max(rawLimit, 1), 50000); // Between 1 and 50000
+    const limit = Math.min(Math.max(rawLimit, 1), 500); // Between 1 and 500
     const offset = Math.max(rawOffset, 0); // Must be non-negative
 
     // CRITICAL FIX: Filter by clientId and isActive

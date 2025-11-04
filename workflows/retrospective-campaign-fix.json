@@ -1,0 +1,211 @@
+{
+  "name": "Retrospective Campaign Fix",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYUvhGADerbD8EO",
+          "mode": "id"
+        },
+        "filterByFormula": "AND({Campaign (CORRECTED)} = BLANK(), {Form ID} != BLANK())",
+        "fields": {
+          "fields": [
+            "Form ID",
+            "Email"
+          ]
+        },
+        "options": {
+            "pageSize": 100,
+            "returnAll": true
+        }
+      },
+      "id": "d4b33d96-c035-4a55-8d25-501dd30290f8",
+      "name": "Get Leads to Fix",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        460,
+        200
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblnIn8c1spOrImuz",
+          "mode": "id"
+        },
+        "fields": {
+          "fields": [
+            "Form ID",
+            "Campaign Name"
+          ]
+        },
+        "options": {}
+      },
+      "id": "c5daeed2-408a-4355-be1e-f77b3d10375a",
+      "name": "Get Campaign Mappings",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        460,
+        400
+      ],
+      "settings": {
+        "executeOnce": true
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const leads = $('Get Leads to Fix').all();\nconst campaigns = $('Get Campaign Mappings').all();\n\nconst campaignMap = new Map();\ncampaigns.forEach(c => {\n  const fields = c.json.fields;\n  if (fields['Form ID'] && fields['Campaign Name']) {\n    campaignMap.set(fields['Form ID'], fields['Campaign Name']);\n  }\n});\n\nconst recordsToUpdate = [];\nfor (const lead of leads) {\n  const leadFields = lead.json.fields;\n  const leadId = lead.json.id;\n  const formId = leadFields['Form ID'];\n  \n  if (campaignMap.has(formId)) {\n    const campaignName = campaignMap.get(formId);\n    recordsToUpdate.push({\n      id: leadId,\n      fields: {\n        'Campaign (CORRECTED)': campaignName\n      }\n    });\n  }\n}\n\n// Airtable API allows updating 10 records at a time.\n// We need to chunk the updates.\nconst chunkedRecords = [];\nconst chunkSize = 10;\nfor (let i = 0; i < recordsToUpdate.length; i += chunkSize) {\n    const chunk = recordsToUpdate.slice(i, i + chunkSize);\n    chunkedRecords.push({ json: { records: chunk } });\n}\n\nreturn chunkedRecords;"
+      },
+      "id": "prepare-update-batches",
+      "name": "Prepare Update Batches",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app4wIsBfpJTg7pWS",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYUvhGADerbD8EO",
+          "mode": "id"
+        },
+        "records": "={{ $json.records }}"
+      },
+      "id": "bulk-update-leads",
+      "name": "Bulk Update Leads",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        900,
+        300
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zir5IhIPeSQs72LR",
+          "name": "Airtable UYSP Option C"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const errors = $items().filter(item => item.error);\nreturn errors;"
+      },
+      "id": "log-errors",
+      "name": "Log Errors",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "manual-trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Leads to Fix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Leads to Fix": {
+      "main": [
+        [
+          {
+            "node": "Get Campaign Mappings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Campaign Mappings": {
+      "main": [
+        [
+          {
+            "node": "Prepare Update Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Update Batches": {
+      "main": [
+        [
+          {
+            "node": "Bulk Update Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bulk Update Leads": {
+      "main": [
+        [
+          {
+            "node": "Log Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null
+}
