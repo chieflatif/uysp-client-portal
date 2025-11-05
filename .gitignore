@@ -115,3 +115,4 @@ $RECYCLE.BIN/
 *.tar.gz
 *.zip
 *.7z
+.next/

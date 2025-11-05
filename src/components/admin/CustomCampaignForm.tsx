@@ -129,10 +129,7 @@ export default function CustomCampaignForm({
     const fetchTags = async () => {
       try {
         setLoadingTags(true);
-        const response = await fetch(
-          `/api/admin/campaigns/available-tags?clientId=${clientId}&direct=true`,
-          { signal: controller.signal }
-        );
+        const response = await fetch(`/api/admin/campaigns/available-tags?clientId=${clientId}&direct=true`);
         const data = await response.json();
 
         // HIGH-1 FIX: Only update state if component still mounted
@@ -168,7 +165,7 @@ export default function CustomCampaignForm({
   const fetchAvailableTags = async () => {
     try {
       setLoadingTags(true);
-      const response = await fetch(`/api/admin/campaigns/available-tags?clientId=${clientId}`);
+      const response = await fetch(`/api/admin/campaigns/available-tags?clientId=${clientId}&direct=true`);
       const data = await response.json();
       // HIGH-2 FIX: Deduplicate tags
       const dedupedTags = deduplicateTags(data.tags || []);

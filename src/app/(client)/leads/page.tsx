@@ -24,6 +24,9 @@ interface Lead {
   campaignName?: string;
   leadSource?: string;
   lastActivity?: string | null;
+  // Engagement metrics
+  engagementLevel?: string;
+  engagementTier?: string;
 }
 
 type SortField = 'name' | 'company' | 'icpScore' | 'status' | 'lastActivity' | 'campaign';

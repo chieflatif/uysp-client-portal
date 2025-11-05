@@ -1,9 +1,0 @@
-{
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/api/admin/clients/route": "app/api/admin/clients/route.js",
-  "/api/admin/campaigns/route": "app/api/admin/campaigns/route.js",
-  "/(client)/admin/campaigns/page": "app/(client)/admin/campaigns/page.js",
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(client)/dashboard/page": "app/(client)/dashboard/page.js"
-}

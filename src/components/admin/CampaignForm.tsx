@@ -206,30 +206,37 @@ export default function CampaignForm({
         stage: message.stage,
       };
 
-      // Create stage-specific prompt
-      let messageGoal = '';
-      let additionalContext = '';
+      // Create stage-specific prompt - map to valid messageGoal enum values
+      let messageGoal: 'book_call' | 'provide_value' | 'nurture' | 'follow_up' = 'provide_value';
+      let stageInstructions = '';
+      let bookingLink = '';
 
       switch (message.stage) {
         case 'thank_you':
-          messageGoal = 'thank_registration';
-          additionalContext = 'Include confirmation that they\'re registered and will receive calendar invite. Keep it warm and welcoming.';
+          messageGoal = 'nurture';
+          stageInstructions = 'Include confirmation that they\'re registered and will receive calendar invite. Keep it warm and welcoming.';
+          bookingLink = formData.zoomLink || '';
           break;
         case 'value_add':
-          messageGoal = 'share_resource';
-          additionalContext = formData.resourceLink
+          messageGoal = 'provide_value';
+          stageInstructions = formData.resourceLink
             ? `Share the resource: "${formData.resourceName || 'resource'}". Make it valuable and relevant to preparing for the webinar.`
             : 'Share valuable pre-webinar content or tips. Make them excited about the upcoming session.';
           break;
         case '24h_reminder':
-          messageGoal = 'reminder_24h';
-          additionalContext = 'Remind them about the webinar happening in 24 hours. Build anticipation and excitement.';
+          messageGoal = 'follow_up';
+          stageInstructions = 'Remind them about the webinar happening in 24 hours. Build anticipation and excitement.';
           break;
         case '1h_reminder':
-          messageGoal = 'reminder_1h';
-          additionalContext = 'Final reminder - webinar starting in 1 hour. Include clear call-to-action to join. Create urgency.';
+          messageGoal = 'follow_up';
+          stageInstructions = 'Final reminder - webinar starting in 1 hour. Include clear call-to-action to join. Create urgency.';
+          bookingLink = formData.zoomLink || '';
           break;
       }
+
+      // Combine context into customInstructions
+      const webinarDetails = `Webinar: ${formData.name || 'Webinar Campaign'}. Date/Time: ${formData.webinarDatetime || 'TBD'}. Stage: ${message.stage}.`;
+      const customInstructions = `${webinarDetails} ${stageInstructions}`;
 
       const response = await fetch('/api/admin/campaigns/generate-message', {
         method: 'POST',
@@ -240,8 +247,8 @@ export default function CampaignForm({
           messageGoal,
           tone: 'friendly',
           includeLink: message.stage === 'thank_you' || message.stage === '1h_reminder',
-          webinarContext,
-          additionalContext,
+          bookingLink: bookingLink || undefined,
+          customInstructions,
         }),
       });
 

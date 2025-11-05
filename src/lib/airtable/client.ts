@@ -487,18 +487,14 @@ export class AirtableClient {
       
       // Campaign & Sequence Tracking (CORRECTED FIELD NAMES)
       campaignName: fields['SMS Campaign ID'] as string | undefined,
-      // Lead Source: Pull from Campaign (CORRECTED) field
+      // Lead Source: Direct copy from Campaign (CORRECTED) - actual campaign name
       leadSource: (() => {
         const corrected = fields['Campaign (CORRECTED)'];
         const original = fields['Campaign'];
-        // Warn if both fields exist with different values (indicates data quality issue)
-        if (corrected && original && corrected !== original) {
-          console.warn(`⚠️ Record ${record.id}: Both 'Campaign (CORRECTED)' and 'Campaign' exist with different values. Using 'Campaign (CORRECTED)'.`);
-        }
-        return ((corrected || original) as string | undefined) || 'Standard Form';
+        return ((corrected || original) as string | undefined) || null;
       })(),
-      campaignVariant: fields['SMS Variant'] as string | undefined, // A or B
-      campaignBatch: fields['SMS Batch Control'] as string | undefined,
+      campaignVariant: (fields['SMS Variant'] as string | undefined) || null,
+      campaignBatch: (fields['SMS Batch Control'] as string | undefined) || null,
       smsSequencePosition: Number(fields['SMS Sequence Position']) || 0,
       smsSentCount: Number(fields['SMS Sent Count']) || 0,
       smsLastSentAt: parseTimestamp(fields['SMS Last Sent At'] as string | undefined), // FIXED: Use validated parser
