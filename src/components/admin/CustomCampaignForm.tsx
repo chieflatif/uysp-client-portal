@@ -1,4 +1,5 @@
 'use client';
+// CACHE BUST: 2025-11-05T01:20:00Z - Force recompile for direct tag loading fix
 
 import { useState, useEffect, useRef } from 'react';
 import { theme } from '@/theme';
