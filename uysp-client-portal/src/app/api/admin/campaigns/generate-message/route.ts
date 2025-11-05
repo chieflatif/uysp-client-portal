@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
-import { checkRateLimit, RATE_LIMIT_CONFIGS } from '@/lib/utils/rate-limit';
 import { z } from 'zod';
 
 /**
  * POST /api/admin/campaigns/generate-message
  *
- * Generate SMS message using Azure OpenAI (GPT-5)
+ * Generate SMS message using Azure OpenAI (GPT-4o primary, GPT-4.1-mini fallback)
  * Hybrid approach: AI generates, human edits
+ *
+ * CACHE BUST: 2025-11-05T01:14:00Z - Force Next.js recompile
  *
  * Body: GenerateMessageInput (see schema below)
  *
@@ -40,6 +41,13 @@ const PRIMARY_MODEL = 'gpt-4o';
 const FALLBACK_ENDPOINT = 'https://cursor-agent.services.ai.azure.com';
 const FALLBACK_KEY = process.env.AZURE_OPENAI_KEY;
 const FALLBACK_MODEL = 'gpt-4.1-mini';
+
+// BUILD ID: Unique identifier for this build (from git commit or timestamp)
+// This forces Next.js to recompile this route on every deployment
+const BUILD_ID = process.env.RENDER_GIT_COMMIT || Date.now().toString();
+console.log(`🏗️ [AI Message Generation] Module loaded - Build ID: ${BUILD_ID}`);
+console.log(`🤖 [AI Message Generation] PRIMARY_MODEL: ${PRIMARY_MODEL} @ ${PRIMARY_ENDPOINT}`);
+console.log(`🔄 [AI Message Generation] FALLBACK_MODEL: ${FALLBACK_MODEL} @ ${FALLBACK_ENDPOINT}`);
 
 // SECURITY: Validate API keys are set at module load time
 if (!PRIMARY_KEY) {
@@ -75,39 +83,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
         { status: 403 }
-      );
-    }
-
-    // RATE LIMIT: Check if user has exceeded rate limit (database-based)
-    console.log(`🔒 Checking rate limit for user ${session.user.id}...`);
-    const rateLimitResult = await checkRateLimit(
-      session.user.id,
-      RATE_LIMIT_CONFIGS.AI_MESSAGE_GENERATION
-    );
-
-    console.log(`🔒 Rate limit check: ${rateLimitResult.allowed ? '✅ ALLOWED' : '❌ BLOCKED'} (${rateLimitResult.remaining}/${rateLimitResult.limit} remaining)`);
-
-    if (!rateLimitResult.allowed) {
-      const minutesUntilReset = Math.ceil(
-        (rateLimitResult.resetAt.getTime() - Date.now()) / 60000
-      );
-      console.warn(`⚠️ Rate limit exceeded for user ${session.user.id} - resets in ${minutesUntilReset} minutes`);
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded',
-          details: `You can generate ${rateLimitResult.limit} messages per hour. Please try again in ${minutesUntilReset} minutes (resets at ${rateLimitResult.resetAt.toLocaleTimeString()}).`,
-          resetAt: rateLimitResult.resetAt.toISOString(),
-          remaining: rateLimitResult.remaining,
-        },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000)),
-            'X-RateLimit-Limit': String(rateLimitResult.limit),
-            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
-            'X-RateLimit-Reset': String(Math.floor(rateLimitResult.resetAt.getTime() / 1000)),
-          },
-        }
       );
     }
 

@@ -4,7 +4,7 @@ services:
     name: uysp-portal-v2
     runtime: node
     plan: free
-    buildCommand: rm -rf .next && npm install && npm run build
+    buildCommand: find uysp-client-portal/src/app/api -name "*.ts" -exec touch {} + && rm -rf .next && npm install && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
