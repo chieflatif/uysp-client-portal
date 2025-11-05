@@ -1,4 +1,5 @@
 'use client';
+// CACHE BUST: 2025-11-05T01:25:00Z - Force recompile for direct tag loading fix
 
 import { useState, useEffect } from 'react';
 import { theme } from '@/theme';
@@ -77,7 +78,7 @@ export default function CampaignForm({
     const fetchTags = async () => {
       try {
         setLoadingTags(true);
-        const response = await fetch(`/api/admin/campaigns/available-tags?clientId=${clientId}`);
+        const response = await fetch(`/api/admin/campaigns/available-tags?clientId=${clientId}&direct=true`);
         if (response.ok) {
           const data = await response.json();
           setAvailableTags(data.tags || []);
