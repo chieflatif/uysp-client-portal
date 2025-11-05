@@ -1,5 +1,6 @@
 'use client';
-// CACHE BUST: 2025-11-05T01:30:00Z - Force recompile for variable insertion UI
+// CACHE BUST: 2025-11-05T01:45:00Z - FORCE INVALIDATE for variable insertion buttons
+// Previous cache bust failed - Vercel serving stale JS despite commit f560ad0 deployed
 
 import { useState, useEffect, useRef } from 'react';
 import { theme } from '@/theme';

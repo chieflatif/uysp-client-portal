@@ -1,5 +1,6 @@
 'use client';
-// CACHE BUST: 2025-11-05T01:20:00Z - Force recompile for direct tag loading fix
+// CACHE BUST: 2025-11-05T01:45:00Z - FORCE INVALIDATE for variable insertion buttons
+// Previous cache bust failed - Vercel serving stale JS despite commit 859662e deployed
 
 import { useState, useEffect, useRef } from 'react';
 import { theme } from '@/theme';
