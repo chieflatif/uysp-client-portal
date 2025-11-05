@@ -1,7 +1,15 @@
 const path = require('path');
+const { execSync } = require('child_process');
+
+// Get the latest git commit hash
+const commitHash = execSync('git rev-parse HEAD').toString().trim();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_GIT_COMMIT_SHA: commitHash,
+    NEXT_PUBLIC_BUILD_TIMESTAMP: new Date().toISOString(),
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

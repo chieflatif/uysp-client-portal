@@ -1,0 +1,323 @@
+{
+  "name": "Campaign De-enrollment V2 - Multi-Client",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "cron_trigger",
+      "name": "Every 15 minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "notes": "Runs every 15 minutes to process de-enrollments"
+    },
+    {
+      "parameters": {
+        "command": "cd /path/to/project && npx tsx scripts/de-enroll-completed-leads-v2.ts --all-clients",
+        "cwd": "/path/to/project"
+      },
+      "id": "execute_script",
+      "name": "Run De-enrollment V2",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "continueOnFail": true,
+      "notes": "Executes the V2 script with multi-client support"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"exitCode\"]}}",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "check_success",
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "output",
+              "value": "={{$node[\"Run De-enrollment V2\"].json[\"stdout\"]}}"
+            }
+          ]
+        }
+      },
+      "id": "success_parser",
+      "name": "Parse Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.MONITORING_WEBHOOK_URL}}",
+        "method": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "service",
+              "value": "de-enrollment-v2"
+            },
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{$now.toISO()}}"
+            },
+            {
+              "name": "details",
+              "value": "={{$json[\"output\"]}}"
+            }
+          ]
+        }
+      },
+      "id": "send_success_metric",
+      "name": "Send Success Metric",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1050, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "failed"
+            },
+            {
+              "name": "error",
+              "value": "={{$node[\"Run De-enrollment V2\"].json[\"stderr\"]}}"
+            },
+            {
+              "name": "exitCode",
+              "value": "={{$node[\"Run De-enrollment V2\"].json[\"exitCode\"]}}"
+            }
+          ]
+        }
+      },
+      "id": "error_parser",
+      "name": "Parse Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.ALERT_WEBHOOK_URL}}",
+        "method": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "severity",
+              "value": "error"
+            },
+            {
+              "name": "service",
+              "value": "de-enrollment-v2"
+            },
+            {
+              "name": "message",
+              "value": "De-enrollment script failed"
+            },
+            {
+              "name": "error",
+              "value": "={{$json[\"error\"]}}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{$now.toISO()}}"
+            }
+          ]
+        }
+      },
+      "id": "send_alert",
+      "name": "Send Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1050, 400]
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "slackApi",
+        "channel": "#alerts",
+        "text": "🚨 De-enrollment V2 Failed\n\nError: {{$json[\"error\"]}}\nExit Code: {{$json[\"exitCode\"]}}\nTime: {{$now.toISO()}}",
+        "otherOptions": {}
+      },
+      "id": "slack_alert",
+      "name": "Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1050, 500],
+      "credentials": {
+        "slackApi": {
+          "id": "1",
+          "name": "Slack API"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "command": "cd /path/to/project && npx tsx scripts/de-enroll-completed-leads-v2.ts --health-check",
+        "cwd": "/path/to/project"
+      },
+      "id": "health_check",
+      "name": "Health Check",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [450, 500],
+      "notes": "Runs every hour to check system health"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "hourly_health_check",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 500],
+      "notes": "Health check runs hourly"
+    }
+  ],
+  "connections": {
+    "cron_trigger": {
+      "main": [
+        [
+          {
+            "node": "execute_script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "execute_script": {
+      "main": [
+        [
+          {
+            "node": "check_success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check_success": {
+      "main": [
+        [
+          {
+            "node": "success_parser",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "error_parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "success_parser": {
+      "main": [
+        [
+          {
+            "node": "send_success_metric",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "error_parser": {
+      "main": [
+        [
+          {
+            "node": "send_alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "slack_alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "hourly_health_check": {
+      "main": [
+        [
+          {
+            "node": "health_check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "error-handler-workflow-id"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "production",
+      "createdAt": "2024-11-04T12:00:00.000Z",
+      "updatedAt": "2024-11-04T12:00:00.000Z"
+    },
+    {
+      "name": "de-enrollment",
+      "createdAt": "2024-11-04T12:00:00.000Z",
+      "updatedAt": "2024-11-04T12:00:00.000Z"
+    }
+  ],
+  "triggerCount": 2,
+  "updatedAt": "2024-11-04T12:00:00.000Z",
+  "versionId": "v2"
+}

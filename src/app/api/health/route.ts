@@ -3,41 +3,17 @@ import { NextResponse } from 'next/server';
 /**
  * GET /api/health
  *
- * Public health check endpoint for AI message generation config
- * Returns actual runtime configuration to verify deployments
- *
- * NO AUTH REQUIRED - This is a public endpoint for deployment verification
+ * A public endpoint to verify the deployment status, commit SHA, and build time.
+ * This is used to confirm that the code deployed on the server matches the
+ * latest commit on the main branch.
  */
-
-// These constants match what's used in the actual generate-message route
-// This ensures we're checking the EXACT values being used at runtime
-const PRIMARY_ENDPOINT = 'https://chief-1020-resource.cognitiveservices.azure.com';
-const PRIMARY_MODEL = 'gpt-4o';
-const FALLBACK_ENDPOINT = 'https://cursor-agent.services.ai.azure.com';
-const FALLBACK_MODEL = 'gpt-4.1-mini';
-
 export async function GET() {
-  const buildId = process.env.RENDER_GIT_COMMIT || 'local-dev';
-  const deployedAt = new Date().toISOString();
+  const commitSha = process.env.NEXT_PUBLIC_GIT_COMMIT_SHA;
+  const buildTimestamp = process.env.NEXT_PUBLIC_BUILD_TIMESTAMP;
 
   return NextResponse.json({
-    status: 'healthy',
-    config: {
-      primary: {
-        model: PRIMARY_MODEL,
-        endpoint: PRIMARY_ENDPOINT,
-        keyConfigured: !!process.env.AZURE_OPENAI_KEY_FALLBACK,
-      },
-      fallback: {
-        model: FALLBACK_MODEL,
-        endpoint: FALLBACK_ENDPOINT,
-        keyConfigured: !!process.env.AZURE_OPENAI_KEY,
-      },
-    },
-    build: {
-      id: buildId,
-      deployedAt,
-    },
-    timestamp: Date.now(),
+    status: 'ok',
+    commitSha: commitSha || 'unknown',
+    buildTimestamp: buildTimestamp || 'unknown',
   });
 }
