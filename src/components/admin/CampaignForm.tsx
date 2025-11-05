@@ -1,7 +1,7 @@
 'use client';
-// CACHE BUST: 2025-11-05T01:25:00Z - Force recompile for direct tag loading fix
+// CACHE BUST: 2025-11-05T01:30:00Z - Force recompile for variable insertion UI
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { theme } from '@/theme';
 import { X, Sparkles, Loader2 } from 'lucide-react';
 
@@ -72,6 +72,9 @@ export default function CampaignForm({
     { stage: '24h_reminder', label: '24-Hour Reminder', delayMinutes: 2880, text: '' }, // 2 days (will be dynamic based on webinar date)
     { stage: '1h_reminder', label: '1-Hour Reminder', delayMinutes: 4260, text: '' }, // ~3 days (will be dynamic based on webinar date)
   ]);
+
+  // NEW: Refs for message textareas to enable cursor-position variable insertion
+  const messageTextareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
   // Fetch available tags on mount
   useEffect(() => {
@@ -189,6 +192,29 @@ export default function CampaignForm({
         return newErrors;
       });
     }
+  };
+
+  // Helper: Insert variable at cursor position
+  const insertVariable = (messageIndex: number, variable: string) => {
+    const textareaRef = messageTextareaRefs.current[messageIndex];
+    if (!textareaRef) return;
+    
+    const start = textareaRef.selectionStart;
+    const end = textareaRef.selectionEnd;
+    const text = messages[messageIndex].text;
+    const before = text.substring(0, start);
+    const after = text.substring(end);
+    const newText = before + variable + after;
+    
+    // Update via React state
+    updateMessage(messageIndex, newText);
+    
+    // Set cursor position after variable
+    setTimeout(() => {
+      textareaRef.focus();
+      const newCursorPos = start + variable.length;
+      textareaRef.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
   };
 
   // AI generation for webinar messages
@@ -573,7 +599,58 @@ export default function CampaignForm({
                       <label className="text-xs text-gray-400 block mb-1">
                         Message Text <span className="text-red-400">*</span>
                       </label>
+
+                      {/* NEW: Variable Insertion Buttons */}
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        <span className="text-xs text-gray-400 self-center">Insert:</span>
+                        <button
+                          type="button"
+                          onClick={() => insertVariable(index, '{{first_name}}')}
+                          className="px-2 py-1 text-xs bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-600/40 rounded font-mono"
+                          title="Insert {{first_name}} at cursor"
+                        >
+                          + First Name
+                        </button>
+                        {formData.resourceLink && formData.resourceName && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => insertVariable(index, '{{resource_name}}')}
+                              className="px-2 py-1 text-xs bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-600/40 rounded font-mono"
+                              title="Insert {{resource_name}} at cursor"
+                            >
+                              + Resource Name
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => insertVariable(index, '{{resource_link}}')}
+                              className="px-2 py-1 text-xs bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-600/40 rounded font-mono"
+                              title="Insert {{resource_link}} at cursor"
+                            >
+                              + Resource Link
+                            </button>
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => insertVariable(index, '{{zoom_link}}')}
+                          className="px-2 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-600/40 rounded font-mono"
+                          title="Insert {{zoom_link}} at cursor"
+                        >
+                          + Zoom Link
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertVariable(index, '{{booking_link}}')}
+                          className="px-2 py-1 text-xs bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-600/40 rounded font-mono"
+                          title="Insert {{booking_link}} at cursor"
+                        >
+                          + Booking Link
+                        </button>
+                      </div>
+
                       <textarea
+                        ref={(el) => (messageTextareaRefs.current[index] = el)}
                         value={message.text}
                         onChange={(e) => updateMessage(index, e.target.value)}
                         rows={4}
@@ -590,7 +667,15 @@ export default function CampaignForm({
                         </p>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        Use {'{{'} first_name {'}}' } for personalization
+                        Variables: <code className="text-cyan-300">{{'{{'}}first_name{{'}}'}}</code>, 
+                        {formData.resourceLink && formData.resourceName && (
+                          <>
+                            <code className="text-purple-300 ml-1">{{'{{'}}resource_name{{'}}'}}</code>, 
+                            <code className="text-purple-300 ml-1">{{'{{'}}resource_link{{'}}'}}</code>, 
+                          </>
+                        )}
+                        <code className="text-blue-300 ml-1">{{'{{'}}zoom_link{{'}}'}}</code>, 
+                        <code className="text-green-300 ml-1">{{'{{'}}booking_link{{'}}'}}</code>
                       </p>
                     </div>
                   </div>
