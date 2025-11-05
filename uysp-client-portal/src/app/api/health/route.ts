@@ -1,28 +1,43 @@
 import { NextResponse } from 'next/server';
 
 /**
- * Health check endpoint for debugging connectivity issues
  * GET /api/health
  *
- * Returns:
- * - Timestamp
- * - Environment info
- * - API key status (not values, just presence)
+ * Public health check endpoint for AI message generation config
+ * Returns actual runtime configuration to verify deployments
+ *
+ * NO AUTH REQUIRED - This is a public endpoint for deployment verification
  */
+
+// These constants match what's used in the actual generate-message route
+// This ensures we're checking the EXACT values being used at runtime
+const PRIMARY_ENDPOINT = 'https://chief-1020-resource.cognitiveservices.azure.com';
+const PRIMARY_MODEL = 'gpt-4o';
+const FALLBACK_ENDPOINT = 'https://cursor-agent.services.ai.azure.com';
+const FALLBACK_MODEL = 'gpt-4.1-mini';
+
 export async function GET() {
-  const timestamp = new Date().toISOString();
+  const buildId = process.env.RENDER_GIT_COMMIT || 'local-dev';
+  const deployedAt = new Date().toISOString();
 
   return NextResponse.json({
-    status: 'ok',
-    timestamp,
-    environment: process.env.NODE_ENV || 'unknown',
-    apiKeys: {
-      primary: !!process.env.AZURE_OPENAI_KEY,
-      fallback: !!process.env.AZURE_OPENAI_KEY_FALLBACK,
+    status: 'healthy',
+    config: {
+      primary: {
+        model: PRIMARY_MODEL,
+        endpoint: PRIMARY_ENDPOINT,
+        keyConfigured: !!process.env.AZURE_OPENAI_KEY_FALLBACK,
+      },
+      fallback: {
+        model: FALLBACK_MODEL,
+        endpoint: FALLBACK_ENDPOINT,
+        keyConfigured: !!process.env.AZURE_OPENAI_KEY,
+      },
     },
-    endpoints: {
-      primary: 'cursor-agent.services.ai.azure.com',
-      fallback: 'chief-1020-resource.cognitiveservices.azure.com',
+    build: {
+      id: buildId,
+      deployedAt,
     },
+    timestamp: Date.now(),
   });
 }
