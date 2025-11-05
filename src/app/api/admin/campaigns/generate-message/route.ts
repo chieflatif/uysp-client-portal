@@ -6,8 +6,10 @@ import { z } from 'zod';
 /**
  * POST /api/admin/campaigns/generate-message
  *
- * Generate SMS message using Azure OpenAI (GPT-5)
+ * Generate SMS message using Azure OpenAI (GPT-4o primary, GPT-4.1-mini fallback)
  * Hybrid approach: AI generates, human edits
+ *
+ * CACHE BUST: 2025-11-05T01:14:00Z - Force Next.js recompile
  *
  * Body: GenerateMessageInput (see schema below)
  *
