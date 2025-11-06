@@ -766,23 +766,37 @@ export default function CustomCampaignForm({
             {/* CRITICAL-1 FIX: Only render form if migration executed */}
             {migrationExecuted && (
               <>
-                {/* Campaign Name */}
-                <div>
-              <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
-                Campaign Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className={`${theme.components.input} w-full ${errors.name ? 'border-red-500' : ''}`}
-                placeholder="e.g., Q1 2025 Re-engagement"
-              />
-              {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
-            </div>
+                {/* ================================================================ */}
+                {/* SECTION 1: LEAD TARGETING CRITERIA */}
+                {/* ================================================================ */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 pb-4 border-b border-cyan-500/30">
+                    <div className="w-1 h-6 bg-gradient-to-b from-cyan-400 to-cyan-600 rounded-full"></div>
+                    <h3 className={`text-xl font-bold ${theme.accents.primary.class}`}>
+                      Lead Targeting Criteria
+                    </h3>
+                  </div>
+                  <p className={`text-sm ${theme.core.bodyText} -mt-2`}>
+                    Define which leads will be enrolled in this campaign
+                  </p>
 
-            {/* Target Tags */}
-            <div>
+                  {/* Campaign Name */}
+                  <div>
+                    <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
+                      Campaign Name <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className={`${theme.components.input} w-full ${errors.name ? 'border-red-500' : ''}`}
+                      placeholder="e.g., Q1 2025 Re-engagement"
+                    />
+                    {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
+                  </div>
+
+                  {/* Target Tags */}
+                  <div>
               <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
                 {mode === 'leadForm' ? 'Lead Form Tag' : 'Target Tags'} <span className="text-red-400">*</span>
               </label>
@@ -919,68 +933,7 @@ export default function CustomCampaignForm({
               </div>
             </div>
 
-            {/* Resource Links (Optional) - Available for both modes */}
-            <div className="space-y-4 pt-6 border-t border-gray-700">
-              <h3 className={`text-lg font-bold ${theme.accents.tertiary.class}`}>
-                Resource Links (Optional)
-              </h3>
-              <p className={`text-xs ${theme.core.bodyText} -mt-2`}>
-                Share a resource document, recording, or other material with leads in this campaign
-              </p>
-
-              <div>
-                <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
-                  Resource Link
-                </label>
-                <input
-                  type="url"
-                  value={resourceLink}
-                  onChange={(e) => setResourceLink(e.target.value)}
-                  className={`${theme.components.input} w-full ${errors.resourceLink ? 'border-red-500' : ''}`}
-                  placeholder="https://example.com/resource"
-                />
-                {errors.resourceLink && (
-                  <p className="text-red-400 text-sm mt-1">{errors.resourceLink}</p>
-                )}
-              </div>
-
-              <div>
-                <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
-                  Resource Name
-                </label>
-                <input
-                  type="text"
-                  value={resourceName}
-                  onChange={(e) => setResourceName(e.target.value)}
-                  className={`${theme.components.input} w-full`}
-                  placeholder="e.g., Download Guide, Course Materials"
-                />
-                <p className={`text-xs ${theme.core.bodyText} mt-1`}>
-                  Friendly name for the resource (shown to leads)
-                </p>
-              </div>
-
-              <div>
-                <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
-                  Booking/Calendly Link
-                </label>
-                <input
-                  type="url"
-                  value={bookingLink}
-                  onChange={(e) => setBookingLink(e.target.value)}
-                  className={`${theme.components.input} w-full ${errors.bookingLink ? 'border-red-500' : ''}`}
-                  placeholder="https://calendly.com/..."
-                />
-                <p className={`text-xs ${theme.core.bodyText} mt-1`}>
-                  This link will be included in AI-generated messages. Defaults to UYSP link.
-                </p>
-                {errors.bookingLink && (
-                  <p className="text-red-400 text-sm mt-1">{errors.bookingLink}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Advanced Filters Section (collapsible in leadForm mode) */}
+            {/* Advanced Filters (Nurture mode only) */}
             {mode === 'nurture' && (
               <>
                 {/* Lead Date Range */}
@@ -1068,13 +1021,90 @@ export default function CustomCampaignForm({
                 </div>
               </>
             )}
+                </div>
+                {/* END SECTION 1 */}
 
-            {/* Messages Section */}
-            <div className="space-y-4 pt-6 border-t border-gray-700">
-              <div className="flex items-center justify-between">
-                <h3 className={`text-lg font-bold ${theme.accents.tertiary.class}`}>
-                  Message Sequence
-                </h3>
+                {/* ================================================================ */}
+                {/* SECTION 2: CAMPAIGN CONTENT & MESSAGES */}
+                {/* ================================================================ */}
+                <div className="space-y-6 pt-8 border-t-2 border-gray-700">
+                  <div className="flex items-center gap-3 pb-4 border-b border-purple-500/30">
+                    <div className="w-1 h-6 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full"></div>
+                    <h3 className={`text-xl font-bold text-purple-400`}>
+                      Campaign Content & Messages
+                    </h3>
+                  </div>
+                  <p className={`text-sm ${theme.core.bodyText} -mt-2`}>
+                    Configure campaign messaging, resources, and booking links
+                  </p>
+
+                  {/* Resource Links (Optional) - Available for both modes */}
+                  <div className="space-y-4">
+                    <h4 className={`text-md font-bold ${theme.accents.tertiary.class}`}>
+                      Resource Links (Optional)
+                    </h4>
+                    <p className={`text-xs ${theme.core.bodyText} -mt-2`}>
+                      Share a resource document, recording, or other material with leads in this campaign
+                    </p>
+
+                    <div>
+                      <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
+                        Resource Link
+                      </label>
+                      <input
+                        type="url"
+                        value={resourceLink}
+                        onChange={(e) => setResourceLink(e.target.value)}
+                        className={`${theme.components.input} w-full ${errors.resourceLink ? 'border-red-500' : ''}`}
+                        placeholder="https://example.com/resource"
+                      />
+                      {errors.resourceLink && (
+                        <p className="text-red-400 text-sm mt-1">{errors.resourceLink}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
+                        Resource Name
+                      </label>
+                      <input
+                        type="text"
+                        value={resourceName}
+                        onChange={(e) => setResourceName(e.target.value)}
+                        className={`${theme.components.input} w-full`}
+                        placeholder="e.g., Download Guide, Course Materials"
+                      />
+                      <p className={`text-xs ${theme.core.bodyText} mt-1`}>
+                        Friendly name for the resource (shown to leads)
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-semibold ${theme.accents.tertiary.class} mb-2`}>
+                        Booking/Calendly Link
+                      </label>
+                      <input
+                        type="url"
+                        value={bookingLink}
+                        onChange={(e) => setBookingLink(e.target.value)}
+                        className={`${theme.components.input} w-full ${errors.bookingLink ? 'border-red-500' : ''}`}
+                        placeholder="https://calendly.com/..."
+                      />
+                      <p className={`text-xs ${theme.core.bodyText} mt-1`}>
+                        This link will be included in AI-generated messages. Defaults to UYSP link.
+                      </p>
+                      {errors.bookingLink && (
+                        <p className="text-red-400 text-sm mt-1">{errors.bookingLink}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Messages Section */}
+                  <div className="space-y-4 pt-6 border-t border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <h4 className={`text-md font-bold ${theme.accents.tertiary.class}`}>
+                        Message Sequence
+                      </h4>
                 {messages.length < 3 && (
                   <button
                     type="button"
@@ -1272,16 +1302,20 @@ export default function CustomCampaignForm({
                       )}
                       <code className="text-green-300 ml-1">{'{{booking_link}}'}</code>
                     </p>
+                      </div>
+                    </div>
+                  ))}
                   </div>
                 </div>
-              ))}
-            </div>
+                {/* END SECTION 2 */}
 
-            {/* Campaign Settings */}
-            <div className="space-y-4 pt-6 border-t border-gray-700">
-              <h3 className={`text-lg font-bold ${theme.accents.tertiary.class}`}>
-                Campaign Settings
-              </h3>
+                {/* ================================================================ */}
+                {/* SECTION 3: CAMPAIGN SETTINGS */}
+                {/* ================================================================ */}
+                <div className="space-y-4 pt-8 border-t-2 border-gray-700">
+                  <h3 className={`text-lg font-bold ${theme.accents.tertiary.class}`}>
+                    Campaign Settings
+                  </h3>
 
               {/* Schedule Toggle */}
               <div className="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
@@ -1370,10 +1404,11 @@ export default function CustomCampaignForm({
                   Limit the number of leads enrolled in this campaign
                 </p>
               </div>
-            </div>
+                </div>
+                {/* END SECTION 3 */}
 
-            {/* Action Buttons */}
-            <div className="flex gap-4 pt-6 border-t border-gray-700">
+                {/* Action Buttons */}
+                <div className="flex gap-4 pt-6 border-t-2 border-gray-700">
               <button
                 type="button"
                 onClick={handleClose}
@@ -1406,7 +1441,7 @@ export default function CustomCampaignForm({
               >
                 {isSubmitting ? 'Creating...' : 'Create Campaign'}
               </button>
-            </div>
+                </div>
               </>
             )}
           </form>
