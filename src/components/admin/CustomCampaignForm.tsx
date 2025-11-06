@@ -1409,38 +1409,38 @@ export default function CustomCampaignForm({
 
                 {/* Action Buttons */}
                 <div className="flex gap-4 pt-6 border-t-2 border-gray-700">
-              <button
-                type="button"
-                onClick={handleClose}
-                className={`flex-1 px-6 py-3 rounded-lg font-semibold ${theme.core.bodyText} bg-gray-700 hover:bg-gray-600 transition`}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (selectedTags.length === 0) {
-                    setErrors({ targetTags: 'Select at least one tag to preview' });
-                    return;
-                  }
-                  setShowPreviewModal(true);
-                }}
-                className="flex-1 px-6 py-3 rounded-lg font-semibold text-white bg-cyan-600 hover:bg-cyan-700 transition flex items-center justify-center gap-2"
-              >
-                <Eye className="h-5 w-5" />
-                Preview Leads
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`flex-1 px-6 py-3 rounded-lg font-semibold text-white transition ${
-                  isSubmitting
-                    ? 'bg-gray-600 cursor-not-allowed'
-                    : 'bg-purple-600 hover:bg-purple-700'
-                }`}
-              >
-                {isSubmitting ? 'Creating...' : 'Create Campaign'}
-              </button>
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className={`flex-1 px-6 py-3 rounded-lg font-semibold ${theme.core.bodyText} bg-gray-700 hover:bg-gray-600 transition`}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedTags.length === 0) {
+                        setErrors({ targetTags: 'Select at least one tag to preview' });
+                        return;
+                      }
+                      setShowPreviewModal(true);
+                    }}
+                    className="flex-1 px-6 py-3 rounded-lg font-semibold text-white bg-cyan-600 hover:bg-cyan-700 transition flex items-center justify-center gap-2"
+                  >
+                    <Eye className="h-5 w-5" />
+                    Preview Leads
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`flex-1 px-6 py-3 rounded-lg font-semibold text-white transition ${
+                      isSubmitting
+                        ? 'bg-gray-600 cursor-not-allowed'
+                        : 'bg-purple-600 hover:bg-purple-700'
+                    }`}
+                  >
+                    {isSubmitting ? 'Creating...' : 'Create Campaign'}
+                  </button>
                 </div>
               </>
             )}
