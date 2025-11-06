@@ -527,6 +527,7 @@ async function enrollLeadsWithLocks(
           campaignId: campaignId,
           enrolledCampaignVersion: campaignVersion, // PHASE 2: Snapshot version at enrollment
           enrolledMessageCount: messageCount, // AUDIT FIX: Snapshot message count for version-aware de-enrollment
+          enrolledAt: enrollmentTimestamp, // PHASE 1 FIX: Track enrollment timestamp (migration 0029)
           campaignHistory: [initialHistoryEntry], // PHASE 2: Initialize history
           smsSequencePosition: 0, // Will be incremented by scheduler
           smsLastSentAt: null,
