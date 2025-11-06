@@ -495,6 +495,28 @@ export default function CustomCampaignForm({
     return `${timezone} (UTC${offsetStr})`;
   };
 
+  // MEDIUM PRIORITY: Real-time validation for resource fields
+  const validateResourceFields = () => {
+    const newErrors: Record<string, string> = { ...errors };
+
+    const hasResourceLink = resourceLink && resourceLink.trim() !== '';
+    const hasResourceName = resourceName && resourceName.trim() !== '';
+
+    // Clear previous resource errors
+    delete newErrors.resourceLink;
+    delete newErrors.resourceName;
+
+    // Both or none validation
+    if (hasResourceLink && !hasResourceName) {
+      newErrors.resourceName = 'Resource name is required when resource link is provided';
+    }
+    if (hasResourceName && !hasResourceLink) {
+      newErrors.resourceLink = 'Resource link is required when resource name is provided';
+    }
+
+    setErrors(newErrors);
+  };
+
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -1055,6 +1077,7 @@ export default function CustomCampaignForm({
                         type="url"
                         value={resourceLink}
                         onChange={(e) => setResourceLink(e.target.value)}
+                        onBlur={validateResourceFields}
                         className={`${theme.components.input} w-full ${errors.resourceLink ? 'border-red-500' : ''}`}
                         placeholder="https://example.com/resource"
                       />
@@ -1071,9 +1094,13 @@ export default function CustomCampaignForm({
                         type="text"
                         value={resourceName}
                         onChange={(e) => setResourceName(e.target.value)}
-                        className={`${theme.components.input} w-full`}
+                        onBlur={validateResourceFields}
+                        className={`${theme.components.input} w-full ${errors.resourceName ? 'border-red-500' : ''}`}
                         placeholder="e.g., Download Guide, Course Materials"
                       />
+                      {errors.resourceName && (
+                        <p className="text-red-400 text-sm mt-1">{errors.resourceName}</p>
+                      )}
                       <p className={`text-xs ${theme.core.bodyText} mt-1`}>
                         Friendly name for the resource (shown to leads)
                       </p>

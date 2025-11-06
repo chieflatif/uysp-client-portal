@@ -118,6 +118,28 @@ export default function CampaignForm({
       .join(' ');
   };
 
+  // MEDIUM PRIORITY: Real-time validation for resource fields
+  const validateResourceFields = () => {
+    const newErrors: Record<string, string> = { ...errors };
+
+    const hasResourceLink = formData.resourceLink && formData.resourceLink.trim() !== '';
+    const hasResourceName = formData.resourceName && formData.resourceName.trim() !== '';
+
+    // Clear previous resource errors
+    delete newErrors.resourceLink;
+    delete newErrors.resourceName;
+
+    // Both or none validation
+    if (hasResourceLink && !hasResourceName) {
+      newErrors.resourceName = 'Resource name is required when resource link is provided';
+    }
+    if (hasResourceName && !hasResourceLink) {
+      newErrors.resourceLink = 'Resource link is required when resource name is provided';
+    }
+
+    setErrors(newErrors);
+  };
+
   // Validate form
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -521,6 +543,7 @@ export default function CampaignForm({
                   type="url"
                   value={formData.resourceLink || ''}
                   onChange={(e) => handleChange('resourceLink', e.target.value || null)}
+                  onBlur={validateResourceFields}
                   className={`${theme.components.input} w-full ${errors.resourceLink ? 'border-red-500' : ''}`}
                   placeholder="https://example.com/resource"
                 />
@@ -538,9 +561,13 @@ export default function CampaignForm({
                   type="text"
                   value={formData.resourceName || ''}
                   onChange={(e) => handleChange('resourceName', e.target.value || null)}
-                  className={`${theme.components.input} w-full`}
+                  onBlur={validateResourceFields}
+                  className={`${theme.components.input} w-full ${errors.resourceName ? 'border-red-500' : ''}`}
                   placeholder="e.g., Webinar Slides"
                 />
+                {errors.resourceName && (
+                  <p className="text-red-400 text-sm mt-1">{errors.resourceName}</p>
+                )}
               </div>
 
               {/* Booking Link */}
