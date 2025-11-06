@@ -38,6 +38,11 @@ interface Lead {
   engagementTier?: string;
   kajabi_tags?: string[];
   createdAt: string;
+  // Phase 1.5: Additional fields for leads table
+  icpScore?: number;
+  engagementLevel?: string;
+  enrolledAt?: string;
+  smsSequencePosition?: number;
 }
 
 export default function CampaignDetailPage() {
@@ -303,6 +308,18 @@ export default function CampaignDetailPage() {
                       Company
                     </th>
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
+                      ICP Score
+                    </th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
+                      Engagement
+                    </th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
+                      Date Enrolled
+                    </th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
+                      Seq. Pos.
+                    </th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
                       Lead Source
                     </th>
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
@@ -334,6 +351,38 @@ export default function CampaignDetailPage() {
                       </td>
                       <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
                         {lead.company || '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          (lead.icpScore || 0) >= 70
+                            ? 'bg-green-500/20 text-green-400'
+                            : (lead.icpScore || 0) >= 40
+                            ? 'bg-yellow-500/20 text-yellow-400'
+                            : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {lead.icpScore !== undefined ? lead.icpScore : '—'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          lead.engagementLevel === 'High'
+                            ? 'bg-green-500/20 text-green-400'
+                            : lead.engagementLevel === 'Medium'
+                            ? 'bg-yellow-500/20 text-yellow-400'
+                            : lead.engagementLevel === 'Low'
+                            ? 'bg-red-500/20 text-red-400'
+                            : 'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {lead.engagementLevel || '—'}
+                        </span>
+                      </td>
+                      <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
+                        {lead.enrolledAt ? formatDate(lead.enrolledAt) : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-xs font-mono">
+                          {lead.smsSequencePosition !== undefined ? lead.smsSequencePosition : '—'}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-3 py-1 bg-gray-900 rounded-full text-xs text-cyan-400">
