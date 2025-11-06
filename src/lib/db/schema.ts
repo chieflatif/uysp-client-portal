@@ -78,7 +78,7 @@ export const leads = pgTable(
     status: varchar('status', { length: 50 }).notNull().default('New'),
     claimedBy: uuid('claimed_by'),
     claimedAt: timestamp('claimed_at', { withTimezone: true }), // FIXED: Add timezone support
-    campaignId: uuid('campaign_id'),
+    campaignId: uuid('campaign_id').references(() => campaigns.id, { onDelete: 'set null' }), // Foreign key to campaigns table
     lastMessageAt: timestamp('last_message_at', { withTimezone: true }), // FIXED: Add timezone support
     isActive: boolean('is_active').notNull().default(true),
 
