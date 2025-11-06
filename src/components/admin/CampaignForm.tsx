@@ -668,15 +668,15 @@ export default function CampaignForm({
                         </p>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        Variables: <code className="text-cyan-300">{{'{{'}}first_name{{'}}'}}</code>, 
+                        Variables: <code className="text-cyan-300">{'{{first_name}}'}</code>,
                         {formData.resourceLink && formData.resourceName && (
                           <>
-                            <code className="text-purple-300 ml-1">{{'{{'}}resource_name{{'}}'}}</code>, 
-                            <code className="text-purple-300 ml-1">{{'{{'}}resource_link{{'}}'}}</code>, 
+                            <code className="text-purple-300 ml-1">{'{{resource_name}}'}</code>,
+                            <code className="text-purple-300 ml-1">{'{{resource_link}}'}</code>,
                           </>
                         )}
-                        <code className="text-blue-300 ml-1">{{'{{'}}zoom_link{{'}}'}}</code>, 
-                        <code className="text-green-300 ml-1">{{'{{'}}booking_link{{'}}'}}</code>
+                        <code className="text-blue-300 ml-1">{'{{zoom_link}}'}</code>,
+                        <code className="text-green-300 ml-1">{'{{booking_link}}'}</code>
                       </p>
                     </div>
                   </div>
