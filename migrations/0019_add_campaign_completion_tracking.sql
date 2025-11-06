@@ -25,7 +25,7 @@ SET
     completed_at = COALESCE(last_message_at, updated_at),
     campaign_history = jsonb_build_array(
         jsonb_build_object(
-            'campaignId', campaign_link_id,
+            'campaignId', campaign_id,
             'campaignName', campaign_name,
             'enrolledAt', created_at,
             'completedAt', COALESCE(last_message_at, updated_at),
@@ -38,7 +38,7 @@ SET
         )
     )
 WHERE
-    campaign_link_id IS NOT NULL
+    campaign_id IS NOT NULL
     AND sms_sequence_position >= 1
     AND completed_at IS NULL;
 
