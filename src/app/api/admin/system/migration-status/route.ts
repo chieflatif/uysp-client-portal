@@ -48,43 +48,50 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Query PostgreSQL information_schema to verify columns exist
-    const missingColumns: string[] = [];
+    // PHASE 3 OPTIMIZATION: Query PostgreSQL information_schema in parallel
+    // This reduces check time from 2+ seconds to <1 second
+    const columnChecks = await Promise.all(
+      REQUIRED_COLUMNS.map(async ({ table, column }) => {
+        // BUGFIX: Use raw SQL string interpolation for identifiers (table/column names)
+        // Parameterized queries don't work for information_schema identifier lookups
+        const result = await db.execute(
+          sql.raw(`
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = '${table}'
+              AND column_name = '${column}'
+          `)
+        ) as any;
 
-    for (const { table, column } of REQUIRED_COLUMNS) {
-      // BUGFIX: Use raw SQL string interpolation for identifiers (table/column names)
-      // Parameterized queries don't work for information_schema identifier lookups
-      const result = await db.execute(
-        sql.raw(`
-          SELECT column_name
-          FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name = '${table}'
-            AND column_name = '${column}'
-        `)
-      ) as any;
+        // DEBUG: Log result structure to understand Drizzle's format
+        console.log(`🔍 Checking ${table}.${column}:`, JSON.stringify({
+          hasRows: !!result.rows,
+          rowsLength: result.rows?.length,
+          hasRowsArray: Array.isArray(result),
+          arrayLength: Array.isArray(result) ? result.length : 'N/A',
+          resultKeys: Object.keys(result || {}),
+          firstItem: Array.isArray(result) ? result[0] : result.rows?.[0],
+        }));
 
-      // DEBUG: Log result structure to understand Drizzle's format
-      console.log(`🔍 Checking ${table}.${column}:`, JSON.stringify({
-        hasRows: !!result.rows,
-        rowsLength: result.rows?.length,
-        hasRowsArray: Array.isArray(result),
-        arrayLength: Array.isArray(result) ? result.length : 'N/A',
-        resultKeys: Object.keys(result || {}),
-        firstItem: Array.isArray(result) ? result[0] : result.rows?.[0],
-      }));
+        // Check both possible result formats: result.rows or result as array
+        const rows = result.rows || (Array.isArray(result) ? result : []);
 
-      // Check both possible result formats: result.rows or result as array
-      const rows = result.rows || (Array.isArray(result) ? result : []);
+        const exists = rows && rows.length > 0;
+        if (!exists) {
+          console.log(`❌ Column ${table}.${column} NOT FOUND`);
+        } else {
+          console.log(`✅ Column ${table}.${column} FOUND`);
+        }
 
-      // If column doesn't exist, mark as missing
-      if (!rows || rows.length === 0) {
-        console.log(`❌ Column ${table}.${column} NOT FOUND`);
-        missingColumns.push(`${table}.${column}`);
-      } else {
-        console.log(`✅ Column ${table}.${column} FOUND`);
-      }
-    }
+        return { table, column, exists };
+      })
+    );
+
+    // Collect missing columns from parallel check results
+    const missingColumns = columnChecks
+      .filter(check => !check.exists)
+      .map(check => `${check.table}.${check.column}`);
 
     const migrationExecuted = missingColumns.length === 0;
 
