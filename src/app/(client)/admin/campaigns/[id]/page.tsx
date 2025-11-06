@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { theme } from '@/theme';
-import { ArrowLeft, Calendar, Users, MessageSquare, Link as LinkIcon, Loader2, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Calendar, Users, MessageSquare, Link as LinkIcon, Loader2, ExternalLink, CheckCircle, MousePointerClick } from 'lucide-react';
 import Link from 'next/link';
 
 interface Campaign {
@@ -24,6 +24,9 @@ interface Campaign {
   targetTags?: string[];
   enrollmentStatus?: string;
   leadsEnrolled?: number;
+  // Campaign V2 count fields
+  bookedCount?: number;
+  // TODO: Add clickedCount field to schema and API
 }
 
 interface Lead {
@@ -148,7 +151,7 @@ export default function CampaignDetailPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
             <div className="flex items-center gap-3 mb-2">
               <Users className={`w-5 h-5 ${theme.accents.primary.class}`} />
@@ -174,8 +177,29 @@ export default function CampaignDetailPage() {
             <p className={`text-3xl font-bold ${theme.core.white}`}>{campaign.messagesSent}</p>
           </div>
 
+          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <CheckCircle className={`w-5 h-5 ${theme.accents.primary.class}`} />
+              <h3 className={`text-sm font-semibold ${theme.accents.tertiary.class} uppercase`}>
+                Booked
+              </h3>
+            </div>
+            <p className={`text-3xl font-bold ${theme.core.white}`}>{campaign.bookedCount || 0}</p>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <MousePointerClick className={`w-5 h-5 ${theme.accents.primary.class}`} />
+              <h3 className={`text-sm font-semibold ${theme.accents.tertiary.class} uppercase`}>
+                Clicked
+              </h3>
+            </div>
+            <p className={`text-3xl font-bold ${theme.core.white}`}>—</p>
+            <p className={`text-xs ${theme.core.bodyText} mt-1`}>Coming soon</p>
+          </div>
+
           {campaign.campaignType === 'Webinar' && campaign.webinarDatetime && (
-            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 md:col-span-2 lg:col-span-4">
               <div className="flex items-center gap-3 mb-2">
                 <Calendar className={`w-5 h-5 ${theme.accents.primary.class}`} />
                 <h3 className={`text-sm font-semibold ${theme.accents.tertiary.class} uppercase`}>
@@ -299,9 +323,6 @@ export default function CampaignDetailPage() {
                       Name
                     </th>
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
-                      Email
-                    </th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
                       Phone
                     </th>
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
@@ -322,9 +343,6 @@ export default function CampaignDetailPage() {
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
                       Lead Source
                     </th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
-                      Added
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
@@ -342,9 +360,6 @@ export default function CampaignDetailPage() {
                             {lead.jobTitle}
                           </p>
                         )}
-                      </td>
-                      <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
-                        {lead.email}
                       </td>
                       <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
                         {lead.phone || '—'}
@@ -388,9 +403,6 @@ export default function CampaignDetailPage() {
                         <span className="px-3 py-1 bg-gray-900 rounded-full text-xs text-cyan-400">
                           {campaign.name}
                         </span>
-                      </td>
-                      <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
-                        {formatDate(lead.createdAt)}
                       </td>
                     </tr>
                   ))}
