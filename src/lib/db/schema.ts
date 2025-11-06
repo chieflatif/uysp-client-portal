@@ -122,6 +122,11 @@ export const leads = pgTable(
     kajabiTags: text('kajabi_tags').array(), // Array of tags from Kajabi (imported from Airtable "Kajabi Tags")
     engagementLevel: varchar('engagement_level', { length: 50 }), // High/Medium/Low (from Airtable "Engagement - Level")
 
+    // VERSIONING & COMPLETION TRACKING (Phase V2 - Migrations 0019, 0022)
+    completedAt: timestamp('completed_at', { withTimezone: true }), // When lead completed their campaign sequence
+    campaignHistory: jsonb('campaign_history').default('[]'), // Array of all campaigns lead has been through
+    enrolledCampaignVersion: integer('enrolled_campaign_version'), // Snapshot of campaign.version at enrollment time
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
   },
@@ -209,6 +214,16 @@ export const campaigns = pgTable(
     enrollmentStatus: varchar('enrollment_status', { length: 50 }).default('active'), // 'scheduled', 'active', 'paused', 'completed'
     maxLeadsToEnroll: integer('max_leads_to_enroll'), // Optional cap on number of leads to enroll
     leadsEnrolled: integer('leads_enrolled').default(0), // Counter for enrolled leads
+
+    // VERSIONING & STATS (Phase V2 - Migrations 0020, 0022)
+    version: integer('version').default(1).notNull(), // Campaign version (increments on message edits)
+    isActive: boolean('is_active').default(true), // Whether campaign accepts new enrollments (false = archived)
+    deactivatedAt: timestamp('deactivated_at', { withTimezone: true }), // When campaign was deactivated/archived
+    lastEnrollmentAt: timestamp('last_enrollment_at', { withTimezone: true }), // Most recent lead enrollment
+    activeLeadsCount: integer('active_leads_count').default(0), // Real-time count of active leads
+    completedLeadsCount: integer('completed_leads_count').default(0), // Count of leads who completed
+    optedOutCount: integer('opted_out_count').default(0), // Count of leads who opted out
+    bookedCount: integer('booked_count').default(0), // Count of leads who booked
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
