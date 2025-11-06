@@ -651,6 +651,14 @@ export default function CampaignForm({
                         >
                           + First Name
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => insertVariable(index, '{{company}}')}
+                          className="px-2 py-1 text-xs bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-600/40 rounded font-mono"
+                          title="Insert {{company}} at cursor"
+                        >
+                          + Company
+                        </button>
                         {formData.resourceLink && formData.resourceName && (
                           <>
                             <button
@@ -661,16 +669,16 @@ export default function CampaignForm({
                             >
                               + Resource Name
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => insertVariable(index, '{{resource_link}}')}
-                              className="px-2 py-1 text-xs bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-600/40 rounded font-mono"
-                              title="Insert {{resource_link}} at cursor"
-                            >
-                              + Resource Link
-                            </button>
                           </>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => insertVariable(index, '{{resource_link}}')}
+                          className="px-2 py-1 text-xs bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-600/40 rounded font-mono"
+                          title="Insert {{resource_link}} at cursor"
+                        >
+                          + Resource Link
+                        </button>
                         <button
                           type="button"
                           onClick={() => insertVariable(index, '{{zoom_link}}')}
@@ -708,12 +716,13 @@ export default function CampaignForm({
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
                         Variables: <code className="text-cyan-300">{'{{first_name}}'}</code>,
+                        <code className="text-cyan-300 ml-1">{'{{company}}'}</code>,
                         {formData.resourceLink && formData.resourceName && (
                           <>
                             <code className="text-purple-300 ml-1">{'{{resource_name}}'}</code>,
-                            <code className="text-purple-300 ml-1">{'{{resource_link}}'}</code>,
                           </>
                         )}
+                        <code className="text-purple-300 ml-1">{'{{resource_link}}'}</code>,
                         <code className="text-blue-300 ml-1">{'{{zoom_link}}'}</code>,
                         <code className="text-green-300 ml-1">{'{{booking_link}}'}</code>
                       </p>
