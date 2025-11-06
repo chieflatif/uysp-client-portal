@@ -207,11 +207,14 @@ async function activateCampaign(campaign: any): Promise<{
     }
 
     // Enroll leads with advisory locks
+    // PHASE 2: Pass campaign version and name for message snapshotting
     const enrolledCount = await enrollLeadsWithLocks(
       tx,
       cappedLeads.map(l => l.id),
       campaign.id,
-      campaign.clientId
+      campaign.clientId,
+      campaign.version || 1, // Use default 1 if not set (backward compatibility)
+      campaign.name
     );
 
     // BUG #8 FIX: Verify actual enrollment count from database
@@ -264,12 +267,18 @@ function isValidUUID(uuid: string): boolean {
 /**
  * Enroll leads with PostgreSQL advisory locks
  * Prevents race conditions between concurrent campaign activations
+ *
+ * PHASE 2: Now includes message snapshotting - captures campaign version and name
+ * at enrollment time to ensure leads complete their enrolled sequence even if
+ * the campaign is upgraded mid-sequence.
  */
 async function enrollLeadsWithLocks(
   tx: any,
   leadIds: string[],
   campaignId: string,
-  clientId: string
+  clientId: string,
+  campaignVersion: number,
+  campaignName: string
 ): Promise<number> {
   let enrolledCount = 0;
 
@@ -333,13 +342,24 @@ async function enrollLeadsWithLocks(
         continue;
       }
 
-      // Enroll lead
+      // Enroll lead with message snapshotting
+      const enrollmentTimestamp = new Date();
+      const initialHistoryEntry = {
+        campaignId,
+        campaignName,
+        enrolledAt: enrollmentTimestamp.toISOString(),
+        messagesReceived: 0,
+        enrolledVersion: campaignVersion,
+      };
+
       await tx.update(leads)
         .set({
           campaignId: campaignId,
+          enrolledCampaignVersion: campaignVersion, // PHASE 2: Snapshot version at enrollment
+          campaignHistory: [initialHistoryEntry], // PHASE 2: Initialize history
           smsSequencePosition: 0,
           smsLastSentAt: null,
-          updatedAt: new Date(),
+          updatedAt: enrollmentTimestamp,
         })
         .where(eq(leads.id, leadId));
 

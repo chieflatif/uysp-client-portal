@@ -272,11 +272,14 @@ export async function POST(request: NextRequest) {
 
         // CRITICAL: Acquire advisory lock per lead to prevent race conditions
         // Lock key = hash(clientId + leadId) to ensure uniqueness
+        // PHASE 2: Pass campaign version and name for message snapshotting
         const enrolledCount = await enrollLeadsWithLocks(
           tx,
           cappedLeads.map(l => l.id),
           campaign.id,
-          data.clientId
+          data.clientId,
+          campaign.version || 1, // Use default 1 if not set (backward compatibility)
+          campaign.name
         );
 
         // BUG #8 FIX: Verify actual enrollment count from database
@@ -425,13 +428,19 @@ function isValidUUID(uuid: string): boolean {
  *
  * CRITICAL: Advisory locks ensure atomicity per lead across concurrent transactions
  *
+ * PHASE 2: Now includes message snapshotting - captures campaign version and name
+ * at enrollment time to ensure leads complete their enrolled sequence even if
+ * the campaign is upgraded mid-sequence.
+ *
  * @returns Number of successfully enrolled leads
  */
 async function enrollLeadsWithLocks(
   tx: any,
   leadIds: string[],
   campaignId: string,
-  clientId: string
+  clientId: string,
+  campaignVersion: number,
+  campaignName: string
 ): Promise<number> {
   let enrolledCount = 0;
 
@@ -496,13 +505,24 @@ async function enrollLeadsWithLocks(
         continue;
       }
 
-      // Enroll lead
+      // Enroll lead with message snapshotting
+      const enrollmentTimestamp = new Date();
+      const initialHistoryEntry = {
+        campaignId,
+        campaignName,
+        enrolledAt: enrollmentTimestamp.toISOString(),
+        messagesReceived: 0,
+        enrolledVersion: campaignVersion,
+      };
+
       await tx.update(leads)
         .set({
           campaignId: campaignId,
+          enrolledCampaignVersion: campaignVersion, // PHASE 2: Snapshot version at enrollment
+          campaignHistory: [initialHistoryEntry], // PHASE 2: Initialize history
           smsSequencePosition: 0, // Will be incremented by scheduler
           smsLastSentAt: null,
-          updatedAt: new Date(),
+          updatedAt: enrollmentTimestamp,
         })
         .where(eq(leads.id, leadId));
 
