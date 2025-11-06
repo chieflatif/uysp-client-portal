@@ -85,6 +85,15 @@ const createCampaignSchema = z.object({
   zoomLink: z.string().url('Zoom link must be a valid URL').optional().nullable(),
   resourceLink: z.string().url('Resource link must be a valid URL').optional().nullable(),
   resourceName: z.string().max(255).optional().nullable(),
+}).refine((data) => {
+  // HIGH PRIORITY FIX: "Both or None" validation for resource fields
+  // Ensure resourceName and resourceLink are either both filled or both empty
+  const hasLink = !!data.resourceLink && data.resourceLink.trim() !== '';
+  const hasName = !!data.resourceName && data.resourceName.trim() !== '';
+  return hasLink === hasName; // Both true or both false
+}, {
+  message: 'Both resource name and link are required, or both must be empty',
+  path: ['resourceLink'], // Error will be attached to resourceLink field
 });
 
 export async function POST(request: NextRequest) {
