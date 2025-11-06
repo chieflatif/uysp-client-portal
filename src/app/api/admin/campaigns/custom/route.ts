@@ -273,13 +273,15 @@ export async function POST(request: NextRequest) {
         // CRITICAL: Acquire advisory lock per lead to prevent race conditions
         // Lock key = hash(clientId + leadId) to ensure uniqueness
         // PHASE 2: Pass campaign version and name for message snapshotting
+        // AUDIT FIX: Pass campaign messages for message count snapshotting
         const enrolledCount = await enrollLeadsWithLocks(
           tx,
           cappedLeads.map(l => l.id),
           campaign.id,
           data.clientId,
           campaign.version || 1, // Use default 1 if not set (backward compatibility)
-          campaign.name
+          campaign.name,
+          campaign.messages || []
         );
 
         // BUG #8 FIX: Verify actual enrollment count from database
@@ -340,6 +342,7 @@ export async function POST(request: NextRequest) {
           'Campaign Name': result.name,
           'Campaign Type': 'Custom',
           'Active': !result.isPaused,
+          'Version': result.version || 1, // AUDIT FIX: Sync version on create
           'Target Tags': data.targetTags.join(', '),
           'Messages': JSON.stringify(data.messages),
           'Start Datetime': result.startDatetime?.toISOString(),
@@ -432,6 +435,8 @@ function isValidUUID(uuid: string): boolean {
  * at enrollment time to ensure leads complete their enrolled sequence even if
  * the campaign is upgraded mid-sequence.
  *
+ * AUDIT FIX: Now captures message count for version-aware de-enrollment
+ *
  * @returns Number of successfully enrolled leads
  */
 async function enrollLeadsWithLocks(
@@ -440,7 +445,8 @@ async function enrollLeadsWithLocks(
   campaignId: string,
   clientId: string,
   campaignVersion: number,
-  campaignName: string
+  campaignName: string,
+  campaignMessages: any[]
 ): Promise<number> {
   let enrolledCount = 0;
 
@@ -507,6 +513,7 @@ async function enrollLeadsWithLocks(
 
       // Enroll lead with message snapshotting
       const enrollmentTimestamp = new Date();
+      const messageCount = Array.isArray(campaignMessages) ? campaignMessages.length : 0;
       const initialHistoryEntry = {
         campaignId,
         campaignName,
@@ -519,6 +526,7 @@ async function enrollLeadsWithLocks(
         .set({
           campaignId: campaignId,
           enrolledCampaignVersion: campaignVersion, // PHASE 2: Snapshot version at enrollment
+          enrolledMessageCount: messageCount, // AUDIT FIX: Snapshot message count for version-aware de-enrollment
           campaignHistory: [initialHistoryEntry], // PHASE 2: Initialize history
           smsSequencePosition: 0, // Will be incremented by scheduler
           smsLastSentAt: null,

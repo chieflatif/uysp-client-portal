@@ -186,6 +186,7 @@ export async function POST(request: NextRequest) {
         'Campaign Type': campaign.campaignType,
         'Form ID': campaign.formId,
         'Active': !campaign.isPaused,
+        'Version': campaign.version || 1, // AUDIT FIX: Sync version on create
         'Webinar Datetime': campaign.webinarDatetime?.toISOString(),
         'Zoom Link': campaign.zoomLink,
         'Resource Link': campaign.resourceLink,

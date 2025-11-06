@@ -126,6 +126,7 @@ export const leads = pgTable(
     completedAt: timestamp('completed_at', { withTimezone: true }), // When lead completed their campaign sequence
     campaignHistory: jsonb('campaign_history').default('[]'), // Array of all campaigns lead has been through
     enrolledCampaignVersion: integer('enrolled_campaign_version'), // Snapshot of campaign.version at enrollment time
+    enrolledMessageCount: integer('enrolled_message_count').default(0).notNull(), // Snapshot of message count at enrollment for version-aware de-enrollment
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support

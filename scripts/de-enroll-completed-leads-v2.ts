@@ -134,11 +134,11 @@ async function getActiveClients(): Promise<string[]> {
     const result = await db.execute(sql`
       SELECT DISTINCT c.client_id
       FROM campaigns c
-      INNER JOIN leads l ON l.campaign_link_id = c.id
+      INNER JOIN leads l ON l.campaign_id = c.id
       WHERE c.is_active = true
         AND l.is_active = true
         AND l.completed_at IS NULL
-        AND l.current_message_position > 0
+        AND l.sms_sequence_position > 0
       ORDER BY c.client_id
     `);
 
@@ -505,13 +505,14 @@ async function checkHealth(): Promise<void> {
     }
 
     // Check for stuck leads
+    // AUDIT FIX: Use enrolled_message_count instead of current campaign messages
     const stuckResult = await db.execute(sql`
       SELECT COUNT(*) as stuck_count
       FROM leads l
-      INNER JOIN campaigns c ON l.campaign_link_id = c.id
+      INNER JOIN campaigns c ON l.campaign_id = c.id
       WHERE l.is_active = true
         AND l.completed_at IS NULL
-        AND l.current_message_position >= COALESCE(jsonb_array_length(c.messages), 0)
+        AND l.sms_sequence_position >= COALESCE(l.enrolled_message_count, 0)
         AND l.updated_at < NOW() - INTERVAL '48 hours'
     `);
 

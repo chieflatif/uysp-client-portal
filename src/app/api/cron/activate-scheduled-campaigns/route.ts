@@ -208,13 +208,15 @@ async function activateCampaign(campaign: any): Promise<{
 
     // Enroll leads with advisory locks
     // PHASE 2: Pass campaign version and name for message snapshotting
+    // AUDIT FIX: Pass campaign messages for message count snapshotting
     const enrolledCount = await enrollLeadsWithLocks(
       tx,
       cappedLeads.map(l => l.id),
       campaign.id,
       campaign.clientId,
       campaign.version || 1, // Use default 1 if not set (backward compatibility)
-      campaign.name
+      campaign.name,
+      campaign.messages || [] // AUDIT FIX: Pass messages for count snapshot
     );
 
     // BUG #8 FIX: Verify actual enrollment count from database
@@ -271,6 +273,8 @@ function isValidUUID(uuid: string): boolean {
  * PHASE 2: Now includes message snapshotting - captures campaign version and name
  * at enrollment time to ensure leads complete their enrolled sequence even if
  * the campaign is upgraded mid-sequence.
+ *
+ * AUDIT FIX: Now captures message count for version-aware de-enrollment
  */
 async function enrollLeadsWithLocks(
   tx: any,
@@ -278,7 +282,8 @@ async function enrollLeadsWithLocks(
   campaignId: string,
   clientId: string,
   campaignVersion: number,
-  campaignName: string
+  campaignName: string,
+  campaignMessages: any[]
 ): Promise<number> {
   let enrolledCount = 0;
 
@@ -344,6 +349,7 @@ async function enrollLeadsWithLocks(
 
       // Enroll lead with message snapshotting
       const enrollmentTimestamp = new Date();
+      const messageCount = Array.isArray(campaignMessages) ? campaignMessages.length : 0;
       const initialHistoryEntry = {
         campaignId,
         campaignName,
@@ -356,6 +362,7 @@ async function enrollLeadsWithLocks(
         .set({
           campaignId: campaignId,
           enrolledCampaignVersion: campaignVersion, // PHASE 2: Snapshot version at enrollment
+          enrolledMessageCount: messageCount, // AUDIT FIX: Snapshot message count at enrollment
           campaignHistory: [initialHistoryEntry], // PHASE 2: Initialize history
           smsSequencePosition: 0,
           smsLastSentAt: null,
