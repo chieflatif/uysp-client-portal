@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
         const verifiedCountResult = await tx
           .select({ count: sql<number>`count(*)` })
           .from(leads)
-          .where(eq(leads.campaignLinkId, campaign.id));
+          .where(eq(leads.campaignId, campaign.id));
 
         const verifiedEnrolledCount = Number(verifiedCountResult[0]?.count || 0);
 
@@ -499,7 +499,7 @@ async function enrollLeadsWithLocks(
       // Enroll lead
       await tx.update(leads)
         .set({
-          campaignLinkId: campaignId,
+          campaignId: campaignId,
           smsSequencePosition: 0, // Will be incremented by scheduler
           smsLastSentAt: null,
           updatedAt: new Date(),

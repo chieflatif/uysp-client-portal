@@ -220,7 +220,7 @@ async function activateCampaign(campaign: any): Promise<{
     const verifiedCountResult = await tx
       .select({ count: sql<number>`count(*)` })
       .from(leads)
-      .where(eq(leads.campaignLinkId, campaign.id));
+      .where(eq(leads.campaignId, campaign.id));
 
     const verifiedEnrolledCount = Number(verifiedCountResult[0]?.count || 0);
 
@@ -336,7 +336,7 @@ async function enrollLeadsWithLocks(
       // Enroll lead
       await tx.update(leads)
         .set({
-          campaignLinkId: campaignId,
+          campaignId: campaignId,
           smsSequencePosition: 0,
           smsLastSentAt: null,
           updatedAt: new Date(),

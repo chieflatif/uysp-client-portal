@@ -116,7 +116,7 @@ export const leads = pgTable(
     formId: varchar('form_id', { length: 255 }),
     webinarDatetime: timestamp('webinar_datetime', { withTimezone: true }),
     leadSource: varchar('lead_source', { length: 50 }).default('Standard Form'),
-    campaignLinkId: uuid('campaign_link_id').references(() => campaigns.id, { onDelete: 'set null' }), // FIXED: Add cascade behavior
+    // REMOVED: campaignLinkId (legacy field, replaced by campaignId)
 
     // CUSTOM CAMPAIGNS FIELDS (Phase B)
     kajabiTags: text('kajabi_tags').array(), // Array of tags from Kajabi (imported from Airtable "Kajabi Tags")
@@ -136,7 +136,7 @@ export const leads = pgTable(
     formIdIdx: index('idx_leads_form_id').on(table.formId), // NEW: For campaign lookup
     leadSourceIdx: index('idx_leads_lead_source').on(table.leadSource), // NEW: For scheduler routing
     webinarDatetimeIdx: index('idx_leads_webinar_datetime').on(table.webinarDatetime), // NEW: For timing logic
-    campaignLinkIdx: index('idx_leads_campaign_link').on(table.campaignLinkId), // NEW: For reporting
+    // REMOVED: campaignLinkIdx (legacy field, replaced by campaignId index)
     statusIdx: index('idx_leads_status').on(table.status),
     claimedByIdx: index('idx_leads_claimed_by').on(table.claimedBy),
     airtableRecordIdx: index('idx_leads_airtable_record').on(table.airtableRecordId),
