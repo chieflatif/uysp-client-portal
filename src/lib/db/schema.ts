@@ -122,11 +122,12 @@ export const leads = pgTable(
     kajabiTags: text('kajabi_tags').array(), // Array of tags from Kajabi (imported from Airtable "Kajabi Tags")
     engagementLevel: varchar('engagement_level', { length: 50 }), // High/Medium/Low (from Airtable "Engagement - Level")
 
-    // VERSIONING & COMPLETION TRACKING (Phase V2 - Migrations 0019, 0022)
+    // VERSIONING & COMPLETION TRACKING (Phase V2 - Migrations 0019, 0022, 0029)
     completedAt: timestamp('completed_at', { withTimezone: true }), // When lead completed their campaign sequence
     campaignHistory: jsonb('campaign_history').default('[]'), // Array of all campaigns lead has been through
     enrolledCampaignVersion: integer('enrolled_campaign_version'), // Snapshot of campaign.version at enrollment time
     enrolledMessageCount: integer('enrolled_message_count').default(0).notNull(), // Snapshot of message count at enrollment for version-aware de-enrollment
+    enrolledAt: timestamp('enrolled_at', { withTimezone: true }), // When lead was enrolled in their current campaign (migration 0029)
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
