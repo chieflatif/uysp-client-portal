@@ -66,9 +66,11 @@ export async function GET(request: NextRequest) {
           AND kajabi_tags IS NOT NULL
           AND array_length(kajabi_tags, 1) > 0
         ORDER BY tag
-      `) as any;
+      `);
 
-      const tags = result.rows.map((row: any) => row.tag).filter(Boolean);
+      // Handle both result.rows (postgres) and result itself being an array
+      const rows = (result as any).rows || (Array.isArray(result) ? result : []);
+      const tags = rows.map((row: any) => row.tag).filter(Boolean);
 
       console.log(`✅ Found ${tags.length} tags directly from leads table`);
 
