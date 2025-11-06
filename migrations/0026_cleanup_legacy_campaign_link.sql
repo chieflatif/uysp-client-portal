@@ -49,7 +49,7 @@ END $$;
 
 ALTER TABLE leads DROP CONSTRAINT IF EXISTS leads_campaign_link_id_fkey;
 
-RAISE NOTICE 'Dropped foreign key constraint: leads_campaign_link_id_fkey';
+DO $$ BEGIN RAISE NOTICE 'Dropped foreign key constraint: leads_campaign_link_id_fkey'; END $$;
 
 -- ============================================================================
 -- STEP 4: Drop indexes that reference campaign_link_id
@@ -58,7 +58,7 @@ RAISE NOTICE 'Dropped foreign key constraint: leads_campaign_link_id_fkey';
 DROP INDEX IF EXISTS idx_leads_campaign_link;
 DROP INDEX IF EXISTS idx_leads_campaign_link_id;
 
-RAISE NOTICE 'Dropped indexes: idx_leads_campaign_link, idx_leads_campaign_link_id';
+DO $$ BEGIN RAISE NOTICE 'Dropped indexes: idx_leads_campaign_link, idx_leads_campaign_link_id'; END $$;
 
 -- ============================================================================
 -- STEP 5: Remove the legacy column
@@ -66,7 +66,7 @@ RAISE NOTICE 'Dropped indexes: idx_leads_campaign_link, idx_leads_campaign_link_
 
 ALTER TABLE leads DROP COLUMN IF EXISTS campaign_link_id;
 
-RAISE NOTICE 'Dropped column: campaign_link_id';
+DO $$ BEGIN RAISE NOTICE 'Dropped column: campaign_link_id'; END $$;
 
 -- ============================================================================
 -- STEP 6: Verification - Confirm column is gone
