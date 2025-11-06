@@ -156,6 +156,16 @@ export default function CampaignForm({
         newErrors.bookingLink = 'Booking link must be a valid URL';
       }
 
+      // Validate resource fields: both or none required
+      const hasResourceLink = formData.resourceLink && formData.resourceLink.trim() !== '';
+      const hasResourceName = formData.resourceName && formData.resourceName.trim() !== '';
+      if (hasResourceLink && !hasResourceName) {
+        newErrors.resourceName = 'Resource name is required when resource link is provided';
+      }
+      if (hasResourceName && !hasResourceLink) {
+        newErrors.resourceLink = 'Resource link is required when resource name is provided';
+      }
+
       // Validate webinar messages
       messages.forEach((msg, idx) => {
         if (!msg.text.trim()) {

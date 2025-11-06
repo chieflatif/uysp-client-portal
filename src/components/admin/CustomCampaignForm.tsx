@@ -555,6 +555,16 @@ export default function CustomCampaignForm({
       newErrors.bookingLink = 'Booking link must be a valid URL';
     }
 
+    // Validate resource fields: both or none required
+    const hasResourceLink = resourceLink && resourceLink.trim() !== '';
+    const hasResourceName = resourceName && resourceName.trim() !== '';
+    if (hasResourceLink && !hasResourceName) {
+      newErrors.resourceName = 'Resource name is required when resource link is provided';
+    }
+    if (hasResourceName && !hasResourceLink) {
+      newErrors.resourceLink = 'Resource link is required when resource name is provided';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
