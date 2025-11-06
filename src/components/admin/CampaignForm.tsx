@@ -77,15 +77,17 @@ export default function CampaignForm({
   // NEW: Refs for message textareas to enable cursor-position variable insertion
   const messageTextareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
-  // Fetch available tags on mount
+  // Fetch available tags on mount - MEDIUM-2 FIX: Filter webinar tags only
   useEffect(() => {
     const fetchTags = async () => {
       try {
         setLoadingTags(true);
-        const response = await fetch(`/api/admin/campaigns/available-tags?clientId=${clientId}&direct=true`);
+        // MEDIUM-2 FIX: Add filterPattern=webinar to only show webinar-related tags
+        const response = await fetch(`/api/admin/campaigns/available-tags?clientId=${clientId}&direct=true&filterPattern=webinar`);
         if (response.ok) {
           const data = await response.json();
           setAvailableTags(data.tags || []);
+          console.log(`✅ Loaded ${data.tags?.length || 0} webinar tags (filtered from ${data.filterApplied ? 'all tags' : 'cache'})`);
         }
       } catch (error) {
         console.error('Error fetching tags:', error);
