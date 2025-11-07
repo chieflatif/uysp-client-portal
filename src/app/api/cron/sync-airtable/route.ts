@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAirtableClient } from '@/lib/airtable/client';
 import { db } from '@/lib/db';
-import { leads } from '@/lib/db/schema';
+import { leads, campaigns } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
@@ -39,10 +39,26 @@ export async function POST(request: NextRequest) {
     console.log('[Airtable Sync] Starting automated sync...');
     const startTime = Date.now();
 
+    // CRITICAL FIX - STEP A: Pre-compute campaign mapping (formId → campaign.id)
+    console.log('[Airtable Sync] Building campaign mapping...');
+    const allCampaigns = await db.query.campaigns.findMany({
+      where: eq(campaigns.clientId, UYSP_CLIENT_ID),
+    });
+
+    // Build Map<formId, campaign.id> for efficient lookup
+    const formIdToCampaignId = new Map<string, string>();
+    for (const campaign of allCampaigns) {
+      if (campaign.formId) {
+        formIdToCampaignId.set(campaign.formId, campaign.id);
+      }
+    }
+    console.log(`[Airtable Sync] Mapped ${formIdToCampaignId.size} campaigns to form IDs`);
+
     const airtable = getAirtableClient();
     let totalFetched = 0;
     let totalUpdated = 0;
     let totalCreated = 0;
+    let totalEnriched = 0; // Track how many leads got campaign_id enriched
     let errors = 0;
 
     await airtable.streamAllLeads(async (record) => {
@@ -50,6 +66,13 @@ export async function POST(request: NextRequest) {
 
       try {
         const leadData = airtable.mapToDatabaseLead(record, UYSP_CLIENT_ID);
+
+        // CRITICAL FIX - STEP B & C: Enrich lead with campaign_id
+        // Use formId to lookup corresponding campaign.id from pre-computed Map
+        if (leadData.formId && formIdToCampaignId.has(leadData.formId)) {
+          leadData.campaignId = formIdToCampaignId.get(leadData.formId);
+          totalEnriched++;
+        }
 
         // Find existing lead by Airtable record ID
         const existing = await db.query.leads.findFirst({
@@ -92,12 +115,14 @@ export async function POST(request: NextRequest) {
       totalFetched,
       totalUpdated,
       totalCreated,
+      totalEnriched, // NEW: Track how many leads got campaign_id populated
       errors,
       durationSeconds: duration,
       timestamp: new Date().toISOString(),
     };
 
     console.log('[Airtable Sync] Completed:', summary);
+    console.log(`[Airtable Sync] Successfully enriched ${totalEnriched} leads with campaign_id`);
 
     return NextResponse.json(summary);
   } catch (error) {
