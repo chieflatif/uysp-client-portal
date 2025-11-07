@@ -132,6 +132,72 @@ export default function ActivityLogsPage() {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [selectedActivity]);
 
+  // CSV Export function
+  const handleExportCSV = async () => {
+    try {
+      // Fetch ALL filtered results (no pagination)
+      const params = new URLSearchParams({
+        page: '1',
+        limit: '10000', // Large limit to get all results
+        sortBy,
+        sortOrder,
+      });
+
+      if (debouncedSearch) params.append('search', debouncedSearch);
+      if (selectedCategory !== 'all') params.append('category', selectedCategory);
+
+      const response = await fetch(`/api/admin/activity-logs?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch activity logs');
+
+      const data = await response.json();
+
+      // Convert to CSV
+      const csvRows = [];
+
+      // Header row
+      csvRows.push([
+        'Timestamp',
+        'Category',
+        'Event Type',
+        'Description',
+        'Message Content',
+        'Lead Name',
+        'Lead Email',
+        'Source',
+      ].join(','));
+
+      // Data rows
+      for (const activity of data.activities) {
+        const row = [
+          new Date(activity.timestamp).toISOString(),
+          activity.category,
+          activity.eventType.replace(/_/g, ' '),
+          `"${(activity.description || '').replace(/"/g, '""')}"`, // Escape quotes
+          `"${(activity.messageContent || '').replace(/"/g, '""')}"`,
+          activity.lead ? `"${activity.lead.firstName} ${activity.lead.lastName}"` : '',
+          activity.lead ? activity.lead.email : '',
+          activity.source,
+        ];
+        csvRows.push(row.join(','));
+      }
+
+      // Create blob and download
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `activity-logs-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Failed to export CSV:', error);
+      alert('Failed to export CSV. Please try again.');
+    }
+  };
+
   // Authorization check - render before any hooks are called below
   if (!isAdmin) {
     return (
@@ -178,8 +244,8 @@ export default function ActivityLogsPage() {
               Refresh
             </button>
             <button
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-              onClick={() => {/* TODO: Day 3 - Add CSV export */}}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              onClick={handleExportCSV}
               aria-label="Export activity logs to CSV"
             >
               <Download className="w-4 h-4" />
