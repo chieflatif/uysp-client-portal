@@ -68,7 +68,8 @@ export async function POST(request: NextRequest) {
           totalUpdated++;
         } else {
           // Insert new lead
-          await db.insert(leads).values(leadData);
+          // Type assertion: mapToDatabaseLead provides all required fields with fallbacks
+          await db.insert(leads).values(leadData as any);
           totalCreated++;
         }
 

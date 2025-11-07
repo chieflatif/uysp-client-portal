@@ -349,7 +349,7 @@ export default function CampaignForm({
     }
 
     // Confirmation dialog
-    const action = editingCampaign ? 'update' : 'create';
+    const action = campaign ? 'update' : 'create';
     if (!confirm(`Are you sure you want to ${action} this webinar campaign?`)) {
       return;
     }
