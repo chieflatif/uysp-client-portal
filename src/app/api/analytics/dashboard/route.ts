@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { clients } from '@/lib/db/schema';
+import { clients, leads, campaigns } from '@/lib/db/schema';
+import { eq, sql } from 'drizzle-orm';
 
 /**
  * GET /api/analytics/dashboard
@@ -80,12 +81,39 @@ export async function GET(request: NextRequest) {
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
 
-    // Fetch all leads
-    const allLeads = await db.query.leads.findMany({
-      where: clientId 
-        ? (leads, { eq }) => eq(leads.clientId, clientId)
-        : undefined,
-    });
+    // CRITICAL FIX: Fetch all leads with LEFT JOIN to campaigns for campaign names
+    const allLeadsQuery = db
+      .select({
+        id: leads.id,
+        email: leads.email,
+        firstName: leads.firstName,
+        lastName: leads.lastName,
+        phone: leads.phone,
+        company: leads.company,
+        title: leads.title,
+        icpScore: leads.icpScore,
+        status: leads.status,
+        booked: leads.booked,
+        bookedAt: leads.bookedAt,
+        smsStop: leads.smsStop,
+        smsSequencePosition: leads.smsSequencePosition,
+        smsSentCount: leads.smsSentCount,
+        smsLastSentAt: leads.smsLastSentAt,
+        processingStatus: leads.processingStatus,
+        clickedLink: leads.clickedLink,
+        clickCount: leads.clickCount,
+        firstClickedAt: leads.firstClickedAt,
+        createdAt: leads.createdAt,
+        campaignId: leads.campaignId,
+        // Campaign name with COALESCE for NULL campaign_id
+        campaignName: sql<string>`COALESCE(${campaigns.name}, 'Unassigned')`.as('campaignName'),
+      })
+      .from(leads)
+      .leftJoin(campaigns, eq(leads.campaignId, campaigns.id));
+
+    const allLeads = clientId
+      ? await allLeadsQuery.where(eq(leads.clientId, clientId))
+      : await allLeadsQuery;
 
     // Time-filtered leads
     const periodLeads = startDate

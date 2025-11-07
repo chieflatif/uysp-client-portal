@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { clients } from '@/lib/db/schema';
+import { clients, leads, campaigns } from '@/lib/db/schema';
+import { eq, and, gte, lte, sql } from 'drizzle-orm';
 
 /**
  * GET /api/analytics/campaigns
@@ -59,55 +60,64 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch all campaigns for this client to get name mappings
-    const allCampaigns = await db.query.campaigns.findMany({
-      where: clientId
-        ? (campaigns, { eq }) => eq(campaigns.clientId, clientId)
-        : undefined,
-    });
-
-    // Create formId -> campaign name mapping
-    const formIdToCampaignName = new Map<string, string>();
-    for (const campaign of allCampaigns) {
-      if (campaign.formId) {
-        formIdToCampaignName.set(campaign.formId!, campaign.name);
-      }
+    // CRITICAL FIX: Use proper LEFT JOIN on campaign_id to get actual campaign names
+    // Build WHERE conditions
+    const conditions = [];
+    if (clientId) {
+      conditions.push(eq(leads.clientId, clientId));
+    }
+    if (startDate) {
+      conditions.push(gte(leads.createdAt, new Date(startDate)));
+    }
+    if (endDate) {
+      conditions.push(lte(leads.createdAt, new Date(endDate)));
     }
 
-    // Fetch all leads matching criteria
-    const allLeads = await db.query.leads.findMany({
-      where: (leads, { eq, and, gte: gteOp, lte: lteOp }) => {
-        const conditions = [];
+    // Query with LEFT JOIN to campaigns table
+    const leadsWithCampaigns = await db
+      .select({
+        // Lead fields
+        id: leads.id,
+        email: leads.email,
+        firstName: leads.firstName,
+        lastName: leads.lastName,
+        phone: leads.phone,
+        company: leads.company,
+        title: leads.title,
+        icpScore: leads.icpScore,
+        status: leads.status,
+        booked: leads.booked,
+        bookedAt: leads.bookedAt,
+        smsStop: leads.smsStop,
+        smsSequencePosition: leads.smsSequencePosition,
+        smsSentCount: leads.smsSentCount,
+        smsLastSentAt: leads.smsLastSentAt,
+        processingStatus: leads.processingStatus,
+        clickedLink: leads.clickedLink,
+        clickCount: leads.clickCount,
+        firstClickedAt: leads.firstClickedAt,
+        shortLinkId: leads.shortLinkId,
+        shortLinkUrl: leads.shortLinkUrl,
+        createdAt: leads.createdAt,
+        formId: leads.formId,
+        campaignId: leads.campaignId,
+        // Campaign name with COALESCE for NULL campaign_id
+        campaignName: sql<string>`COALESCE(${campaigns.name}, 'Unassigned')`.as('campaignName'),
+      })
+      .from(leads)
+      .leftJoin(campaigns, eq(leads.campaignId, campaigns.id))
+      .where(conditions.length > 1 ? and(...conditions) : conditions[0]);
 
-        if (clientId) {
-          conditions.push(eq(leads.clientId, clientId));
-        }
-        if (campaignFilter) {
-          // Filter by campaign name - need to find formId first
-          const matchingCampaign = allCampaigns.find(c => c.name === campaignFilter);
-          if (matchingCampaign && matchingCampaign.formId) {
-            conditions.push(eq(leads.formId, matchingCampaign.formId));
-          }
-        }
-        if (startDate) {
-          conditions.push(gteOp(leads.createdAt, new Date(startDate)));
-        }
-        if (endDate) {
-          conditions.push(lteOp(leads.createdAt, new Date(endDate)));
-        }
+    // Filter by campaign name if requested
+    const allLeads = campaignFilter
+      ? leadsWithCampaigns.filter(l => l.campaignName === campaignFilter)
+      : leadsWithCampaigns;
 
-        return conditions.length > 1 ? and(...conditions) : conditions[0];
-      },
-    });
-
-    // Group leads by campaign (using formId)
+    // Group leads by campaign name (now using the actual campaign name from JOIN)
     const campaignGroups = new Map<string, typeof allLeads>();
 
     for (const lead of allLeads) {
-      // Use formId to group leads
-      const formId = lead.formId || 'unassigned';
-      // FIX: Display "Unassigned" instead of UUID when campaign mapping is not found
-      const campaignName = formIdToCampaignName.get(formId) || 'Unassigned';
+      const campaignName = lead.campaignName;
 
       if (!campaignGroups.has(campaignName)) {
         campaignGroups.set(campaignName, []);
@@ -116,7 +126,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate analytics for each campaign
-    const campaigns = Array.from(campaignGroups.entries()).map(([name, campaignLeads]) => {
+    const campaignStats = Array.from(campaignGroups.entries()).map(([name, campaignLeads]) => {
       const totalLeads = campaignLeads.length;
 
       // Sequence distribution
@@ -188,11 +198,14 @@ export async function GET(request: NextRequest) {
     });
 
     // Sort campaigns by total leads (descending)
-    campaigns.sort((a, b) => b.totalLeads - a.totalLeads);
+    campaignStats.sort((a, b) => b.totalLeads - a.totalLeads);
+
+    // Filter out "Unassigned" from the response (not a real campaign)
+    const filteredCampaigns = campaignStats.filter(c => c.name !== 'Unassigned');
 
     return NextResponse.json({
       success: true,
-      campaigns,
+      campaigns: filteredCampaigns,
       timestamp: new Date().toISOString(),
     });
 
