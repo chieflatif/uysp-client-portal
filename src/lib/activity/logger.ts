@@ -26,15 +26,23 @@ interface LogActivityParams {
   timestamp?: Date;
 }
 
+export interface LogActivityResult {
+  success: boolean;
+  activityId?: string;
+  error?: string;
+}
+
 /**
  * Log a lead activity event
  *
  * This is a non-blocking function that logs activity to the database.
  * It will never throw errors to prevent breaking the application.
  *
+ * Returns: { success: boolean, activityId?: string, error?: string }
+ *
  * Usage:
  * ```ts
- * await logLeadActivity({
+ * const result = await logLeadActivity({
  *   eventType: 'CAMPAIGN_ENROLLED',
  *   eventCategory: 'CAMPAIGN',
  *   leadId: lead.id,
@@ -43,14 +51,20 @@ interface LogActivityParams {
  *   source: 'ui:campaign-enroll',
  *   createdBy: session.user.id
  * });
+ *
+ * if (result.success) {
+ *   console.log('Activity logged:', result.activityId);
+ * } else {
+ *   console.error('Failed to log activity:', result.error);
+ * }
  * ```
  */
-export async function logLeadActivity(params: LogActivityParams): Promise<void> {
+export async function logLeadActivity(params: LogActivityParams): Promise<LogActivityResult> {
   try {
     // Require either leadId or leadAirtableId
     if (!params.leadId && !params.leadAirtableId) {
       console.error('[ACTIVITY-LOGGER] Must provide either leadId or leadAirtableId');
-      return; // Don't throw - just return silently
+      return { success: false, error: 'Must provide either leadId or leadAirtableId' };
     }
 
     // Find lead if only Airtable ID provided
@@ -69,20 +83,23 @@ export async function logLeadActivity(params: LogActivityParams): Promise<void> 
       }
     }
 
-    // Insert activity log
-    await db.insert(leadActivityLog).values({
-      eventType: params.eventType,
-      eventCategory: params.eventCategory,
-      leadId: finalLeadId || null,
-      leadAirtableId: params.leadAirtableId || null,
-      clientId: params.clientId || null,
-      description: params.description,
-      messageContent: params.messageContent || null,
-      metadata: params.metadata ? (params.metadata as any) : null,
-      source: params.source,
-      createdBy: params.createdBy || null,
-      timestamp: params.timestamp || new Date(),
-    });
+    // Insert activity log and get the created activity ID
+    const [activity] = await db
+      .insert(leadActivityLog)
+      .values({
+        eventType: params.eventType,
+        eventCategory: params.eventCategory,
+        leadId: finalLeadId || null,
+        leadAirtableId: params.leadAirtableId || null,
+        clientId: params.clientId || null,
+        description: params.description,
+        messageContent: params.messageContent || null,
+        metadata: params.metadata ? (params.metadata as any) : null,
+        source: params.source,
+        createdBy: params.createdBy || null,
+        timestamp: params.timestamp || new Date(),
+      })
+      .returning({ id: leadActivityLog.id });
 
     // Update lead's last activity timestamp (if lead exists in PostgreSQL)
     if (finalLeadId) {
@@ -93,15 +110,19 @@ export async function logLeadActivity(params: LogActivityParams): Promise<void> 
     }
 
     console.log('[ACTIVITY-LOGGER] Activity logged:', {
+      activityId: activity.id,
       eventType: params.eventType,
       leadId: finalLeadId,
       description: params.description,
     });
+
+    return { success: true, activityId: activity.id };
   } catch (error) {
     // CRITICAL: Activity logging must NEVER break the application
     console.error('[ACTIVITY-LOGGER] Failed to log event:', error);
     console.error('[ACTIVITY-LOGGER] Event params:', params);
-    // Don't throw - application continues
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -110,13 +131,18 @@ export async function logLeadActivity(params: LogActivityParams): Promise<void> 
  *
  * This is useful when you need to log multiple events at once.
  * Failures in individual logs won't stop the batch.
+ *
+ * Returns: Array of results for each activity log attempt
  */
 export async function logLeadActivitiesBatch(
   activities: LogActivityParams[]
-): Promise<void> {
+): Promise<LogActivityResult[]> {
+  const results: LogActivityResult[] = [];
   for (const activity of activities) {
-    await logLeadActivity(activity);
+    const result = await logLeadActivity(activity);
+    results.push(result);
   }
+  return results;
 }
 
 /**
