@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Activity, Search, Filter, Download, RefreshCw, Clock, User, MessageSquare, ArrowUp, ArrowDown } from 'lucide-react';
+import { Activity, Search, Filter, Download, RefreshCw, Clock, User, MessageSquare, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -25,6 +25,7 @@ export default function ActivityLogsPage() {
   const [page, setPage] = useState(pageFromUrl);
   const [sortBy, setSortBy] = useState<'timestamp' | 'eventType' | 'eventCategory'>(sortByFromUrl as any);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(sortOrderFromUrl as any);
+  const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
 
   // Debounce search term for API calls (300ms delay)
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -119,6 +120,17 @@ export default function ActivityLogsPage() {
       <ArrowDown className="w-4 h-4 inline ml-1" />
     );
   };
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedActivity) {
+        setSelectedActivity(null);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [selectedActivity]);
 
   // Authorization check - render before any hooks are called below
   if (!isAdmin) {
@@ -330,7 +342,7 @@ export default function ActivityLogsPage() {
                 <tr
                   key={activity.id}
                   className="hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => {/* TODO: Day 3 - Open detail modal */}}
+                  onClick={() => setSelectedActivity(activity)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2 text-sm">
@@ -429,6 +441,142 @@ export default function ActivityLogsPage() {
             </button>
           </div>
         </nav>
+      )}
+
+      {/* Detail Modal */}
+      {selectedActivity && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => setSelectedActivity(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 id="modal-title" className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Activity className="w-6 h-6 text-blue-600" />
+                Activity Details
+              </h2>
+              <button
+                onClick={() => setSelectedActivity(null)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Timestamp & Category Badge */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-gray-400" />
+                  <span className="text-lg font-medium text-gray-900">
+                    {selectedActivity.timestamp.toLocaleString()}
+                  </span>
+                </div>
+                <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                  selectedActivity.category === 'SMS' ? 'bg-blue-100 text-blue-800' :
+                  selectedActivity.category === 'BOOKING' ? 'bg-green-100 text-green-800' :
+                  selectedActivity.category === 'CAMPAIGN' ? 'bg-purple-100 text-purple-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {selectedActivity.category}
+                </span>
+              </div>
+
+              {/* Event Type */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Event Type</h3>
+                <p className="text-base text-gray-900">{selectedActivity.eventType.replace(/_/g, ' ')}</p>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Description</h3>
+                <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedActivity.description}</p>
+              </div>
+
+              {/* Message Content */}
+              {selectedActivity.messageContent && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                    <MessageSquare className="w-4 h-4" />
+                    Message Content
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedActivity.messageContent}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Lead Information */}
+              {selectedActivity.lead && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                    <User className="w-4 h-4" />
+                    Lead
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="text-base font-medium text-gray-900">
+                      {selectedActivity.lead.firstName} {selectedActivity.lead.lastName}
+                    </p>
+                    <p className="text-sm text-gray-600">{selectedActivity.lead.email}</p>
+                    <p className="text-xs text-gray-500 mt-1">ID: {selectedActivity.lead.id}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Source */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Source</h3>
+                <code className="text-sm font-mono bg-gray-100 px-3 py-1 rounded border border-gray-200">
+                  {selectedActivity.source}
+                </code>
+              </div>
+
+              {/* Metadata (if present) */}
+              {selectedActivity.metadata && Object.keys(selectedActivity.metadata).length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Metadata</h3>
+                  <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto border border-gray-700">
+                    {JSON.stringify(selectedActivity.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* IDs */}
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+                <div>
+                  <h4 className="text-xs font-medium text-gray-500 uppercase mb-1">Activity ID</h4>
+                  <code className="text-xs font-mono text-gray-600">{selectedActivity.id}</code>
+                </div>
+                {selectedActivity.leadAirtableId && (
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-500 uppercase mb-1">Airtable Lead ID</h4>
+                    <code className="text-xs font-mono text-gray-600">{selectedActivity.leadAirtableId}</code>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+              <button
+                onClick={() => setSelectedActivity(null)}
+                className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
