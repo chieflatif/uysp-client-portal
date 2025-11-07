@@ -888,47 +888,691 @@ await logLeadActivity({
 
 ---
 
-## 7. ADMIN ACTIVITY BROWSER UI SPECIFICATION
+## 7. UI SPECIFICATION - "AIRTABLE-LIKE" EXPERIENCE
 
-### Page: /admin/activity-logs
+### Design Philosophy
 
-**Layout:**
+**The UI must be:**
+- ⚡ **Fast to scan** - See 50 records in <1 second
+- 🎯 **Information-dense** - Maximum signal, minimum noise
+- 🔍 **Instantly filterable** - 0-click filters, faceted search
+- 📊 **Sortable columns** - Click any header to sort
+- 📥 **Exportable** - CSV for Excel/Sheets analysis
+- 🔄 **Real-time** - Auto-refresh without losing scroll position
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ 🔍 Search: [________________________] 🔄 Auto-refresh: [ON ▼]   │
-├─────────────────────────────────────────────────────────────────┤
-│ Filters:                                                        │
-│ Event Type: [All ▼] Category: [All ▼] Date: [Last 24h ▼]     │
-├─────────────────────────────────────────────────────────────────┤
-│ 💬 MESSAGE_SENT • John Smith • 2 minutes ago                   │
-│ ├─ "Hey John, saw your form submission..."                     │
-│ ├─ Campaign: chatgpt_use_cases | Phone: 408-555-1234          │
-│ └─ Source: n8n:kajabi-scheduler | Execution: 28973            │
-│    [📋 Copy Execution ID] [👁️ View Full Details]               │
-├─────────────────────────────────────────────────────────────────┤
-│ 📅 BOOKING_CONFIRMED • Sarah Lee • 15 minutes ago              │
-│ ├─ Calendly booking confirmed                                  │
-│ ├─ Scheduled: Nov 10, 2pm ET                                   │
-│ └─ Source: n8n:calendly-webhook | Event: evt_abc123           │
-├─────────────────────────────────────────────────────────────────┤
-│ 📊 CAMPAIGN_ENROLLED • Mike Chen • 1 hour ago                  │
-│ ├─ Enrolled in campaign: Problem Mapping Template              │
-│ ├─ By: admin@rebel.com (UI)                                    │
-│ └─ Source: ui:campaign-enroll                                  │
-└─────────────────────────────────────────────────────────────────┘
-Showing 1-50 of 2,847 events        [Export CSV] [< 1 2 3 4 ... >]
-```
+**Reference Experience:** Airtable's grid view + Notion's database view
 
-**Features:**
-- ⚡ **Fast:** PostgreSQL full-text search
-- 🔍 **Powerful:** Search message content, lead names, metadata
-- 📊 **Filterable:** Event type, category, date range, lead
-- 📥 **Exportable:** CSV download for analysis
-- 🔄 **Real-time:** Auto-refresh every 30 seconds (toggleable)
-- 👁️ **Detailed:** Click to expand full metadata JSON
+---
 
+### 7.1 Admin Activity Browser UI
+
+**Page:** `/admin/activity-logs`  
 **File:** `src/app/(dashboard)/admin/activity-logs/page.tsx`
+
+#### Layout Specification
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│ Activity Logs                                     [🔄 ON] [📥 Export] │
+├───────────────────────────────────────────────────────────────────────┤
+│ 🔍 Search across all events...                           [🗓️ Date ▼] │
+├─────┬──────────────┬─────────────────────────┬────────────┬──────────┤
+│ ⚡ │ When         │ Lead                    │ Event      │ Details  │
+├─────┼──────────────┼─────────────────────────┼────────────┼──────────┤
+│ 💬  │ 2 min ago    │ John Smith              │ MSG_SENT   │ "Hey..." │
+│     │ 14:35:22     │ john@example.com        │ SMS        │ +14085.. │
+│     │              │ [View Lead] [Copy ID]   │            │ [Expand] │
+├─────┼──────────────┼─────────────────────────┼────────────┼──────────┤
+│ 📅  │ 15 min ago   │ Sarah Lee               │ BOOKING    │ Nov 10.. │
+│     │ 14:22:10     │ sarah@company.com       │ CONFIRMED  │ 2pm ET   │
+│     │              │ [View Lead]             │            │ [Expand] │
+├─────┼──────────────┼─────────────────────────┼────────────┼──────────┤
+│ 📊  │ 1 hour ago   │ Mike Chen               │ CAMPAIGN   │ Problem..│
+│     │ 13:30:05     │ mike@startup.io         │ ENROLLED   │ By: ad..│
+│     │              │ [View Lead]             │            │ [Expand] │
+└─────┴──────────────┴─────────────────────────┴────────────┴──────────┘
+Showing 1-50 of 2,847 events    [< Prev]  1 2 3 4 ... 57  [Next >]
+```
+
+#### Component Breakdown
+
+**1. Header Bar (Always Visible)**
+
+```tsx
+<div className="sticky top-0 bg-white border-b z-10 p-4">
+  <div className="flex justify-between items-center">
+    <h1>Activity Logs</h1>
+    <div className="flex gap-2">
+      <AutoRefreshToggle />  {/* ON/OFF with 30s interval */}
+      <ExportCSVButton />    {/* Downloads filtered results */}
+    </div>
+  </div>
+</div>
+```
+
+**2. Search & Filter Bar (Sticky)**
+
+```tsx
+<div className="sticky top-16 bg-gray-50 border-b p-4 z-9">
+  {/* Primary Search */}
+  <SearchInput 
+    placeholder="Search by lead name, email, message content..."
+    debounce={300}
+    fullTextSearch={true}
+  />
+  
+  {/* Quick Filters (Chips) */}
+  <div className="flex gap-2 mt-2">
+    <FilterChip label="SMS" count={1234} active={false} />
+    <FilterChip label="Bookings" count={89} active={false} />
+    <FilterChip label="Campaigns" count={456} active={false} />
+    <FilterChip label="Last 24h" count={2847} active={true} />
+    <FilterChip label="Today" count={1203} />
+    <FilterChip label="This Week" count={5432} />
+  </div>
+  
+  {/* Advanced Filters (Collapsible) */}
+  <Collapsible trigger="More Filters">
+    <EventTypeSelect />    {/* Multi-select dropdown */}
+    <DateRangePicker />
+    <LeadSelect />         {/* Autocomplete lead search */}
+    <SourceFilter />       {/* n8n vs UI vs system */}
+  </Collapsible>
+</div>
+```
+
+**3. Data Table (Virtualized)**
+
+```tsx
+<VirtualTable
+  rows={activities}
+  rowHeight={72}          // 3 lines: timestamp, lead, details
+  columns={[
+    {
+      id: 'icon',
+      width: 48,
+      render: (activity) => <EventIcon type={activity.eventType} />
+    },
+    {
+      id: 'timestamp',
+      header: 'When',
+      width: 120,
+      sortable: true,
+      render: (activity) => (
+        <>
+          <div className="font-medium">
+            {formatDistanceToNow(activity.timestamp)}
+          </div>
+          <div className="text-xs text-gray-500">
+            {format(activity.timestamp, 'HH:mm:ss')}
+          </div>
+        </>
+      )
+    },
+    {
+      id: 'lead',
+      header: 'Lead',
+      width: 240,
+      sortable: true,
+      render: (activity) => (
+        <>
+          <div className="font-medium">{activity.lead.name}</div>
+          <div className="text-xs text-gray-600">{activity.lead.email}</div>
+          <div className="flex gap-1 mt-1">
+            <LinkButton to={`/leads/${activity.lead.id}`}>
+              View Lead
+            </LinkButton>
+            <CopyButton value={activity.leadAirtableId} />
+          </div>
+        </>
+      )
+    },
+    {
+      id: 'event',
+      header: 'Event',
+      width: 140,
+      sortable: true,
+      render: (activity) => (
+        <>
+          <Badge color={getCategoryColor(activity.category)}>
+            {activity.eventType}
+          </Badge>
+          <div className="text-xs text-gray-600 mt-1">
+            {activity.category}
+          </div>
+        </>
+      )
+    },
+    {
+      id: 'details',
+      header: 'Details',
+      flex: 1,
+      render: (activity) => (
+        <>
+          <div className="truncate">{activity.description}</div>
+          {activity.messageContent && (
+            <div className="text-xs text-gray-600 truncate mt-1">
+              {activity.messageContent}
+            </div>
+          )}
+          <ExpandButton onClick={() => openModal(activity)} />
+        </>
+      )
+    }
+  ]}
+  onRowClick={(activity) => openModal(activity)}
+  estimatedRowCount={totalCount}
+  loadMore={loadNextPage}
+/>
+```
+
+**4. Expanded Details Modal**
+
+```tsx
+<Modal
+  title={`${activity.eventType} • ${activity.lead.name}`}
+  size="large"
+>
+  <Tabs>
+    <Tab label="Overview">
+      <KeyValueTable>
+        <Row label="Event Type" value={activity.eventType} />
+        <Row label="Category" value={activity.category} />
+        <Row label="Timestamp" value={formatDateTime(activity.timestamp)} />
+        <Row label="Description" value={activity.description} />
+        <Row label="Source" value={activity.source} />
+        {activity.executionId && (
+          <Row 
+            label="n8n Execution" 
+            value={
+              <a href={`https://rebelhq.app.n8n.cloud/executions/${activity.executionId}`}>
+                {activity.executionId}
+              </a>
+            }
+          />
+        )}
+      </KeyValueTable>
+    </Tab>
+    
+    <Tab label="Message" visible={!!activity.messageContent}>
+      <Card className="whitespace-pre-wrap">
+        {activity.messageContent}
+      </Card>
+    </Tab>
+    
+    <Tab label="Metadata" visible={!!activity.metadata}>
+      <JSONViewer data={activity.metadata} />
+    </Tab>
+    
+    <Tab label="Lead Context">
+      <MiniLeadProfile leadId={activity.leadId} />
+      <RecentActivityTimeline leadId={activity.leadId} limit={5} />
+    </Tab>
+  </Tabs>
+  
+  <Footer>
+    <Button onClick={copyToClipboard(activity)}>
+      Copy JSON
+    </Button>
+    <Button onClick={navigateToLead(activity.leadId)}>
+      View Full Lead
+    </Button>
+  </Footer>
+</Modal>
+```
+
+#### Performance Requirements
+
+**Must meet these benchmarks:**
+
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| Initial page load | <500ms | Time to interactive |
+| Search query | <200ms | API response + render |
+| Filter change | <100ms | Client-side filter |
+| Sort column | <100ms | Client-side sort |
+| Scroll performance | 60fps | Virtual scrolling |
+| Export 10K rows | <3s | CSV generation |
+| Auto-refresh | No flicker | Preserve scroll position |
+
+**Implementation notes:**
+- Use React Query for caching and optimistic updates
+- Virtualize table rows (only render visible 20-30 rows)
+- Debounce search input (300ms)
+- Client-side sort/filter when <1000 rows loaded
+- Server-side pagination for >1000 rows
+- Use Web Workers for CSV export (non-blocking)
+
+#### Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `/` | Focus search input |
+| `Esc` | Clear search / Close modal |
+| `↑` `↓` | Navigate rows |
+| `Enter` | Open selected row details |
+| `Cmd/Ctrl + K` | Quick filter menu |
+| `Cmd/Ctrl + E` | Export CSV |
+| `R` | Refresh now |
+
+---
+
+### 7.2 Lead Timeline Component
+
+**Location:** Lead detail page - "Activity" tab  
+**File:** `src/app/(dashboard)/leads/[id]/activity-tab.tsx`
+
+#### Visual Design
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│ Activity Timeline (127 events)            [🔄 Auto-refresh: ON]│
+├───────────────────────────────────────────────────────────────┤
+│ 📅 Today • November 7, 2025                                   │
+├───────────────────────────────────────────────────────────────┤
+│  ┃                                                             │
+│  ┃  💬 2:35 PM • MESSAGE_SENT                                 │
+│  ┃  "Hey John, saw your form submission—if you'd like help..." │
+│  ┃  Campaign: ChatGPT Use Cases • Phone: +1 (408) 555-1234   │
+│  ┃  Source: n8n:kajabi-scheduler                              │
+│  ┗━━ [View Full Message] [Copy Text]                          │
+│  ┃                                                             │
+│  ┃  📊 9:45 AM • CAMPAIGN_ENROLLED                            │
+│  ┃  Enrolled in campaign: Problem Mapping Template            │
+│  ┃  By: admin@rebel.com                                       │
+│  ┃  Source: ui:campaign-enroll                                │
+│  ┗━━ [View Campaign]                                          │
+│  ┃                                                             │
+├───────────────────────────────────────────────────────────────┤
+│ 📅 Yesterday • November 6, 2025                               │
+├───────────────────────────────────────────────────────────────┤
+│  ┃                                                             │
+│  ┃  📅 3:22 PM • BOOKING_CONFIRMED                            │
+│  ┃  Calendly booking confirmed for Nov 10, 2025 @ 2:00 PM ET  │
+│  ┃  Event: Strategy Call • Duration: 30 min                   │
+│  ┗━━ [View in Calendly]                                       │
+│  ┃                                                             │
+│  ┃  💬 10:15 AM • INBOUND_REPLY                               │
+│  ┃  "Yes! I'd love to learn more about this."                 │
+│  ┃  Sentiment: Positive 😊 • Response time: 1h 23m            │
+│  ┗━━ [View Conversation]                                      │
+│  ┃                                                             │
+└───────────────────────────────────────────────────────────────┘
+[Load Earlier Activity (97 more)]
+```
+
+#### Component Structure
+
+```tsx
+<TimelineContainer>
+  {/* Group by date */}
+  {groupedActivities.map((group) => (
+    <TimelineGroup key={group.date}>
+      <DateDivider date={group.date} />
+      
+      {group.activities.map((activity) => (
+        <TimelineEvent
+          key={activity.id}
+          icon={getEventIcon(activity.eventType)}
+          color={getCategoryColor(activity.category)}
+          timestamp={activity.timestamp}
+        >
+          {/* Event Header */}
+          <EventHeader>
+            <EventType>{activity.eventType}</EventType>
+            <Timestamp>{formatTime(activity.timestamp)}</Timestamp>
+          </EventHeader>
+          
+          {/* Event Content */}
+          <EventContent>
+            <Description>{activity.description}</Description>
+            
+            {/* Type-specific rendering */}
+            {activity.eventType === 'MESSAGE_SENT' && (
+              <MessagePreview>{activity.messageContent}</MessagePreview>
+            )}
+            
+            {activity.eventType === 'BOOKING_CONFIRMED' && (
+              <BookingDetails metadata={activity.metadata} />
+            )}
+            
+            {activity.eventType === 'INBOUND_REPLY' && (
+              <ReplyContent 
+                message={activity.messageContent}
+                sentiment={activity.metadata.sentiment}
+              />
+            )}
+            
+            {/* Metadata pills */}
+            <MetadataPills>
+              {activity.metadata.campaign && (
+                <Pill icon="📊">Campaign: {activity.metadata.campaign}</Pill>
+              )}
+              {activity.metadata.phone && (
+                <Pill icon="📱">{formatPhone(activity.metadata.phone)}</Pill>
+              )}
+            </MetadataPills>
+            
+            {/* Source attribution */}
+            <SourceTag source={activity.source} />
+          </EventContent>
+          
+          {/* Event Actions */}
+          <EventActions>
+            {activity.messageContent && (
+              <ActionButton onClick={copyText}>Copy Text</ActionButton>
+            )}
+            {activity.executionId && (
+              <ActionButton onClick={viewExecution}>
+                View in n8n
+              </ActionButton>
+            )}
+            <ActionButton onClick={viewDetails}>
+              View Details
+            </ActionButton>
+          </EventActions>
+        </TimelineEvent>
+      ))}
+    </TimelineGroup>
+  ))}
+  
+  {/* Load more */}
+  {hasMore && (
+    <LoadMoreButton onClick={loadEarlier}>
+      Load Earlier Activity ({remainingCount} more)
+    </LoadMoreButton>
+  )}
+</TimelineContainer>
+```
+
+#### Event Icon & Color Mapping
+
+```tsx
+const EVENT_STYLES = {
+  MESSAGE_SENT: { icon: '💬', color: 'blue' },
+  MESSAGE_FAILED: { icon: '⚠️', color: 'red' },
+  MESSAGE_DELIVERED: { icon: '✅', color: 'green' },
+  INBOUND_REPLY: { icon: '💬', color: 'purple' },
+  
+  BOOKING_CONFIRMED: { icon: '📅', color: 'green' },
+  BOOKING_CANCELLED: { icon: '❌', color: 'red' },
+  
+  CAMPAIGN_ENROLLED: { icon: '📊', color: 'blue' },
+  CAMPAIGN_COMPLETED: { icon: '🎉', color: 'green' },
+  
+  STATUS_CHANGED: { icon: '🔄', color: 'gray' },
+  NOTE_ADDED: { icon: '📝', color: 'gray' },
+  LEAD_CLAIMED: { icon: '👤', color: 'purple' },
+  
+  ENRICHMENT_COMPLETED: { icon: '✨', color: 'teal' },
+  ICP_SCORE_UPDATED: { icon: '📈', color: 'orange' }
+};
+```
+
+#### Smart Grouping & Presentation
+
+**Date Grouping:**
+- "Today" - events from today
+- "Yesterday" - events from yesterday  
+- "This Week" - Monday-Sunday current week
+- "Last Week" - Previous week
+- "November 2025" - Older events by month
+
+**Conversation Threading:**
+When MESSAGE_SENT followed by INBOUND_REPLY within 24h, show as threaded:
+
+```
+💬 2:35 PM • MESSAGE_SENT
+"Hey John, saw your form submission..."
+  ↳ 💬 4:02 PM • INBOUND_REPLY (1h 27m later)
+    "Yes! I'd love to learn more."
+    Sentiment: Positive 😊
+```
+
+**Activity Density Indicators:**
+
+```tsx
+{/* Show density when many events */}
+{group.activities.length > 10 && (
+  <DensityIndicator>
+    High Activity Day • {group.activities.length} events
+  </DensityIndicator>
+)}
+```
+
+---
+
+### 7.3 Search & Filter Behavior
+
+#### Full-Text Search
+
+**Searches across:**
+- Lead name (John Smith)
+- Lead email (john@example.com)
+- Event description (Enrolled in campaign)
+- Message content (full SMS text)
+- Metadata fields (campaign names, phone numbers)
+
+**Search quality:**
+- Fuzzy matching (john → John, jon)
+- Stemming (booking → book, booked)
+- Phrase matching ("problem mapping" with quotes)
+- Highlight matches in results
+
+**Implementation:**
+```sql
+-- PostgreSQL full-text search
+WHERE to_tsvector('english', 
+  lead.first_name || ' ' || 
+  lead.last_name || ' ' || 
+  lead.email || ' ' ||
+  activity.description || ' ' || 
+  COALESCE(activity.message_content, '')
+) @@ plainto_tsquery('english', :search)
+```
+
+#### Filter Combinations
+
+**Faceted filters (AND logic):**
+```
+Event Type: MESSAGE_SENT
++ Category: SMS
++ Date: Last 7 days
++ Lead: John Smith
+→ Shows: All SMS sent to John Smith in last 7 days
+```
+
+**Quick filter chips (OR logic within category):**
+```
+Categories: [SMS] [Booking] = SMS events OR Booking events
+```
+
+#### Date Range Presets
+
+| Preset | Range |
+|--------|-------|
+| Last Hour | Now - 1 hour |
+| Today | Midnight to now |
+| Yesterday | Yesterday 00:00-23:59 |
+| Last 7 Days | 7 days ago to now |
+| This Month | 1st of month to now |
+| Custom Range | Date picker modal |
+
+---
+
+### 7.4 Export Functionality
+
+#### CSV Export Format
+
+```csv
+Timestamp,Event Type,Category,Lead Name,Lead Email,Description,Message Content,Source,Execution ID
+2025-11-07 14:35:22,MESSAGE_SENT,SMS,John Smith,john@example.com,"SMS sent: Hey John...",Full message text here,n8n:kJMMZ10anu4NqYUL,28973
+2025-11-07 09:45:10,CAMPAIGN_ENROLLED,CAMPAIGN,John Smith,john@example.com,Enrolled in Problem Mapping Template,,ui:campaign-enroll,
+```
+
+**Export behavior:**
+- Exports **filtered results** (respects search/filters)
+- Maximum 10,000 rows per export
+- Progress indicator for large exports
+- Opens "Save As" dialog automatically
+- Filename: `activity-logs-{date}.csv`
+
+**Implementation (Web Worker):**
+```tsx
+<Button onClick={async () => {
+  // Show progress modal
+  setExporting(true);
+  
+  // Fetch all filtered results (paginated)
+  const allActivities = await fetchAllPages({
+    ...currentFilters,
+    limit: 10000
+  });
+  
+  // Generate CSV in Web Worker (non-blocking)
+  const csv = await generateCSV(allActivities);
+  
+  // Download
+  downloadFile(csv, `activity-logs-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+  
+  setExporting(false);
+}}>
+  📥 Export CSV
+</Button>
+```
+
+---
+
+### 7.5 Real-Time Updates
+
+#### Auto-Refresh Behavior
+
+**When ON:**
+- Poll API every 30 seconds
+- Only fetch new events since last poll
+- Prepend new events to top of list
+- Show toast: "3 new events • Scroll to top"
+- **Preserve scroll position** (don't jump to top)
+- Highlight new events with subtle animation
+
+**Implementation:**
+```tsx
+const { data, refetch } = useQuery({
+  queryKey: ['activity-logs', filters],
+  queryFn: fetchActivityLogs,
+  refetchInterval: autoRefreshEnabled ? 30000 : false,
+  refetchIntervalInBackground: false
+});
+
+// On new data
+useEffect(() => {
+  if (newEventsCount > 0) {
+    toast.info(
+      `${newEventsCount} new event${newEventsCount > 1 ? 's' : ''}`,
+      {
+        action: {
+          label: 'Scroll to top',
+          onClick: () => scrollToTop()
+        }
+      }
+    );
+  }
+}, [newEventsCount]);
+```
+
+---
+
+### 7.6 Mobile Responsiveness
+
+**Breakpoints:**
+- Desktop (>1024px): Full table with all columns
+- Tablet (768-1023px): Condensed table, hide metadata
+- Mobile (<768px): Card list view
+
+**Mobile card view:**
+```
+┌────────────────────────────────────┐
+│ 💬 MESSAGE_SENT • 2 min ago        │
+│ John Smith                         │
+│ john@example.com                   │
+│                                    │
+│ "Hey John, saw your form           │
+│  submission..."                    │
+│                                    │
+│ SMS • n8n:kajabi-scheduler         │
+│ [View Full Details]                │
+└────────────────────────────────────┘
+```
+
+---
+
+### 7.7 Loading & Error States
+
+#### Loading States
+
+**Initial load:**
+```tsx
+<TableSkeleton rows={50} />
+```
+
+**Pagination loading:**
+```tsx
+<SpinnerRow>Loading more events...</SpinnerRow>
+```
+
+**Search loading:**
+```tsx
+<SearchInput loading={isSearching} />
+```
+
+#### Error States
+
+**API error:**
+```tsx
+<ErrorBanner>
+  Failed to load activity logs. 
+  <RetryButton onClick={refetch}>Retry</RetryButton>
+</ErrorBanner>
+```
+
+**No results:**
+```tsx
+<EmptyState
+  icon="🔍"
+  title="No activity found"
+  description="Try adjusting your filters or search query"
+  action={
+    <Button onClick={clearFilters}>Clear Filters</Button>
+  }
+/>
+```
+
+---
+
+### 7.8 Accessibility Requirements
+
+**WCAG 2.1 AA Compliance:**
+- Keyboard navigation for all interactions
+- Screen reader announcements for dynamic content
+- Focus indicators on all interactive elements
+- Sufficient color contrast (4.5:1 minimum)
+- Alt text for all icons
+- ARIA labels for all buttons
+
+**Screen reader experience:**
+```tsx
+<button
+  aria-label={`View details for ${activity.eventType} event for ${activity.lead.name} at ${formatTime(activity.timestamp)}`}
+>
+  View Details
+</button>
+```
+
+---
+
+**END OF UI SPECIFICATION**
+
+This comprehensive UI spec ensures the execution agent has ZERO ambiguity about what to build in Week 4.
 
 ---
 
