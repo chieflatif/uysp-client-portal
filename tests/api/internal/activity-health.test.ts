@@ -9,12 +9,12 @@
 
 import { config } from 'dotenv';
 import { resolve } from 'path';
-config({ path: resolve(__dirname, '../../.env.local') });
+config({ path: resolve(__dirname, '../../../.env.local') });
 
-import { db } from '../../src/lib/db';
-import { leadActivityLog, leads, clients } from '../../src/lib/db/schema';
+import { db } from '../../../src/lib/db';
+import { leadActivityLog, leads, clients } from '../../../src/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { EVENT_TYPES, EVENT_CATEGORIES } from '../../src/lib/activity/event-types';
+import { EVENT_TYPES, EVENT_CATEGORIES } from '../../../src/lib/activity/event-types';
 
 describe('GET /api/internal/activity-health', () => {
   let testClientId: string | null = null;
