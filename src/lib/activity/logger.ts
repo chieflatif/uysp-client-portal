@@ -99,13 +99,14 @@ export async function logLeadActivity(params: LogActivityParams): Promise<LogAct
         createdBy: params.createdBy || null,
         timestamp: params.timestamp || new Date(),
       })
-      .returning({ id: leadActivityLog.id });
+      .returning({ id: leadActivityLog.id, timestamp: leadActivityLog.timestamp });
 
     // Update lead's last activity timestamp (if lead exists in PostgreSQL)
+    // SECURITY: Use SAME timestamp as activity to prevent race condition (HIGH-005)
     if (finalLeadId) {
       await db
         .update(leads)
-        .set({ lastActivityAt: new Date() })
+        .set({ lastActivityAt: activity.timestamp })
         .where(eq(leads.id, finalLeadId));
     }
 
