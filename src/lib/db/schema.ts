@@ -80,6 +80,7 @@ export const leads = pgTable(
     claimedAt: timestamp('claimed_at', { withTimezone: true }), // FIXED: Add timezone support
     campaignId: uuid('campaign_id').references(() => campaigns.id, { onDelete: 'set null' }), // Foreign key to campaigns table
     lastMessageAt: timestamp('last_message_at', { withTimezone: true }), // FIXED: Add timezone support
+    lastActivityAt: timestamp('last_activity_at', { withTimezone: true }), // Mini-CRM: Last activity timestamp (updated by activity log)
     isActive: boolean('is_active').notNull().default(true),
 
     // Campaign & Sequence Tracking (from Airtable)
@@ -527,6 +528,56 @@ export type NewUserActivitySession = typeof userActivitySessions.$inferInsert;
 
 export type UserActivitySummary = typeof userActivitySummary.$inferSelect;
 export type NewUserActivitySummary = typeof userActivitySummary.$inferInsert;
+
+// ==============================================================================
+// LEAD ACTIVITY LOG (Mini-CRM Activity Tracking)
+// ==============================================================================
+
+export const leadActivityLog = pgTable(
+  'lead_activity_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+
+    // Event Classification
+    eventType: varchar('event_type', { length: 100 }).notNull(),
+    eventCategory: varchar('event_category', { length: 50 }).notNull(),
+
+    // Lead Context
+    leadId: uuid('lead_id').references(() => leads.id, { onDelete: 'cascade' }),
+    leadAirtableId: varchar('lead_airtable_id', { length: 255 }),
+    clientId: uuid('client_id').references(() => clients.id),
+
+    // Event Details
+    description: text('description').notNull(),
+    messageContent: text('message_content'),
+    metadata: jsonb('metadata'),
+
+    // Source Attribution
+    source: varchar('source', { length: 100 }).notNull(),
+    executionId: varchar('execution_id', { length: 255 }),
+    createdBy: uuid('created_by').references(() => users.id),
+
+    // Timestamps
+    timestamp: timestamp('timestamp', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    // Performance indexes
+    leadIdTimeIdx: index('idx_activity_lead_time').on(table.leadId, table.timestamp),
+    leadAirtableIdx: index('idx_activity_lead_airtable').on(table.leadAirtableId),
+    eventTypeIdx: index('idx_activity_event_type').on(table.eventType),
+    eventCategoryIdx: index('idx_activity_event_category').on(table.eventCategory),
+    timestampIdx: index('idx_activity_timestamp').on(table.timestamp),
+    // Full-text search index on description + messageContent
+    searchIdx: index('idx_activity_search').using(
+      'gin',
+      sql`to_tsvector('english', ${table.description} || ' ' || COALESCE(${table.messageContent}, ''))`
+    ),
+  })
+);
+
+export type LeadActivity = typeof leadActivityLog.$inferSelect;
+export type NewLeadActivity = typeof leadActivityLog.$inferInsert;
 
 // ==============================================================================
 // EMAIL AUDIT LOG

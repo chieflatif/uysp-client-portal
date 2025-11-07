@@ -29,6 +29,13 @@
       "when": 1761346039802,
       "tag": "0003_easy_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1762509948445,
+      "tag": "0004_add_lead_activity_log",
+      "breakpoints": true
     }
   ]
 }
