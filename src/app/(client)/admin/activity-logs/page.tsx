@@ -5,23 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Activity, Search, Filter, Download, RefreshCw, Clock, User, MessageSquare } from 'lucide-react';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
-
-// Debounce hook
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function ActivityLogsPage() {
   const { data: session } = useSession();
@@ -53,6 +37,35 @@ export default function ActivityLogsPage() {
     enabled: isAdmin, // Only fetch if user is admin
   });
 
+  // Fetch category counts (accurate per-category totals)
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({
+    all: 0,
+    SMS: 0,
+    BOOKING: 0,
+    CAMPAIGN: 0,
+  });
+
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchCounts = async () => {
+      try {
+        const params = new URLSearchParams();
+        if (debouncedSearch) params.set('search', debouncedSearch);
+
+        const response = await fetch(`/api/admin/activity-logs/counts?${params.toString()}`);
+        if (response.ok) {
+          const counts = await response.json();
+          setCategoryCounts(counts);
+        }
+      } catch (error) {
+        console.error('Failed to fetch category counts:', error);
+      }
+    };
+
+    fetchCounts();
+  }, [debouncedSearch, isAdmin]);
+
   // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
@@ -63,17 +76,6 @@ export default function ActivityLogsPage() {
     const newUrl = `/admin/activity-logs${params.toString() ? `?${params.toString()}` : ''}`;
     router.replace(newUrl, { scroll: false });
   }, [page, selectedCategory, searchTerm, router]);
-
-  // Get category counts from pagination metadata
-  const categoryCounts = useMemo(() => {
-    // Note: API doesn't return category counts in current implementation
-    // This would need to be added to the API response for accurate counts
-    // For now, show total count for selected category
-    return {
-      all: data?.pagination.totalCount || 0,
-      [selectedCategory]: data?.pagination.totalCount || 0,
-    };
-  }, [data?.pagination.totalCount, selectedCategory]);
 
   // Handle category filter change
   const handleCategoryChange = (category: string) => {
@@ -127,6 +129,7 @@ export default function ActivityLogsPage() {
             <button
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               onClick={() => refetch()}
+              aria-label="Refresh activity logs"
             >
               <RefreshCw className="w-4 h-4" />
               Refresh
@@ -134,6 +137,7 @@ export default function ActivityLogsPage() {
             <button
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
               onClick={() => {/* TODO: Day 3 - Add CSV export */}}
+              aria-label="Export activity logs to CSV"
             >
               <Download className="w-4 h-4" />
               Export CSV
@@ -157,6 +161,7 @@ export default function ActivityLogsPage() {
                 setPage(1); // Reset to page 1 when search changes
               }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-label="Search activity logs"
             />
             {debouncedSearch !== searchTerm && (
               <div className="absolute right-3 top-3">
@@ -180,6 +185,8 @@ export default function ActivityLogsPage() {
                 ? 'bg-blue-100 text-blue-800 border-2 border-blue-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
+            aria-label={`Show all activities (${categoryCounts.all || 0})`}
+            aria-pressed={selectedCategory === 'all'}
           >
             All ({categoryCounts.all || 0})
           </button>
@@ -191,8 +198,10 @@ export default function ActivityLogsPage() {
                 ? 'bg-blue-100 text-blue-800 border-2 border-blue-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
+            aria-label={`Filter by SMS activities (${categoryCounts.SMS || 0})`}
+            aria-pressed={selectedCategory === 'SMS'}
           >
-            SMS
+            SMS ({categoryCounts.SMS || 0})
           </button>
 
           <button
@@ -202,8 +211,10 @@ export default function ActivityLogsPage() {
                 ? 'bg-green-100 text-green-800 border-2 border-green-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
+            aria-label={`Filter by booking activities (${categoryCounts.BOOKING || 0})`}
+            aria-pressed={selectedCategory === 'BOOKING'}
           >
-            Bookings
+            Bookings ({categoryCounts.BOOKING || 0})
           </button>
 
           <button
@@ -213,8 +224,10 @@ export default function ActivityLogsPage() {
                 ? 'bg-purple-100 text-purple-800 border-2 border-purple-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
+            aria-label={`Filter by campaign activities (${categoryCounts.CAMPAIGN || 0})`}
+            aria-pressed={selectedCategory === 'CAMPAIGN'}
           >
-            Campaigns
+            Campaigns ({categoryCounts.CAMPAIGN || 0})
           </button>
         </div>
       </div>
@@ -245,22 +258,22 @@ export default function ActivityLogsPage() {
             )}
           </div>
         ) : (
-          <table className="w-full">
+          <table className="w-full" role="table" aria-label="Activity logs table">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" scope="col">
                   When
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" scope="col">
                   Lead
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" scope="col">
                   Event
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" scope="col">
                   Details
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" scope="col">
                   Source
                 </th>
               </tr>
@@ -342,19 +355,20 @@ export default function ActivityLogsPage() {
 
       {/* Pagination */}
       {data && activities.length > 0 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-          <div>
+        <nav className="mt-4 flex items-center justify-between text-sm text-gray-600" aria-label="Activity logs pagination">
+          <div aria-live="polite" aria-atomic="true">
             Showing {((page - 1) * 50) + 1} to {Math.min(page * 50, data.pagination.totalCount)} of {data.pagination.totalCount} activities
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2" role="group">
             <button
               onClick={() => handlePageChange(page - 1)}
               disabled={page === 1}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="Go to previous page"
             >
               Previous
             </button>
-            <div className="flex items-center gap-2 px-3">
+            <div className="flex items-center gap-2 px-3" aria-label={`Current page ${page} of ${data.pagination.totalPages}`}>
               <span className="text-gray-900 font-medium">Page {page}</span>
               <span className="text-gray-400">of {data.pagination.totalPages}</span>
             </div>
@@ -362,11 +376,12 @@ export default function ActivityLogsPage() {
               onClick={() => handlePageChange(page + 1)}
               disabled={!data.pagination.hasMore}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="Go to next page"
             >
               Next
             </button>
           </div>
-        </div>
+        </nav>
       )}
     </div>
   );

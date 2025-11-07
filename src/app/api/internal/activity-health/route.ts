@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const recentCountResult = await db
       .select({ count: sql<number>`count(*)` })
       .from(leadActivityLog)
-      .where(sql`${leadActivityLog.createdAt} > ${oneHourAgo}`);
+      .where(sql`${leadActivityLog.timestamp} > ${oneHourAgo}`);
 
     const eventsLastHour = Number(recentCountResult[0]?.count || 0);
 
