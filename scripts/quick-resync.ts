@@ -13,7 +13,7 @@ config({ path: resolve(__dirname, '../.env.local') });
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from '../src/lib/db/schema';
-import { leads } from '../src/lib/db/schema';
+import { leads, campaigns } from '../src/lib/db/schema';
 import { getAirtableClient } from '../src/lib/airtable/client';
 import { eq } from 'drizzle-orm';
 
@@ -30,9 +30,25 @@ async function quickResync() {
   const db = drizzle(client, { schema });
   
   try {
+    // CRITICAL FIX - STEP A: Pre-compute campaign mapping (formId → campaign.id)
+    console.log('🔗 Building campaign mapping...');
+    const allCampaigns = await db.query.campaigns.findMany({
+      where: (campaigns, { eq }) => eq(campaigns.clientId, DEFAULT_CLIENT_ID),
+    });
+
+    // Build Map<formId, campaign.id> for efficient lookup
+    const formIdToCampaignId = new Map<string, string>();
+    for (const campaign of allCampaigns) {
+      if (campaign.formId) {
+        formIdToCampaignId.set(campaign.formId, campaign.id);
+      }
+    }
+    console.log(`✅ Mapped ${formIdToCampaignId.size} campaigns to form IDs\n`);
+
     const airtable = getAirtableClient();
     let totalFetched = 0;
     let totalUpdated = 0;
+    let totalEnriched = 0; // Track how many leads got campaign_id
     let errors = 0;
 
     console.log('📥 Fetching leads from Airtable...\n');
@@ -43,6 +59,13 @@ async function quickResync() {
       try {
         // Map using CORRECTED field names
         const leadData = airtable.mapToDatabaseLead(record, DEFAULT_CLIENT_ID);
+
+        // CRITICAL FIX - STEP B & C: Enrich lead with campaign_id
+        // Use formId to lookup corresponding campaign.id from pre-computed Map
+        if (leadData.formId && formIdToCampaignId.has(leadData.formId)) {
+          leadData.campaignId = formIdToCampaignId.get(leadData.formId);
+          totalEnriched++;
+        }
 
         // Find existing lead
         const existing = await db.query.leads.findFirst({
@@ -75,6 +98,7 @@ async function quickResync() {
     console.log(`📊 Results:`);
     console.log(`  - Total fetched from Airtable: ${totalFetched}`);
     console.log(`  - Existing leads updated: ${totalUpdated}`);
+    console.log(`  - Leads enriched with campaign_id: ${totalEnriched}`);
     console.log(`  - Errors: ${errors}`);
     
     // Show sample of campaign data
