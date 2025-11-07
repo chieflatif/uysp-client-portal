@@ -33,6 +33,24 @@ services:
     healthCheckPath: /
     autoDeploy: true
 
+  # Cron Job: Airtable → PostgreSQL Sync
+  - type: cron
+    name: airtable-sync
+    runtime: node
+    schedule: "*/5 * * * *"  # Every 5 minutes
+    buildCommand: npm install
+    startCommand: |
+      curl -X POST \
+        -H "Authorization: Bearer $CRON_SECRET" \
+        -H "Content-Type: application/json" \
+        https://uysp-portal-v2.onrender.com/api/cron/sync-airtable
+    envVars:
+      - key: CRON_SECRET
+        fromService:
+          type: web
+          name: uysp-portal-v2
+          envVarKey: CRON_SECRET
+
   # Cron Job: Process Airtable Sync Queue
   - type: cron
     name: process-sync-queue

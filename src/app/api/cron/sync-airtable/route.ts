@@ -1,0 +1,112 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getAirtableClient } from '@/lib/airtable/client';
+import { db } from '@/lib/db';
+import { leads } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutes
+
+// UYSP client ID
+const UYSP_CLIENT_ID = '6a08f898-19cd-49f8-bd77-6fcb2dd56db9';
+
+/**
+ * POST /api/cron/sync-airtable
+ *
+ * Automated Airtable → PostgreSQL sync
+ * Called every 5 minutes by Render cron job
+ *
+ * Security: Protected by CRON_SECRET
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Verify cron secret
+    const authHeader = request.headers.get('authorization');
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (!authHeader || !cronSecret) {
+      console.error('[Airtable Sync] Missing authorization or CRON_SECRET');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const providedSecret = authHeader.replace('Bearer ', '');
+    if (providedSecret !== cronSecret) {
+      console.error('[Airtable Sync] Invalid CRON_SECRET');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    console.log('[Airtable Sync] Starting automated sync...');
+    const startTime = Date.now();
+
+    const airtable = getAirtableClient();
+    let totalFetched = 0;
+    let totalUpdated = 0;
+    let totalCreated = 0;
+    let errors = 0;
+
+    await airtable.streamAllLeads(async (record) => {
+      totalFetched++;
+
+      try {
+        const leadData = airtable.mapToDatabaseLead(record, UYSP_CLIENT_ID);
+
+        // Find existing lead by Airtable record ID
+        const existing = await db.query.leads.findFirst({
+          where: eq(leads.airtableRecordId, record.id),
+        });
+
+        if (existing) {
+          // Update existing lead
+          await db
+            .update(leads)
+            .set({
+              ...leadData,
+              updatedAt: new Date(),
+            })
+            .where(eq(leads.id, existing.id));
+          totalUpdated++;
+        } else {
+          // Insert new lead
+          await db.insert(leads).values(leadData);
+          totalCreated++;
+        }
+
+        // Log progress every 500 records
+        if (totalFetched % 500 === 0) {
+          console.log(`[Airtable Sync] Processed ${totalFetched} leads...`);
+        }
+      } catch (error) {
+        errors++;
+        if (errors <= 5) {
+          console.error(`[Airtable Sync] Error syncing record ${record.id}:`, error);
+        }
+      }
+    });
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+
+    const summary = {
+      success: true,
+      totalFetched,
+      totalUpdated,
+      totalCreated,
+      errors,
+      durationSeconds: duration,
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log('[Airtable Sync] Completed:', summary);
+
+    return NextResponse.json(summary);
+  } catch (error) {
+    console.error('[Airtable Sync] Fatal error:', error);
+    return NextResponse.json(
+      {
+        error: 'Sync failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}

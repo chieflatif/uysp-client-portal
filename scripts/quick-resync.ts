@@ -17,7 +17,7 @@ import { leads } from '../src/lib/db/schema';
 import { getAirtableClient } from '../src/lib/airtable/client';
 import { eq } from 'drizzle-orm';
 
-const DEFAULT_CLIENT_ID = '00000000-0000-0000-0000-000000000000';
+const DEFAULT_CLIENT_ID = '6a08f898-19cd-49f8-bd77-6fcb2dd56db9'; // UYSP client ID
 
 async function quickResync() {
   console.log('🔄 Starting quick re-sync with corrected field mappings...\n');
