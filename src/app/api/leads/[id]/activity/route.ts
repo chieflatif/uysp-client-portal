@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { leadActivityLog } from '@/lib/db/schema';
+import { leadActivityLog, leads } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
 
 /**
@@ -36,6 +36,26 @@ export async function GET(
     }
 
     console.log('[LEAD-ACTIVITY] Fetching timeline for lead:', leadId);
+
+    // CLIENT ISOLATION: Verify user has access to this lead's client
+    const lead = await db.query.leads.findFirst({
+      where: eq(leads.id, leadId),
+      columns: { id: true, clientId: true },
+    });
+
+    if (!lead) {
+      return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+    }
+
+    // SUPER_ADMIN can access all leads, others must match clientId
+    if (session.user.role !== 'SUPER_ADMIN' && session.user.clientId !== lead.clientId) {
+      console.warn('[LEAD-ACTIVITY] Forbidden: User attempted to access lead from different client', {
+        userId: session.user.id,
+        userClientId: session.user.clientId,
+        leadClientId: lead.clientId,
+      });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     // Query activities for this lead (last 100 events)
     // Ordered by timestamp descending (most recent first)
