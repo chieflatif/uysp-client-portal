@@ -58,7 +58,7 @@ npx drizzle-kit generate --name=add_lead_activity_log
 **File:** `src/lib/activity/event-types.ts`
 
 **Created:**
-- 27 event type constants (MESSAGE_SENT, CAMPAIGN_ENROLLED, BOOKING_CONFIRMED, etc.)
+- 23 event type constants (MESSAGE_SENT, CAMPAIGN_ENROLLED, BOOKING_CONFIRMED, etc.)
 - 6 event category constants (SMS, CAMPAIGN, BOOKING, CONVERSATION, MANUAL, SYSTEM)
 - TypeScript type exports for type safety
 - Event type to category mapping
@@ -370,7 +370,7 @@ ALTER TABLE "leads" ADD COLUMN "last_activity_at" timestamp with time zone;
 ✅ **Schema Definition:** leadActivityLog table fully defined with proper types
 ✅ **Foreign Keys:** All 3 FK constraints with appropriate cascade rules
 ✅ **Indexes:** All 6 indexes including GIN full-text search
-✅ **Event Types:** 27 constants with proper categorization
+✅ **Event Types:** 23 constants with proper categorization
 ✅ **API Endpoints:** All 4 endpoints with proper auth and error handling
 ✅ **UI Helper:** Non-blocking logging with common shortcuts
 ✅ **Test Seeder:** 15 diverse events ready for testing
