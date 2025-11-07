@@ -153,6 +153,8 @@ export const leads = pgTable(
     // CUSTOM CAMPAIGNS: GIN index for array operations on kajabi_tags
     kajabiTagsIdx: index('idx_leads_kajabi_tags').using('gin', sql`${table.kajabiTags}`),
     engagementLevelIdx: index('idx_leads_engagement_level').on(table.engagementLevel),
+    // MINI-CRM: Index for sorting/filtering by last activity time
+    lastActivityAtIdx: index('idx_leads_last_activity_at').on(table.lastActivityAt),
   })
 );
 
