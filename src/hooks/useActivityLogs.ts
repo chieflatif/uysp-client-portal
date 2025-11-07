@@ -33,6 +33,8 @@ export interface UseActivityLogsParams {
   limit?: number;
   search?: string;
   category?: string;
+  sortBy?: string;
+  sortOrder?: string;
   enabled?: boolean;
 }
 
@@ -41,14 +43,18 @@ export function useActivityLogs({
   limit = 50,
   search = '',
   category = '',
+  sortBy = 'timestamp',
+  sortOrder = 'desc',
   enabled = true,
 }: UseActivityLogsParams = {}) {
   return useQuery<ActivityLogsResponse>({
-    queryKey: ['activity-logs', { page, limit, search, category }],
+    queryKey: ['activity-logs', { page, limit, search, category, sortBy, sortOrder }],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
+        sortBy,
+        sortOrder,
       });
 
       if (search) {

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Activity, Search, Filter, Download, RefreshCw, Clock, User, MessageSquare } from 'lucide-react';
+import { Activity, Search, Filter, Download, RefreshCw, Clock, User, MessageSquare, ArrowUp, ArrowDown } from 'lucide-react';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -16,11 +16,15 @@ export default function ActivityLogsPage() {
   const pageFromUrl = parseInt(searchParams.get('page') || '1', 10);
   const categoryFromUrl = searchParams.get('category') || 'all';
   const searchFromUrl = searchParams.get('search') || '';
+  const sortByFromUrl = searchParams.get('sortBy') || 'timestamp';
+  const sortOrderFromUrl = searchParams.get('sortOrder') || 'desc';
 
   // Local state
   const [searchTerm, setSearchTerm] = useState(searchFromUrl);
   const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
   const [page, setPage] = useState(pageFromUrl);
+  const [sortBy, setSortBy] = useState<'timestamp' | 'eventType' | 'eventCategory'>(sortByFromUrl as any);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(sortOrderFromUrl as any);
 
   // Debounce search term for API calls (300ms delay)
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -34,6 +38,8 @@ export default function ActivityLogsPage() {
     limit: 50,
     search: debouncedSearch,
     category: selectedCategory === 'all' ? '' : selectedCategory,
+    sortBy,
+    sortOrder,
     enabled: isAdmin, // Only fetch if user is admin
   });
 
@@ -72,10 +78,12 @@ export default function ActivityLogsPage() {
     if (page > 1) params.set('page', page.toString());
     if (selectedCategory !== 'all') params.set('category', selectedCategory);
     if (searchTerm) params.set('search', searchTerm);
+    if (sortBy !== 'timestamp') params.set('sortBy', sortBy);
+    if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
 
     const newUrl = `/admin/activity-logs${params.toString() ? `?${params.toString()}` : ''}`;
     router.replace(newUrl, { scroll: false });
-  }, [page, selectedCategory, searchTerm, router]);
+  }, [page, selectedCategory, searchTerm, sortBy, sortOrder, router]);
 
   // Handle category filter change
   const handleCategoryChange = (category: string) => {
@@ -87,6 +95,29 @@ export default function ActivityLogsPage() {
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle column sort
+  const handleSort = (column: 'timestamp' | 'eventType' | 'eventCategory') => {
+    if (sortBy === column) {
+      // Toggle sort order if clicking same column
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New column - default to desc
+      setSortBy(column);
+      setSortOrder('desc');
+    }
+    setPage(1); // Reset to page 1 when sort changes
+  };
+
+  // Sort indicator component
+  const SortIndicator = ({ column }: { column: string }) => {
+    if (sortBy !== column) return null;
+    return sortOrder === 'asc' ? (
+      <ArrowUp className="w-4 h-4 inline ml-1" />
+    ) : (
+      <ArrowDown className="w-4 h-4 inline ml-1" />
+    );
   };
 
   // Authorization check - render before any hooks are called below
@@ -261,14 +292,30 @@ export default function ActivityLogsPage() {
           <table className="w-full" role="table" aria-label="Activity logs table">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" scope="col">
-                  When
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  scope="col"
+                  onClick={() => handleSort('timestamp')}
+                  aria-label="Sort by timestamp"
+                >
+                  <span className="flex items-center">
+                    When
+                    <SortIndicator column="timestamp" />
+                  </span>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" scope="col">
                   Lead
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" scope="col">
-                  Event
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  scope="col"
+                  onClick={() => handleSort('eventCategory')}
+                  aria-label="Sort by event category"
+                >
+                  <span className="flex items-center">
+                    Event
+                    <SortIndicator column="eventCategory" />
+                  </span>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" scope="col">
                   Details

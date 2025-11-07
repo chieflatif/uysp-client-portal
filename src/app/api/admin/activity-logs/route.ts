@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { leadActivityLog, leads } from '@/lib/db/schema';
-import { desc, eq, and, sql, gte, lte } from 'drizzle-orm';
+import { desc, asc, eq, and, sql, gte, lte } from 'drizzle-orm';
 
 /**
  * GET /api/admin/activity-logs
@@ -19,6 +19,8 @@ import { desc, eq, and, sql, gte, lte } from 'drizzle-orm';
  * - leadId: Filter by specific lead UUID
  * - dateFrom: Filter events >= this date (ISO 8601)
  * - dateTo: Filter events <= this date (ISO 8601)
+ * - sortBy: Sort field (timestamp, eventType, eventCategory) (default: timestamp)
+ * - sortOrder: Sort direction (asc, desc) (default: desc)
  *
  * Security: SUPER_ADMIN or ADMIN only
  * PRD Reference: docs/PRD-MINI-CRM-ACTIVITY-LOGGING.md Section 4.3 Endpoint #2
@@ -49,6 +51,8 @@ export async function GET(request: NextRequest) {
     const leadId = searchParams.get('leadId');
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
+    const sortBy = searchParams.get('sortBy') || 'timestamp';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
 
     console.log('[ADMIN-ACTIVITY-LOGS] Query params:', {
       page,
@@ -59,6 +63,8 @@ export async function GET(request: NextRequest) {
       leadId,
       dateFrom,
       dateTo,
+      sortBy,
+      sortOrder,
     });
 
     // Build WHERE clause conditions
@@ -116,6 +122,21 @@ export async function GET(request: NextRequest) {
     // Calculate offset for pagination
     const offset = (page - 1) * limit;
 
+    // Build dynamic ORDER BY clause
+    const sortField = (() => {
+      switch (sortBy) {
+        case 'eventType':
+          return leadActivityLog.eventType;
+        case 'eventCategory':
+          return leadActivityLog.eventCategory;
+        case 'timestamp':
+        default:
+          return leadActivityLog.timestamp;
+      }
+    })();
+
+    const sortDirection = sortOrder === 'asc' ? asc : desc;
+
     // Execute query with pagination and joins
     const activities = await db
       .select({
@@ -140,7 +161,7 @@ export async function GET(request: NextRequest) {
       .from(leadActivityLog)
       .leftJoin(leads, eq(leadActivityLog.leadId, leads.id))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(leadActivityLog.timestamp))
+      .orderBy(sortDirection(sortField))
       .limit(limit)
       .offset(offset);
 
