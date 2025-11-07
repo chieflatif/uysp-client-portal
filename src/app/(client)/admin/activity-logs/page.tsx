@@ -26,6 +26,14 @@ export default function ActivityLogsPage() {
   const [sortBy, setSortBy] = useState<'timestamp' | 'eventType' | 'eventCategory'>(sortByFromUrl as any);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(sortOrderFromUrl as any);
   const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(() => {
+    // Load from localStorage on mount
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('activity-logs-auto-refresh');
+      return saved === null ? true : saved === 'true'; // Default to ON
+    }
+    return true;
+  });
 
   // Debounce search term for API calls (300ms delay)
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -41,8 +49,16 @@ export default function ActivityLogsPage() {
     category: selectedCategory === 'all' ? '' : selectedCategory,
     sortBy,
     sortOrder,
+    autoRefresh,
     enabled: isAdmin, // Only fetch if user is admin
   });
+
+  // Save autoRefresh preference to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('activity-logs-auto-refresh', autoRefresh.toString());
+    }
+  }, [autoRefresh]);
 
   // Fetch category counts (accurate per-category totals)
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({
@@ -242,6 +258,19 @@ export default function ActivityLogsPage() {
             >
               <RefreshCw className="w-4 h-4" />
               Refresh
+            </button>
+            <button
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                autoRefresh
+                  ? 'bg-green-50 border-2 border-green-500 text-green-700 hover:bg-green-100'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              aria-label={`Auto-refresh is ${autoRefresh ? 'ON' : 'OFF'}. Click to toggle.`}
+              aria-pressed={autoRefresh}
+            >
+              <RefreshCw className={`w-4 h-4 ${autoRefresh && isLoading ? 'animate-spin' : ''}`} />
+              Auto-refresh: {autoRefresh ? 'ON' : 'OFF'}
             </button>
             <button
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

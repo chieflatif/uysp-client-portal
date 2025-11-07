@@ -36,6 +36,7 @@ export interface UseActivityLogsParams {
   sortBy?: string;
   sortOrder?: string;
   enabled?: boolean;
+  autoRefresh?: boolean;
 }
 
 export function useActivityLogs({
@@ -46,6 +47,7 @@ export function useActivityLogs({
   sortBy = 'timestamp',
   sortOrder = 'desc',
   enabled = true,
+  autoRefresh = true,
 }: UseActivityLogsParams = {}) {
   return useQuery<ActivityLogsResponse>({
     queryKey: ['activity-logs', { page, limit, search, category, sortBy, sortOrder }],
@@ -75,6 +77,6 @@ export function useActivityLogs({
     },
     enabled,
     staleTime: 30000, // Consider data fresh for 30 seconds
-    refetchInterval: 60000, // Auto-refresh every 60 seconds
+    refetchInterval: autoRefresh ? 60000 : false, // Auto-refresh every 60 seconds if enabled
   });
 }
