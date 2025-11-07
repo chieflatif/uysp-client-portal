@@ -109,12 +109,13 @@ export async function GET(request: NextRequest) {
     }
 
     let tags = cache.tags as string[];
+    const originalTagCount = tags.length;
 
     // MEDIUM-2 FIX: Apply filter pattern if provided
     if (filterPattern) {
       const lowerPattern = filterPattern.toLowerCase();
       tags = tags.filter(tag => tag.toLowerCase().includes(lowerPattern));
-      console.log(`🔍 Filtered ${cache.tags.length} cached tags to ${tags.length} matching "${filterPattern}"`);
+      console.log(`🔍 Filtered ${originalTagCount} cached tags to ${tags.length} matching "${filterPattern}"`);
     }
 
     return NextResponse.json({
