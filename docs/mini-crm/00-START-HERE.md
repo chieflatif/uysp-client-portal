@@ -92,6 +92,39 @@
 
 ---
 
+## 5. PARALLEL EXECUTION & COORDINATION
+
+**[PARALLEL-EXECUTION-PLAN.md](./PARALLEL-EXECUTION-PLAN.md)**
+- **Purpose:** Coordinate Cursor agent (n8n) + Claude Code (UI) working simultaneously
+- **Audience:** Both execution agents
+- **Status:** Active - Week 2-4 parallel work
+- **Timeline:** 28 hours (overlapping)
+
+**[N8N-INSTRUMENTATION-GUIDE.md](./N8N-INSTRUMENTATION-GUIDE.md)**
+- **Purpose:** Step-by-step guide for instrumenting 4 n8n workflows
+- **Audience:** Cursor conversation agent
+- **Status:** Ready to start
+- **Timeline:** Week 2 - 16 hours
+
+**[UI-IMPLEMENTATION-GUIDE.md](./UI-IMPLEMENTATION-GUIDE.md)**
+- **Purpose:** Step-by-step guide for building admin UI and timeline
+- **Audience:** Claude Code agent
+- **Status:** Ready to start (after tests)
+- **Timeline:** Week 3-4 - 12 hours
+
+**[INTEGRATION-CONTRACT.md](./INTEGRATION-CONTRACT.md)**
+- **Purpose:** API contracts and handoff protocol between agents
+- **Audience:** Both agents + strategic coordinator
+- **Status:** Active coordination protocol
+
+**[AIRTABLE-AUTOMATIONS-ANALYSIS.md](./AIRTABLE-AUTOMATIONS-ANALYSIS.md)**
+- **Purpose:** Analysis of existing Airtable automations in new architecture
+- **Audience:** Strategic planning
+- **Status:** Recommendation - keep unchanged for now
+- **Decision:** Migrate to n8n post-launch (optional)
+
+---
+
 ## 🎯 Quick Navigation
 
 ### Starting Implementation?
