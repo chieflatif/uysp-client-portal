@@ -281,7 +281,7 @@ export async function POST(request: NextRequest) {
           data.clientId,
           campaign.version || 1, // Use default 1 if not set (backward compatibility)
           campaign.name,
-          campaign.messages || []
+          Array.isArray(campaign.messages) ? campaign.messages : []
         );
 
         // BUG #8 FIX: Verify actual enrollment count from database

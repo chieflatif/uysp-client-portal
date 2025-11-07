@@ -698,7 +698,7 @@ export default function CampaignForm({
                       </div>
 
                       <textarea
-                        ref={(el) => (messageTextareaRefs.current[index] = el)}
+                        ref={(el) => { messageTextareaRefs.current[index] = el; }}
                         value={message.text}
                         onChange={(e) => updateMessage(index, e.target.value)}
                         rows={4}

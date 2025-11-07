@@ -1284,7 +1284,7 @@ export default function CustomCampaignForm({
                     </div>
 
                     <textarea
-                      ref={(el) => (messageTextareaRefs.current[index] = el)}
+                      ref={(el) => { messageTextareaRefs.current[index] = el; }}
                       value={message.text}
                       onChange={(e) => updateMessage(index, 'text', e.target.value)}
                       onPaste={(e) => {
