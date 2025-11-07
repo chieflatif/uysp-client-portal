@@ -380,7 +380,10 @@ export default function CampaignList({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onTogglePause(campaign.id, campaign.isPaused);
+                          const action = campaign.isPaused ? 'activate' : 'pause';
+                          if (confirm(`Are you sure you want to ${action} "${campaign.name}"?`)) {
+                            onTogglePause(campaign.id, campaign.isPaused);
+                          }
                         }}
                         className={`p-2 rounded ${
                           campaign.isPaused

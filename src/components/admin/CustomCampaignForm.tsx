@@ -616,6 +616,12 @@ export default function CustomCampaignForm({
       return;
     }
 
+    // Confirmation dialog
+    const action = editingCampaign ? 'update' : 'create';
+    if (!confirm(`Are you sure you want to ${action} this custom campaign?`)) {
+      return;
+    }
+
     // CRITICAL-5 FIX: Set ref immediately (synchronous)
     isSubmittingRef.current = true;
     setIsSubmitting(true);

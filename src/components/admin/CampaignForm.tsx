@@ -348,6 +348,12 @@ export default function CampaignForm({
       return;
     }
 
+    // Confirmation dialog
+    const action = editingCampaign ? 'update' : 'create';
+    if (!confirm(`Are you sure you want to ${action} this webinar campaign?`)) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
