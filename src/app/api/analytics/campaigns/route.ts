@@ -106,7 +106,8 @@ export async function GET(request: NextRequest) {
     for (const lead of allLeads) {
       // Use formId to group leads
       const formId = lead.formId || 'unassigned';
-      const campaignName = formIdToCampaignName.get(formId) || formId;
+      // FIX: Display "Unassigned" instead of UUID when campaign mapping is not found
+      const campaignName = formIdToCampaignName.get(formId) || 'Unassigned';
 
       if (!campaignGroups.has(campaignName)) {
         campaignGroups.set(campaignName, []);

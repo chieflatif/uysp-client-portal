@@ -170,7 +170,9 @@ export async function GET(request: NextRequest) {
       if (lead.booked) stats.booked++;
     }
 
+    // FIX: Exclude "Unassigned" from top performers since it's not a real campaign
     const topCampaigns = Array.from(campaignPerformance.entries())
+      .filter(([name]) => name !== 'Unassigned')
       .map(([name, stats]) => ({
         name,
         bookingRate: stats.total > 0 ? (stats.booked / stats.total) * 100 : 0,
