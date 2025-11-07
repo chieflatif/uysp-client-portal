@@ -486,6 +486,7 @@ export class AirtableClient {
       isActive: true, // CRITICAL FIX: isActive only for deletion tracking, NOT booking status
       
       // Campaign & Sequence Tracking (CORRECTED FIELD NAMES)
+      formId: fields['Form ID'] as string | undefined, // CRITICAL FIX: Extract Form ID for campaign matching
       campaignName: fields['SMS Campaign ID'] as string | undefined,
       // Lead Source: Direct copy from Campaign (CORRECTED) - actual campaign name
       leadSource: (() => {
