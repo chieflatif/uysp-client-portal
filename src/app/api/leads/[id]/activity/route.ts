@@ -2,13 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { leadActivityLog, leads } from '@/lib/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 
 /**
  * GET /api/leads/[id]/activity
  *
  * Lead-specific timeline for lead detail page.
  * Returns chronological activity history for a single lead.
+ *
+ * Query Parameters:
+ * - page: Page number (default: 1)
+ * - limit: Items per page (default: 100, max: 500)
  *
  * Security: Authenticated users only (lead access controlled by client_id)
  * PRD Reference: docs/PRD-MINI-CRM-ACTIVITY-LOGGING.md Section 4.3 Endpoint #3
@@ -24,6 +28,12 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Parse query parameters for pagination
+    const searchParams = request.nextUrl.searchParams;
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(500, Math.max(1, parseInt(searchParams.get('limit') || '100')));
+    const offset = (page - 1) * limit;
+
     // Get lead ID from route params
     const params = await context.params;
     const leadId = params.id;
@@ -35,7 +45,7 @@ export async function GET(
       );
     }
 
-    console.log('[LEAD-ACTIVITY] Fetching timeline for lead:', leadId);
+    console.log('[LEAD-ACTIVITY] Fetching timeline for lead:', leadId, { page, limit });
 
     // CLIENT ISOLATION: Verify user has access to this lead's client
     const lead = await db.query.leads.findFirst({
@@ -57,15 +67,30 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Query activities for this lead (last 100 events)
+    // Query activities for this lead with pagination
     // Ordered by timestamp descending (most recent first)
     const activities = await db.query.leadActivityLog.findMany({
       where: eq(leadActivityLog.leadId, leadId),
       orderBy: [desc(leadActivityLog.timestamp)],
-      limit: 100,
+      limit: limit,
+      offset: offset,
     });
 
-    console.log('[LEAD-ACTIVITY] Found activities:', activities.length);
+    // Get total count for pagination
+    const countResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(leadActivityLog)
+      .where(eq(leadActivityLog.leadId, leadId));
+
+    const totalCount = Number(countResult[0]?.count || 0);
+    const totalPages = Math.ceil(totalCount / limit);
+
+    console.log('[LEAD-ACTIVITY] Found activities:', {
+      count: activities.length,
+      totalCount,
+      page,
+      totalPages,
+    });
 
     return NextResponse.json({
       timeline: activities.map((a) => ({
@@ -79,7 +104,13 @@ export async function GET(
         source: a.source,
         executionId: a.executionId,
       })),
-      count: activities.length,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages,
+        hasMore: page < totalPages,
+      },
     });
   } catch (error) {
     console.error('[LEAD-ACTIVITY] Error:', error);
