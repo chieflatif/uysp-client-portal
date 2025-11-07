@@ -98,7 +98,7 @@ BEGIN
       l.campaign_id as campaign_id,
       c.name as campaign_name,
       l.sms_sequence_position as current_position,
-      COALESCE(jsonb_array_length(c.messages), 0) as message_count,
+      COALESCE(l.enrolled_message_count, 0) as message_count, -- AUDIT FIX: Use enrolled count
       COALESCE(l.booked, false) as is_booked,
       COALESCE(l.sms_stop, false) as is_opted_out
     FROM leads l
@@ -109,7 +109,7 @@ BEGIN
       AND l.processing_status != 'Completed'
       AND c.is_active = true
       AND l.sms_sequence_position > 0
-      AND l.sms_sequence_position >= COALESCE(jsonb_array_length(c.messages), 0)
+      AND l.sms_sequence_position >= COALESCE(l.enrolled_message_count, 0) -- AUDIT FIX: Compare to enrolled count
       AND (p_last_processed_id IS NULL OR l.id > p_last_processed_id)
     ORDER BY l.id
     LIMIT p_batch_size

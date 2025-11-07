@@ -272,11 +272,16 @@ export async function POST(request: NextRequest) {
 
         // CRITICAL: Acquire advisory lock per lead to prevent race conditions
         // Lock key = hash(clientId + leadId) to ensure uniqueness
+        // PHASE 2: Pass campaign version and name for message snapshotting
+        // AUDIT FIX: Pass campaign messages for message count snapshotting
         const enrolledCount = await enrollLeadsWithLocks(
           tx,
           cappedLeads.map(l => l.id),
           campaign.id,
-          data.clientId
+          data.clientId,
+          campaign.version || 1, // Use default 1 if not set (backward compatibility)
+          campaign.name,
+          Array.isArray(campaign.messages) ? campaign.messages : []
         );
 
         // BUG #8 FIX: Verify actual enrollment count from database
@@ -285,7 +290,7 @@ export async function POST(request: NextRequest) {
         const verifiedCountResult = await tx
           .select({ count: sql<number>`count(*)` })
           .from(leads)
-          .where(eq(leads.campaignLinkId, campaign.id));
+          .where(eq(leads.campaignId, campaign.id));
 
         const verifiedEnrolledCount = Number(verifiedCountResult[0]?.count || 0);
 
@@ -337,6 +342,7 @@ export async function POST(request: NextRequest) {
           'Campaign Name': result.name,
           'Campaign Type': 'Custom',
           'Active': !result.isPaused,
+          'Version': result.version || 1, // AUDIT FIX: Sync version on create
           'Target Tags': data.targetTags.join(', '),
           'Messages': JSON.stringify(data.messages),
           'Start Datetime': result.startDatetime?.toISOString(),
@@ -425,13 +431,22 @@ function isValidUUID(uuid: string): boolean {
  *
  * CRITICAL: Advisory locks ensure atomicity per lead across concurrent transactions
  *
+ * PHASE 2: Now includes message snapshotting - captures campaign version and name
+ * at enrollment time to ensure leads complete their enrolled sequence even if
+ * the campaign is upgraded mid-sequence.
+ *
+ * AUDIT FIX: Now captures message count for version-aware de-enrollment
+ *
  * @returns Number of successfully enrolled leads
  */
 async function enrollLeadsWithLocks(
   tx: any,
   leadIds: string[],
   campaignId: string,
-  clientId: string
+  clientId: string,
+  campaignVersion: number,
+  campaignName: string,
+  campaignMessages: any[]
 ): Promise<number> {
   let enrolledCount = 0;
 
@@ -496,13 +511,27 @@ async function enrollLeadsWithLocks(
         continue;
       }
 
-      // Enroll lead
+      // Enroll lead with message snapshotting
+      const enrollmentTimestamp = new Date();
+      const messageCount = Array.isArray(campaignMessages) ? campaignMessages.length : 0;
+      const initialHistoryEntry = {
+        campaignId,
+        campaignName,
+        enrolledAt: enrollmentTimestamp.toISOString(),
+        messagesReceived: 0,
+        enrolledVersion: campaignVersion,
+      };
+
       await tx.update(leads)
         .set({
-          campaignLinkId: campaignId,
+          campaignId: campaignId,
+          enrolledCampaignVersion: campaignVersion, // PHASE 2: Snapshot version at enrollment
+          enrolledMessageCount: messageCount, // AUDIT FIX: Snapshot message count for version-aware de-enrollment
+          enrolledAt: enrollmentTimestamp, // PHASE 1 FIX: Track enrollment timestamp (migration 0029)
+          campaignHistory: [initialHistoryEntry], // PHASE 2: Initialize history
           smsSequencePosition: 0, // Will be incremented by scheduler
           smsLastSentAt: null,
-          updatedAt: new Date(),
+          updatedAt: enrollmentTimestamp,
         })
         .where(eq(leads.id, leadId));
 

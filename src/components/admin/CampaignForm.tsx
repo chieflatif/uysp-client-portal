@@ -77,15 +77,17 @@ export default function CampaignForm({
   // NEW: Refs for message textareas to enable cursor-position variable insertion
   const messageTextareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
-  // Fetch available tags on mount
+  // Fetch available tags on mount - MEDIUM-2 FIX: Filter webinar tags only
   useEffect(() => {
     const fetchTags = async () => {
       try {
         setLoadingTags(true);
-        const response = await fetch(`/api/admin/campaigns/available-tags?clientId=${clientId}&direct=true`);
+        // MEDIUM-2 FIX: Add filterPattern=webinar to only show webinar-related tags
+        const response = await fetch(`/api/admin/campaigns/available-tags?clientId=${clientId}&direct=true&filterPattern=webinar`);
         if (response.ok) {
           const data = await response.json();
           setAvailableTags(data.tags || []);
+          console.log(`✅ Loaded ${data.tags?.length || 0} webinar tags (filtered from ${data.filterApplied ? 'all tags' : 'cache'})`);
         }
       } catch (error) {
         console.error('Error fetching tags:', error);
@@ -114,6 +116,28 @@ export default function CampaignForm({
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
+  };
+
+  // MEDIUM PRIORITY: Real-time validation for resource fields
+  const validateResourceFields = () => {
+    const newErrors: Record<string, string> = { ...errors };
+
+    const hasResourceLink = formData.resourceLink && formData.resourceLink.trim() !== '';
+    const hasResourceName = formData.resourceName && formData.resourceName.trim() !== '';
+
+    // Clear previous resource errors
+    delete newErrors.resourceLink;
+    delete newErrors.resourceName;
+
+    // Both or none validation
+    if (hasResourceLink && !hasResourceName) {
+      newErrors.resourceName = 'Resource name is required when resource link is provided';
+    }
+    if (hasResourceName && !hasResourceLink) {
+      newErrors.resourceLink = 'Resource link is required when resource name is provided';
+    }
+
+    setErrors(newErrors);
   };
 
   // Validate form
@@ -154,6 +178,16 @@ export default function CampaignForm({
       }
       if (formData.bookingLink && !isValidUrl(formData.bookingLink)) {
         newErrors.bookingLink = 'Booking link must be a valid URL';
+      }
+
+      // Validate resource fields: both or none required
+      const hasResourceLink = formData.resourceLink && formData.resourceLink.trim() !== '';
+      const hasResourceName = formData.resourceName && formData.resourceName.trim() !== '';
+      if (hasResourceLink && !hasResourceName) {
+        newErrors.resourceName = 'Resource name is required when resource link is provided';
+      }
+      if (hasResourceName && !hasResourceLink) {
+        newErrors.resourceLink = 'Resource link is required when resource name is provided';
       }
 
       // Validate webinar messages
@@ -509,6 +543,7 @@ export default function CampaignForm({
                   type="url"
                   value={formData.resourceLink || ''}
                   onChange={(e) => handleChange('resourceLink', e.target.value || null)}
+                  onBlur={validateResourceFields}
                   className={`${theme.components.input} w-full ${errors.resourceLink ? 'border-red-500' : ''}`}
                   placeholder="https://example.com/resource"
                 />
@@ -526,9 +561,13 @@ export default function CampaignForm({
                   type="text"
                   value={formData.resourceName || ''}
                   onChange={(e) => handleChange('resourceName', e.target.value || null)}
-                  className={`${theme.components.input} w-full`}
+                  onBlur={validateResourceFields}
+                  className={`${theme.components.input} w-full ${errors.resourceName ? 'border-red-500' : ''}`}
                   placeholder="e.g., Webinar Slides"
                 />
+                {errors.resourceName && (
+                  <p className="text-red-400 text-sm mt-1">{errors.resourceName}</p>
+                )}
               </div>
 
               {/* Booking Link */}
@@ -612,6 +651,14 @@ export default function CampaignForm({
                         >
                           + First Name
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => insertVariable(index, '{{company}}')}
+                          className="px-2 py-1 text-xs bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-600/40 rounded font-mono"
+                          title="Insert {{company}} at cursor"
+                        >
+                          + Company
+                        </button>
                         {formData.resourceLink && formData.resourceName && (
                           <>
                             <button
@@ -622,16 +669,16 @@ export default function CampaignForm({
                             >
                               + Resource Name
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => insertVariable(index, '{{resource_link}}')}
-                              className="px-2 py-1 text-xs bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-600/40 rounded font-mono"
-                              title="Insert {{resource_link}} at cursor"
-                            >
-                              + Resource Link
-                            </button>
                           </>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => insertVariable(index, '{{resource_link}}')}
+                          className="px-2 py-1 text-xs bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-600/40 rounded font-mono"
+                          title="Insert {{resource_link}} at cursor"
+                        >
+                          + Resource Link
+                        </button>
                         <button
                           type="button"
                           onClick={() => insertVariable(index, '{{zoom_link}}')}
@@ -651,7 +698,7 @@ export default function CampaignForm({
                       </div>
 
                       <textarea
-                        ref={(el) => (messageTextareaRefs.current[index] = el)}
+                        ref={(el) => { messageTextareaRefs.current[index] = el; }}
                         value={message.text}
                         onChange={(e) => updateMessage(index, e.target.value)}
                         rows={4}
@@ -668,15 +715,16 @@ export default function CampaignForm({
                         </p>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        Variables: <code className="text-cyan-300">{{'{{'}}first_name{{'}}'}}</code>, 
+                        Variables: <code className="text-cyan-300">{'{{first_name}}'}</code>,
+                        <code className="text-cyan-300 ml-1">{'{{company}}'}</code>,
                         {formData.resourceLink && formData.resourceName && (
                           <>
-                            <code className="text-purple-300 ml-1">{{'{{'}}resource_name{{'}}'}}</code>, 
-                            <code className="text-purple-300 ml-1">{{'{{'}}resource_link{{'}}'}}</code>, 
+                            <code className="text-purple-300 ml-1">{'{{resource_name}}'}</code>,
                           </>
                         )}
-                        <code className="text-blue-300 ml-1">{{'{{'}}zoom_link{{'}}'}}</code>, 
-                        <code className="text-green-300 ml-1">{{'{{'}}booking_link{{'}}'}}</code>
+                        <code className="text-purple-300 ml-1">{'{{resource_link}}'}</code>,
+                        <code className="text-blue-300 ml-1">{'{{zoom_link}}'}</code>,
+                        <code className="text-green-300 ml-1">{'{{booking_link}}'}</code>
                       </p>
                     </div>
                   </div>

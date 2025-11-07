@@ -207,11 +207,16 @@ async function activateCampaign(campaign: any): Promise<{
     }
 
     // Enroll leads with advisory locks
+    // PHASE 2: Pass campaign version and name for message snapshotting
+    // AUDIT FIX: Pass campaign messages for message count snapshotting
     const enrolledCount = await enrollLeadsWithLocks(
       tx,
       cappedLeads.map(l => l.id),
       campaign.id,
-      campaign.clientId
+      campaign.clientId,
+      campaign.version || 1, // Use default 1 if not set (backward compatibility)
+      campaign.name,
+      campaign.messages || [] // AUDIT FIX: Pass messages for count snapshot
     );
 
     // BUG #8 FIX: Verify actual enrollment count from database
@@ -220,7 +225,7 @@ async function activateCampaign(campaign: any): Promise<{
     const verifiedCountResult = await tx
       .select({ count: sql<number>`count(*)` })
       .from(leads)
-      .where(eq(leads.campaignLinkId, campaign.id));
+      .where(eq(leads.campaignId, campaign.id));
 
     const verifiedEnrolledCount = Number(verifiedCountResult[0]?.count || 0);
 
@@ -264,12 +269,21 @@ function isValidUUID(uuid: string): boolean {
 /**
  * Enroll leads with PostgreSQL advisory locks
  * Prevents race conditions between concurrent campaign activations
+ *
+ * PHASE 2: Now includes message snapshotting - captures campaign version and name
+ * at enrollment time to ensure leads complete their enrolled sequence even if
+ * the campaign is upgraded mid-sequence.
+ *
+ * AUDIT FIX: Now captures message count for version-aware de-enrollment
  */
 async function enrollLeadsWithLocks(
   tx: any,
   leadIds: string[],
   campaignId: string,
-  clientId: string
+  clientId: string,
+  campaignVersion: number,
+  campaignName: string,
+  campaignMessages: any[]
 ): Promise<number> {
   let enrolledCount = 0;
 
@@ -333,13 +347,27 @@ async function enrollLeadsWithLocks(
         continue;
       }
 
-      // Enroll lead
+      // Enroll lead with message snapshotting
+      const enrollmentTimestamp = new Date();
+      const messageCount = Array.isArray(campaignMessages) ? campaignMessages.length : 0;
+      const initialHistoryEntry = {
+        campaignId,
+        campaignName,
+        enrolledAt: enrollmentTimestamp.toISOString(),
+        messagesReceived: 0,
+        enrolledVersion: campaignVersion,
+      };
+
       await tx.update(leads)
         .set({
-          campaignLinkId: campaignId,
+          campaignId: campaignId,
+          enrolledCampaignVersion: campaignVersion, // PHASE 2: Snapshot version at enrollment
+          enrolledMessageCount: messageCount, // AUDIT FIX: Snapshot message count at enrollment
+          enrolledAt: enrollmentTimestamp, // PHASE 1 FIX: Track enrollment timestamp (migration 0029)
+          campaignHistory: [initialHistoryEntry], // PHASE 2: Initialize history
           smsSequencePosition: 0,
           smsLastSentAt: null,
-          updatedAt: new Date(),
+          updatedAt: enrollmentTimestamp,
         })
         .where(eq(leads.id, leadId));
 

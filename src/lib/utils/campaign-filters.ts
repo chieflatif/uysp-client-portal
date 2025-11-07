@@ -28,7 +28,8 @@ export function buildLeadFilterConditions(params: CampaignFilterParams): any[] {
   const conditions: any[] = [
     eq(leads.clientId, params.clientId),
     eq(leads.isActive, true),
-    sql`${leads.kajabiTags} && ${params.targetTags}`,
+    // BUG FIX: Cast targetTags array to PostgreSQL text[] type using ARRAY constructor
+    sql`${leads.kajabiTags} && ARRAY[${sql.join(params.targetTags.map(tag => sql`${tag}`), sql`, `)}]::text[]`,
   ];
 
   if (params.createdAfter) {
