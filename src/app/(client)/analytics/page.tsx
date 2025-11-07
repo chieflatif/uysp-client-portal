@@ -221,10 +221,10 @@ export default function AnalyticsPage() {
             color="tertiary"
           />
           <StatCard
-            title="Click Rate"
-            value={`${dashboardStats.performance.clickRate.toFixed(1)}%`}
+            title="Click Tracking"
+            value="Coming Soon"
             icon={<MousePointerClick className="h-5 w-5" />}
-            subtitle={`${dashboardStats.performance.totalClicks} total clicks`}
+            subtitle="Feature in development"
             color="primary"
           />
         </div>
@@ -245,7 +245,7 @@ export default function AnalyticsPage() {
                 <th className={`text-right py-3 px-4 ${theme.accents.tertiary.class} text-xs uppercase tracking-wider font-semibold`}>Completed</th>
                 <th className={`text-right py-3 px-4 ${theme.accents.tertiary.class} text-xs uppercase tracking-wider font-semibold`}>Booked</th>
                 <th className={`text-right py-3 px-4 ${theme.accents.tertiary.class} text-xs uppercase tracking-wider font-semibold`}>Opt-Out</th>
-                <th className={`text-right py-3 px-4 ${theme.accents.tertiary.class} text-xs uppercase tracking-wider font-semibold`}>Clicks</th>
+                <th className={`text-right py-3 px-4 ${theme.accents.tertiary.class} text-xs uppercase tracking-wider font-semibold`}>Click Tracking</th>
                 <th className={`text-right py-3 px-4 ${theme.accents.tertiary.class} text-xs uppercase tracking-wider font-semibold`}>Actions</th>
               </tr>
             </thead>
@@ -273,8 +273,8 @@ export default function AnalyticsPage() {
                     </span>
                   </td>
                   <td className="text-right py-3 px-4">
-                    <span className={theme.accents.secondary.class}>
-                      {campaign.clicks.uniqueClickers} ({campaign.clicks.clickRate.toFixed(1)}%)
+                    <span className={`text-xs ${theme.core.bodyText} italic`}>
+                      Coming Soon
                     </span>
                   </td>
                   <td className="text-right py-3 px-4">

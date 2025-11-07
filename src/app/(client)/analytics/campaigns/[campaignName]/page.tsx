@@ -160,9 +160,9 @@ export default function CampaignDetailPage() {
             <p className="text-xs text-green-300 mt-1">{campaign.conversions.booked} booked</p>
           </div>
           <div className={`${theme.components.card} border-l-4 border-l-blue-500`}>
-            <p className="text-xs text-blue-400 uppercase tracking-wider mb-1 font-semibold">Click Rate</p>
-            <p className="text-3xl font-bold text-blue-400">{campaign.clicks.clickRate.toFixed(1)}%</p>
-            <p className="text-xs text-blue-300 mt-1">{campaign.clicks.uniqueClickers} clicked</p>
+            <p className="text-xs text-blue-400 uppercase tracking-wider mb-1 font-semibold">Click Tracking</p>
+            <p className="text-xl font-bold text-blue-400 italic">Coming Soon</p>
+            <p className="text-xs text-blue-300 mt-1">Feature in development</p>
           </div>
           <div className={`${theme.components.card} border-l-4 border-l-orange-500`}>
             <p className="text-xs text-orange-400 uppercase tracking-wider mb-1 font-semibold">Opt-Out Rate</p>
