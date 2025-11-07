@@ -1,93 +1,93 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Activity, Search, Filter, Download, RefreshCw, Clock, User, MessageSquare } from 'lucide-react';
+import { useActivityLogs } from '@/hooks/useActivityLogs';
 
-interface ActivityLog {
-  id: string;
-  timestamp: Date;
-  eventType: string;
-  category: string;
-  description: string;
-  messageContent: string | null;
-  lead: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  } | null;
-  source: string;
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
 }
 
 export default function ActivityLogsPage() {
   const { data: session } = useSession();
-  const [activities, setActivities] = useState<ActivityLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Check if user is admin or super admin
-  const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN';
+  // Get URL params or defaults
+  const pageFromUrl = parseInt(searchParams.get('page') || '1', 10);
+  const categoryFromUrl = searchParams.get('category') || 'all';
+  const searchFromUrl = searchParams.get('search') || '';
 
-  useEffect(() => {
-    // For Day 1: Use mock data
-    // Day 2+: Wire up to API endpoint GET /api/admin/activity-logs
-    const mockData: ActivityLog[] = [
-      {
-        id: '1',
-        timestamp: new Date('2025-11-07T10:30:00Z'),
-        eventType: 'MESSAGE_SENT',
-        category: 'SMS',
-        description: 'Initial outreach message sent',
-        messageContent: 'Hi! Saw your interest in our program...',
-        lead: {
-          id: 'lead-1',
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john@example.com'
-        },
-        source: 'n8n:kajabi-scheduler'
-      },
-      {
-        id: '2',
-        timestamp: new Date('2025-11-07T10:35:00Z'),
-        eventType: 'MESSAGE_DELIVERED',
-        category: 'SMS',
-        description: 'Message delivered successfully',
-        messageContent: null,
-        lead: {
-          id: 'lead-1',
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john@example.com'
-        },
-        source: 'n8n:delivery-status'
-      },
-      {
-        id: '3',
-        timestamp: new Date('2025-11-07T11:00:00Z'),
-        eventType: 'BOOKING_CONFIRMED',
-        category: 'BOOKING',
-        description: 'Call booked via Calendly',
-        messageContent: null,
-        lead: {
-          id: 'lead-2',
-          firstName: 'Jane',
-          lastName: 'Smith',
-          email: 'jane@example.com'
-        },
-        source: 'n8n:calendly-webhook'
-      },
-    ];
+  // Local state
+  const [searchTerm, setSearchTerm] = useState(searchFromUrl);
+  const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
+  const [page, setPage] = useState(pageFromUrl);
 
-    setTimeout(() => {
-      setActivities(mockData);
-      setLoading(false);
-    }, 500);
-  }, []);
+  // Debounce search term for API calls (300ms delay)
+  const debouncedSearch = useDebounce(searchTerm, 300);
 
   // Authorization check
+  const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN';
+
+  // Fetch activities with React Query
+  const { data, isLoading, error, refetch } = useActivityLogs({
+    page,
+    limit: 50,
+    search: debouncedSearch,
+    category: selectedCategory === 'all' ? '' : selectedCategory,
+    enabled: isAdmin, // Only fetch if user is admin
+  });
+
+  // Update URL when filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (page > 1) params.set('page', page.toString());
+    if (selectedCategory !== 'all') params.set('category', selectedCategory);
+    if (searchTerm) params.set('search', searchTerm);
+
+    const newUrl = `/admin/activity-logs${params.toString() ? `?${params.toString()}` : ''}`;
+    router.replace(newUrl, { scroll: false });
+  }, [page, selectedCategory, searchTerm, router]);
+
+  // Get category counts from pagination metadata
+  const categoryCounts = useMemo(() => {
+    // Note: API doesn't return category counts in current implementation
+    // This would need to be added to the API response for accurate counts
+    // For now, show total count for selected category
+    return {
+      all: data?.pagination.totalCount || 0,
+      [selectedCategory]: data?.pagination.totalCount || 0,
+    };
+  }, [data?.pagination.totalCount, selectedCategory]);
+
+  // Handle category filter change
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setPage(1); // Reset to page 1 when filter changes
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Authorization check - render before any hooks are called below
   if (!isAdmin) {
     return (
       <div className="p-8 text-center">
@@ -97,22 +97,16 @@ export default function ActivityLogsPage() {
     );
   }
 
-  // Filter activities based on search and category
-  const filteredActivities = activities.filter((activity) => {
-    const matchesSearch = searchTerm === '' ||
-      activity.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      activity.lead?.email.toLowerCase().includes(searchTerm.toLowerCase());
+  // Parse activities with proper Date objects
+  const activities = useMemo(() => {
+    if (!data?.activities) return [];
 
-    const matchesCategory = selectedCategory === 'all' || activity.category === selectedCategory;
-
-    return matchesSearch && matchesCategory;
-  });
-
-  // Get category counts for filter chips
-  const categoryCounts = activities.reduce((acc, activity) => {
-    acc[activity.category] = (acc[activity.category] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+    return data.activities.map(activity => ({
+      ...activity,
+      // FIX: Parse ISO string to Date object for display
+      timestamp: new Date(activity.timestamp),
+    }));
+  }, [data?.activities]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -131,8 +125,8 @@ export default function ActivityLogsPage() {
 
           <div className="flex gap-2">
             <button
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-              onClick={() => {/* TODO: Day 3 - Add auto-refresh */}}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              onClick={() => refetch()}
             >
               <RefreshCw className="w-4 h-4" />
               Refresh
@@ -156,11 +150,19 @@ export default function ActivityLogsPage() {
             <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search across all events..."
+              placeholder="Search descriptions, emails, event types... (searches after 300ms pause)"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1); // Reset to page 1 when search changes
+              }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+            {debouncedSearch !== searchTerm && (
+              <div className="absolute right-3 top-3">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600"></div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -172,62 +174,75 @@ export default function ActivityLogsPage() {
           </span>
 
           <button
-            onClick={() => setSelectedCategory('all')}
+            onClick={() => handleCategoryChange('all')}
             className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
               selectedCategory === 'all'
                 ? 'bg-blue-100 text-blue-800 border-2 border-blue-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            All ({activities.length})
+            All ({categoryCounts.all || 0})
           </button>
 
           <button
-            onClick={() => setSelectedCategory('SMS')}
+            onClick={() => handleCategoryChange('SMS')}
             className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
               selectedCategory === 'SMS'
                 ? 'bg-blue-100 text-blue-800 border-2 border-blue-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            SMS ({categoryCounts.SMS || 0})
+            SMS
           </button>
 
           <button
-            onClick={() => setSelectedCategory('BOOKING')}
+            onClick={() => handleCategoryChange('BOOKING')}
             className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
               selectedCategory === 'BOOKING'
                 ? 'bg-green-100 text-green-800 border-2 border-green-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Bookings ({categoryCounts.BOOKING || 0})
+            Bookings
           </button>
 
           <button
-            onClick={() => setSelectedCategory('CAMPAIGN')}
+            onClick={() => handleCategoryChange('CAMPAIGN')}
             className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
               selectedCategory === 'CAMPAIGN'
                 ? 'bg-purple-100 text-purple-800 border-2 border-purple-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Campaigns ({categoryCounts.CAMPAIGN || 0})
+            Campaigns
           </button>
         </div>
       </div>
 
+      {/* Error State */}
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800 font-medium">Error loading activities</p>
+          <p className="text-red-600 text-sm mt-1">{error.message}</p>
+        </div>
+      )}
+
       {/* Activity Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        {loading ? (
+        {isLoading ? (
           <div className="p-8 text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
             <p className="mt-2 text-gray-600">Loading activities...</p>
           </div>
-        ) : filteredActivities.length === 0 ? (
+        ) : activities.length === 0 ? (
           <div className="p-8 text-center">
             <Activity className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-600">No activities found</p>
+            <p className="text-gray-600 font-medium">No activities found</p>
+            {(searchTerm || selectedCategory !== 'all') && (
+              <p className="text-gray-500 text-sm mt-1">
+                Try adjusting your filters or search terms
+              </p>
+            )}
           </div>
         ) : (
           <table className="w-full">
@@ -251,7 +266,7 @@ export default function ActivityLogsPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredActivities.map((activity) => (
+              {activities.map((activity) => (
                 <tr
                   key={activity.id}
                   className="hover:bg-gray-50 cursor-pointer transition-colors"
@@ -325,21 +340,34 @@ export default function ActivityLogsPage() {
         )}
       </div>
 
-      {/* Pagination Placeholder */}
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-        <div>
-          Showing {filteredActivities.length} of {activities.length} activities
+      {/* Pagination */}
+      {data && activities.length > 0 && (
+        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+          <div>
+            Showing {((page - 1) * 50) + 1} to {Math.min(page * 50, data.pagination.totalCount)} of {data.pagination.totalCount} activities
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page === 1}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-2 px-3">
+              <span className="text-gray-900 font-medium">Page {page}</span>
+              <span className="text-gray-400">of {data.pagination.totalPages}</span>
+            </div>
+            <button
+              onClick={() => handlePageChange(page + 1)}
+              disabled={!data.pagination.hasMore}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          {/* TODO: Day 2 - Add real pagination */}
-          <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
-            Previous
-          </button>
-          <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
-            Next
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
