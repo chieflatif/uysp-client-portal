@@ -310,6 +310,34 @@ export default function LeadsPage() {
           </button>
         </div>
 
+        {/* Stats Dashboard */}
+        <div className={`grid grid-cols-3 gap-4`}>
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <p className={`text-xs ${theme.accents.tertiary.class} font-semibold uppercase mb-1`}>
+              Total Leads
+            </p>
+            <p className={`text-2xl font-bold ${theme.core.white}`}>
+              {leads.length.toLocaleString()}
+            </p>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <p className={`text-xs ${theme.accents.primary.class} font-semibold uppercase mb-1`}>
+              High ICP
+            </p>
+            <p className={`text-2xl font-bold ${theme.core.white}`}>
+              {leads.filter((l: Lead) => l.icpScore >= 70).length}
+            </p>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <p className={`text-xs ${theme.accents.secondary.class} font-semibold uppercase mb-1`}>
+              Avg Score
+            </p>
+            <p className={`text-2xl font-bold ${theme.core.white}`}>
+              {leads.length > 0 ? Math.round((leads.reduce((sum: number, l: Lead) => sum + l.icpScore, 0) / leads.length) * 10) / 10 : 0}
+            </p>
+          </div>
+        </div>
+
         {/* Leads Table */}
         <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
           <table className="w-full">
@@ -515,34 +543,6 @@ export default function LeadsPage() {
             </button>
           </div>
         )}
-
-        {/* Stats Footer */}
-        <div className={`grid grid-cols-3 gap-4 pt-6 border-t border-gray-700`}>
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <p className={`text-xs ${theme.accents.tertiary.class} font-semibold uppercase mb-1`}>
-              Total Leads
-            </p>
-            <p className={`text-2xl font-bold ${theme.core.white}`}>
-              {leads.length.toLocaleString()}
-            </p>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <p className={`text-xs ${theme.accents.primary.class} font-semibold uppercase mb-1`}>
-              High ICP
-            </p>
-            <p className={`text-2xl font-bold ${theme.core.white}`}>
-              {leads.filter((l: Lead) => l.icpScore >= 70).length}
-            </p>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <p className={`text-xs ${theme.accents.secondary.class} font-semibold uppercase mb-1`}>
-              Avg Score
-            </p>
-            <p className={`text-2xl font-bold ${theme.core.white}`}>
-              {leads.length > 0 ? Math.round((leads.reduce((sum: number, l: Lead) => sum + l.icpScore, 0) / leads.length) * 10) / 10 : 0}
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );
