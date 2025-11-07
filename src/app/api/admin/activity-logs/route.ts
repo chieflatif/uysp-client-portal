@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { leadActivityLog, leads } from '@/lib/db/schema';
-import { desc, eq, and, sql, or } from 'drizzle-orm';
+import { desc, eq, and, sql, gte, lte } from 'drizzle-orm';
 
 /**
  * GET /api/admin/activity-logs
@@ -86,22 +86,30 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(leadActivityLog.leadId, leadId));
     }
 
-    // Date range filters
+    // Date range filters (using Drizzle operators to prevent SQL injection)
     if (dateFrom) {
       try {
         const fromDate = new Date(dateFrom);
-        conditions.push(sql`${leadActivityLog.timestamp} >= ${fromDate}`);
+        if (!isNaN(fromDate.getTime())) {
+          conditions.push(gte(leadActivityLog.timestamp, fromDate));
+        } else {
+          console.error('[ADMIN-ACTIVITY-LOGS] Invalid dateFrom:', dateFrom);
+        }
       } catch (e) {
-        console.error('[ADMIN-ACTIVITY-LOGS] Invalid dateFrom:', dateFrom);
+        console.error('[ADMIN-ACTIVITY-LOGS] Invalid dateFrom:', dateFrom, e);
       }
     }
 
     if (dateTo) {
       try {
         const toDate = new Date(dateTo);
-        conditions.push(sql`${leadActivityLog.timestamp} <= ${toDate}`);
+        if (!isNaN(toDate.getTime())) {
+          conditions.push(lte(leadActivityLog.timestamp, toDate));
+        } else {
+          console.error('[ADMIN-ACTIVITY-LOGS] Invalid dateTo:', dateTo);
+        }
       } catch (e) {
-        console.error('[ADMIN-ACTIVITY-LOGS] Invalid dateTo:', dateTo);
+        console.error('[ADMIN-ACTIVITY-LOGS] Invalid dateTo:', dateTo, e);
       }
     }
 
