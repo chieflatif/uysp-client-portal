@@ -3,6 +3,14 @@ import { db } from '@/lib/db';
 import { leadActivityLog, leads } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
+// SECURITY: Validate INTERNAL_API_KEY at module load time
+if (!process.env.INTERNAL_API_KEY) {
+  console.error('[LOG-ACTIVITY] CRITICAL: INTERNAL_API_KEY environment variable is not set!');
+  throw new Error('INTERNAL_API_KEY environment variable must be configured');
+}
+
+const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY;
+
 /**
  * POST /api/internal/log-activity
  *
@@ -16,7 +24,7 @@ export async function POST(request: NextRequest) {
   try {
     // SECURITY: Internal API key authentication
     const apiKey = request.headers.get('x-api-key');
-    if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
+    if (!apiKey || apiKey !== INTERNAL_API_KEY) {
       console.error('[LOG-ACTIVITY] Unauthorized: Invalid or missing API key');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -102,10 +110,11 @@ export async function POST(request: NextRequest) {
     });
 
     // Update lead's last_activity_at timestamp (if lead exists in PostgreSQL)
+    // Use the SAME timestamp as the activity record to prevent race conditions
     if (finalLeadId) {
       await db
         .update(leads)
-        .set({ lastActivityAt: new Date() })
+        .set({ lastActivityAt: activity.timestamp })
         .where(eq(leads.id, finalLeadId));
 
       console.log('[LOG-ACTIVITY] Updated lead lastActivityAt:', finalLeadId);
