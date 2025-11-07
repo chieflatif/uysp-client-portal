@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { leadActivityLog, leads } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { EVENT_TYPES, EVENT_CATEGORIES } from '@/lib/activity/event-types';
 
 // SECURITY: Validate INTERNAL_API_KEY at module load time
 if (!process.env.INTERNAL_API_KEY) {
@@ -59,6 +60,40 @@ export async function POST(request: NextRequest) {
         {
           error: 'Missing required fields',
           required: ['eventType', 'eventCategory', 'leadAirtableId', 'description', 'source'],
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validation: Event type must be one of the defined constants
+    const validEventTypes = Object.values(EVENT_TYPES);
+    if (!validEventTypes.includes(eventType)) {
+      console.error('[LOG-ACTIVITY] Invalid eventType:', {
+        provided: eventType,
+        valid: validEventTypes,
+      });
+      return NextResponse.json(
+        {
+          error: 'Invalid eventType',
+          provided: eventType,
+          validTypes: validEventTypes,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validation: Event category must be one of the defined constants
+    const validEventCategories = Object.values(EVENT_CATEGORIES);
+    if (!validEventCategories.includes(eventCategory)) {
+      console.error('[LOG-ACTIVITY] Invalid eventCategory:', {
+        provided: eventCategory,
+        valid: validEventCategories,
+      });
+      return NextResponse.json(
+        {
+          error: 'Invalid eventCategory',
+          provided: eventCategory,
+          validCategories: validEventCategories,
         },
         { status: 400 }
       );
