@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAirtableClient } from '@/lib/airtable/client';
 import { db } from '@/lib/db';
-import { leads, campaigns } from '@/lib/db/schema';
+import { leads, campaigns, type NewLead } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
           totalUpdated++;
         } else {
           // Insert new lead
-          // Type assertion: mapToDatabaseLead provides all required fields with fallbacks
-          await db.insert(leads).values(leadData as any);
+          // Type assertion is safe: mapToDatabaseLead() provides all required fields with fallbacks
+          await db.insert(leads).values(leadData as NewLead);
           totalCreated++;
         }
 
