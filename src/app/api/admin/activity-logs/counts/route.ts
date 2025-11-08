@@ -13,6 +13,7 @@ import { sql } from 'drizzle-orm';
  *
  * Query Parameters:
  *   - search: optional search term (filters counts to matching activities)
+ *   - leadId: optional lead UUID (filters counts to specific lead)
  *
  * Returns:
  *   {
@@ -40,16 +41,28 @@ export async function GET(request: NextRequest) {
     // 2. Parse query parameters
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || undefined;
+    const leadId = searchParams.get('leadId') || undefined;
 
-    // 3. Build WHERE clause for search (if provided)
+    // 3. Build WHERE clause for filters (if provided)
     // Use same full-text search as main endpoint for consistency and security
-    let whereClause = sql`1=1`; // Default to true
+    const conditions = [];
 
+    // Lead ID filter
+    if (leadId) {
+      conditions.push(sql`${leadActivityLog.leadId} = ${leadId}`);
+    }
+
+    // Full-text search filter
     if (search) {
       // PostgreSQL full-text search (same as main activity-logs endpoint)
       // Uses GIN index and is immune to SQL injection
-      whereClause = sql`to_tsvector('english', ${leadActivityLog.description} || ' ' || COALESCE(${leadActivityLog.messageContent}, '')) @@ plainto_tsquery('english', ${search})`;
+      conditions.push(sql`to_tsvector('english', ${leadActivityLog.description} || ' ' || COALESCE(${leadActivityLog.messageContent}, '')) @@ plainto_tsquery('english', ${search})`);
     }
+
+    // Combine conditions with AND
+    const whereClause = conditions.length > 0
+      ? sql`${sql.join(conditions, sql` AND `)}`
+      : sql`1=1`;
 
     // 4. Get category counts with single query
     const countResults = await db
