@@ -15,7 +15,8 @@ import { desc, asc, eq, and, sql, gte, lte } from 'drizzle-orm';
  * - limit: Items per page (default: 50, max: 100)
  * - search: Full-text search on description + messageContent
  * - eventType: Filter by specific event type
- * - eventCategory: Filter by event category (SMS, CAMPAIGN, BOOKING, etc.)
+ * - category: Filter by event category (SMS, CAMPAIGN, BOOKING, etc.) [preferred]
+ * - eventCategory: (deprecated, use 'category' instead)
  * - leadId: Filter by specific lead UUID
  * - dateFrom: Filter events >= this date (ISO 8601)
  * - dateTo: Filter events <= this date (ISO 8601)
@@ -47,7 +48,8 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')));
     const search = searchParams.get('search');
     const eventType = searchParams.get('eventType');
-    const eventCategory = searchParams.get('eventCategory');
+    // Accept both 'category' (from UI) and 'eventCategory' for backwards compatibility
+    const eventCategory = searchParams.get('category') || searchParams.get('eventCategory');
     const leadId = searchParams.get('leadId');
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
