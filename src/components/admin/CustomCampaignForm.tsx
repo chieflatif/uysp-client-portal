@@ -616,8 +616,8 @@ export default function CustomCampaignForm({
       return;
     }
 
-    // Confirmation dialog
-    const action = 'create'; // This form is create-only (no edit mode)
+    // Confirmation dialog (CustomCampaignForm is create-only)
+    const action = 'create';
     if (!confirm(`Are you sure you want to ${action} this custom campaign?`)) {
       return;
     }

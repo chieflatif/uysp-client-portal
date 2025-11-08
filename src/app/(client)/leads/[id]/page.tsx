@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { theme } from '@/theme';
 import { ArrowLeft, Loader2, AlertCircle, CheckCircle2, Mail, Phone, Building2, XCircle } from 'lucide-react';
 import { NotesList } from '@/components/notes/NotesList';
+import { LeadTimeline } from '@/components/activity/LeadTimeline';
 
 interface Lead {
   id: string;
@@ -338,6 +339,8 @@ export default function LeadDetailPage() {
         </div>
 
         <NotesList leadId={lead.id} />
+
+        <LeadTimeline leadId={lead.id} />
 
         {/* Remove from Campaign Dialog */}
         {showRemoveDialog && (

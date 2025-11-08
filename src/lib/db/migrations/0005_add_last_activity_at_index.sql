@@ -1,0 +1,1 @@
+CREATE INDEX "idx_leads_last_activity_at" ON "leads" USING btree ("last_activity_at");

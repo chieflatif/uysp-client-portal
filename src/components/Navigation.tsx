@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { theme } from '@/theme';
-import { LayoutDashboard, Users, BarChart3, Briefcase, Settings as SettingsIcon, LogOut, Megaphone } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Briefcase, Settings as SettingsIcon, LogOut, Megaphone, Activity } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 export function Navigation() {
@@ -18,6 +18,7 @@ export function Navigation() {
     { href: '/leads', label: 'Leads', icon: Users, roles: ['ADMIN', 'SUPER_ADMIN', 'CLIENT', 'CLIENT_ADMIN', 'CLIENT_USER'] },
     { href: '/admin/campaigns', label: 'Campaigns', icon: Megaphone, roles: ['ADMIN', 'SUPER_ADMIN', 'CLIENT_ADMIN', 'CLIENT', 'CLIENT_USER'] },
     { href: '/analytics', label: 'Analytics', icon: BarChart3, roles: ['ADMIN', 'SUPER_ADMIN'] },
+    { href: '/admin/activity-logs', label: 'Activity Logs', icon: Activity, roles: ['ADMIN', 'SUPER_ADMIN'] },
     { href: '/project-management', label: 'Project Management', icon: Briefcase, roles: ['ADMIN', 'SUPER_ADMIN'] },
   ];
 
