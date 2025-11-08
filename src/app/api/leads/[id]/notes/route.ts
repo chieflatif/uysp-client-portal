@@ -32,9 +32,8 @@ export async function GET(
       return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
     }
 
-    // Authorization check
-    // SUPER_ADMIN and ADMIN can access all leads
-    const isSuperUser = session.user.role === 'SUPER_ADMIN' || session.user.role === 'CLIENT_ADMIN';
+    // Authorization: SUPER_ADMIN and ADMIN can access all leads
+    const isSuperUser = session.user.role === 'SUPER_ADMIN' || session.user.role === 'ADMIN';
     if (!isSuperUser && session.user.clientId && session.user.clientId !== lead.clientId) {
       return NextResponse.json(
         { error: 'You do not have access to this lead' },
@@ -132,8 +131,9 @@ export async function POST(
       );
     }
 
-    // Authorization: Verify user can access this lead's client (skip if no clientId assigned)
-    if (session.user.clientId && session.user.clientId !== lead.clientId && session.user.role !== 'ADMIN') {
+    // Authorization: SUPER_ADMIN and ADMIN can access all leads
+    const isSuperUser = session.user.role === 'SUPER_ADMIN' || session.user.role === 'ADMIN';
+    if (!isSuperUser && session.user.clientId && session.user.clientId !== lead.clientId) {
       return NextResponse.json(
         { error: 'You do not have access to this lead', code: 'FORBIDDEN' },
         { status: 403 }

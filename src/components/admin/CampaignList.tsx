@@ -33,7 +33,7 @@ interface CampaignListProps {
   onDelete: (campaignId: string) => void;
 }
 
-type SortField = 'name' | 'totalLeads' | 'messagesSent' | 'createdAt' | 'webinarDatetime';
+type SortField = 'name' | 'totalLeads' | 'messagesSent' | 'createdAt' | 'webinarDatetime' | 'type' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 export default function CampaignList({
@@ -99,6 +99,14 @@ export default function CampaignList({
       case 'webinarDatetime':
         aVal = a.webinarDatetime ? new Date(a.webinarDatetime).getTime() : 0;
         bVal = b.webinarDatetime ? new Date(b.webinarDatetime).getTime() : 0;
+        break;
+      case 'type':
+        aVal = a.campaignType.toLowerCase();
+        bVal = b.campaignType.toLowerCase();
+        break;
+      case 'status':
+        aVal = a.isPaused ? 1 : 0;
+        bVal = b.isPaused ? 1 : 0;
         break;
       default:
         return 0;
@@ -204,14 +212,26 @@ export default function CampaignList({
                   <SortIndicator field="name" />
                 </div>
               </th>
-              <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
-                Type
+              <th
+                className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
+                onClick={() => handleSort('type')}
+              >
+                <div className="flex items-center gap-2">
+                  Type
+                  <SortIndicator field="type" />
+                </div>
               </th>
               <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
                 Form ID
               </th>
-              <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
-                Status
+              <th
+                className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
+                onClick={() => handleSort('status')}
+              >
+                <div className="flex items-center gap-2">
+                  Status
+                  <SortIndicator field="status" />
+                </div>
               </th>
               <th
                 className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}

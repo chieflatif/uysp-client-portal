@@ -29,7 +29,7 @@ interface Lead {
   engagementTier?: string;
 }
 
-type SortField = 'name' | 'company' | 'icpScore' | 'status' | 'lastActivity' | 'campaign';
+type SortField = 'name' | 'company' | 'icpScore' | 'status' | 'lastActivity' | 'campaign' | 'leadSource';
 type SortDirection = 'asc' | 'desc';
 
 export default function LeadsPage() {
@@ -121,6 +121,10 @@ export default function LeadsPage() {
         case 'campaign':
           aVal = (a.campaignName || '').toLowerCase();
           bVal = (b.campaignName || '').toLowerCase();
+          break;
+        case 'leadSource':
+          aVal = (a.leadSource || '').toLowerCase();
+          bVal = (b.leadSource || '').toLowerCase();
           break;
         case 'lastActivity':
           aVal = a.lastActivity ? new Date(a.lastActivity).getTime() : 0;
@@ -367,8 +371,13 @@ export default function LeadsPage() {
                     Campaign {getSortIcon('campaign')}
                   </div>
                 </th>
-                <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
-                  Lead Source
+                <th
+                  className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
+                  onClick={() => handleSort('leadSource')}
+                >
+                  <div className="flex items-center">
+                    Lead Source {getSortIcon('leadSource')}
+                  </div>
                 </th>
                 <th
                   className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
