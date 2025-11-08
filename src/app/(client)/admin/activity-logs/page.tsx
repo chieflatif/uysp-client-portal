@@ -26,6 +26,7 @@ export default function ActivityLogsPage() {
   const [sortBy, setSortBy] = useState<'timestamp' | 'eventType' | 'eventCategory'>(sortByFromUrl as any);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(sortOrderFromUrl as any);
   const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(() => {
     // Load from localStorage on mount
     if (typeof window !== 'undefined') {
@@ -150,6 +151,7 @@ export default function ActivityLogsPage() {
 
   // CSV Export function
   const handleExportCSV = async () => {
+    setIsExporting(true);
     try {
       // Fetch ALL filtered results (no pagination)
       const params = new URLSearchParams({
@@ -167,6 +169,12 @@ export default function ActivityLogsPage() {
 
       const data = await response.json();
 
+      // CSV escaping helper (RFC 4180 compliant)
+      const escapeCSV = (value: string | null | undefined): string => {
+        const str = value || '';
+        return `"${str.replace(/"/g, '""')}"`;
+      };
+
       // Convert to CSV
       const csvRows = [];
 
@@ -182,17 +190,17 @@ export default function ActivityLogsPage() {
         'Source',
       ].join(','));
 
-      // Data rows
+      // Data rows with proper escaping for all fields
       for (const activity of data.activities) {
         const row = [
           new Date(activity.timestamp).toISOString(),
-          activity.category,
-          activity.eventType.replace(/_/g, ' '),
-          `"${(activity.description || '').replace(/"/g, '""')}"`, // Escape quotes
-          `"${(activity.messageContent || '').replace(/"/g, '""')}"`,
-          activity.lead ? `"${activity.lead.firstName} ${activity.lead.lastName}"` : '',
-          activity.lead ? activity.lead.email : '',
-          activity.source,
+          escapeCSV(activity.category),
+          escapeCSV(activity.eventType.replace(/_/g, ' ')),
+          escapeCSV(activity.description),
+          escapeCSV(activity.messageContent),
+          activity.lead ? escapeCSV(`${activity.lead.firstName} ${activity.lead.lastName}`) : '""',
+          activity.lead ? escapeCSV(activity.lead.email) : '""',
+          escapeCSV(activity.source),
         ];
         csvRows.push(row.join(','));
       }
@@ -209,8 +217,16 @@ export default function ActivityLogsPage() {
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error('Failed to export CSV:', error);
-      alert('Failed to export CSV. Please try again.');
+      console.error('CSV export failed:', error);
+
+      // User-friendly error message with recovery steps
+      const errorMessage = error instanceof Error && error.message.includes('fetch')
+        ? 'Unable to export activities. Please check your internet connection and try again.'
+        : 'Failed to export activities. The file may be too large or a temporary error occurred. Try:\n\n• Applying filters to reduce the number of activities\n• Refreshing the page and trying again\n• Contacting support if the problem persists';
+
+      alert(errorMessage);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -273,12 +289,13 @@ export default function ActivityLogsPage() {
               Auto-refresh: {autoRefresh ? 'ON' : 'OFF'}
             </button>
             <button
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleExportCSV}
-              aria-label="Export activity logs to CSV"
+              disabled={isExporting}
+              aria-label={isExporting ? 'Exporting activity logs...' : 'Export activity logs to CSV'}
             >
-              <Download className="w-4 h-4" />
-              Export CSV
+              <Download className={`w-4 h-4 ${isExporting ? 'animate-pulse' : ''}`} />
+              {isExporting ? 'Exporting...' : 'Export CSV'}
             </button>
           </div>
         </div>

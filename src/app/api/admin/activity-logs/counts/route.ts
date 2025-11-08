@@ -42,16 +42,13 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || undefined;
 
     // 3. Build WHERE clause for search (if provided)
+    // Use same full-text search as main endpoint for consistency and security
     let whereClause = sql`1=1`; // Default to true
 
     if (search) {
-      // Full-text search across description and message_content
-      const searchPattern = `%${search}%`;
-      whereClause = sql`(
-        ${leadActivityLog.description} ILIKE ${searchPattern} OR
-        ${leadActivityLog.messageContent} ILIKE ${searchPattern} OR
-        ${leadActivityLog.eventType} ILIKE ${searchPattern}
-      )`;
+      // PostgreSQL full-text search (same as main activity-logs endpoint)
+      // Uses GIN index and is immune to SQL injection
+      whereClause = sql`to_tsvector('english', ${leadActivityLog.description} || ' ' || COALESCE(${leadActivityLog.messageContent}, '')) @@ plainto_tsquery('english', ${search})`;
     }
 
     // 4. Get category counts with single query
