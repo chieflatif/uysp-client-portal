@@ -83,32 +83,38 @@ export async function logLeadActivity(params: LogActivityParams): Promise<LogAct
       }
     }
 
-    // Insert activity log and get the created activity ID
-    const [activity] = await db
-      .insert(leadActivityLog)
-      .values({
-        eventType: params.eventType,
-        eventCategory: params.eventCategory,
-        leadId: finalLeadId || null,
-        leadAirtableId: params.leadAirtableId || null,
-        clientId: params.clientId || null,
-        description: params.description,
-        messageContent: params.messageContent || null,
-        metadata: params.metadata ? (params.metadata as any) : null,
-        source: params.source,
-        createdBy: params.createdBy || null,
-        timestamp: params.timestamp || new Date(),
-      })
-      .returning({ id: leadActivityLog.id, timestamp: leadActivityLog.timestamp });
+    // SECURITY FIX: Use transaction to ensure activity log and lead update are atomic
+    // This prevents timestamp desync if one operation fails
+    const activity = await db.transaction(async (tx) => {
+      // Insert activity log
+      const [activityRecord] = await tx
+        .insert(leadActivityLog)
+        .values({
+          eventType: params.eventType,
+          eventCategory: params.eventCategory,
+          leadId: finalLeadId || null,
+          leadAirtableId: params.leadAirtableId || null,
+          clientId: params.clientId || null,
+          description: params.description,
+          messageContent: params.messageContent || null,
+          metadata: params.metadata ? (params.metadata as any) : null,
+          source: params.source,
+          createdBy: params.createdBy || null,
+          timestamp: params.timestamp || new Date(),
+        })
+        .returning({ id: leadActivityLog.id, timestamp: leadActivityLog.timestamp });
 
-    // Update lead's last activity timestamp (if lead exists in PostgreSQL)
-    // SECURITY: Use SAME timestamp as activity to prevent race condition (HIGH-005)
-    if (finalLeadId) {
-      await db
-        .update(leads)
-        .set({ lastActivityAt: activity.timestamp })
-        .where(eq(leads.id, finalLeadId));
-    }
+      // Update lead's last activity timestamp (if lead exists in PostgreSQL)
+      // Uses SAME timestamp as activity to prevent race condition
+      if (finalLeadId) {
+        await tx
+          .update(leads)
+          .set({ lastActivityAt: activityRecord.timestamp })
+          .where(eq(leads.id, finalLeadId));
+      }
+
+      return activityRecord;
+    });
 
     console.log('[ACTIVITY-LOGGER] Activity logged:', {
       activityId: activity.id,

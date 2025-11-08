@@ -55,9 +55,12 @@ export async function POST(request: NextRequest) {
     // SECURITY: Verify email domain matches an existing client
     console.log('🔍 Verifying email domain against authorized clients...');
     const emailDomain = email.split('@')[1].toLowerCase();
-    
+
+    // SECURITY FIX: Sanitize domain to prevent SQL injection via wildcards
+    const sanitizedDomain = emailDomain.replace(/[%_\\]/g, '\\$&');
+
     const matchingClient = await db.query.clients.findFirst({
-      where: (clients, { sql }) => sql`LOWER(${clients.email}) LIKE ${`%@${emailDomain}`}`,
+      where: (clients, { sql }) => sql`LOWER(${clients.email}) LIKE ${`%@${sanitizedDomain}`}`,
     });
 
     if (!matchingClient) {

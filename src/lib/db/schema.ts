@@ -28,6 +28,9 @@ export const users = pgTable(
     clientId: uuid('client_id'),
     isActive: boolean('is_active').notNull().default(true),
     mustChangePassword: boolean('must_change_password').notNull().default(false),
+    // SECURITY: Password setup token fields
+    passwordSetupToken: varchar('password_setup_token', { length: 255 }),
+    passwordSetupTokenExpiry: timestamp('password_setup_token_expiry', { withTimezone: true }),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }), // FIXED: Add timezone support
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
@@ -35,6 +38,7 @@ export const users = pgTable(
   (table) => ({
     emailIdx: index('idx_users_email').on(table.email),
     clientIdIdx: index('idx_users_client_id').on(table.clientId),
+    setupTokenIdx: index('idx_users_setup_token').on(table.passwordSetupToken),
   })
 );
 

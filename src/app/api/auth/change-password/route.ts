@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { validatePassword } from '@/lib/utils/password';
+import { rateLimit } from '@/lib/utils/rate-limit';
 
 /**
  * POST /api/auth/change-password
@@ -19,6 +20,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // SECURITY: Rate limiting - 5 attempts per 15 minutes per user
+    const rateLimitResult = await rateLimit(
+      session.user.id,
+      'change-password',
+      5,
+      900 // 15 minutes
+    );
+
+    if (!rateLimitResult.success) {
+      const resetIn = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
+      return NextResponse.json(
+        {
+          error: `Too many password change attempts. Please try again in ${resetIn} minutes.`,
+          code: 'RATE_LIMIT_EXCEEDED',
+          resetAt: rateLimitResult.resetAt,
+        },
+        { status: 429 }
       );
     }
 
