@@ -3,9 +3,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { Search, ArrowUpDown, X } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Search, ArrowUpDown, X, Upload } from 'lucide-react';
 import { theme } from '@/theme';
+import { ImportLeadsModal } from '@/components/leads/ImportLeadsModal';
 
 interface Lead {
   id: string;
@@ -37,6 +38,7 @@ export default function LeadsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const campaignFilter = searchParams.get('campaign');
+  const queryClient = useQueryClient();
 
   const [filter, setFilter] = useState<'all' | 'high' | 'medium'>('all');
   const [page, setPage] = useState(1);
@@ -44,6 +46,7 @@ export default function LeadsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('icpScore');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const itemsPerPage = 50;
 
@@ -233,7 +236,7 @@ export default function LeadsPage() {
           </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar and Import Button */}
         <div className="flex gap-4 items-center">
           <div className="relative flex-1 max-w-md">
             <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.core.bodyText}`} />
@@ -253,6 +256,13 @@ export default function LeadsPage() {
               Clear search
             </button>
           )}
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-700 via-indigo-600 to-cyan-400 text-white rounded-lg font-semibold hover:opacity-90 transition"
+          >
+            <Upload className="w-4 h-4" />
+            Import Leads
+          </button>
         </div>
 
         {/* Campaign Filter Badge */}
@@ -553,6 +563,16 @@ export default function LeadsPage() {
           </div>
         )}
       </div>
+
+      {/* Import Leads Modal */}
+      <ImportLeadsModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          // Invalidate leads query to refresh the list
+          queryClient.invalidateQueries({ queryKey: ['leads'] });
+        }}
+      />
     </div>
   );
 }

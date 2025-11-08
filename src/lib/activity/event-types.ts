@@ -42,6 +42,7 @@ export const EVENT_TYPES = {
   // System Events
   ENRICHMENT_COMPLETED: 'ENRICHMENT_COMPLETED',
   ICP_SCORE_UPDATED: 'ICP_SCORE_UPDATED',
+  BULK_IMPORT: 'BULK_IMPORT',
 } as const;
 
 export const EVENT_CATEGORIES = {
@@ -96,6 +97,7 @@ export const EVENT_TYPE_TO_CATEGORY: Record<EventType, EventCategory> = {
   // System
   ENRICHMENT_COMPLETED: EVENT_CATEGORIES.SYSTEM,
   ICP_SCORE_UPDATED: EVENT_CATEGORIES.SYSTEM,
+  BULK_IMPORT: EVENT_CATEGORIES.SYSTEM,
 };
 
 /**
@@ -130,6 +132,7 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
 
   ENRICHMENT_COMPLETED: 'Enrichment Completed',
   ICP_SCORE_UPDATED: 'ICP Score Updated',
+  BULK_IMPORT: 'Bulk Import',
 };
 
 /**
@@ -177,6 +180,7 @@ export const EVENT_TYPE_ICONS: Record<EventType, string> = {
 
   ENRICHMENT_COMPLETED: '✨',
   ICP_SCORE_UPDATED: '📈',
+  BULK_IMPORT: '📤',
 };
 
 /**
