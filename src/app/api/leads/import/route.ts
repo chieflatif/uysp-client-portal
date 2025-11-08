@@ -56,6 +56,19 @@ interface ImportResponse {
   message: string;
 }
 
+interface N8nWebhookResponse {
+  success: number;
+  errors?: Array<{
+    row: number;
+    lead: ImportLeadRequest;
+    error: string;
+  }>;
+  duplicates?: Array<{
+    email: string;
+    existingRecordId?: string;
+  }>;
+}
+
 // n8n webhook URL for bulk lead import (from environment variable)
 const N8N_WEBHOOK_URL = process.env.N8N_BULK_IMPORT_WEBHOOK_URL || 'https://rebelhq.app.n8n.cloud/webhook/bulk-lead-import';
 
@@ -124,7 +137,7 @@ function validateLead(lead: ImportLeadRequest, index: number): { isValid: boolea
 /**
  * Call n8n webhook with timeout and retry logic
  */
-async function callN8nWebhook(payload: N8nWebhookPayload, attempt: number = 1): Promise<any> {
+async function callN8nWebhook(payload: N8nWebhookPayload, attempt: number = 1): Promise<N8nWebhookResponse> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
@@ -161,11 +174,13 @@ async function callN8nWebhook(payload: N8nWebhookPayload, attempt: number = 1): 
       throw new Error('Invalid response from n8n webhook - missing success count');
     }
 
-    return result;
-  } catch (error: any) {
+    return result as N8nWebhookResponse;
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
 
-    if (error.name === 'AbortError') {
+    const err = error instanceof Error ? error : new Error('Unknown error occurred');
+
+    if (err.name === 'AbortError') {
       if (attempt < MAX_RETRIES) {
         const delay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1), MAX_RETRY_DELAY);
         console.warn(`n8n webhook timed out, retrying in ${delay}ms (attempt ${attempt}/${MAX_RETRIES})`);
@@ -175,7 +190,7 @@ async function callN8nWebhook(payload: N8nWebhookPayload, attempt: number = 1): 
       throw new Error('Import request timed out. The import is taking longer than expected. Please try with fewer leads or contact support.');
     }
 
-    throw error;
+    throw err;
   }
 }
 
@@ -244,9 +259,9 @@ export async function POST(request: NextRequest) {
 
       // Sanitize all string fields
       sanitizedLeads.push({
-        email: sanitizeInput(lead.email.toLowerCase()),
-        firstName: sanitizeInput(lead.firstName),
-        lastName: sanitizeInput(lead.lastName),
+        email: sanitizeInput((lead.email || '').toLowerCase()),
+        firstName: sanitizeInput(lead.firstName || ''),
+        lastName: sanitizeInput(lead.lastName || ''),
         phone: lead.phone ? sanitizeInput(lead.phone) : undefined,
         company: lead.company ? sanitizeInput(lead.company) : undefined,
         title: lead.title ? sanitizeInput(lead.title) : undefined,
@@ -276,23 +291,24 @@ export async function POST(request: NextRequest) {
     let n8nResult;
     try {
       n8nResult = await callN8nWebhook(n8nPayload);
-    } catch (error: any) {
-      console.error('❌ n8n webhook failed:', error);
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error('Unknown error occurred');
+      console.error('❌ n8n webhook failed:', err);
 
       // User-friendly error messages
       let userMessage = 'Failed to import leads. Please try again.';
-      if (error.message.includes('timed out')) {
+      if (err.message.includes('timed out')) {
         userMessage = 'Import is taking longer than expected. Your leads may still be processing. Please check back in a few minutes.';
-      } else if (error.message.includes('500')) {
+      } else if (err.message.includes('500')) {
         userMessage = 'Our import service is temporarily unavailable. Please try again in a few minutes.';
-      } else if (error.message.includes('network') || error.message.includes('fetch')) {
+      } else if (err.message.includes('network') || err.message.includes('fetch')) {
         userMessage = 'Network error occurred. Please check your connection and try again.';
       }
 
       return NextResponse.json(
         {
           error: userMessage,
-          technicalDetails: error.message,
+          technicalDetails: err.message,
         },
         { status: 503 }
       );
@@ -344,12 +360,13 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(response, { status: 200 });
-  } catch (error: any) {
-    console.error('❌ Lead import failed:', error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error('Internal server error');
+    console.error('❌ Lead import failed:', err);
     return NextResponse.json(
       {
         error: 'An unexpected error occurred during import. Please try again or contact support.',
-        technicalDetails: error.message || 'Internal server error',
+        technicalDetails: err.message,
       },
       { status: 500 }
     );

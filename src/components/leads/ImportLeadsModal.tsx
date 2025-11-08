@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, useEffect, ChangeEvent } from 'react';
 import { X, Upload, AlertCircle, CheckCircle, Download } from 'lucide-react';
 import { theme } from '@/theme';
 import {
@@ -37,6 +37,17 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
   const [error, setError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   // Reset modal state
   const resetModal = () => {
@@ -55,6 +66,11 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
     // Reset file input to allow re-selecting the same file
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    // Clear progress interval if still running
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
     }
   };
 
@@ -138,11 +154,9 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
     setStep('importing');
     setError(null);
 
-    let progressInterval: NodeJS.Timeout | null = null;
-
     try {
       // Simulate progress (frontend doesn't know backend progress)
-      progressInterval = setInterval(() => {
+      progressIntervalRef.current = setInterval(() => {
         setProgress((prev) => Math.min(prev + 10, 90));
       }, 500);
 
@@ -165,9 +179,9 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
       const result = await response.json();
 
       // Clear interval and set progress to 100% on success
-      if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = null;
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
       }
       setProgress(100);
 
@@ -178,16 +192,17 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
       if (result.success > 0) {
         onSuccess();
       }
-    } catch (err: any) {
-      console.error('Import error:', err);
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error('Import failed');
+      console.error('Import error:', error);
 
       // Ensure interval is cleared on error
-      if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = null;
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
       }
 
-      setError(err.message || 'Import failed');
+      setError(error.message);
       setStep('preview');
     } finally {
       setImporting(false);
