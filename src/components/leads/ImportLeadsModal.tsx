@@ -52,6 +52,10 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
     setProgress(0);
     setResults(null);
     setError(null);
+    // Reset file input to allow re-selecting the same file
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   // Handle modal close
@@ -134,9 +138,11 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
     setStep('importing');
     setError(null);
 
+    let progressInterval: NodeJS.Timeout | null = null;
+
     try {
       // Simulate progress (frontend doesn't know backend progress)
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setProgress((prev) => Math.min(prev + 10, 90));
       }, 500);
 
@@ -151,15 +157,20 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
         }),
       });
 
-      clearInterval(progressInterval);
-      setProgress(100);
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Import failed');
       }
 
       const result = await response.json();
+
+      // Clear interval and set progress to 100% on success
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+      setProgress(100);
+
       setResults(result);
       setStep('results');
 
@@ -169,6 +180,13 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
       }
     } catch (err: any) {
       console.error('Import error:', err);
+
+      // Ensure interval is cleared on error
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+
       setError(err.message || 'Import failed');
       setStep('preview');
     } finally {

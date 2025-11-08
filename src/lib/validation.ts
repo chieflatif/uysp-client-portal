@@ -16,9 +16,27 @@ export function isValidEmail(email: string): boolean {
     return false;
   }
 
-  // Basic RFC 5322 compliant email regex
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email.trim());
+  // More strict RFC 5322 compliant email regex
+  // Allows: letters, numbers, and special characters (!#$%&'*+/=?^_`{|}~-.) in local part
+  // Domain must be alphanumeric with hyphens, and have valid TLD
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+  const trimmedEmail = email.trim();
+
+  // Additional checks
+  if (trimmedEmail.length > 254) {
+    return false; // RFC 5321 maximum email length
+  }
+
+  if (trimmedEmail.includes('..')) {
+    return false; // No consecutive dots
+  }
+
+  if (trimmedEmail.startsWith('.') || trimmedEmail.endsWith('.')) {
+    return false; // No leading/trailing dots
+  }
+
+  return emailRegex.test(trimmedEmail);
 }
 
 /**
