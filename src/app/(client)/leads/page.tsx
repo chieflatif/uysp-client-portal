@@ -235,7 +235,7 @@ export default function LeadsPage() {
     <div className={`min-h-screen ${theme.core.darkBg} p-8`}>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
           <div>
             <h1 className={`text-4xl font-bold ${theme.core.white} mb-2`}>
               Your <span className={theme.accents.primary.class}>Leads</span>
@@ -244,19 +244,28 @@ export default function LeadsPage() {
               Manage and track your qualified leads
             </p>
           </div>
-          <div className={`text-right ${theme.core.bodyText}`}>
-            <p className="text-sm font-semibold">
-              {processedLeads.length} leads
-              {searchQuery && ` matching "${searchQuery}"`}
-              {campaignFilter && ` in campaign "${campaignFilter}"`}
-            </p>
-            <p className="text-xs">
-              Page {page} of {totalPages}
-            </p>
+          <div className="flex items-center gap-4">
+            <div className={`text-right ${theme.core.bodyText}`}>
+              <p className="text-sm font-semibold">
+                {processedLeads.length} leads
+                {searchQuery && ` matching "${searchQuery}"`}
+                {campaignFilter && ` in campaign "${campaignFilter}"`}
+              </p>
+              <p className="text-xs">
+                Page {page} of {totalPages}
+              </p>
+            </div>
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-pink-700 via-indigo-600 to-cyan-400 text-white rounded-lg font-semibold hover:opacity-90 transition shadow-lg"
+            >
+              <Upload className="w-5 h-5" />
+              Import Leads
+            </button>
           </div>
         </div>
 
-        {/* Search Bar and Import Button */}
+        {/* Search Bar */}
         <div className="flex gap-4 items-center">
           <div className="relative flex-1 max-w-md">
             <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.core.bodyText}`} />
@@ -282,13 +291,6 @@ export default function LeadsPage() {
               Clear search
             </button>
           )}
-          <button
-            onClick={() => setIsImportModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-700 via-indigo-600 to-cyan-400 text-white rounded-lg font-semibold hover:opacity-90 transition"
-          >
-            <Upload className="w-4 h-4" />
-            Import Leads
-          </button>
         </div>
 
         {/* Campaign Filter Badge */}
