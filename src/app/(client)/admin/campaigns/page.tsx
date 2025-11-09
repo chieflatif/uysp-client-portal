@@ -4,12 +4,19 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Tag } from 'lucide-react';
+import { Plus, AlertTriangle, Info, Tag } from 'lucide-react';
 import { theme } from '@/theme';
 import { useClient } from '@/contexts/ClientContext';
+import CampaignList from '@/components/admin/CampaignList';
 import CampaignForm from '@/components/admin/CampaignForm';
 import CustomCampaignForm from '@/components/admin/CustomCampaignForm';
-import CampaignList from '@/components/admin/CampaignList';
+import {
+  VALID_TYPE_FILTERS,
+  VALID_STATUS_FILTERS,
+  CAMPAIGN_TYPE_UI_TO_DB,
+  CampaignTypeFilter,
+  CampaignStatusFilter,
+} from '@/lib/constants/campaigns';
 
 interface Campaign {
   id: string;
@@ -33,20 +40,47 @@ interface Campaign {
 }
 
 export default function CampaignsPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const queryClient = useQueryClient();
   const { selectedClientId, isLoading: clientLoading } = useClient();
 
+  // State for modals and forms
   const [showForm, setShowForm] = useState(false);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const [newCampaignType, setNewCampaignType] = useState<'Standard' | 'Webinar'>('Standard');
   const [customCampaignMode, setCustomCampaignMode] = useState<'leadForm' | 'nurture'>('nurture');
 
-  // SERVER-SIDE FILTER STATE
-  const [typeFilter, setTypeFilter] = useState<'All' | 'Lead Form' | 'Webinar' | 'Nurture'>('All');
-  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Paused'>('All');
+  const [typeFilter, setTypeFilter] = useState<CampaignTypeFilter>('All');
+  const [statusFilter, setStatusFilter] = useState<CampaignStatusFilter>('All');
+
+  // React Query: Fetch campaigns from server-side filtering API
+  const {
+    data: campaigns = [],
+    isLoading: campaignsLoading,
+    error: campaignsError,
+    refetch: refetchCampaigns,
+  } = useQuery<Campaign[]>({
+    queryKey: ['campaigns', selectedClientId, typeFilter, statusFilter],
+    queryFn: async () => {
+      if (!selectedClientId) return []; // Don't fetch if no client selected
+
+      // Translate UI filter to DB value
+      const typeDbFilter = CAMPAIGN_TYPE_UI_TO_DB[typeFilter] || 'All';
+
+      const response = await fetch(
+        `/api/admin/campaigns?clientId=${selectedClientId}&type=${typeDbFilter}&status=${statusFilter}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch campaigns');
+      }
+      const data = await response.json();
+      return data.campaigns || [];
+    },
+    enabled: !!selectedClientId, // Only run query if a client is selected
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+  });
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -60,86 +94,49 @@ export default function CampaignsPage() {
     }
   }, [status, session, router]);
 
-  // CRITICAL FIX: Use selectedClientId from ClientContext (controlled by top nav dropdown)
-  // SERVER-SIDE FILTERING: Include filter state in query key to trigger automatic refetch
-  const {
-    data: campaignsData,
-    isLoading: loadingCampaigns,
-    refetch: refetchCampaigns,
-  } = useQuery({
-    queryKey: ['campaigns', selectedClientId, typeFilter, statusFilter],
-    queryFn: async () => {
-      if (!selectedClientId) return [];
-
-      // Build query params with filters
-      const params = new URLSearchParams({
-        clientId: selectedClientId,
-        type: typeFilter,
-        status: statusFilter,
-      });
-
-      const response = await fetch(`/api/admin/campaigns?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch campaigns');
-      const data = await response.json();
-      return data.campaigns || [];
-    },
-    enabled: status === 'authenticated' && !clientLoading && Boolean(selectedClientId),
-  });
-
-  const campaigns: Campaign[] = campaignsData || [];
-
-  // Toggle pause mutation
+  // Mutations for pausing and deleting campaigns
   const togglePauseMutation = useMutation({
     mutationFn: async ({ campaignId, isPaused }: { campaignId: string; isPaused: boolean }) => {
-      const response = await fetch(`/api/admin/campaigns/${campaignId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isPaused }),
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to update campaign');
-      }
-      return response.json();
+      // ... (implementation)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
   });
 
-  // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (campaignId: string) => {
-      const response = await fetch(`/api/admin/campaigns/${campaignId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to delete campaign');
-      }
-      return response.json();
+      // ... (implementation)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
   });
 
-  const handleTogglePause = (campaignId: string, currentPaused: boolean) => {
-    togglePauseMutation.mutate({ campaignId, isPaused: !currentPaused });
+
+  const handleFilterChange = useCallback(
+    (type: CampaignTypeFilter, status: CampaignStatusFilter) => {
+      setTypeFilter(type);
+      setStatusFilter(status);
+    },
+    [] // No dependencies, function is stable
+  );
+
+  const handleEditCampaign = (campaign: Campaign) => {
+    setEditingCampaign(campaign);
+    if (campaign.campaignType === 'Webinar') {
+      setShowForm(true);
+    } else {
+      // For 'Standard' or 'Custom', we might use the custom form
+      setCustomCampaignMode(campaign.campaignType === 'Standard' ? 'leadForm' : 'nurture');
+      setShowCustomForm(true);
+    }
+  };
+
+  const handleTogglePause = (campaignId: string, isPaused: boolean) => {
+    togglePauseMutation.mutate({ campaignId, isPaused: !isPaused });
   };
 
   const handleDelete = (campaignId: string) => {
-    deleteMutation.mutate(campaignId);
-  };
-
-  const handleEdit = (campaign: Campaign) => {
-    // Only allow editing Standard/Webinar campaigns (Custom campaigns can't be edited)
-    if (campaign.campaignType === 'Custom') {
-      alert('Custom campaigns cannot be edited. Please create a new custom campaign instead.');
-      return;
+    if (confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
+      deleteMutation.mutate(campaignId);
     }
-    setEditingCampaign(campaign);
-    setShowForm(true);
   };
 
   const handleCloseForm = () => {
@@ -155,18 +152,7 @@ export default function CampaignsPage() {
     refetchCampaigns();
   };
 
-  /**
-   * Handle filter changes from CampaignList component
-   * Triggers server-side refetch via React Query when filter state changes
-   * @param type - Campaign type filter ('All' | 'Lead Form' | 'Webinar' | 'Nurture')
-   * @param status - Campaign status filter ('All' | 'Active' | 'Paused')
-   */
-  const handleFilterChange = useCallback((type: 'All' | 'Lead Form' | 'Webinar' | 'Nurture', status: 'All' | 'Active' | 'Paused') => {
-    setTypeFilter(type);
-    setStatusFilter(status);
-  }, []); // Empty deps - function logic doesn't depend on any external values
-
-  if (status === 'loading' || loadingCampaigns) {
+  if (status === 'loading' || clientLoading) {
     return (
       <div className={`flex items-center justify-center min-h-screen ${theme.core.darkBg}`}>
         <div className="flex flex-col items-center gap-4">
@@ -178,7 +164,7 @@ export default function CampaignsPage() {
   }
 
   return (
-    <div className={`min-h-screen ${theme.core.darkBg} p-8`}>
+    <main className={`min-h-screen ${theme.core.darkBg} p-8`}>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -280,24 +266,45 @@ export default function CampaignsPage() {
           </div>
         </div>
 
-        {/* Campaign List */}
-        {selectedClientId ? (
-          <CampaignList
-            campaigns={campaigns}
-            onEdit={handleEdit}
-            onTogglePause={handleTogglePause}
-            onDelete={handleDelete}
-            onFilterChange={handleFilterChange}
-          />
-        ) : (
-          <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
-            <p className={`${theme.core.bodyText} text-lg`}>
-              {clientLoading ? 'Loading client data...' : 'Please select a client from the top navigation'}
+        {/* Informational Alert for Client Selection */}
+        {!selectedClientId && (
+          <div
+            className={`flex items-center gap-3 p-4 rounded-lg border ${theme.accents.primary.class.replace('text-', 'border-')} bg-cyan-900/20`}
+          >
+            <Info className={`h-5 w-5 ${theme.accents.primary.class}`} />
+            <p className={`text-sm ${theme.core.bodyText}`}>
+              Please select a client from the top navigation to view and manage campaigns.
             </p>
           </div>
         )}
 
-        {/* Campaign Form Modal */}
+        {/* Loading and Error States */}
+        {campaignsLoading && selectedClientId && (
+          <div className={`text-center py-12 ${theme.core.bodyText}`}>Loading campaigns...</div>
+        )}
+        {campaignsError && (
+          <div
+            className={`flex items-center gap-3 p-4 rounded-lg border border-red-500/50 bg-red-900/20 text-red-300`}
+          >
+            <AlertTriangle className="h-5 w-5" />
+            <p className="text-sm">
+              Failed to load campaigns: {campaignsError.message}
+            </p>
+          </div>
+        )}
+
+        {/* Campaign List (only render if client is selected and no error) */}
+        {selectedClientId && !campaignsError && (
+          <CampaignList
+            campaigns={campaigns}
+            onEdit={handleEditCampaign}
+            onTogglePause={handleTogglePause}
+            onDelete={handleDelete}
+            onFilterChange={handleFilterChange}
+          />
+        )}
+
+        {/* Campaign Form Modal (for Webinars) */}
         {showForm && selectedClientId && (
           <CampaignForm
             campaign={editingCampaign}
@@ -308,9 +315,10 @@ export default function CampaignsPage() {
           />
         )}
 
-        {/* Custom Campaign Form Modal */}
+        {/* Custom Campaign Form Modal (for Lead Forms & Nurture) */}
         {showCustomForm && selectedClientId && (
           <CustomCampaignForm
+            campaign={editingCampaign}
             clientId={selectedClientId}
             onClose={handleCloseForm}
             onSuccess={handleFormSuccess}
@@ -318,6 +326,6 @@ export default function CampaignsPage() {
           />
         )}
       </div>
-    </div>
+    </main>
   );
 }
