@@ -17,7 +17,7 @@ interface Campaign {
   id?: string;
   clientId?: string;
   name: string;
-  campaignType: 'Webinar' | 'Standard';
+  campaignType: 'Webinar' | 'Standard' | 'Custom';
   formId: string;
   isPaused: boolean;
   webinarDatetime?: string | null;
