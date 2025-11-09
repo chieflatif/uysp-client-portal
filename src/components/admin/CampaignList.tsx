@@ -43,6 +43,15 @@ interface CampaignListProps {
    * @param status - Selected campaign status filter
    */
   onFilterChange: (type: 'All' | 'Lead Form' | 'Webinar' | 'Nurture', status: 'All' | 'Active' | 'Paused') => void;
+  /**
+   * Search query value (controlled component)
+   */
+  searchQuery: string;
+  /**
+   * Callback fired when search input changes
+   * Parent should implement debouncing
+   */
+  onSearchChange: (query: string) => void;
 }
 
 type SortField = 'name' | 'totalLeads' | 'messagesSent' | 'createdAt' | 'webinarDatetime' | 'type' | 'status';
@@ -54,6 +63,8 @@ export default function CampaignList({
   onTogglePause,
   onDelete,
   onFilterChange,
+  searchQuery,
+  onSearchChange,
 }: CampaignListProps) {
   const router = useRouter();
   const [typeFilter, setTypeFilter] = useState<'All' | 'Lead Form' | 'Webinar' | 'Nurture'>('All');
@@ -146,6 +157,17 @@ export default function CampaignList({
 
   return (
     <div className="space-y-6">
+      {/* Search Field */}
+      <div className="w-full">
+        <input
+          type="text"
+          placeholder="🔍 Search campaigns by name or form ID..."
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className={`w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 ${theme.core.white} placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition`}
+        />
+      </div>
+
       {/* Filters */}
       <div className="flex gap-4 flex-wrap">
         <div className="flex gap-2">

@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { campaigns, airtableSyncQueue } from '@/lib/db/schema';
-import { eq, desc, and, SQL } from 'drizzle-orm';
+import { eq, desc, and, or, ilike, SQL } from 'drizzle-orm';
 import { z } from 'zod';
 import { VALID_TYPE_FILTERS, VALID_STATUS_FILTERS, CAMPAIGN_TYPE_UI_TO_DB } from '@/lib/constants/campaigns';
 
@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
     // SERVER-SIDE FILTERING: Parse and validate filter parameters
     const typeParam = request.nextUrl.searchParams.get('type') || 'All';
     const statusParam = request.nextUrl.searchParams.get('status') || 'All';
+    const searchParam = request.nextUrl.searchParams.get('search')?.trim() || '';
 
     // Validate input parameters for security monitoring
     if (!VALID_TYPE_FILTERS.includes(typeParam as typeof VALID_TYPE_FILTERS[number])) {
@@ -87,6 +88,16 @@ export async function GET(request: NextRequest) {
       filters.push(eq(campaigns.isPaused, true));
     }
     // 'All' status means no filter needed
+
+    // Text search filter (case-insensitive search on name and formId)
+    if (searchParam) {
+      filters.push(
+        or(
+          ilike(campaigns.name, `%${searchParam}%`),
+          ilike(campaigns.formId, `%${searchParam}%`)
+        )
+      );
+    }
 
     // Fetch campaigns with filters
     const allCampaigns = await db.query.campaigns.findMany({

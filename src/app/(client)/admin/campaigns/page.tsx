@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -54,6 +54,27 @@ export default function CampaignsPage() {
 
   const [typeFilter, setTypeFilter] = useState<CampaignTypeFilter>('All');
   const [statusFilter, setStatusFilter] = useState<CampaignStatusFilter>('All');
+  const [searchQuery, setSearchQuery] = useState(''); // API search query (debounced)
+  const [searchInput, setSearchInput] = useState(''); // Immediate input value for display
+
+  // Debounce timer for search input (300ms delay)
+  const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced search handler
+  const handleSearchChange = useCallback((query: string) => {
+    // Update input immediately for instant visual feedback
+    setSearchInput(query);
+
+    // Clear existing timer
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+    }
+
+    // Set new timer with 300ms delay for API call
+    searchTimerRef.current = setTimeout(() => {
+      setSearchQuery(query);
+    }, 300);
+  }, []);
 
   // React Query: Fetch campaigns from server-side filtering API
   const {
@@ -62,16 +83,25 @@ export default function CampaignsPage() {
     error: campaignsError,
     refetch: refetchCampaigns,
   } = useQuery<Campaign[]>({
-    queryKey: ['campaigns', selectedClientId, typeFilter, statusFilter],
+    queryKey: ['campaigns', selectedClientId, typeFilter, statusFilter, searchQuery],
     queryFn: async () => {
       if (!selectedClientId) return []; // Don't fetch if no client selected
 
       // Translate UI filter to DB value
       const typeDbFilter = CAMPAIGN_TYPE_UI_TO_DB[typeFilter] || 'All';
 
-      const response = await fetch(
-        `/api/admin/campaigns?clientId=${selectedClientId}&type=${typeDbFilter}&status=${statusFilter}`
-      );
+      // Build query URL with search parameter
+      const params = new URLSearchParams({
+        clientId: selectedClientId,
+        type: typeDbFilter,
+        status: statusFilter,
+      });
+
+      if (searchQuery.trim()) {
+        params.append('search', searchQuery.trim());
+      }
+
+      const response = await fetch(`/api/admin/campaigns?${params.toString()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch campaigns');
       }
@@ -301,6 +331,8 @@ export default function CampaignsPage() {
             onTogglePause={handleTogglePause}
             onDelete={handleDelete}
             onFilterChange={handleFilterChange}
+            searchQuery={searchInput}
+            onSearchChange={handleSearchChange}
           />
         )}
 
