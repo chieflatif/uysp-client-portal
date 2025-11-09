@@ -9,9 +9,11 @@ import { z } from 'zod';
 /**
  * GET /api/admin/campaigns
  *
- * Fetch all campaigns for authenticated user
+ * Fetch campaigns for authenticated user with server-side filtering
  * Query params:
  *   - clientId: (optional) Filter by client (SUPER_ADMIN only)
+ *   - type: (optional) Filter by campaign type ('Lead Form', 'Webinar', 'Nurture', 'All')
+ *   - status: (optional) Filter by status ('Active', 'Paused', 'All')
  *
  * SECURITY: Client isolation enforced
  * - SUPER_ADMIN/ADMIN: can query any client with ?clientId param
@@ -41,9 +43,44 @@ export async function GET(request: NextRequest) {
       clientId = queryClientId;
     }
 
-    // Fetch campaigns
+    // SERVER-SIDE FILTERING: Parse filter parameters
+    const typeParam = request.nextUrl.searchParams.get('type') || 'All';
+    const statusParam = request.nextUrl.searchParams.get('status') || 'All';
+
+    // Map user-friendly labels to database values
+    const typeMapping: Record<string, string> = {
+      'Lead Form': 'Standard',
+      'Webinar': 'Webinar',
+      'Nurture': 'Custom',
+      'All': 'All'
+    };
+
+    const dbType = typeMapping[typeParam] || 'All';
+
+    // Build dynamic WHERE clause
+    const filters = [];
+
+    // Client isolation filter
+    if (clientId) {
+      filters.push(eq(campaigns.clientId, clientId));
+    }
+
+    // Type filter
+    if (dbType !== 'All') {
+      filters.push(eq(campaigns.campaignType, dbType));
+    }
+
+    // Status filter (isPaused boolean)
+    if (statusParam === 'Active') {
+      filters.push(eq(campaigns.isPaused, false));
+    } else if (statusParam === 'Paused') {
+      filters.push(eq(campaigns.isPaused, true));
+    }
+    // 'All' status means no filter needed
+
+    // Fetch campaigns with filters
     const allCampaigns = await db.query.campaigns.findMany({
-      where: clientId ? eq(campaigns.clientId, clientId) : undefined,
+      where: filters.length > 0 ? and(...filters) : undefined,
       orderBy: desc(campaigns.createdAt),
     });
 

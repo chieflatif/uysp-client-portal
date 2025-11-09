@@ -44,6 +44,10 @@ export default function CampaignsPage() {
   const [newCampaignType, setNewCampaignType] = useState<'Standard' | 'Webinar'>('Standard');
   const [customCampaignMode, setCustomCampaignMode] = useState<'leadForm' | 'nurture'>('nurture');
 
+  // SERVER-SIDE FILTER STATE
+  const [typeFilter, setTypeFilter] = useState<string>('All');
+  const [statusFilter, setStatusFilter] = useState<string>('All');
+
   // Redirect if not authenticated or not admin
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -57,15 +61,24 @@ export default function CampaignsPage() {
   }, [status, session, router]);
 
   // CRITICAL FIX: Use selectedClientId from ClientContext (controlled by top nav dropdown)
+  // SERVER-SIDE FILTERING: Include filter state in query key to trigger automatic refetch
   const {
     data: campaignsData,
     isLoading: loadingCampaigns,
     refetch: refetchCampaigns,
   } = useQuery({
-    queryKey: ['campaigns', selectedClientId],
+    queryKey: ['campaigns', selectedClientId, typeFilter, statusFilter],
     queryFn: async () => {
       if (!selectedClientId) return [];
-      const response = await fetch(`/api/admin/campaigns?clientId=${selectedClientId}`);
+
+      // Build query params with filters
+      const params = new URLSearchParams({
+        clientId: selectedClientId,
+        type: typeFilter,
+        status: statusFilter,
+      });
+
+      const response = await fetch(`/api/admin/campaigns?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch campaigns');
       const data = await response.json();
       return data.campaigns || [];
@@ -140,6 +153,12 @@ export default function CampaignsPage() {
     setShowCustomForm(false);
     setEditingCampaign(null);
     refetchCampaigns();
+  };
+
+  // Handle filter changes from CampaignList (triggers server-side refetch via useQuery)
+  const handleFilterChange = (type: string, status: string) => {
+    setTypeFilter(type);
+    setStatusFilter(status);
   };
 
   if (status === 'loading' || loadingCampaigns) {
@@ -263,6 +282,7 @@ export default function CampaignsPage() {
             onEdit={handleEdit}
             onTogglePause={handleTogglePause}
             onDelete={handleDelete}
+            onFilterChange={handleFilterChange}
           />
         ) : (
           <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
