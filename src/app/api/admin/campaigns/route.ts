@@ -91,12 +91,13 @@ export async function GET(request: NextRequest) {
 
     // Text search filter (case-insensitive search on name and formId)
     if (searchParam) {
-      filters.push(
-        or(
-          ilike(campaigns.name, `%${searchParam}%`),
-          ilike(campaigns.formId, `%${searchParam}%`)
-        )
+      const searchFilter = or(
+        ilike(campaigns.name, `%${searchParam}%`),
+        ilike(campaigns.formId, `%${searchParam}%`)
       );
+      if (searchFilter) {
+        filters.push(searchFilter);
+      }
     }
 
     // Fetch campaigns with filters
