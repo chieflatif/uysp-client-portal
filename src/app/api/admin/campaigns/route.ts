@@ -5,20 +5,7 @@ import { db } from '@/lib/db';
 import { campaigns, airtableSyncQueue } from '@/lib/db/schema';
 import { eq, desc, and, SQL } from 'drizzle-orm';
 import { z } from 'zod';
-import {
-  VALID_TYPE_FILTERS,
-  VALID_STATUS_FILTERS,
-  CAMPAIGN_TYPE_UI_TO_DB,
-  CampaignTypeFilter,
-  CampaignStatusFilter,
-} from '@/lib/constants/campaigns';
-
-// Zod schema for validating query parameters
-const filterSchema = z.object({
-  clientId: z.string().uuid().optional(),
-  type: z.enum(VALID_TYPE_FILTERS).default('All'),
-  status: z.enum(VALID_STATUS_FILTERS).default('All'),
-});
+import { VALID_TYPE_FILTERS, VALID_STATUS_FILTERS, CAMPAIGN_TYPE_UI_TO_DB } from '@/lib/constants/campaigns';
 
 /**
  * GET /api/admin/campaigns
@@ -56,25 +43,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Use Zod to parse and validate search params, providing type safety
-    const queryParams = Object.fromEntries(request.nextUrl.searchParams.entries());
-    const parseResult = filterSchema.safeParse(queryParams);
-
-    if (!parseResult.success) {
-      return NextResponse.json(
-        { error: 'Invalid filter parameters', details: parseResult.error.flatten() },
-        { status: 400 }
-      );
-    }
-
-    const { clientId: queryClientId, type: typeParam, status: statusParam } = parseResult.data;
-
     // Determine client filter
     let clientId = session.user.clientId;
+    const queryClientId = request.nextUrl.searchParams.get('clientId');
 
     // SUPER_ADMIN can query any client
     if (session.user.role === 'SUPER_ADMIN' && queryClientId) {
       clientId = queryClientId;
+    }
+
+    // SERVER-SIDE FILTERING: Parse and validate filter parameters
+    const typeParam = request.nextUrl.searchParams.get('type') || 'All';
+    const statusParam = request.nextUrl.searchParams.get('status') || 'All';
+
+    // Validate input parameters for security monitoring
+    if (!VALID_TYPE_FILTERS.includes(typeParam as typeof VALID_TYPE_FILTERS[number])) {
+      console.warn(`[CAMPAIGNS API] Invalid type parameter: "${typeParam}", falling back to 'All'. Client: ${clientId}`);
+    }
+    if (!VALID_STATUS_FILTERS.includes(statusParam as typeof VALID_STATUS_FILTERS[number])) {
+      console.warn(`[CAMPAIGNS API] Invalid status parameter: "${statusParam}", falling back to 'All'. Client: ${clientId}`);
     }
 
     // Map user-friendly labels to database values using centralized constants
