@@ -8,7 +8,6 @@
  * Created during forensic audit of UI Remediation Sprint
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
@@ -16,14 +15,14 @@ import CampaignsPage from '@/app/(client)/admin/campaigns/page';
 import { ClientProvider } from '@/contexts/ClientContext';
 
 // Mock Next.js router
-vi.mock('next/navigation', () => ({
+jest.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
+    push: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
   }),
   useSearchParams: () => ({
-    get: vi.fn(),
+    get: jest.fn(),
   }),
 }));
 
@@ -80,11 +79,11 @@ const mockCampaigns = [
 
 describe('Campaign Search - API Endpoint', () => {
   beforeEach(() => {
-    global.fetch = vi.fn();
+    global.fetch = jest.fn();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('should filter campaigns by name (case-insensitive)', async () => {
@@ -209,16 +208,16 @@ describe('Campaign Search - API Endpoint', () => {
 
 describe('Campaign Search - Debouncing', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
-    vi.useRealTimers();
+    jest.restoreAllMocks();
+    jest.useRealTimers();
   });
 
   it('should debounce search input by 300ms', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
+    const mockFetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ campaigns: mockCampaigns, count: 3 }),
     });
@@ -252,11 +251,11 @@ describe('Campaign Search - Debouncing', () => {
     fireEvent.change(searchInput, { target: { value: 'webinar' } });
 
     // Fast forward 299ms (should NOT trigger API call yet)
-    vi.advanceTimersByTime(299);
+    jest.advanceTimersByTime(299);
     expect(mockFetch).not.toHaveBeenCalled();
 
     // Fast forward 1ms more (total 300ms - should trigger API call)
-    vi.advanceTimersByTime(1);
+    jest.advanceTimersByTime(1);
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(1);
     });
@@ -268,7 +267,7 @@ describe('Campaign Search - Debouncing', () => {
   });
 
   it('should cancel previous timer on new input', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
+    const mockFetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ campaigns: [], count: 0 }),
     });
@@ -294,11 +293,11 @@ describe('Campaign Search - Debouncing', () => {
 
     // Type "test"
     fireEvent.change(searchInput, { target: { value: 'test' } });
-    vi.advanceTimersByTime(200); // Wait 200ms
+    jest.advanceTimersByTime(200); // Wait 200ms
 
     // Type "webinar" (should cancel "test" timer)
     fireEvent.change(searchInput, { target: { value: 'webinar' } });
-    vi.advanceTimersByTime(300); // Wait 300ms
+    jest.advanceTimersByTime(300); // Wait 300ms
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -316,18 +315,18 @@ describe('Campaign Search - Debouncing', () => {
 
 describe('Campaign Search - Memory Leak Prevention', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
-    vi.useRealTimers();
+    jest.restoreAllMocks();
+    jest.useRealTimers();
   });
 
   it('should clear timer on component unmount', async () => {
-    const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
 
-    const mockFetch = vi.fn().mockResolvedValue({
+    const mockFetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ campaigns: mockCampaigns, count: 3 }),
     });
@@ -364,7 +363,7 @@ describe('Campaign Search - Memory Leak Prevention', () => {
 
 describe('Campaign Search - React Query Integration', () => {
   it('should include search in queryKey to trigger refetch', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
+    const mockFetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ campaigns: mockCampaigns, count: 3 }),
     });
@@ -415,7 +414,7 @@ describe('Campaign Search - React Query Integration', () => {
 
 describe('Campaign Search - Edge Cases', () => {
   it('should handle whitespace-only search', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
+    const mockFetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ campaigns: mockCampaigns, count: 3 }),
     });
@@ -430,7 +429,7 @@ describe('Campaign Search - Edge Cases', () => {
   });
 
   it('should preserve search when filters change', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
+    const mockFetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ campaigns: [], count: 0 }),
     });
