@@ -148,7 +148,5 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
 };
 
-// SECURITY: Validate NEXTAUTH_SECRET in production
-if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_SECRET) {
-  throw new Error('NEXTAUTH_SECRET must be set in production environment');
-}
+// NOTE: NEXTAUTH_SECRET validation removed to support Next.js build-time static analysis
+// NextAuth will validate the secret at runtime when the auth config is actually used

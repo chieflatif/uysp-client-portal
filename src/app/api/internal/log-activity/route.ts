@@ -4,13 +4,8 @@ import { leadActivityLog, leads } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { EVENT_TYPES, EVENT_CATEGORIES } from '@/lib/activity/event-types';
 
-// SECURITY: Validate INTERNAL_API_KEY at module load time
-if (!process.env.INTERNAL_API_KEY) {
-  console.error('[LOG-ACTIVITY] CRITICAL: INTERNAL_API_KEY environment variable is not set!');
-  throw new Error('INTERNAL_API_KEY environment variable must be configured');
-}
-
-const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY;
+// NOTE: INTERNAL_API_KEY validation moved to runtime (inside POST function)
+// to support Next.js build-time static analysis
 
 /**
  * POST /api/internal/log-activity
@@ -23,9 +18,18 @@ const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY;
  */
 export async function POST(request: NextRequest) {
   try {
+    // SECURITY: Validate INTERNAL_API_KEY at runtime (not module load)
+    if (!process.env.INTERNAL_API_KEY) {
+      console.error('[LOG-ACTIVITY] CRITICAL: INTERNAL_API_KEY environment variable is not set!');
+      return NextResponse.json(
+        { error: 'Server configuration error: INTERNAL_API_KEY not configured' },
+        { status: 500 }
+      );
+    }
+
     // SECURITY: Internal API key authentication
     const apiKey = request.headers.get('x-api-key');
-    if (!apiKey || apiKey !== INTERNAL_API_KEY) {
+    if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
       console.error('[LOG-ACTIVITY] Unauthorized: Invalid or missing API key');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
