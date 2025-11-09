@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -45,8 +45,8 @@ export default function CampaignsPage() {
   const [customCampaignMode, setCustomCampaignMode] = useState<'leadForm' | 'nurture'>('nurture');
 
   // SERVER-SIDE FILTER STATE
-  const [typeFilter, setTypeFilter] = useState<string>('All');
-  const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [typeFilter, setTypeFilter] = useState<'All' | 'Lead Form' | 'Webinar' | 'Nurture'>('All');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Paused'>('All');
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -155,11 +155,16 @@ export default function CampaignsPage() {
     refetchCampaigns();
   };
 
-  // Handle filter changes from CampaignList (triggers server-side refetch via useQuery)
-  const handleFilterChange = (type: string, status: string) => {
+  /**
+   * Handle filter changes from CampaignList component
+   * Triggers server-side refetch via React Query when filter state changes
+   * @param type - Campaign type filter ('All' | 'Lead Form' | 'Webinar' | 'Nurture')
+   * @param status - Campaign status filter ('All' | 'Active' | 'Paused')
+   */
+  const handleFilterChange = useCallback((type: 'All' | 'Lead Form' | 'Webinar' | 'Nurture', status: 'All' | 'Active' | 'Paused') => {
     setTypeFilter(type);
     setStatusFilter(status);
-  };
+  }, []); // Empty deps - function logic doesn't depend on any external values
 
   if (status === 'loading' || loadingCampaigns) {
     return (
@@ -295,7 +300,7 @@ export default function CampaignsPage() {
         {/* Campaign Form Modal */}
         {showForm && selectedClientId && (
           <CampaignForm
-            campaign={editingCampaign as any}
+            campaign={editingCampaign}
             clientId={selectedClientId}
             onClose={handleCloseForm}
             onSuccess={handleFormSuccess}

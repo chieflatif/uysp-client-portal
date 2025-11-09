@@ -3,21 +3,30 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { campaigns, airtableSyncQueue } from '@/lib/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, SQL } from 'drizzle-orm';
 import { z } from 'zod';
+import { VALID_TYPE_FILTERS, VALID_STATUS_FILTERS, CAMPAIGN_TYPE_UI_TO_DB } from '@/lib/constants/campaigns';
 
 /**
  * GET /api/admin/campaigns
  *
- * Fetch campaigns for authenticated user with server-side filtering
+ * Fetch campaigns for authenticated user with server-side filtering.
+ * Implements database-level filtering for performance and security.
+ *
+ * @param request - Next.js request object
+ * @returns JSON response with campaigns array and count
+ *
  * Query params:
  *   - clientId: (optional) Filter by client (SUPER_ADMIN only)
- *   - type: (optional) Filter by campaign type ('Lead Form', 'Webinar', 'Nurture', 'All')
- *   - status: (optional) Filter by status ('Active', 'Paused', 'All')
+ *   - type: (optional) Filter by campaign type (see VALID_TYPE_FILTERS in @/lib/constants/campaigns)
+ *   - status: (optional) Filter by status (see VALID_STATUS_FILTERS in @/lib/constants/campaigns)
  *
  * SECURITY: Client isolation enforced
  * - SUPER_ADMIN/ADMIN: can query any client with ?clientId param
  * - CLIENT_ADMIN/CLIENT_USER: only see their client's campaigns
+ *
+ * @example
+ * GET /api/admin/campaigns?type=Lead%20Form&status=Active&clientId=abc123
  */
 export async function GET(request: NextRequest) {
   try {
@@ -43,22 +52,23 @@ export async function GET(request: NextRequest) {
       clientId = queryClientId;
     }
 
-    // SERVER-SIDE FILTERING: Parse filter parameters
+    // SERVER-SIDE FILTERING: Parse and validate filter parameters
     const typeParam = request.nextUrl.searchParams.get('type') || 'All';
     const statusParam = request.nextUrl.searchParams.get('status') || 'All';
 
-    // Map user-friendly labels to database values
-    const typeMapping: Record<string, string> = {
-      'Lead Form': 'Standard',
-      'Webinar': 'Webinar',
-      'Nurture': 'Custom',
-      'All': 'All'
-    };
+    // Validate input parameters for security monitoring
+    if (!VALID_TYPE_FILTERS.includes(typeParam as typeof VALID_TYPE_FILTERS[number])) {
+      console.warn(`[CAMPAIGNS API] Invalid type parameter: "${typeParam}", falling back to 'All'. Client: ${clientId}`);
+    }
+    if (!VALID_STATUS_FILTERS.includes(statusParam as typeof VALID_STATUS_FILTERS[number])) {
+      console.warn(`[CAMPAIGNS API] Invalid status parameter: "${statusParam}", falling back to 'All'. Client: ${clientId}`);
+    }
 
-    const dbType = typeMapping[typeParam] || 'All';
+    // Map user-friendly labels to database values using centralized constants
+    const dbType = CAMPAIGN_TYPE_UI_TO_DB[typeParam] || 'All';
 
-    // Build dynamic WHERE clause
-    const filters = [];
+    // Build dynamic WHERE clause with explicit type for TypeScript safety
+    const filters: SQL<unknown>[] = [];
 
     // Client isolation filter
     if (clientId) {

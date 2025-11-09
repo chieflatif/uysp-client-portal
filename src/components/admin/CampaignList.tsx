@@ -31,7 +31,13 @@ interface CampaignListProps {
   onEdit: (campaign: Campaign) => void;
   onTogglePause: (campaignId: string, currentPaused: boolean) => void;
   onDelete: (campaignId: string) => void;
-  onFilterChange: (type: string, status: string) => void;
+  /**
+   * Callback fired when filter chips are clicked
+   * Triggers parent to update filter state and refetch campaigns from API
+   * @param type - Selected campaign type filter
+   * @param status - Selected campaign status filter
+   */
+  onFilterChange: (type: 'All' | 'Lead Form' | 'Webinar' | 'Nurture', status: 'All' | 'Active' | 'Paused') => void;
 }
 
 type SortField = 'name' | 'totalLeads' | 'messagesSent' | 'createdAt' | 'webinarDatetime' | 'type' | 'status';
@@ -69,8 +75,8 @@ export default function CampaignList({
 
   // Apply sorting (server already filtered, we only sort client-side)
   const sortedCampaigns = [...campaigns].sort((a, b) => {
-    let aVal: any;
-    let bVal: any;
+    let aVal: string | number;
+    let bVal: string | number;
 
     switch (sortField) {
       case 'name':
