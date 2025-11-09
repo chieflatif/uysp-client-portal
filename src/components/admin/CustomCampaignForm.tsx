@@ -8,6 +8,14 @@ import { X, Sparkles, Eye, Plus, Trash2, Loader2 } from 'lucide-react';
 import LeadPreviewModal from './LeadPreviewModal';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import { CAMPAIGN_TYPE_DB_TO_UI } from '@/lib/constants/campaigns';
+
+interface Campaign {
+  id: string;
+  name: string;
+  campaignType: 'Webinar' | 'Standard' | 'Custom';
+  // ... other fields
+}
 
 interface Message {
   step: number;
@@ -16,6 +24,7 @@ interface Message {
 }
 
 interface CustomCampaignFormProps {
+  campaign?: Campaign | null;
   clientId: string;
   onClose: () => void;
   onSuccess: () => void;
@@ -23,6 +32,7 @@ interface CustomCampaignFormProps {
 }
 
 export default function CustomCampaignForm({
+  campaign,
   clientId,
   onClose,
   onSuccess,
