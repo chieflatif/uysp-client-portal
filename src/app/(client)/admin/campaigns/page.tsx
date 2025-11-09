@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -44,6 +44,10 @@ export default function CampaignsPage() {
   const [newCampaignType, setNewCampaignType] = useState<'Standard' | 'Webinar'>('Standard');
   const [customCampaignMode, setCustomCampaignMode] = useState<'leadForm' | 'nurture'>('nurture');
 
+  // SERVER-SIDE FILTER STATE
+  const [typeFilter, setTypeFilter] = useState<'All' | 'Lead Form' | 'Webinar' | 'Nurture'>('All');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Paused'>('All');
+
   // Redirect if not authenticated or not admin
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -57,15 +61,24 @@ export default function CampaignsPage() {
   }, [status, session, router]);
 
   // CRITICAL FIX: Use selectedClientId from ClientContext (controlled by top nav dropdown)
+  // SERVER-SIDE FILTERING: Include filter state in query key to trigger automatic refetch
   const {
     data: campaignsData,
     isLoading: loadingCampaigns,
     refetch: refetchCampaigns,
   } = useQuery({
-    queryKey: ['campaigns', selectedClientId],
+    queryKey: ['campaigns', selectedClientId, typeFilter, statusFilter],
     queryFn: async () => {
       if (!selectedClientId) return [];
-      const response = await fetch(`/api/admin/campaigns?clientId=${selectedClientId}`);
+
+      // Build query params with filters
+      const params = new URLSearchParams({
+        clientId: selectedClientId,
+        type: typeFilter,
+        status: statusFilter,
+      });
+
+      const response = await fetch(`/api/admin/campaigns?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch campaigns');
       const data = await response.json();
       return data.campaigns || [];
@@ -141,6 +154,17 @@ export default function CampaignsPage() {
     setEditingCampaign(null);
     refetchCampaigns();
   };
+
+  /**
+   * Handle filter changes from CampaignList component
+   * Triggers server-side refetch via React Query when filter state changes
+   * @param type - Campaign type filter ('All' | 'Lead Form' | 'Webinar' | 'Nurture')
+   * @param status - Campaign status filter ('All' | 'Active' | 'Paused')
+   */
+  const handleFilterChange = useCallback((type: 'All' | 'Lead Form' | 'Webinar' | 'Nurture', status: 'All' | 'Active' | 'Paused') => {
+    setTypeFilter(type);
+    setStatusFilter(status);
+  }, []); // Empty deps - function logic doesn't depend on any external values
 
   if (status === 'loading' || loadingCampaigns) {
     return (
@@ -263,6 +287,7 @@ export default function CampaignsPage() {
             onEdit={handleEdit}
             onTogglePause={handleTogglePause}
             onDelete={handleDelete}
+            onFilterChange={handleFilterChange}
           />
         ) : (
           <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
@@ -275,7 +300,7 @@ export default function CampaignsPage() {
         {/* Campaign Form Modal */}
         {showForm && selectedClientId && (
           <CampaignForm
-            campaign={editingCampaign as any}
+            campaign={editingCampaign}
             clientId={selectedClientId}
             onClose={handleCloseForm}
             onSuccess={handleFormSuccess}

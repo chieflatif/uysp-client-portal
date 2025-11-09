@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { theme } from '@/theme';
 import { Edit, Pause, Play, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Eye } from 'lucide-react';
@@ -31,6 +31,13 @@ interface CampaignListProps {
   onEdit: (campaign: Campaign) => void;
   onTogglePause: (campaignId: string, currentPaused: boolean) => void;
   onDelete: (campaignId: string) => void;
+  /**
+   * Callback fired when filter chips are clicked
+   * Triggers parent to update filter state and refetch campaigns from API
+   * @param type - Selected campaign type filter
+   * @param status - Selected campaign status filter
+   */
+  onFilterChange: (type: 'All' | 'Lead Form' | 'Webinar' | 'Nurture', status: 'All' | 'Active' | 'Paused') => void;
 }
 
 type SortField = 'name' | 'totalLeads' | 'messagesSent' | 'createdAt' | 'webinarDatetime' | 'type' | 'status';
@@ -41,12 +48,18 @@ export default function CampaignList({
   onEdit,
   onTogglePause,
   onDelete,
+  onFilterChange,
 }: CampaignListProps) {
   const router = useRouter();
-  const [typeFilter, setTypeFilter] = useState<'All' | 'Webinar' | 'Standard' | 'Custom'>('All');
+  const [typeFilter, setTypeFilter] = useState<'All' | 'Lead Form' | 'Webinar' | 'Nurture'>('All');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Paused'>('All');
   const [sortField, setSortField] = useState<SortField>('createdAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  // Notify parent when filters change (triggers server-side refetch)
+  useEffect(() => {
+    onFilterChange(typeFilter, statusFilter);
+  }, [typeFilter, statusFilter, onFilterChange]);
 
   // Handle sort column click
   const handleSort = (field: SortField) => {
@@ -60,24 +73,10 @@ export default function CampaignList({
     }
   };
 
-  // Apply filters
-  const filteredCampaigns = campaigns.filter((campaign) => {
-    if (typeFilter !== 'All' && campaign.campaignType !== typeFilter) {
-      return false;
-    }
-    if (statusFilter === 'Active' && campaign.isPaused) {
-      return false;
-    }
-    if (statusFilter === 'Paused' && !campaign.isPaused) {
-      return false;
-    }
-    return true;
-  });
-
-  // Apply sorting
-  const sortedCampaigns = [...filteredCampaigns].sort((a, b) => {
-    let aVal: any;
-    let bVal: any;
+  // Apply sorting (server already filtered, we only sort client-side)
+  const sortedCampaigns = [...campaigns].sort((a, b) => {
+    let aVal: string | number;
+    let bVal: string | number;
 
     switch (sortField) {
       case 'name':
@@ -148,7 +147,7 @@ export default function CampaignList({
           <span className={`text-sm font-semibold ${theme.accents.tertiary.class} self-center`}>
             Type:
           </span>
-          {(['All', 'Webinar', 'Standard', 'Custom'] as const).map((type) => (
+          {(['All', 'Lead Form', 'Webinar', 'Nurture'] as const).map((type) => (
             <button
               key={type}
               onClick={() => setTypeFilter(type)}
@@ -156,10 +155,10 @@ export default function CampaignList({
                 typeFilter === type
                   ? type === 'Webinar'
                     ? 'bg-purple-600 text-white'
-                    : type === 'Standard'
-                    ? `${theme.accents.primary.bgClass} text-white`
-                    : type === 'Custom'
-                    ? 'bg-orange-600 text-white'
+                    : type === 'Lead Form'
+                    ? 'bg-green-600 text-white'
+                    : type === 'Nurture'
+                    ? 'bg-cyan-600 text-white'
                     : `${theme.accents.tertiary.bgClass} text-gray-900`
                   : `bg-gray-700 ${theme.core.bodyText} hover:bg-gray-600`
               }`}
@@ -195,7 +194,7 @@ export default function CampaignList({
 
       {/* Campaign Count */}
       <div className={`text-sm ${theme.core.bodyText}`}>
-        Showing {sortedCampaigns.length} of {campaigns.length} campaigns
+        Showing {sortedCampaigns.length} campaign{sortedCampaigns.length !== 1 ? 's' : ''}
       </div>
 
       {/* Table */}
