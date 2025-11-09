@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -43,19 +43,48 @@ export default function LeadsPage() {
   const [filter, setFilter] = useState<'all' | 'high' | 'medium'>('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); // API search query (debounced)
+  const [searchInput, setSearchInput] = useState(''); // Immediate input value for display
   const [sortField, setSortField] = useState<SortField>('icpScore');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const itemsPerPage = 50;
 
-  // React Query: Fetch leads with aggressive caching for instant navigation
+  // Debounce timer for search input (300ms delay)
+  const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced search handler
+  const handleSearchChange = useCallback((value: string) => {
+    // Update input immediately for instant visual feedback
+    setSearchInput(value);
+
+    // Clear existing timer
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+    }
+
+    // Set new timer with 300ms delay for API call
+    searchTimerRef.current = setTimeout(() => {
+      setSearchQuery(value);
+      setPage(1); // Reset to first page on search
+    }, 300);
+  }, []);
+
+  // React Query: Fetch leads with server-side search and filtering
   const { data: leadsData, isLoading: loading } = useQuery({
-    queryKey: ['leads'],
+    queryKey: ['leads', searchQuery], // Include search in cache key
     queryFn: async () => {
-      // CRITICAL FIX: Fetch ALL leads with high limit (was defaulting to 100)
-      const response = await fetch('/api/leads?limit=50000');
+      // Build query URL with search parameter
+      const params = new URLSearchParams({
+        limit: '50000', // High limit for comprehensive results
+      });
+
+      if (searchQuery.trim()) {
+        params.append('search', searchQuery.trim());
+      }
+
+      const response = await fetch(`/api/leads?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch leads');
       const data = await response.json();
       return data.leads || [];
@@ -72,7 +101,7 @@ export default function LeadsPage() {
     }
   }, [status, router]);
 
-  // Filter, search, and sort leads (MOVED BEFORE EARLY RETURN)
+  // Filter and sort leads (search now handled server-side)
   const processedLeads = useMemo(() => {
     // Apply ICP filter
     let filtered = leads.filter((lead: Lead) => {
@@ -88,17 +117,8 @@ export default function LeadsPage() {
       );
     }
 
-    // Apply search
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((lead: Lead) =>
-        `${lead.firstName} ${lead.lastName}`.toLowerCase().includes(query) ||
-        (lead.company?.toLowerCase() || '').includes(query) ||
-        (lead.title?.toLowerCase() || '').includes(query) ||
-        (lead.email?.toLowerCase() || '').includes(query) ||
-        lead.status.toLowerCase().includes(query)
-      );
-    }
+    // NOTE: Search filtering is now handled server-side in /api/leads
+    // Client-side search logic removed for better performance
 
     // Apply sort
     const sorted = [...filtered].sort((a: Lead, b: Lead) => {
@@ -144,7 +164,7 @@ export default function LeadsPage() {
     });
 
     return sorted;
-  }, [leads, filter, campaignFilter, searchQuery, sortField, sortDirection]);
+  }, [leads, filter, campaignFilter, sortField, sortDirection]);
 
   // Update total pages when processedLeads changes
   useEffect(() => {
@@ -242,15 +262,21 @@ export default function LeadsPage() {
             <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.core.bodyText}`} />
             <input
               type="text"
-              placeholder="Search by name, company, title, email, or status..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name, company, title, email, phone, or status..."
+              value={searchInput}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className={`${theme.components.input} w-full pl-10`}
             />
           </div>
-          {searchQuery && (
+          {searchInput && (
             <button
-              onClick={() => setSearchQuery('')}
+              onClick={() => {
+                setSearchInput('');
+                setSearchQuery('');
+                if (searchTimerRef.current) {
+                  clearTimeout(searchTimerRef.current);
+                }
+              }}
               className={`text-sm ${theme.accents.tertiary.class} hover:text-cyan-300`}
             >
               Clear search

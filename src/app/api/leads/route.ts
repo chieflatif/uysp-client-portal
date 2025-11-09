@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, or, ilike, sql, SQL } from 'drizzle-orm';
 
 // Pagination constants
 const PAGINATION_DEFAULTS = {
@@ -39,36 +39,53 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const rawLimit = Number(searchParams.get('limit')) || 100;
     const rawOffset = Number(searchParams.get('offset')) || 0;
+    const searchQuery = searchParams.get('search')?.trim() || '';
 
     // CRITICAL FIX: Validate pagination parameters
     const limit = Math.min(Math.max(rawLimit, 1), 50000); // Between 1 and 50000
     const offset = Math.max(rawOffset, 0); // Must be non-negative
 
-    // CRITICAL FIX: Filter by clientId and isActive
+    // Build WHERE clause with filters
+    const filters: SQL<unknown>[] = [];
+
+    // Add isActive filter
+    filters.push(eq(leads.isActive, true));
+
+    // Add client isolation filter (if not SUPER_ADMIN)
+    if (session.user.role !== 'SUPER_ADMIN') {
+      filters.push(eq(leads.clientId, session.user.clientId!));
+    }
+
+    // Add text search filter (searches across multiple fields)
+    if (searchQuery) {
+      const searchFilter = or(
+        ilike(leads.firstName, `%${searchQuery}%`),
+        ilike(leads.lastName, `%${searchQuery}%`),
+        ilike(leads.email, `%${searchQuery}%`),
+        ilike(leads.company, `%${searchQuery}%`),
+        ilike(leads.phone, `%${searchQuery}%`),
+        ilike(leads.title, `%${searchQuery}%`),
+        ilike(leads.status, `%${searchQuery}%`)
+      );
+      if (searchFilter) {
+        filters.push(searchFilter);
+      }
+    }
+
+    // CRITICAL FIX: Filter by clientId and isActive with search support
     const allLeads = await db.query.leads.findMany({
-      where: session.user.role === 'SUPER_ADMIN'
-        ? eq(leads.isActive, true) // SUPER_ADMIN sees all active leads
-        : and(
-            eq(leads.clientId, session.user.clientId!), // CLIENT_ADMIN/USER see only their client's leads
-            eq(leads.isActive, true) // Only active leads (not deleted)
-          ),
+      where: filters.length > 0 ? and(...filters) : undefined,
       orderBy: (leads, { desc }) => [desc(leads.icpScore)],
       limit,
       offset,
     });
 
     // Get total count for pagination metadata using efficient SQL COUNT
-    const whereClause = session.user.role === 'SUPER_ADMIN'
-      ? eq(leads.isActive, true)
-      : and(
-          eq(leads.clientId, session.user.clientId!),
-          eq(leads.isActive, true)
-        );
-
+    // Use the SAME filters as the main query for accurate pagination
     const totalCount = await db
       .select({ count: sql<number>`count(*)` })
       .from(leads)
-      .where(whereClause)
+      .where(filters.length > 0 ? and(...filters) : undefined)
       .then(result => Number(result[0]?.count || 0));
 
     // Calculate engagement score (most recent activity) for each lead
