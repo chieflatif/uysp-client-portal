@@ -76,6 +76,15 @@ export default function CampaignsPage() {
     }, 300);
   }, []);
 
+  // Cleanup timer on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) {
+        clearTimeout(searchTimerRef.current);
+      }
+    };
+  }, []);
+
   // React Query: Fetch campaigns from server-side filtering API
   const {
     data: campaigns = [],

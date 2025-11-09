@@ -71,6 +71,15 @@ export default function LeadsPage() {
     }, 300);
   }, []);
 
+  // Cleanup timer on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) {
+        clearTimeout(searchTimerRef.current);
+      }
+    };
+  }, []);
+
   // React Query: Fetch leads with server-side search and filtering
   const { data: leadsData, isLoading: loading } = useQuery({
     queryKey: ['leads', searchQuery], // Include search in cache key
