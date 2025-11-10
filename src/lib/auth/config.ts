@@ -66,10 +66,18 @@ export const authOptions: NextAuthOptions = {
           // Add timeout to database query
           const startTime = Date.now();
 
-          // Query user from database (case-insensitive email lookup using ILIKE)
-          const user = await db.query.users.findFirst({
-            where: sql`LOWER(${users.email}) = LOWER(${email})`,
-          });
+          // Query user from database (case-insensitive email lookup)
+          // FIX: Use Drizzle core query builder instead of relational API for case-insensitive search
+          // BUG FIX (commit abec146a): Mixing relational API with raw SQL caused duplicate table alias
+          // BEFORE (BROKEN): db.query.users.findFirst({ where: sql`...` })
+          // AFTER (FIXED): db.select().from(users).where(sql`...`)
+          const result = await db
+            .select()
+            .from(users)
+            .where(sql`LOWER(${users.email}) = LOWER(${email})`)
+            .limit(1);
+
+          const user = result[0] || null;
 
           console.log(`[Auth] DB query took ${Date.now() - startTime}ms`);
 
