@@ -13,10 +13,10 @@
 -- - Re-add the columns from deleted migration 0032
 -- - This unblocks authentication immediately
 
--- Add missing columns to users table
-ALTER TABLE users
-  ADD COLUMN IF NOT EXISTS password_setup_token VARCHAR(255),
-  ADD COLUMN IF NOT EXISTS password_setup_token_expiry TIMESTAMP WITH TIME ZONE;
+-- Add missing columns to users table (split into separate statements for safety)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_setup_token VARCHAR(255);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_setup_token_expiry TIMESTAMP WITH TIME ZONE;
 
 -- Add index for fast token lookup (partial index - only non-null tokens)
 CREATE INDEX IF NOT EXISTS idx_users_setup_token
