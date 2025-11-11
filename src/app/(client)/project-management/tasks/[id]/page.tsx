@@ -24,13 +24,17 @@ export default function TaskDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
+  const rawTaskId = params?.id;
+  const normalizedTaskId = Array.isArray(rawTaskId) ? rawTaskId[0] : rawTaskId ?? '';
   const [taskId, setTaskId] = useState<string>('');
 
   useEffect(() => {
-    if (params.id) {
-      setTaskId(params.id as string);
+    if (normalizedTaskId) {
+      setTaskId(normalizedTaskId);
+    } else if (session) {
+      router.replace('/project-management');
     }
-  }, [params]);
+  }, [normalizedTaskId, router, session]);
 
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);

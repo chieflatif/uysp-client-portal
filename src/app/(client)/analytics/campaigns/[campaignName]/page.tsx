@@ -37,16 +37,20 @@ interface CampaignDetail {
 export default function CampaignDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const rawCampaignName = params?.campaignName;
+  const normalizedCampaignName = Array.isArray(rawCampaignName) ? rawCampaignName[0] : rawCampaignName ?? '';
   const [campaignName, setCampaignName] = useState<string>('');
   const [campaign, setCampaign] = useState<CampaignDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('all');
 
   useEffect(() => {
-    if (params.campaignName) {
-      setCampaignName(decodeURIComponent(params.campaignName as string));
+    if (normalizedCampaignName) {
+      setCampaignName(decodeURIComponent(normalizedCampaignName));
+    } else {
+      router.replace('/analytics/campaigns');
     }
-  }, [params]);
+  }, [normalizedCampaignName, router]);
 
   useEffect(() => {
     if (campaignName) {

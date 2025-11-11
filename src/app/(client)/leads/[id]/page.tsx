@@ -28,6 +28,8 @@ export default function LeadDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { status } = useSession();
+  const rawLeadId = params?.id;
+  const normalizedLeadId = Array.isArray(rawLeadId) ? rawLeadId[0] : rawLeadId ?? '';
   const [id, setId] = useState<string>('');
 
   const [lead, setLead] = useState<Lead | null>(null);
@@ -40,10 +42,12 @@ export default function LeadDetailPage() {
   const [removeReason, setRemoveReason] = useState('');
 
   useEffect(() => {
-    if (params.id) {
-      setId(params.id as string);
+    if (normalizedLeadId) {
+      setId(normalizedLeadId);
+    } else if (status === 'authenticated') {
+      router.replace('/leads');
     }
-  }, [params]);
+  }, [normalizedLeadId, router, status]);
 
   useEffect(() => {
     if (status === 'unauthenticated') {

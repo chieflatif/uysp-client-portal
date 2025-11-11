@@ -82,13 +82,17 @@ export default function ClientDetailPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
+  const rawClientId = params?.id;
+  const normalizedClientId = Array.isArray(rawClientId) ? rawClientId[0] : rawClientId ?? '';
   const [clientId, setClientId] = useState<string>('');
 
   useEffect(() => {
-    if (params.id) {
-      setClientId(params.id as string);
+    if (normalizedClientId) {
+      setClientId(normalizedClientId);
+    } else if (status === 'authenticated') {
+      router.replace('/admin/clients');
     }
-  }, [params]);
+  }, [normalizedClientId, router, status]);
 
   const [client, setClient] = useState<Client | null>(null);
   const [users, setUsers] = useState<User[]>([]);

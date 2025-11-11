@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { theme } from '@/theme';
@@ -51,9 +52,16 @@ interface Lead {
 export default function CampaignDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const campaignId = params.id as string;
+  const rawCampaignId = params?.id;
+  const campaignId = Array.isArray(rawCampaignId) ? rawCampaignId[0] : rawCampaignId ?? '';
+  const hasCampaignId = campaignId.length > 0;
 
-  // Fetch campaign details
+  useEffect(() => {
+    if (!hasCampaignId) {
+      router.replace('/admin/campaigns');
+    }
+  }, [hasCampaignId, router]);
+
   const { data: campaign, isLoading: loadingCampaign } = useQuery({
     queryKey: ['campaign', campaignId],
     queryFn: async () => {
@@ -61,9 +69,9 @@ export default function CampaignDetailPage() {
       if (!res.ok) throw new Error('Failed to fetch campaign');
       return res.json() as Promise<Campaign>;
     },
+    enabled: hasCampaignId,
   });
 
-  // Fetch leads for this campaign
   const { data: leads, isLoading: loadingLeads } = useQuery({
     queryKey: ['campaign-leads', campaignId],
     queryFn: async () => {
@@ -71,7 +79,16 @@ export default function CampaignDetailPage() {
       if (!res.ok) throw new Error('Failed to fetch leads');
       return res.json() as Promise<Lead[]>;
     },
+    enabled: hasCampaignId,
   });
+
+  if (!hasCampaignId) {
+    return (
+      <div className={`min-h-screen ${theme.core.darkBg} flex items-center justify-center`}>
+        <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+      </div>
+    );
+  }
 
   if (loadingCampaign) {
     return (
@@ -325,97 +342,4 @@ export default function CampaignDetailPage() {
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
                       Phone
                     </th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
-                      Company
-                    </th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
-                      ICP Score
-                    </th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
-                      Engagement
-                    </th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
-                      Date Enrolled
-                    </th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
-                      Seq. Pos.
-                    </th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
-                      Lead Source
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {leads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-gray-700 transition">
-                      <td className="px-6 py-4">
-                        <Link
-                          href={`/leads/${lead.id}`}
-                          className={`font-semibold ${theme.core.white} hover:${theme.accents.primary.class} transition`}
-                        >
-                          {lead.firstName} {lead.lastName}
-                        </Link>
-                        {lead.jobTitle && (
-                          <p className={`text-xs ${theme.core.bodyText} mt-0.5`}>
-                            {lead.jobTitle}
-                          </p>
-                        )}
-                      </td>
-                      <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
-                        {lead.phone || '—'}
-                      </td>
-                      <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
-                        {lead.company || '—'}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          (lead.icpScore || 0) >= 70
-                            ? 'bg-green-500/20 text-green-400'
-                            : (lead.icpScore || 0) >= 40
-                            ? 'bg-yellow-500/20 text-yellow-400'
-                            : 'bg-red-500/20 text-red-400'
-                        }`}>
-                          {lead.icpScore !== undefined ? lead.icpScore : '—'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          lead.engagementLevel === 'High'
-                            ? 'bg-green-500/20 text-green-400'
-                            : lead.engagementLevel === 'Medium'
-                            ? 'bg-yellow-500/20 text-yellow-400'
-                            : lead.engagementLevel === 'Low'
-                            ? 'bg-red-500/20 text-red-400'
-                            : 'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          {lead.engagementLevel || '—'}
-                        </span>
-                      </td>
-                      <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
-                        {lead.enrolledAt ? formatDate(lead.enrolledAt) : '—'}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-xs font-mono">
-                          {lead.smsSequencePosition !== undefined ? lead.smsSequencePosition : '—'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-gray-900 rounded-full text-xs text-cyan-400">
-                          {campaign.name}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className={`py-12 text-center ${theme.core.bodyText}`}>
-              No leads found for this campaign
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`
