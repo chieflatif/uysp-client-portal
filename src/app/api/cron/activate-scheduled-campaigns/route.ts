@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { campaigns, leads } from '@/lib/db/schema';
+import { campaigns, leads, leadActivityLog } from '@/lib/db/schema';
 import { and, eq, lte, gte, sql, inArray } from 'drizzle-orm';
 import crypto from 'crypto';
 
@@ -362,14 +362,30 @@ async function enrollLeadsWithLocks(
         .set({
           campaignId: campaignId,
           enrolledCampaignVersion: campaignVersion, // PHASE 2: Snapshot version at enrollment
-          enrolledMessageCount: messageCount, // AUDIT FIX: Snapshot message count at enrollment
+          enrolledMessageCount: messageCount, // AUDIT FIX: Snapshot message count for version-aware de-enrollment
           enrolledAt: enrollmentTimestamp, // PHASE 1 FIX: Track enrollment timestamp (migration 0029)
           campaignHistory: [initialHistoryEntry], // PHASE 2: Initialize history
-          smsSequencePosition: 0,
+          smsSequencePosition: 0, // Will be incremented by scheduler
           smsLastSentAt: null,
           updatedAt: enrollmentTimestamp,
         })
         .where(eq(leads.id, leadId));
+
+      await tx.insert(leadActivityLog).values({
+        eventType: 'ENROLLED',
+        eventCategory: 'CAMPAIGN',
+        leadId: leadId,
+        leadAirtableId: lead.airtableRecordId,
+        clientId: clientId,
+        description: `Automated enrollment in campaign: "${campaignName}" (Version: ${campaignVersion})`,
+        metadata: {
+          campaignId,
+          source: 'Automated Scheduler',
+        },
+        source: 'cron-automated-enrollment',
+        createdBy: null,
+        timestamp: enrollmentTimestamp,
+      });
 
       enrolledCount++;
     } catch (error) {

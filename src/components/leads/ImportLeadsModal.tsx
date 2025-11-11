@@ -1,18 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect, ChangeEvent } from 'react';
-import { X, Upload, AlertCircle, CheckCircle, Download } from 'lucide-react';
-import { theme } from '@/theme';
-import {
-  parseCSVFile,
-  detectColumnMapping,
-  mapLeadsData,
-  validateLeads,
-  generateErrorReport,
-  isFileSizeAcceptable,
-  isCSVFile,
-  type ColumnMapping,
-} from '@/lib/csv-parser';
+import { useState, useRef, useMemo, useEffect } from 'react';
+import { useTheme } from '@/hooks/useTheme';
+import { ImportStep, LeadRecord, LeadValidationResult, MappingOption } from './types';
+import Papa from 'papaparse';
+import { AlertCircle, Upload, X } from 'lucide-react';
+import { mapLeadsData, generateErrorReport } from './utils';
+import { validateLeads } from './validation';
+import { useClient } from '@/contexts/ClientContext';
 
 interface ImportLeadsModalProps {
   isOpen: boolean;
@@ -23,6 +18,8 @@ interface ImportLeadsModalProps {
 type Step = 'upload' | 'preview' | 'importing' | 'results';
 
 export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModalProps) {
+  const theme = useTheme();
+  const { selectedClientId } = useClient();
   const [step, setStep] = useState<Step>('upload');
   const [sourceName, setSourceName] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -30,7 +27,7 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
   const [validLeads, setValidLeads] = useState<any[]>([]);
   const [invalidLeads, setInvalidLeads] = useState<any[]>([]);
   const [duplicates, setDuplicates] = useState<any[]>([]);
-  const [columnMapping, setColumnMapping] = useState<ColumnMapping | null>(null);
+  const [columnMapping, setColumnMapping] = useState<any | null>(null);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<any | null>(null);
@@ -140,6 +137,11 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
 
   // Handle import
   const handleImport = async () => {
+    if (!selectedClientId) {
+      setError('Please select a client before importing leads.');
+      return;
+    }
+
     if (!sourceName.trim()) {
       setError('Source name is required');
       return;
@@ -168,6 +170,7 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
         body: JSON.stringify({
           sourceName: sourceName.trim(),
           leads: validLeads,
+          clientId: selectedClientId,
         }),
       });
 

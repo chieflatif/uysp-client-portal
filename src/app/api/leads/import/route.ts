@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth/config';
 import { logLeadActivity } from '@/lib/activity/logger';
 import { EVENT_TYPES } from '@/lib/activity/event-types';
 import { isValidEmail } from '@/lib/validation';
+import { db } from '@/lib/db';
+import { userActivityLog } from '@/lib/db/schema';
+import crypto from 'crypto';
 
 /**
  * POST /api/leads/import
@@ -34,11 +37,13 @@ interface ImportLeadRequest {
 interface ImportRequestBody {
   sourceName: string;
   leads: ImportLeadRequest[];
+  clientId?: string;
 }
 
 interface N8nWebhookPayload {
   leads: ImportLeadRequest[];
   sourceName: string;
+  importId: string; // Added for reconciliation
 }
 
 interface ImportResponse {
@@ -76,6 +81,8 @@ const N8N_WEBHOOK_URL = process.env.N8N_BULK_IMPORT_WEBHOOK_URL || 'https://rebe
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY = 1000; // 1 second
 const MAX_RETRY_DELAY = 8000; // 8 seconds
+
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Sanitize string input to prevent XSS attacks
@@ -213,7 +220,21 @@ export async function POST(request: NextRequest) {
 
     // 2. Parse request body
     const body = (await request.json()) as ImportRequestBody;
-    const { sourceName, leads } = body;
+    const { sourceName, leads, clientId: clientIdFromBody } = body;
+
+    const sessionClientId = session.user.clientId;
+    const resolvedClientId = sessionClientId && uuidRegex.test(sessionClientId)
+      ? sessionClientId
+      : clientIdFromBody && uuidRegex.test(clientIdFromBody)
+      ? clientIdFromBody
+      : null;
+
+    if (!resolvedClientId) {
+      return NextResponse.json(
+        { error: 'Client context is required to import leads.' },
+        { status: 400 }
+      );
+    }
 
     // 3. Validate and sanitize source name
     if (!sourceName || typeof sourceName !== 'string' || sourceName.trim().length === 0) {
@@ -279,13 +300,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Prepare payload for n8n webhook
+    // 5. Generate unique import ID and log initiation event
+    const importId = crypto.randomUUID();
+
+    await db.insert(userActivityLog).values({
+      userId: session.user.id,
+      clientId: resolvedClientId,
+      eventType: 'BULK_IMPORT_INITIATED',
+      eventCategory: 'LEAD_MANAGEMENT',
+      pageUrl: '/admin/leads',
+      eventData: {
+        importId: importId,
+        sourceName: sanitizedSourceName,
+        leadCount: sanitizedLeads.length,
+        originalLeadCount: leads.length,
+      },
+      ipAddress: request.ip,
+      userAgent: request.headers.get('user-agent'),
+    });
+
+    // 6. Prepare payload for n8n webhook
     const n8nPayload: N8nWebhookPayload = {
       leads: sanitizedLeads,
       sourceName: sanitizedSourceName,
+      importId: importId, // Pass ID to n8n
     };
 
-    // 6. Send to n8n webhook for normalization and processing
+    // 7. Send to n8n webhook for normalization and processing
     const startTime = Date.now();
 
     let n8nResult;
@@ -324,15 +365,14 @@ export async function POST(request: NextRequest) {
     // Merge server-side validation errors with n8n errors
     const allErrors = [...validationErrors, ...errors];
 
-    // 8. Log BULK_IMPORT activity
-    const clientId = session.user.clientId || process.env.DEFAULT_CLIENT_ID || '';
-
+    // 8. Log BULK_IMPORT_COMPLETED activity
     await logLeadActivity({
       eventType: EVENT_TYPES.BULK_IMPORT,
       eventCategory: 'SYSTEM',
-      clientId: clientId,
-      description: `Bulk import: ${successCount} leads from "${sanitizedSourceName}"`,
+      clientId: resolvedClientId,
+      description: `Bulk import completed: ${successCount} leads from "${sanitizedSourceName}"`,
       metadata: {
+        importId: importId, // Add importId for correlation
         source_name: sanitizedSourceName,
         total_leads: leads.length,
         valid_leads_sent: sanitizedLeads.length,

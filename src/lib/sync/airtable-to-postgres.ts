@@ -60,6 +60,7 @@ export async function syncAirtableLeads(): Promise<SyncResult> {
               icpScore: leadData.icpScore,
               status: leadData.status,
               isActive: leadData.isActive,
+              importId: leadData.importId ?? null,
               updatedAt: new Date(),
             })
             .where(eq(leads.airtableRecordId, record.id));
@@ -79,6 +80,7 @@ export async function syncAirtableLeads(): Promise<SyncResult> {
             icpScore: leadData.icpScore || 0,
             status: leadData.status || 'New',
             isActive: leadData.isActive !== false,
+            importId: leadData.importId ?? null,
             createdAt: leadData.createdAt || new Date(),
           });
 

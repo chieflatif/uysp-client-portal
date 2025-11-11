@@ -13,6 +13,29 @@ import {
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
+/**
+ * ========================================================================
+ * HISTORICAL LEAD ACTIVITY LOGGING & DATA INTEGRITY PLAN
+ *
+ * Pinned: 2025-11-11
+ * Status: Approved for Implementation
+ *
+ * Executive Summary:
+ * This document outlines a three-phase plan to create a complete, immutable
+ * historical record of all lead activities in PostgreSQL. This is the core
+ * architectural fix required to enable true "Mini-CRM" functionality in the
+ * client portal, ensuring that lead history is preserved accurately as they
+ * move between campaigns. The plan addresses all known enrollment points
+ * (automated ingestion, manual UI creation, and bulk import), includes a
+ * strategy for backfilling historical data, and establishes a long-term
+ * health monitoring workflow to prevent future data drift.
+ *
+ * Phase 1: Instrument all workflows to log key events to `leadActivityLog`.
+ * Phase 2: Create and run a one-time script to backfill the 277 historical SMS events.
+ * Phase 3: Design and implement a nightly "System Health Check" n8n workflow.
+ * ========================================================================
+ */
+
 // ==============================================================================
 // USERS TABLE
 // ==============================================================================
@@ -133,6 +156,7 @@ export const leads = pgTable(
     enrolledCampaignVersion: integer('enrolled_campaign_version'), // Snapshot of campaign.version at enrollment time
     enrolledMessageCount: integer('enrolled_message_count').default(0).notNull(), // Snapshot of message count at enrollment for version-aware de-enrollment
     enrolledAt: timestamp('enrolled_at', { withTimezone: true }), // When lead was enrolled in their current campaign (migration 0029)
+    importId: varchar('import_id', { length: 255 }), // For bulk import reconciliation
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(), // FIXED: Add timezone support
@@ -159,6 +183,7 @@ export const leads = pgTable(
     engagementLevelIdx: index('idx_leads_engagement_level').on(table.engagementLevel),
     // MINI-CRM: Index for sorting/filtering by last activity time
     lastActivityAtIdx: index('idx_leads_last_activity_at').on(table.lastActivityAt),
+    importIdIdx: index('idx_leads_import_id').on(table.importId), // For reconciliation
   })
 );
 

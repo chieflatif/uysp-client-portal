@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { campaigns, leads, airtableSyncQueue } from '@/lib/db/schema';
+import { campaigns, leads, airtableSyncQueue, leadActivityLog } from '@/lib/db/schema';
 import { and, eq, gte, lte, sql, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
@@ -274,11 +274,13 @@ export async function POST(request: NextRequest) {
         // Lock key = hash(clientId + leadId) to ensure uniqueness
         // PHASE 2: Pass campaign version and name for message snapshotting
         // AUDIT FIX: Pass campaign messages for message count snapshotting
+        // HISTORICAL LOGGING: Pass userId for audit trail
         const enrolledCount = await enrollLeadsWithLocks(
           tx,
           cappedLeads.map(l => l.id),
           campaign.id,
           data.clientId,
+          session.user.id, // Pass userId for logging
           campaign.version || 1, // Use default 1 if not set (backward compatibility)
           campaign.name,
           Array.isArray(campaign.messages) ? campaign.messages : []
@@ -444,6 +446,7 @@ async function enrollLeadsWithLocks(
   leadIds: string[],
   campaignId: string,
   clientId: string,
+  userId: string, // Added for logging
   campaignVersion: number,
   campaignName: string,
   campaignMessages: any[]
@@ -534,6 +537,24 @@ async function enrollLeadsWithLocks(
           updatedAt: enrollmentTimestamp,
         })
         .where(eq(leads.id, leadId));
+
+      // HISTORICAL LOGGING: Record the 'ENROLLED' event
+      await tx.insert(leadActivityLog).values({
+        eventType: 'ENROLLED',
+        eventCategory: 'CAMPAIGN',
+        leadId: leadId,
+        leadAirtableId: lead.airtableRecordId,
+        clientId: clientId,
+        description: `Manually enrolled in campaign: "${campaignName}" (Version: ${campaignVersion})`,
+        metadata: {
+          campaignId: campaignId,
+          source: 'Client Portal UI',
+          enrolledBy: userId,
+        },
+        source: 'ui-manual-enrollment',
+        createdBy: userId,
+        timestamp: enrollmentTimestamp,
+      });
 
       enrolledCount++;
 

@@ -500,6 +500,7 @@ export class AirtableClient {
       smsSentCount: Number(fields['SMS Sent Count']) || 0,
       smsLastSentAt: parseTimestamp(fields['SMS Last Sent At'] as string | undefined), // FIXED: Use validated parser
       smsEligible: Boolean(fields['SMS Eligible']),
+      importId: (fields['Import ID'] as string | undefined) || null,
 
       // Status Fields
       processingStatus: fields['Processing Status'] as string | undefined,
