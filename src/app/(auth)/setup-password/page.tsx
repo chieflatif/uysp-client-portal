@@ -10,7 +10,7 @@ import { Lock, CheckCircle, XCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 function SetupPasswordContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const email = searchParams.get('email');
+  const email = searchParams?.get('email') ?? '';
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

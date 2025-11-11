@@ -5,7 +5,7 @@ import { logLeadActivity } from '@/lib/activity/logger';
 import { EVENT_TYPES } from '@/lib/activity/event-types';
 import { isValidEmail } from '@/lib/validation';
 import { db } from '@/lib/db';
-import { userActivityLog } from '@/lib/db/schema';
+import { userActivityLogs } from '@/lib/db/schema';
 import crypto from 'crypto';
 
 /**
@@ -303,7 +303,7 @@ export async function POST(request: NextRequest) {
     // 5. Generate unique import ID and log initiation event
     const importId = crypto.randomUUID();
 
-    await db.insert(userActivityLog).values({
+    await db.insert(userActivityLogs).values({
       userId: session.user.id,
       clientId: resolvedClientId,
       eventType: 'BULK_IMPORT_INITIATED',
