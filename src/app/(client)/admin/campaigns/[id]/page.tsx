@@ -340,6 +340,9 @@ export default function CampaignDetailPage() {
                       Name
                     </th>
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
+                      Email
+                    </th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
                       Phone
                     </th>
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
@@ -367,6 +370,9 @@ export default function CampaignDetailPage() {
                     <tr key={lead.id} className="hover:bg-gray-700">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                         {lead.firstName} {lead.lastName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {lead.email || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                         {lead.phone || 'N/A'}
