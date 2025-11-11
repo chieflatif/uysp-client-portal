@@ -28,6 +28,12 @@ interface Lead {
   // Engagement metrics
   engagementLevel?: string;
   engagementTier?: string;
+  // SMS Activity Fields
+  smsSentCount?: number;
+  processingStatus?: string;
+  smsSequencePosition?: number;
+  enrolledMessageCount?: number;
+  completedAt?: string | null;
 }
 
 type SortField = 'name' | 'company' | 'icpScore' | 'status' | 'lastActivity' | 'campaign' | 'leadSource';
@@ -434,6 +440,15 @@ export default function LeadsPage() {
                     Last Activity {getSortIcon('lastActivity')}
                   </div>
                 </th>
+                <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
+                  SMS Sent
+                </th>
+                <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
+                  Status
+                </th>
+                <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider`}>
+                  Sequence
+                </th>
                 <th
                   className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition`}
                   onClick={() => handleSort('icpScore')}
@@ -458,7 +473,7 @@ export default function LeadsPage() {
             <tbody className="divide-y divide-gray-700">
               {paginatedLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className={`px-6 py-12 text-center ${theme.core.bodyText}`}>
+                  <td colSpan={11} className={`px-6 py-12 text-center ${theme.core.bodyText}`}>
                     No leads found
                   </td>
                 </tr>
@@ -509,6 +524,36 @@ export default function LeadsPage() {
                       <span className={lead.lastActivity ? theme.core.white : theme.core.bodyText}>
                         {formatRelativeTime(lead.lastActivity)}
                       </span>
+                    </td>
+
+                    {/* SMS Sent */}
+                    <td className={`px-6 py-4 text-sm ${theme.core.bodyText} font-medium`}>
+                      {lead.smsSentCount ?? 0}
+                    </td>
+
+                    {/* Processing Status */}
+                    <td className="px-6 py-4">
+                      {lead.processingStatus ? (
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          lead.processingStatus === 'Complete' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
+                          lead.processingStatus === 'In Sequence' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' :
+                          lead.processingStatus === 'Ready for SMS' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+                          lead.processingStatus === 'Stopped' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+                          'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+                        }`}>
+                          {lead.processingStatus}
+                        </span>
+                      ) : (
+                        <span className="text-gray-500 text-xs">—</span>
+                      )}
+                    </td>
+
+                    {/* Sequence */}
+                    <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
+                      {(lead.enrolledMessageCount ?? 0) > 0
+                        ? `${lead.smsSequencePosition ?? 0} of ${lead.enrolledMessageCount}`
+                        : '—'
+                      }
                     </td>
 
                     {/* ICP Score */}

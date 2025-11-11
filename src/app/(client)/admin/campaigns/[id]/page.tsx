@@ -45,7 +45,12 @@ interface Lead {
   icpScore?: number;
   engagementLevel?: string;
   enrolledAt?: string;
+  // SMS Activity Fields
   smsSequencePosition?: number;
+  smsSentCount?: number;
+  processingStatus?: string;
+  enrolledMessageCount?: number;
+  completedAt?: string | null;
 }
 
 export default function CampaignDetailPage() {
@@ -338,7 +343,13 @@ export default function CampaignDetailPage() {
                       Date Enrolled
                     </th>
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
-                      Seq. Pos.
+                      Sequence
+                    </th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
+                      SMS Sent
+                    </th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
+                      Status
                     </th>
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
                       Lead Source
@@ -394,10 +405,29 @@ export default function CampaignDetailPage() {
                       <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
                         {lead.enrolledAt ? formatDate(lead.enrolledAt) : '—'}
                       </td>
+                      <td className={`px-6 py-4 text-sm ${theme.core.bodyText}`}>
+                        {(lead.enrolledMessageCount ?? 0) > 0
+                          ? `${lead.smsSequencePosition ?? 0} of ${lead.enrolledMessageCount}`
+                          : 'Not Enrolled'
+                        }
+                      </td>
+                      <td className={`px-6 py-4 text-sm ${theme.core.bodyText} font-medium`}>
+                        {lead.smsSentCount ?? 0}
+                      </td>
                       <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-xs font-mono">
-                          {lead.smsSequencePosition !== undefined ? lead.smsSequencePosition : '—'}
-                        </span>
+                        {lead.processingStatus ? (
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            lead.processingStatus === 'Complete' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
+                            lead.processingStatus === 'In Sequence' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' :
+                            lead.processingStatus === 'Ready for SMS' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+                            lead.processingStatus === 'Stopped' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+                            'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+                          }`}>
+                            {lead.processingStatus}
+                          </span>
+                        ) : (
+                          <span className="text-gray-500 text-xs">N/A</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-3 py-1 bg-gray-900 rounded-full text-xs text-cyan-400">
