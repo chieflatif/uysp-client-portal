@@ -1,12 +1,18 @@
 'use client';
 
-import { useState, useRef, useMemo, useEffect } from 'react';
-import { useTheme } from '@/hooks/useTheme';
-import { ImportStep, LeadRecord, LeadValidationResult, MappingOption } from './types';
-import Papa from 'papaparse';
-import { AlertCircle, Upload, X } from 'lucide-react';
-import { mapLeadsData, generateErrorReport } from './utils';
-import { validateLeads } from './validation';
+import { useState, useRef, useEffect, ChangeEvent } from 'react';
+import { X, Upload, AlertCircle, CheckCircle, Download } from 'lucide-react';
+import { theme } from '@/theme';
+import {
+  parseCSVFile,
+  detectColumnMapping,
+  mapLeadsData,
+  validateLeads,
+  generateErrorReport,
+  isFileSizeAcceptable,
+  isCSVFile,
+  type ColumnMapping,
+} from '@/lib/csv-parser';
 import { useClient } from '@/contexts/ClientContext';
 
 interface ImportLeadsModalProps {
@@ -18,7 +24,6 @@ interface ImportLeadsModalProps {
 type Step = 'upload' | 'preview' | 'importing' | 'results';
 
 export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModalProps) {
-  const theme = useTheme();
   const { selectedClientId } = useClient();
   const [step, setStep] = useState<Step>('upload');
   const [sourceName, setSourceName] = useState('');
@@ -27,7 +32,7 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
   const [validLeads, setValidLeads] = useState<any[]>([]);
   const [invalidLeads, setInvalidLeads] = useState<any[]>([]);
   const [duplicates, setDuplicates] = useState<any[]>([]);
-  const [columnMapping, setColumnMapping] = useState<any | null>(null);
+  const [columnMapping, setColumnMapping] = useState<ColumnMapping | null>(null);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<any | null>(null);
@@ -46,7 +51,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
     };
   }, []);
 
-  // Reset modal state
   const resetModal = () => {
     setStep('upload');
     setSourceName('');
@@ -60,18 +64,15 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
     setProgress(0);
     setResults(null);
     setError(null);
-    // Reset file input to allow re-selecting the same file
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    // Clear progress interval if still running
     if (progressIntervalRef.current) {
       clearInterval(progressIntervalRef.current);
       progressIntervalRef.current = null;
     }
   };
 
-  // Handle modal close
   const handleClose = () => {
     if (importing) {
       alert('Please wait for import to complete');
@@ -81,20 +82,17 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
     onClose();
   };
 
-  // Handle file selection
   const handleFileSelect = async (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (!selectedFile) return;
 
     setError(null);
 
-    // Validate file type
     if (!isCSVFile(selectedFile)) {
       setError('Please select a CSV file');
       return;
     }
 
-    // Validate file size (5MB max)
     if (!isFileSizeAcceptable(selectedFile, 5)) {
       setError('File size exceeds 5MB limit. Please use a smaller file.');
       return;
@@ -102,40 +100,30 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
 
     setFile(selectedFile);
 
-    // Parse CSV
     const parseResult = await parseCSVFile(selectedFile);
     if (!parseResult.success) {
       setError(parseResult.error || 'Failed to parse CSV');
       return;
     }
 
-    // Detect column mapping
     const mapping = detectColumnMapping(parseResult.columns || []);
     if (!mapping) {
-      setError(
-        'CSV must have columns: email, firstName, lastName (or similar variations)'
-      );
+      setError('CSV must have columns: email, firstName, lastName (or similar variations)');
       return;
     }
 
     setColumnMapping(mapping);
 
-    // Map leads data
     const mappedLeads = mapLeadsData(parseResult.data || [], mapping);
-
-    // Validate leads
     const validation = validateLeads(mappedLeads);
 
     setLeads(mappedLeads);
     setValidLeads(validation.validLeads);
     setInvalidLeads(validation.invalidLeads);
     setDuplicates(validation.duplicates);
-
-    // Move to preview step
     setStep('preview');
   };
 
-  // Handle import
   const handleImport = async () => {
     if (!selectedClientId) {
       setError('Please select a client before importing leads.');
@@ -157,7 +145,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
     setError(null);
 
     try {
-      // Simulate progress (frontend doesn't know backend progress)
       progressIntervalRef.current = setInterval(() => {
         setProgress((prev) => Math.min(prev + 10, 90));
       }, 500);
@@ -181,7 +168,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
 
       const result = await response.json();
 
-      // Clear interval and set progress to 100% on success
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
         progressIntervalRef.current = null;
@@ -191,7 +177,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
       setResults(result);
       setStep('results');
 
-      // Call onSuccess callback
       if (result.success > 0) {
         onSuccess();
       }
@@ -199,7 +184,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
       const error = err instanceof Error ? err : new Error('Import failed');
       console.error('Import error:', error);
 
-      // Ensure interval is cleared on error
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
         progressIntervalRef.current = null;
@@ -212,7 +196,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
     }
   };
 
-  // Download error report
   const handleDownloadErrorReport = () => {
     const csv = generateErrorReport(invalidLeads);
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -231,7 +214,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-700">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
           <h2 className={`text-xl font-semibold ${theme.core.white}`}>Import Leads</h2>
           <button
@@ -243,9 +225,7 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Error Message */}
           {error && (
             <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -256,10 +236,8 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
             </div>
           )}
 
-          {/* Step 1: Upload */}
           {step === 'upload' && (
             <>
-              {/* Source Name Input */}
               <div>
                 <label className={`block text-sm font-medium ${theme.core.white} mb-2`}>
                   Campaign/Source Name <span className="text-pink-700">*</span>
@@ -276,7 +254,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
                 </p>
               </div>
 
-              {/* CSV Upload Area */}
               <div>
                 <label className={`block text-sm font-medium ${theme.core.white} mb-2`}>
                   CSV File <span className="text-pink-700">*</span>
@@ -307,26 +284,18 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
             </>
           )}
 
-          {/* Step 2: Preview */}
           {step === 'preview' && (
             <>
-              {/* Summary */}
               <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                <h3 className={`font-semibold ${theme.core.white} mb-3`}>
-                  Import Summary
-                </h3>
+                <h3 className={`font-semibold ${theme.core.white} mb-3`}>Import Summary</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <p className={`text-sm ${theme.core.bodyText}`}>Total Rows</p>
-                    <p className={`text-2xl font-bold ${theme.core.white}`}>
-                      {leads.length}
-                    </p>
+                    <p className={`text-2xl font-bold ${theme.core.white}`}>{leads.length}</p>
                   </div>
                   <div>
                     <p className={`text-sm ${theme.core.bodyText}`}>Valid</p>
-                    <p className="text-2xl font-bold text-green-500">
-                      {validLeads.length}
-                    </p>
+                    <p className="text-2xl font-bold text-green-500">{validLeads.length}</p>
                   </div>
                   <div>
                     <p className={`text-sm ${theme.core.bodyText}`}>Errors</p>
@@ -337,7 +306,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
                 </div>
               </div>
 
-              {/* Preview Table */}
               <div>
                 <h3 className={`font-semibold ${theme.core.white} mb-3`}>
                   Preview (First 5 rows)
@@ -364,9 +332,7 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
                             <td className="px-4 py-2">
                               <CheckCircle className="w-4 h-4 text-green-500" />
                             </td>
-                            <td className={`px-4 py-2 ${theme.core.white}`}>
-                              {lead.email}
-                            </td>
+                            <td className={`px-4 py-2 ${theme.core.white}`}>{lead.email}</td>
                             <td className={`px-4 py-2 ${theme.core.bodyText}`}>
                               {lead.firstName} {lead.lastName}
                             </td>
@@ -380,7 +346,7 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
                             <td className={`px-4 py-2 ${theme.core.white}`}>
                               {item.lead.email || 'Invalid'}
                             </td>
-                            <td className={`px-4 py-2 text-red-500 text-sm`}>
+                            <td className="px-4 py-2 text-red-500 text-sm">
                               {item.errors[0]}
                             </td>
                           </tr>
@@ -391,7 +357,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
                 </div>
               </div>
 
-              {/* Errors/Duplicates Warning */}
               {(invalidLeads.length > 0 || duplicates.length > 0) && (
                 <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
                   <p className="text-yellow-500 font-medium">Warnings</p>
@@ -410,7 +375,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
             </>
           )}
 
-          {/* Step 3: Importing */}
           {step === 'importing' && (
             <div className="text-center py-8">
               <div className="mb-4">
@@ -421,21 +385,16 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
                   />
                 </div>
                 <p className={`text-sm ${theme.core.bodyText} mt-2`}>
-                  {progress < 100
-                    ? `Importing... ${progress}%`
-                    : 'Finalizing import...'}
+                  {progress < 100 ? `Importing... ${progress}%` : 'Finalizing import...'}
                 </p>
               </div>
-              <p className={`text-lg ${theme.core.white}`}>
-                Writing to Airtable...
-              </p>
+              <p className={`text-lg ${theme.core.white}`}>Writing to Airtable...</p>
               <p className={`text-sm ${theme.core.bodyText} mt-1`}>
                 Please do not close this window
               </p>
             </div>
           )}
 
-          {/* Step 4: Results */}
           {step === 'results' && results && (
             <>
               <div className="bg-green-900/20 border border-green-700 rounded-lg p-6 text-center">
@@ -448,13 +407,10 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
                 </p>
               </div>
 
-              {/* Results Summary */}
               <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 space-y-2">
                 <div className="flex justify-between">
                   <span className={theme.core.bodyText}>Imported:</span>
-                  <span className="text-green-500 font-semibold">
-                    {results.success} leads
-                  </span>
+                  <span className="text-green-500 font-semibold">{results.success} leads</span>
                 </div>
                 {results.errors.length > 0 && (
                   <div className="flex justify-between">
@@ -480,11 +436,8 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
                 </div>
               </div>
 
-              {/* Next Steps */}
               <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                <h4 className={`font-semibold ${theme.core.white} mb-2`}>
-                  Next Steps:
-                </h4>
+                <h4 className={`font-semibold ${theme.core.white} mb-2`}>Next Steps:</h4>
                 <ul className={`list-disc list-inside space-y-1 ${theme.core.bodyText}`}>
                   <li>Leads are enriching via Clay (~2-5 min per lead)</li>
                   <li>Will sync to database automatically (~5 min)</li>
@@ -492,7 +445,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
                 </ul>
               </div>
 
-              {/* Error Report Download */}
               {invalidLeads.length > 0 && (
                 <button
                   onClick={handleDownloadErrorReport}
@@ -506,7 +458,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
           )}
         </div>
 
-        {/* Footer Actions */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-700">
           {step === 'upload' && (
             <button
