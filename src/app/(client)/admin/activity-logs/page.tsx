@@ -11,13 +11,14 @@ export default function ActivityLogsPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = searchParams ?? new URLSearchParams();
 
   // Get URL params or defaults
-  const pageFromUrl = parseInt(searchParams.get('page') || '1', 10);
-  const categoryFromUrl = searchParams.get('category') || 'all';
-  const searchFromUrl = searchParams.get('search') || '';
-  const sortByFromUrl = searchParams.get('sortBy') || 'timestamp';
-  const sortOrderFromUrl = searchParams.get('sortOrder') || 'desc';
+  const pageFromUrl = parseInt(params.get('page') ?? '1', 10);
+  const categoryFromUrl = params.get('category') ?? 'all';
+  const searchFromUrl = params.get('search') ?? '';
+  const sortByFromUrl = params.get('sortBy') ?? 'timestamp';
+  const sortOrderFromUrl = params.get('sortOrder') ?? 'desc';
 
   // Local state
   const [searchTerm, setSearchTerm] = useState(searchFromUrl);

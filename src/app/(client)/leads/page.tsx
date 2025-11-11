@@ -37,7 +37,8 @@ export default function LeadsPage() {
   const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const campaignFilter = searchParams.get('campaign');
+  const params = searchParams ?? new URLSearchParams();
+  const campaignFilter = params.get('campaign');
   const queryClient = useQueryClient();
 
   const [filter, setFilter] = useState<'all' | 'high' | 'medium'>('all');
