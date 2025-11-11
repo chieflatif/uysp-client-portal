@@ -303,6 +303,9 @@ export async function POST(request: NextRequest) {
     // 5. Generate unique import ID and log initiation event
     const importId = crypto.randomUUID();
 
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const ipAddress = forwardedFor?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || undefined;
+
     await db.insert(userActivityLogs).values({
       userId: session.user.id,
       clientId: resolvedClientId,
@@ -315,8 +318,8 @@ export async function POST(request: NextRequest) {
         leadCount: sanitizedLeads.length,
         originalLeadCount: leads.length,
       },
-      ipAddress: request.ip,
-      userAgent: request.headers.get('user-agent'),
+      ipAddress,
+      userAgent: request.headers.get('user-agent') || undefined,
     });
 
     // 6. Prepare payload for n8n webhook
