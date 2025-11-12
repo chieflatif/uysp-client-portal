@@ -12,14 +12,19 @@
     "test:all": "npm run test && npm run test:integration",
     "db:push": "drizzle-kit push:pg",
     "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
     "cleanup-leads": "tsx -r dotenv/config scripts/cleanup-leads.ts",
     "test:watch": "jest --watch",
-    "db:studio": "drizzle-kit studio",
     "type-check": "tsc --noEmit",
     "validate:env": "node scripts/validate-env.js",
     "validate:env:prod": "node scripts/validate-env.js production",
     "validate": "npm run type-check && npm run lint && npm run test:all",
-    "pre-deploy": "npm run validate:env:prod && npm run type-check && npm run lint && npm run test:integration && npm run build"
+    "pre-deploy": "npm run validate:env:prod && npm run type-check && npm run lint && npm run test:integration && npm run build",
+    "sync:delta": "tsx -r dotenv/config scripts/run-reconciler.ts 20",
+    "sync:delta:1h": "tsx -r dotenv/config scripts/run-reconciler.ts 60",
+    "sync:delta:6h": "tsx -r dotenv/config scripts/run-reconciler.ts 360",
+    "sync:delta:24h": "tsx -r dotenv/config scripts/run-reconciler.ts 1440",
+    "sync:help": "echo \"\n📚 Bi-Directional Sync Scripts:\n  npm run sync:delta       - Sync last 20 minutes (default)\n  npm run sync:delta:1h    - Sync last 1 hour\n  npm run sync:delta:6h    - Sync last 6 hours\n  npm run sync:delta:24h   - Sync last 24 hours (max)\n\n  Custom: tsx scripts/run-reconciler.ts <minutes>\n\""
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
