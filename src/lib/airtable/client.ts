@@ -59,6 +59,10 @@ interface AirtableLeadFields {
   // Notes field
   'Notes'?: string;
 
+  // Claim tracking fields (for bi-directional sync)
+  'Claimed By'?: string;
+  'Claimed At'?: string;
+
   [key: string]: unknown;
 }
 
@@ -243,6 +247,70 @@ export class AirtableClient {
   }
 
   /**
+   * Get leads modified since a specific timestamp
+   * Uses Airtable filterByFormula to query Last Modified Time field
+   *
+   * CRITICAL: Required for bi-directional reconciliation (Stage 1)
+   *
+   * @param cutoffTime - Only return records modified after this time
+   * @returns Array of AirtableRecord objects modified since cutoffTime
+   */
+  async getLeadsModifiedSince(cutoffTime: Date): Promise<AirtableRecord[]> {
+    return this.withRetry(async () => {
+      const cutoffISO = cutoffTime.toISOString();
+      const formula = `IS_AFTER({Last Modified Time}, '${cutoffISO}')`;
+
+      const allRecords: AirtableRecord[] = [];
+      let offset: string | undefined;
+
+      // Fetch all pages
+      while (true) {
+        const params = new URLSearchParams({
+          pageSize: '100',
+          filterByFormula: formula,
+        });
+
+        if (offset) {
+          params.append('offset', offset);
+        }
+
+        const response = await fetch(
+          `${this.baseUrl}/${this.baseId}/Leads?${params}`,
+          {
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          const err: any = new Error(
+            `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
+          );
+          err.status = response.status;
+          throw err;
+        }
+
+        const data = (await response.json()) as AirtableListResponse;
+        allRecords.push(...data.records);
+
+        if (!data.offset) {
+          break; // No more pages
+        }
+
+        offset = data.offset;
+
+        // Rate limiting: 200ms delay = 5 requests/second
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      return allRecords;
+    }, 'getLeadsModifiedSince');
+  }
+
+  /**
    * Fetch all records from SMS_Audit table
    * FIXED: Now uses withRetry wrapper for consistent error handling
    */
@@ -285,6 +353,51 @@ export class AirtableClient {
         nextOffset: data.offset,
       };
     }, 'getAllSmsAudit');
+  }
+
+  /**
+   * Fetch all records from SMS_Templates table
+   * PART B.1: Required for calculating enrolled_message_count
+   */
+  async getAllSmsTemplates(offset?: string): Promise<{
+    records: AirtableRecord[];
+    nextOffset?: string;
+  }> {
+    return this.withRetry(async () => {
+      const params = new URLSearchParams({
+        pageSize: '100',
+      });
+
+      if (offset) {
+        params.append('offset', offset);
+      }
+
+      const response = await fetch(
+        `${this.baseUrl}/${this.baseId}/SMS_Templates?${params}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        const err: any = new Error(
+          `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
+        );
+        err.status = response.status; // Attach status code for retry logic
+        throw err;
+      }
+
+      const data = (await response.json()) as AirtableListResponse;
+
+      return {
+        records: data.records,
+        nextOffset: data.offset,
+      };
+    }, 'getAllSmsTemplates');
   }
 
   /**
@@ -425,6 +538,14 @@ export class AirtableClient {
   }
 
   /**
+   * Stream all SMS templates with pagination handling
+   * PART B.1: Required for building campaign message count lookup map
+   */
+  async streamAllSmsTemplates(onRecord: (record: AirtableRecord) => Promise<void>) {
+    return this.streamFromTable('SMS_Templates', onRecord);
+  }
+
+  /**
    * Generic streaming method for any table
    * FIXED: Added rate limiting delay to respect Airtable 5 req/sec limit
    */
@@ -532,17 +653,37 @@ export class AirtableClient {
 
   /**
    * Map Airtable campaign record to database format (Phase A)
+   * PART B.1: Now accepts smsTemplateCountMap to calculate enrolled_message_count
+   *
+   * @param record - Airtable campaign record
+   * @param clientId - Client UUID
+   * @param smsTemplateCountMap - Map of Campaign Tag → message count from SMS_Templates table
    */
   mapToDatabaseCampaign(
     record: AirtableRecord,
-    clientId: string
+    clientId: string,
+    smsTemplateCountMap?: Map<string, number>
   ): Partial<NewCampaign> {
     const fields = record.fields;
+    const campaignName = (fields['Campaign Name'] as string) || '';
+
+    // PART B.1: Calculate enrolled_message_count from SMS_Templates table
+    // Count SMS_Templates records where Campaign Tag matches Campaign Name
+    let messageCount = 0;
+    if (smsTemplateCountMap && campaignName) {
+      messageCount = smsTemplateCountMap.get(campaignName) || 0;
+    }
+
+    // Build messages array if we have a count (for backward compatibility)
+    // Each entry is a placeholder since we don't have the actual message content here
+    const messages = messageCount > 0
+      ? Array(messageCount).fill({ placeholder: true })
+      : null;
 
     return {
       clientId,
       airtableRecordId: record.id,
-      name: (fields['Campaign Name'] as string) || '',
+      name: campaignName,
       campaignType: (fields['Campaign Type'] as string) || 'Standard',
       formId: (fields['Form ID'] as string) || undefined,
       webinarDatetime: parseTimestamp(fields['Webinar Datetime'] as string | undefined), // FIXED: Use validated parser
@@ -552,6 +693,8 @@ export class AirtableClient {
       isPaused: !(fields['Active'] as boolean), // Active checkbox → isPaused inverted
       autoDiscovered: (fields['Auto Discovered'] as boolean) || false,
       messagesSent: Number(fields['Messages Sent']) || 0,
+      // PART B.1: Store messages array with correct count from SMS_Templates
+      messages: messages as any,
       // FIXED: Handle schema inconsistency where field name may have trailing space
       // This indicates a naming error in Airtable that should be corrected
       totalLeads: (() => {
@@ -914,9 +1057,9 @@ export class AirtableClient {
  * FIXED: Validates environment variables on each invocation (not just at module load)
  * This ensures proper error handling in serverless environments where env vars can change
  */
-export function getAirtableClient(baseId?: string): AirtableClient {
+export function getAirtableClient(baseId?: string, apiKeyOverride?: string): AirtableClient {
   // FIXED: Re-read from process.env on each invocation for serverless compatibility
-  const apiKey = process.env.AIRTABLE_API_KEY;
+  const apiKey = apiKeyOverride || process.env.AIRTABLE_API_KEY;
   const finalBaseId = baseId || process.env.AIRTABLE_BASE_ID;
 
   // FIXED: Provide more detailed error messages for debugging
