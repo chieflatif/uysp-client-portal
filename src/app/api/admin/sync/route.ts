@@ -160,6 +160,7 @@ export async function POST(request: NextRequest) {
     try {
       // Get the client record to fetch their Airtable Base ID
       let airtableBaseId: string;
+      let companyName: string;
 
       if (bypassEnabled) {
         // BYPASS MODE: Use env var base ID (for wiped database during Great Sync)
@@ -171,6 +172,7 @@ export async function POST(request: NextRequest) {
             { status: 500 }
           );
         }
+        companyName = 'SYSTEM (Great Sync)';
         console.log(`⚠️  BYPASS MODE: Using base ID from env: ${airtableBaseId}`);
       } else {
         // NORMAL MODE: Lookup client record
@@ -196,6 +198,7 @@ export async function POST(request: NextRequest) {
         }
 
         airtableBaseId = client.airtableBaseId;
+        companyName = client.companyName;
       }
 
     // Initialize Airtable client with the base ID
@@ -630,7 +633,7 @@ export async function POST(request: NextRequest) {
     let campaignsErrors = 0;
 
     try {
-      const campaignsResult = await syncCampaignsFromAirtable(clientId, client.airtableBaseId, dryRun);
+      const campaignsResult = await syncCampaignsFromAirtable(clientId, airtableBaseId, dryRun);
       campaignsSynced = campaignsResult.synced;
       campaignsErrors = campaignsResult.errors;
       console.log(`✅ ${dryRun ? 'Would sync' : 'Synced'} ${campaignsSynced} campaigns`);
@@ -708,9 +711,9 @@ export async function POST(request: NextRequest) {
       partialSuccess, // Partial success if some operations succeeded despite errors
       dryRun,
       client: {
-        id: client.id,
-        companyName: client.companyName,
-        airtableBaseId: client.airtableBaseId,
+        id: clientId,
+        companyName: companyName,
+        airtableBaseId: airtableBaseId,
       },
       results: {
         leads: {
@@ -753,8 +756,8 @@ export async function POST(request: NextRequest) {
         } : undefined,
       },
       message: fullSync
-        ? `Great Sync complete for ${client.companyName}! Leads: ${totalFetched} synced${totalDeleted > 0 ? `, ${totalDeleted} deleted` : ''}, Campaigns: ${campaignsSynced}, Backfill: ${backfillMatched} matched, Aggregates: ${aggregatesUpdated} updated`
-        : `Sync complete for ${client.companyName}! Leads: ${totalFetched} synced${totalDeleted > 0 ? `, ${totalDeleted} deleted` : ''}, Tasks: ${tasksFetched}, Blockers: ${blockersFetched}, Status: ${statusFetched}, Campaigns: ${campaignsSynced}`
+        ? `Great Sync complete for ${companyName}! Leads: ${totalFetched} synced${totalDeleted > 0 ? `, ${totalDeleted} deleted` : ''}, Campaigns: ${campaignsSynced}, Backfill: ${backfillMatched} matched, Aggregates: ${aggregatesUpdated} updated`
+        : `Sync complete for ${companyName}! Leads: ${totalFetched} synced${totalDeleted > 0 ? `, ${totalDeleted} deleted` : ''}, Tasks: ${tasksFetched}, Blockers: ${blockersFetched}, Status: ${statusFetched}, Campaigns: ${campaignsSynced}`
     });
 
     } catch (error: any) {
