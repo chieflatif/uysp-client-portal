@@ -159,29 +159,47 @@ export async function POST(request: NextRequest) {
 
     try {
       // Get the client record to fetch their Airtable Base ID
-      const client = await db.query.clients.findFirst({
-        where: eq(clients.id, clientId),
-      });
+      let airtableBaseId: string;
 
-      // CRITICAL FIX: Release lock before early returns
-      if (!client) {
-        await db.execute(sql`SELECT pg_advisory_unlock(hashtext(${clientId}))`);
-        return NextResponse.json(
-          { error: 'Client not found' },
-          { status: 404 }
-        );
+      if (bypassEnabled) {
+        // BYPASS MODE: Use env var base ID (for wiped database during Great Sync)
+        airtableBaseId = process.env.AIRTABLE_BASE_ID || '';
+        if (!airtableBaseId) {
+          await db.execute(sql`SELECT pg_advisory_unlock(hashtext(${clientId}))`);
+          return NextResponse.json(
+            { error: 'AIRTABLE_BASE_ID environment variable not set' },
+            { status: 500 }
+          );
+        }
+        console.log(`⚠️  BYPASS MODE: Using base ID from env: ${airtableBaseId}`);
+      } else {
+        // NORMAL MODE: Lookup client record
+        const client = await db.query.clients.findFirst({
+          where: eq(clients.id, clientId),
+        });
+
+        // CRITICAL FIX: Release lock before early returns
+        if (!client) {
+          await db.execute(sql`SELECT pg_advisory_unlock(hashtext(${clientId}))`);
+          return NextResponse.json(
+            { error: 'Client not found' },
+            { status: 404 }
+          );
+        }
+
+        if (!client.airtableBaseId) {
+          await db.execute(sql`SELECT pg_advisory_unlock(hashtext(${clientId}))`);
+          return NextResponse.json(
+            { error: `Client ${client.companyName} does not have an Airtable Base ID configured` },
+            { status: 400 }
+          );
+        }
+
+        airtableBaseId = client.airtableBaseId;
       }
 
-      if (!client.airtableBaseId) {
-        await db.execute(sql`SELECT pg_advisory_unlock(hashtext(${clientId}))`);
-        return NextResponse.json(
-          { error: `Client ${client.companyName} does not have an Airtable Base ID configured` },
-          { status: 400 }
-        );
-      }
-
-    // Initialize Airtable client with THIS client's base ID
-    const airtable = getAirtableClient(client.airtableBaseId);
+    // Initialize Airtable client with the base ID
+    const airtable = getAirtableClient(airtableBaseId);
     let totalFetched = 0;
     let totalProcessed = 0; // Counts both inserts and updates
     let totalDeleted = 0;
