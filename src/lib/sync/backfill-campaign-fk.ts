@@ -13,7 +13,7 @@
 
 import { db } from '../db';
 import { leads, campaigns } from '../db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 
 export interface BackfillResult {
   totalLeadsProcessed: number;
@@ -134,24 +134,28 @@ export async function backfillCampaignForeignKeys(dryRun: boolean = true): Promi
 
     // Apply updates (if not dry run)
     if (!dryRun && updates.length > 0) {
-      console.log(`\n💾 Applying ${updates.length} updates to database...`);
+      console.log(`\n💾 Applying ${updates.length} updates to database (transactional)...`);
 
-      for (const update of updates) {
-        await db
-          .update(leads)
-          .set({
-            campaignId: update.campaignId,
-            updatedAt: new Date(),
-          })
-          .where(eq(leads.id, update.leadId));
+      // CRITICAL FIX: Wrap all updates in single transaction for atomicity
+      await db.transaction(async (tx) => {
+        let index = 0;
+        for (const update of updates) {
+          await tx
+            .update(leads)
+            .set({
+              campaignId: update.campaignId,
+              updatedAt: new Date(),
+            })
+            .where(eq(leads.id, update.leadId));
 
-        const index = updates.indexOf(update);
-        if (index % 100 === 0) {
-          console.log(`  ⏳ Updated ${index}/${updates.length} leads...`);
+          index++;
+          if (index % 100 === 0) {
+            console.log(`  ⏳ Updated ${index}/${updates.length} leads...`);
+          }
         }
-      }
+      });
 
-      console.log('✅ All updates applied successfully');
+      console.log('✅ All updates applied successfully (transaction committed)');
     } else if (dryRun && updates.length > 0) {
       console.log(`\n🔍 DRY RUN: Would update ${updates.length} leads`);
     }
@@ -210,6 +214,7 @@ export async function updateAllCampaignAggregates(): Promise<{ updated: number; 
     for (const campaign of allCampaigns) {
       try {
         // Calculate aggregates with a single query
+        // CRITICAL FIX: Filter by campaign_id explicitly to avoid NULL values
         const aggregates = await db
           .select({
             totalLeads: sql<number>`COUNT(*)::int`,
@@ -221,7 +226,10 @@ export async function updateAllCampaignAggregates(): Promise<{ updated: number; 
           })
           .from(leads)
           .where(
-            sql`${leads.campaignId} = ${campaign.id} AND ${leads.isActive} = true`
+            and(
+              eq(leads.campaignId, campaign.id),
+              eq(leads.isActive, true)
+            )
           );
 
         const stats = aggregates[0];
@@ -259,6 +267,3 @@ export async function updateAllCampaignAggregates(): Promise<{ updated: number; 
 
   return { updated, errors };
 }
-
-// Missing sql import at the top
-import { sql } from 'drizzle-orm';
