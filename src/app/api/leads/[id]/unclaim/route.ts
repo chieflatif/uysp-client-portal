@@ -40,6 +40,7 @@ export async function POST(
       .set({
         claimedBy: null,
         claimedAt: null,
+        updatedAt: new Date(), // CRITICAL: Triggers Stage 2 sync to Airtable
       })
       .where(eq(leads.id, id))
       .returning();
