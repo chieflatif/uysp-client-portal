@@ -456,7 +456,7 @@ async function reconcileStage2(
         }
 
         // Update Airtable
-        await airtable.updateRecord(lead.airtableRecordId, updateFields);
+        await airtable.updateRecord('Leads', lead.airtableRecordId, updateFields);
         result.stage2.updated++;
 
         // RATE LIMITING: Respect Airtable 5 req/sec limit
