@@ -18,12 +18,14 @@ const PAGINATION_DEFAULTS = {
  * Fetch leads for the authenticated user with pagination
  *
  * SECURITY: Client isolation enforced
- * - SUPER_ADMIN: sees all leads across all clients
- * - CLIENT_ADMIN/CLIENT_USER: sees only their client's leads
+ * - SUPER_ADMIN: can filter by explicit clientId parameter (for multi-tenant data isolation)
+ * - CLIENT_ADMIN/CLIENT_USER: sees only their client's leads (ignores clientId parameter)
  *
  * Query params:
  * - limit: Number of leads per page (default: 100, max: 500)
  * - offset: Number of leads to skip (default: 0)
+ * - clientId: (optional) Client ID to filter by (SUPER_ADMIN only)
+ * - search: (optional) Search query for text filtering
  *
  * Week 4 Enhancement: Includes engagement score calculation
  */
@@ -40,6 +42,7 @@ export async function GET(request: Request) {
     const rawLimit = Number(searchParams.get('limit')) || 100;
     const rawOffset = Number(searchParams.get('offset')) || 0;
     const searchQuery = searchParams.get('search')?.trim() || '';
+    const explicitClientId = searchParams.get('clientId')?.trim() || '';
 
     // CRITICAL FIX: Validate pagination parameters
     const limit = Math.min(Math.max(rawLimit, 1), 50000); // Between 1 and 50000
@@ -51,10 +54,15 @@ export async function GET(request: Request) {
     // Add isActive filter
     filters.push(eq(leads.isActive, true));
 
-    // Add client isolation filter (if not SUPER_ADMIN)
+    // Add client isolation filter
     if (session.user.role !== 'SUPER_ADMIN') {
+      // Non-super admins: always filter by their own client
       filters.push(eq(leads.clientId, session.user.clientId!));
+    } else if (explicitClientId) {
+      // Super admins: filter by explicitly provided clientId (for data isolation)
+      filters.push(eq(leads.clientId, explicitClientId));
     }
+    // If SUPER_ADMIN and no clientId provided, no client filter (shows all)
 
     // Add text search filter (searches across multiple fields)
     if (searchQuery) {

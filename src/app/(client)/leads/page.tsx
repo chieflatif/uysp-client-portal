@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Search, ArrowUpDown, X, Upload } from 'lucide-react';
 import { theme } from '@/theme';
+import { useClient } from '@/contexts/ClientContext';
 import { ImportLeadsModal } from '@/components/leads/ImportLeadsModal';
 
 interface Lead {
@@ -39,6 +40,7 @@ export default function LeadsPage() {
   const searchParams = useSearchParams();
   const campaignFilter = searchParams.get('campaign');
   const queryClient = useQueryClient();
+  const { selectedClientId, isLoading: clientLoading } = useClient();
 
   const [filter, setFilter] = useState<'all' | 'high' | 'medium'>('all');
   const [page, setPage] = useState(1);
@@ -82,9 +84,12 @@ export default function LeadsPage() {
 
   // React Query: Fetch leads with server-side search and filtering
   const { data: leadsData, isLoading: loading } = useQuery({
-    queryKey: ['leads', searchQuery], // Include search in cache key
+    queryKey: ['leads', selectedClientId, searchQuery], // Include client and search in cache key
     queryFn: async () => {
-      // Build query URL with search parameter
+      // CRITICAL: Enforce client selection for data isolation
+      if (!selectedClientId) return [];
+
+      // Build query URL with search parameter and clientId
       const params = new URLSearchParams({
         limit: '50000', // High limit for comprehensive results
       });
@@ -93,12 +98,15 @@ export default function LeadsPage() {
         params.append('search', searchQuery.trim());
       }
 
+      // Pass clientId for explicit filtering (super admins)
+      params.append('clientId', selectedClientId);
+
       const response = await fetch(`/api/leads?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch leads');
       const data = await response.json();
       return data.leads || [];
     },
-    enabled: status === 'authenticated',
+    enabled: status === 'authenticated' && !clientLoading,
     // Use global defaults (5 min stale, 10 min cache)
   });
 
