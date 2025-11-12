@@ -369,6 +369,11 @@ async function reconcileStage1(
  * STAGE 2: PostgreSQL → Airtable
  * Push recent PostgreSQL changes back to Airtable
  *
+ * Conflict Prevention Strategy:
+ * - Compare PostgreSQL updatedAt vs Airtable Last Modified Time
+ * - Skip if Airtable was modified more recently (within GRACE_PERIOD_MS)
+ * - Only sync claim data (claimedBy, claimedAt) - other fields come from Airtable
+ *
  * @param lookbackMinutes - How far back to query PostgreSQL
  * @param result - Result object to populate with stats
  */
@@ -378,13 +383,117 @@ async function reconcileStage2(
 ): Promise<void> {
   console.log(`   Querying PostgreSQL for changes in last ${lookbackMinutes} minutes...`);
 
-  // TODO: Implement Stage 2 in Commit 3
-  // - Query PostgreSQL for recently updated leads
-  // - For each lead, check if Airtable is newer (conflict prevention)
-  // - Update Airtable with PostgreSQL changes (claim, notes, etc.)
-  // - Update result.stage2 stats
+  try {
+    // Calculate cutoff time
+    const cutoffTime = new Date(Date.now() - lookbackMinutes * 60 * 1000);
+    console.log(`   Cutoff time: ${cutoffTime.toISOString()}`);
 
-  console.log(`   ⏭️  Stage 2 not yet implemented (Commit 3)`);
+    // Query PostgreSQL for recently updated leads
+    const recentLeads = await db.query.leads.findMany({
+      where: (leads, { gte }) => gte(leads.updatedAt, cutoffTime),
+      columns: {
+        id: true,
+        airtableRecordId: true,
+        claimedBy: true,
+        claimedAt: true,
+        updatedAt: true,
+      },
+    });
+
+    console.log(`   Found ${recentLeads.length} recently updated leads in PostgreSQL`);
+
+    if (recentLeads.length === 0) {
+      console.log(`   ✅ No changes to sync`);
+      return;
+    }
+
+    // Get Airtable client
+    const airtable = getAirtableClient();
+
+    // Process each lead with rate limiting
+    for (const lead of recentLeads) {
+      try {
+        result.stage2.recordsProcessed++;
+
+        // CRITICAL: Validate airtableRecordId exists
+        if (!lead.airtableRecordId) {
+          throw new Error(`Lead ${lead.id} missing airtableRecordId - skipping`);
+        }
+
+        // Fetch corresponding Airtable record to get Last Modified Time
+        const airtableRecord = await airtable.getRecord(lead.airtableRecordId);
+
+        // Parse Airtable's Last Modified Time
+        const airtableModifiedTime = new Date(
+          airtableRecord.fields['Last Modified Time'] as string
+        );
+
+        // CONFLICT PREVENTION: Check if Airtable is newer
+        const timeDiffMs = lead.updatedAt.getTime() - airtableModifiedTime.getTime();
+
+        // Skip if Airtable was modified more recently OR within grace period
+        if (timeDiffMs < RECONCILIATION_CONFIG.GRACE_PERIOD_MS) {
+          result.stage2.skipped++;
+          continue;
+        }
+
+        // PostgreSQL is newer - update Airtable with claim data
+        const updateFields: { [key: string]: string | null } = {};
+
+        // Only update claim fields if they have values
+        if (lead.claimedBy !== null && lead.claimedBy !== undefined) {
+          updateFields['Claimed By'] = lead.claimedBy;
+        }
+
+        if (lead.claimedAt !== null && lead.claimedAt !== undefined) {
+          updateFields['Claimed At'] = lead.claimedAt.toISOString();
+        }
+
+        // Skip if no fields to update
+        if (Object.keys(updateFields).length === 0) {
+          result.stage2.skipped++;
+          continue;
+        }
+
+        // Update Airtable
+        await airtable.updateRecord(lead.airtableRecordId, updateFields);
+        result.stage2.updated++;
+
+        // RATE LIMITING: Respect Airtable 5 req/sec limit
+        await new Promise(resolve =>
+          setTimeout(resolve, RECONCILIATION_CONFIG.RATE_LIMIT_DELAY_MS)
+        );
+
+        // Progress indicator every 50 records
+        if (result.stage2.recordsProcessed % 50 === 0) {
+          console.log(`   ⏳ Processed ${result.stage2.recordsProcessed} records...`);
+        }
+      } catch (error) {
+        // Error isolation: continue processing other records
+        const errorMsg = `Failed to sync lead ${lead.airtableRecordId}: ${error}`;
+        console.error(`   ❌ ${errorMsg}`);
+
+        // CRITICAL: Limit errors array to prevent memory leak
+        if (result.stage2.errors.length < RECONCILIATION_CONFIG.MAX_ERRORS) {
+          result.stage2.errors.push(errorMsg);
+        } else if (result.stage2.errors.length === RECONCILIATION_CONFIG.MAX_ERRORS) {
+          result.stage2.errors.push(
+            `... and more errors (max ${RECONCILIATION_CONFIG.MAX_ERRORS} reached)`
+          );
+        }
+      }
+    }
+
+    console.log(
+      `   ✅ Stage 2 complete: ${result.stage2.updated} updated, ${result.stage2.skipped} skipped`
+    );
+  } catch (error) {
+    // Fatal error in Stage 2
+    const errorMsg = `Stage 2 failed: ${error}`;
+    console.error(`   ❌ ${errorMsg}`);
+    result.stage2.errors.push(errorMsg);
+    throw error;
+  }
 }
 
 // ==============================================================================
