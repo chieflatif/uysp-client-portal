@@ -6,6 +6,7 @@ import { clients, leads, campaigns, clientProjectTasks, clientProjectBlockers, c
 import { eq, and, sql, inArray, notInArray } from 'drizzle-orm';
 import { getAirtableClient } from '@/lib/airtable/client';
 import { syncCampaignsFromAirtable } from '@/lib/sync/sync-campaigns';
+import { backfillCampaignForeignKeys, updateAllCampaignAggregates } from '@/lib/sync/backfill-campaign-fk';
 import { z } from 'zod';
 
 // Import Airtable types for type safety
@@ -23,6 +24,7 @@ export const maxDuration = 300; // 5 minutes
 const syncRequestSchema = z.object({
   clientId: z.string().uuid('Invalid client ID format - must be a valid UUID'),
   dryRun: z.boolean().optional().default(false),
+  fullSync: z.boolean().optional().default(false), // Great Sync mode: includes backfill + aggregates
 });
 
 /**
@@ -114,11 +116,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { clientId: validatedClientId, dryRun } = validation.data;
+    const { clientId: validatedClientId, dryRun, fullSync } = validation.data;
     clientId = validatedClientId;
 
     if (dryRun) {
       console.log('🔍 DRY RUN MODE: Changes will be previewed but not committed');
+    }
+
+    if (fullSync) {
+      console.log('🔄 FULL SYNC MODE: Will include backfill + campaign aggregates (Great Sync)');
     }
 
     // CONCURRENCY PROTECTION: Use PostgreSQL advisory lock (works across serverless instances)
@@ -601,16 +607,62 @@ export async function POST(request: NextRequest) {
       campaignsErrors = 1;
     }
 
+    // ========================================================================
+    // FULL SYNC: Backfill Campaign Foreign Keys + Update Aggregates
+    // ========================================================================
+    let backfillMatched = 0;
+    let backfillUnmatched = 0;
+    let backfillErrors = 0;
+    let aggregatesUpdated = 0;
+    let aggregatesErrors = 0;
+
+    if (fullSync) {
+      console.log('\n🔄 FULL SYNC: Running backfill and aggregate calculations...');
+
+      // Step 1: Backfill campaign_id for legacy leads
+      try {
+        const backfillResult = await backfillCampaignForeignKeys(dryRun);
+        backfillMatched = backfillResult.matchedByCampaignName +
+                          backfillResult.matchedByLeadSource +
+                          backfillResult.matchedByFormId;
+        backfillUnmatched = backfillResult.noMatchFound;
+        backfillErrors = backfillResult.errors.length;
+
+        console.log(`✅ Backfill complete: ${backfillMatched} matched, ${backfillUnmatched} unmatched, ${backfillErrors} errors`);
+      } catch (error: any) {
+        console.error('❌ Backfill failed:', error.message);
+        backfillErrors = 1;
+      }
+
+      // Step 2: Update campaign aggregates (counts)
+      if (!dryRun) {
+        try {
+          const aggregatesResult = await updateAllCampaignAggregates();
+          aggregatesUpdated = aggregatesResult.updated;
+          aggregatesErrors = aggregatesResult.errors;
+
+          console.log(`✅ Aggregates updated: ${aggregatesUpdated} campaigns, ${aggregatesErrors} errors`);
+        } catch (error: any) {
+          console.error('❌ Aggregate calculation failed:', error.message);
+          aggregatesErrors = 1;
+        }
+      } else {
+        console.log('🔍 DRY RUN: Skipping aggregate calculation');
+      }
+    }
+
     // AGGREGATE SUCCESS: Check all operations, not just deletion
     const hasErrors = (
       errors > 0 ||
       !deletionSuccess ||
       campaignsErrors > 0 ||
+      backfillErrors > 0 ||
+      aggregatesErrors > 0 ||
       (tasksFetched > 0 && tasksInserted === 0 && tasksFetched > 5) || // All tasks failed (if >5 tasks)
       (totalFetched > 0 && totalProcessed === 0 && totalFetched > 5) // All leads failed (if >5 leads)
     );
 
-    const partialSuccess = hasErrors && (totalProcessed > 0 || campaignsSynced > 0 || tasksInserted > 0);
+    const partialSuccess = hasErrors && (totalProcessed > 0 || campaignsSynced > 0 || tasksInserted > 0 || backfillMatched > 0);
 
     // CRITICAL FIX: Update client's last sync timestamp ONLY if successful (and not dry run)
     if (!dryRun && !hasErrors) {
@@ -658,8 +710,19 @@ export async function POST(request: NextRequest) {
           synced: campaignsSynced,
           errors: campaignsErrors,
         },
+        backfill: fullSync ? {
+          matched: backfillMatched,
+          unmatched: backfillUnmatched,
+          errors: backfillErrors,
+        } : undefined,
+        aggregates: fullSync ? {
+          updated: aggregatesUpdated,
+          errors: aggregatesErrors,
+        } : undefined,
       },
-      message: `Sync complete for ${client.companyName}! Leads: ${totalFetched} synced${totalDeleted > 0 ? `, ${totalDeleted} deleted` : ''}, Tasks: ${tasksFetched}, Blockers: ${blockersFetched}, Status: ${statusFetched}, Campaigns: ${campaignsSynced}`
+      message: fullSync
+        ? `Great Sync complete for ${client.companyName}! Leads: ${totalFetched} synced${totalDeleted > 0 ? `, ${totalDeleted} deleted` : ''}, Campaigns: ${campaignsSynced}, Backfill: ${backfillMatched} matched, Aggregates: ${aggregatesUpdated} updated`
+        : `Sync complete for ${client.companyName}! Leads: ${totalFetched} synced${totalDeleted > 0 ? `, ${totalDeleted} deleted` : ''}, Tasks: ${tasksFetched}, Blockers: ${blockersFetched}, Status: ${statusFetched}, Campaigns: ${campaignsSynced}`
     });
 
     } catch (error: any) {
