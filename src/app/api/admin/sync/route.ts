@@ -79,18 +79,28 @@ export async function POST(request: NextRequest) {
   let clientId: string | undefined = undefined;
 
   try {
-    // Authentication
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // TEMPORARY: One-time bypass for Great Sync (P2.2) when database is wiped
+    // Check for bypass token in Authorization header
+    const bypassToken = request.headers.get('x-sync-bypass-token');
+    const expectedBypassToken = process.env.SYNC_BYPASS_TOKEN;
+    const bypassEnabled = bypassToken && expectedBypassToken && bypassToken === expectedBypassToken;
 
-    // Authorization - SUPER_ADMIN only
-    if (session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json(
-        { error: 'Forbidden - SUPER_ADMIN access required' },
-        { status: 403 }
-      );
+    if (!bypassEnabled) {
+      // Normal authentication flow
+      const session = await getServerSession(authOptions);
+      if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      // Authorization - SUPER_ADMIN only
+      if (session.user.role !== 'SUPER_ADMIN') {
+        return NextResponse.json(
+          { error: 'Forbidden - SUPER_ADMIN access required' },
+          { status: 403 }
+        );
+      }
+    } else {
+      console.log('⚠️  BYPASS MODE: Using sync bypass token (one-time Great Sync)');
     }
 
     // Parse and validate request body with Zod
