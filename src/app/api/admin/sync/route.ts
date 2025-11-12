@@ -77,6 +77,7 @@ const SYNC_CONFIG = {
  */
 export async function POST(request: NextRequest) {
   let clientId: string | undefined = undefined;
+  let userId: string | null = null;
 
   try {
     // TEMPORARY: One-time bypass for Great Sync (P2.2) when database is wiped
@@ -99,8 +100,11 @@ export async function POST(request: NextRequest) {
           { status: 403 }
         );
       }
+
+      userId = session.user.id;
     } else {
       console.log('⚠️  BYPASS MODE: Using sync bypass token (one-time Great Sync)');
+      userId = 'system-bypass'; // System user for audit trail
     }
 
     // Parse and validate request body with Zod
@@ -412,7 +416,7 @@ export async function POST(request: NextRequest) {
         if (!dryRun) {
           // SECURITY: Log deletions to audit trail before removing (batch insert for performance)
           const auditEntries = deletedLeads.map(lead => ({
-            userId: session.user.id,
+            userId: userId,
             clientId: clientId,
             leadId: lead.id,
             action: 'LEAD_DELETED_FROM_SYNC',
