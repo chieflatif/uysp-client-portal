@@ -174,6 +174,25 @@ export async function POST(request: NextRequest) {
         }
         companyName = 'SYSTEM (Great Sync)';
         console.log(`⚠️  BYPASS MODE: Using base ID from env: ${airtableBaseId}`);
+
+        // CRITICAL: Create client record if it doesn't exist (for wiped database)
+        const existingClient = await db.query.clients.findFirst({
+          where: eq(clients.id, clientId),
+        });
+
+        if (!existingClient) {
+          console.log(`⚠️  BYPASS MODE: Creating client record for ID: ${clientId}`);
+          await db.insert(clients).values({
+            id: clientId,
+            companyName: companyName,
+            email: 'system@greatsync.local',
+            airtableBaseId: airtableBaseId,
+            isActive: true,
+          });
+          console.log(`✅ Client record created successfully`);
+        } else {
+          console.log(`✅ Client record already exists`);
+        }
       } else {
         // NORMAL MODE: Lookup client record
         const client = await db.query.clients.findFirst({
