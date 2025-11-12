@@ -82,7 +82,7 @@ export const leads = pgTable(
     status: varchar('status', { length: 50 }).notNull().default('New'),
     claimedBy: uuid('claimed_by'),
     claimedAt: timestamp('claimed_at', { withTimezone: true }), // FIXED: Add timezone support
-    campaignId: uuid('campaign_id').references(() => campaigns.id, { onDelete: 'set null' }), // Foreign key to campaigns table
+    campaignId: uuid('campaign_id').notNull().references(() => campaigns.id, { onDelete: 'set null' }), // Foreign key to campaigns table - ENFORCED: All leads must belong to a campaign
     lastMessageAt: timestamp('last_message_at', { withTimezone: true }), // FIXED: Add timezone support
     lastActivityAt: timestamp('last_activity_at', { withTimezone: true }), // Mini-CRM: Last activity timestamp (updated by activity log)
     isActive: boolean('is_active').notNull().default(true),

@@ -60,6 +60,10 @@ export async function syncAirtableLeads(): Promise<SyncResult> {
               icpScore: leadData.icpScore,
               status: leadData.status,
               isActive: leadData.isActive,
+              // CRITICAL: Campaign matching fields for backfill script
+              campaignName: leadData.campaignName,
+              leadSource: leadData.leadSource,
+              formId: leadData.formId,
               updatedAt: new Date(),
             })
             .where(eq(leads.airtableRecordId, record.id));
@@ -79,6 +83,10 @@ export async function syncAirtableLeads(): Promise<SyncResult> {
             icpScore: leadData.icpScore || 0,
             status: leadData.status || 'New',
             isActive: leadData.isActive !== false,
+            // CRITICAL: Campaign matching fields for backfill script
+            campaignName: leadData.campaignName,
+            leadSource: leadData.leadSource,
+            formId: leadData.formId,
             createdAt: leadData.createdAt || new Date(),
           });
 
