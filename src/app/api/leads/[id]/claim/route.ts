@@ -40,6 +40,7 @@ export async function POST(
       .set({
         claimedBy: session.user?.name || session.user?.email || 'Unknown',
         claimedAt: new Date(),
+        updatedAt: new Date(), // CRITICAL: Triggers Stage 2 sync to Airtable
       })
       .where(eq(leads.id, id))
       .returning();
