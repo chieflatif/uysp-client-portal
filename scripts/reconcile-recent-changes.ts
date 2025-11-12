@@ -442,13 +442,15 @@ async function reconcileStage2(
         // PostgreSQL is newer - update Airtable with claim data
         const updateFields: { [key: string]: string | null } = {};
 
-        // Only update claim fields if they have values
-        if (lead.claimedBy !== null && lead.claimedBy !== undefined) {
-          updateFields['Claimed By'] = lead.claimedBy;
+        // ALWAYS sync claim fields (null or value) to support unclaim operation
+        // null values explicitly clear Airtable fields (correct for unclaim)
+        if (lead.claimedBy !== undefined) {
+          updateFields['Claimed By'] = lead.claimedBy; // null clears field in Airtable
         }
 
-        if (lead.claimedAt !== null && lead.claimedAt !== undefined) {
-          updateFields['Claimed At'] = lead.claimedAt.toISOString();
+        if (lead.claimedAt !== undefined) {
+          // Convert Date to ISO string, or pass null to clear field
+          updateFields['Claimed At'] = lead.claimedAt ? lead.claimedAt.toISOString() : null;
         }
 
         // Skip if no fields to update
