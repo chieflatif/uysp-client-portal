@@ -15,7 +15,7 @@
 import { db } from '../src/lib/db';
 import { leads, clients } from '../src/lib/db/schema';
 import { getAirtableClient } from '../src/lib/airtable/client';
-import { eq, gte, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 // ==============================================================================
 // TYPE DEFINITIONS
@@ -50,6 +50,7 @@ const RECONCILIATION_CONFIG = {
   STAGE2_BATCH_SIZE: 10,
   RATE_LIMIT_DELAY_MS: 200, // 5 requests/second for Airtable
   GRACE_PERIOD_MS: 60000, // 60 seconds to prevent infinite loops
+  MAX_ERRORS: 100, // Maximum errors to store (prevents memory leak)
 } as const;
 
 // ==============================================================================
@@ -75,6 +76,13 @@ export async function reconcileRecentChanges(
   lookbackMinutes: number = RECONCILIATION_CONFIG.DEFAULT_LOOKBACK_MINUTES
 ): Promise<ReconciliationResult> {
   const startTime = new Date();
+
+  // CRITICAL: Validate lookbackMinutes parameter
+  if (lookbackMinutes <= 0 || lookbackMinutes > 1440) {
+    throw new Error(
+      `lookbackMinutes must be between 1 and 1440 (24 hours), got: ${lookbackMinutes}`
+    );
+  }
 
   // Initialize result object
   const result: ReconciliationResult = {
@@ -156,6 +164,11 @@ async function getActiveClient(): Promise<{
  * STAGE 1: Airtable → PostgreSQL
  * Pull recent changes from Airtable and upsert into PostgreSQL
  *
+ * IMPORTANT: campaignId is intentionally EXCLUDED from sync
+ * Reason: campaignId is populated by a separate backfill script (backfill-campaign-fk.ts)
+ * which matches leads to campaigns based on formId/campaignName/leadSource.
+ * Syncing campaignId here would conflict with that backfill logic.
+ *
  * @param lookbackMinutes - How far back to query Airtable
  * @param result - Result object to populate with stats
  * @param clientId - Client ID for record ownership
@@ -188,132 +201,135 @@ async function reconcileStage1(
       try {
         result.stage1.recordsProcessed++;
 
+        // CRITICAL: Validate record.id before processing
+        if (!record.id) {
+          throw new Error('Airtable record missing ID - skipping');
+        }
+
         // Map Airtable record to database format
         const leadData = airtable.mapToDatabaseLead(record, clientId);
 
-        // Check if lead already exists
+        // CRITICAL: Use upsert to prevent race conditions
+        // Check if lead exists first (needed for statistics)
         const existing = await db.query.leads.findFirst({
           where: eq(leads.airtableRecordId, record.id),
         });
 
-        if (existing) {
-          // Update existing lead
-          await db
-            .update(leads)
-            .set({
-              firstName: leadData.firstName,
-              lastName: leadData.lastName,
-              email: leadData.email,
-              phone: leadData.phone,
-              company: leadData.company,
-              title: leadData.title,
-              icpScore: leadData.icpScore,
-              status: leadData.status,
-              isActive: leadData.isActive,
+        // Prepare complete record for upsert
+        const leadRecord = {
+          airtableRecordId: record.id,
+          clientId: clientId,
+          firstName: leadData.firstName || 'Unknown',
+          lastName: leadData.lastName || '',
+          email: leadData.email || '',
+          phone: leadData.phone,
+          company: leadData.company,
+          title: leadData.title,
+          icpScore: leadData.icpScore || 0,
+          status: leadData.status || 'New',
+          isActive: leadData.isActive !== false,
 
-              // Campaign & Sequence Tracking
-              campaignName: leadData.campaignName,
-              campaignVariant: leadData.campaignVariant,
-              campaignBatch: leadData.campaignBatch,
-              smsSequencePosition: leadData.smsSequencePosition,
-              smsSentCount: leadData.smsSentCount,
-              smsLastSentAt: leadData.smsLastSentAt,
-              smsEligible: leadData.smsEligible,
+          // Campaign & Sequence Tracking
+          campaignName: leadData.campaignName,
+          campaignVariant: leadData.campaignVariant,
+          campaignBatch: leadData.campaignBatch,
+          smsSequencePosition: leadData.smsSequencePosition || 0,
+          smsSentCount: leadData.smsSentCount || 0,
+          smsLastSentAt: leadData.smsLastSentAt,
+          smsEligible: leadData.smsEligible ?? true,
 
-              // Status Fields
-              processingStatus: leadData.processingStatus,
-              hrqStatus: leadData.hrqStatus,
-              smsStop: leadData.smsStop,
-              smsStopReason: leadData.smsStopReason,
-              booked: leadData.booked,
-              bookedAt: leadData.bookedAt,
+          // Status Fields
+          processingStatus: leadData.processingStatus,
+          hrqStatus: leadData.hrqStatus,
+          smsStop: leadData.smsStop ?? false,
+          smsStopReason: leadData.smsStopReason,
+          booked: leadData.booked ?? false,
+          bookedAt: leadData.bookedAt,
 
-              // Click Tracking
-              shortLinkId: leadData.shortLinkId,
-              shortLinkUrl: leadData.shortLinkUrl,
-              clickCount: leadData.clickCount,
-              clickedLink: leadData.clickedLink,
-              firstClickedAt: leadData.firstClickedAt,
+          // Claim tracking
+          claimedBy: leadData.claimedBy,
+          claimedAt: leadData.claimedAt,
 
-              // LinkedIn & Enrichment
-              linkedinUrl: leadData.linkedinUrl,
-              companyLinkedin: leadData.companyLinkedin,
-              enrichmentOutcome: leadData.enrichmentOutcome,
-              enrichmentAttemptedAt: leadData.enrichmentAttemptedAt,
+          // Click Tracking
+          shortLinkId: leadData.shortLinkId,
+          shortLinkUrl: leadData.shortLinkUrl,
+          clickCount: leadData.clickCount || 0,
+          clickedLink: leadData.clickedLink ?? false,
+          firstClickedAt: leadData.firstClickedAt,
 
-              // Webinar & Campaign fields
-              formId: leadData.formId,
-              webinarDatetime: leadData.webinarDatetime,
-              leadSource: leadData.leadSource,
+          // LinkedIn & Enrichment
+          linkedinUrl: leadData.linkedinUrl,
+          companyLinkedin: leadData.companyLinkedin,
+          enrichmentOutcome: leadData.enrichmentOutcome,
+          enrichmentAttemptedAt: leadData.enrichmentAttemptedAt,
 
-              // Custom Campaigns
-              kajabiTags: leadData.kajabiTags,
-              engagementLevel: leadData.engagementLevel,
+          // Webinar & Campaign fields
+          formId: leadData.formId,
+          webinarDatetime: leadData.webinarDatetime,
+          leadSource: leadData.leadSource || 'Standard Form',
 
-              // CRITICAL: Update timestamp for change tracking
+          // Custom Campaigns
+          kajabiTags: leadData.kajabiTags,
+          engagementLevel: leadData.engagementLevel,
+
+          createdAt: leadData.createdAt || new Date(),
+          updatedAt: new Date(),
+        };
+
+        // Use upsert: insert if new, update if exists (prevents race conditions)
+        await db
+          .insert(leads)
+          .values(leadRecord)
+          .onConflictDoUpdate({
+            target: leads.airtableRecordId,
+            set: {
+              // Update all fields except primary key and airtableRecordId
+              firstName: leadRecord.firstName,
+              lastName: leadRecord.lastName,
+              email: leadRecord.email,
+              phone: leadRecord.phone,
+              company: leadRecord.company,
+              title: leadRecord.title,
+              icpScore: leadRecord.icpScore,
+              status: leadRecord.status,
+              isActive: leadRecord.isActive,
+              campaignName: leadRecord.campaignName,
+              campaignVariant: leadRecord.campaignVariant,
+              campaignBatch: leadRecord.campaignBatch,
+              smsSequencePosition: leadRecord.smsSequencePosition,
+              smsSentCount: leadRecord.smsSentCount,
+              smsLastSentAt: leadRecord.smsLastSentAt,
+              smsEligible: leadRecord.smsEligible,
+              processingStatus: leadRecord.processingStatus,
+              hrqStatus: leadRecord.hrqStatus,
+              smsStop: leadRecord.smsStop,
+              smsStopReason: leadRecord.smsStopReason,
+              booked: leadRecord.booked,
+              bookedAt: leadRecord.bookedAt,
+              claimedBy: leadRecord.claimedBy,
+              claimedAt: leadRecord.claimedAt,
+              shortLinkId: leadRecord.shortLinkId,
+              shortLinkUrl: leadRecord.shortLinkUrl,
+              clickCount: leadRecord.clickCount,
+              clickedLink: leadRecord.clickedLink,
+              firstClickedAt: leadRecord.firstClickedAt,
+              linkedinUrl: leadRecord.linkedinUrl,
+              companyLinkedin: leadRecord.companyLinkedin,
+              enrichmentOutcome: leadRecord.enrichmentOutcome,
+              enrichmentAttemptedAt: leadRecord.enrichmentAttemptedAt,
+              formId: leadRecord.formId,
+              webinarDatetime: leadRecord.webinarDatetime,
+              leadSource: leadRecord.leadSource,
+              kajabiTags: leadRecord.kajabiTags,
+              engagementLevel: leadRecord.engagementLevel,
               updatedAt: new Date(),
-            })
-            .where(eq(leads.airtableRecordId, record.id));
-
-          result.stage1.updated++;
-        } else {
-          // Insert new lead
-          await db.insert(leads).values({
-            airtableRecordId: record.id,
-            clientId: clientId,
-            firstName: leadData.firstName || 'Unknown',
-            lastName: leadData.lastName || '',
-            email: leadData.email || '',
-            phone: leadData.phone,
-            company: leadData.company,
-            title: leadData.title,
-            icpScore: leadData.icpScore || 0,
-            status: leadData.status || 'New',
-            isActive: leadData.isActive !== false,
-
-            // Campaign & Sequence Tracking
-            campaignName: leadData.campaignName,
-            campaignVariant: leadData.campaignVariant,
-            campaignBatch: leadData.campaignBatch,
-            smsSequencePosition: leadData.smsSequencePosition || 0,
-            smsSentCount: leadData.smsSentCount || 0,
-            smsLastSentAt: leadData.smsLastSentAt,
-            smsEligible: leadData.smsEligible ?? true,
-
-            // Status Fields
-            processingStatus: leadData.processingStatus,
-            hrqStatus: leadData.hrqStatus,
-            smsStop: leadData.smsStop ?? false,
-            smsStopReason: leadData.smsStopReason,
-            booked: leadData.booked ?? false,
-            bookedAt: leadData.bookedAt,
-
-            // Click Tracking
-            shortLinkId: leadData.shortLinkId,
-            shortLinkUrl: leadData.shortLinkUrl,
-            clickCount: leadData.clickCount || 0,
-            clickedLink: leadData.clickedLink ?? false,
-            firstClickedAt: leadData.firstClickedAt,
-
-            // LinkedIn & Enrichment
-            linkedinUrl: leadData.linkedinUrl,
-            companyLinkedin: leadData.companyLinkedin,
-            enrichmentOutcome: leadData.enrichmentOutcome,
-            enrichmentAttemptedAt: leadData.enrichmentAttemptedAt,
-
-            // Webinar & Campaign fields
-            formId: leadData.formId,
-            webinarDatetime: leadData.webinarDatetime,
-            leadSource: leadData.leadSource || 'Standard Form',
-
-            // Custom Campaigns
-            kajabiTags: leadData.kajabiTags,
-            engagementLevel: leadData.engagementLevel,
-
-            createdAt: leadData.createdAt || new Date(),
-            updatedAt: new Date(),
+            },
           });
 
+        // Update statistics
+        if (existing) {
+          result.stage1.updated++;
+        } else {
           result.stage1.inserted++;
         }
 
@@ -325,7 +341,15 @@ async function reconcileStage1(
         // Error isolation: continue processing other records
         const errorMsg = `Failed to sync lead ${record.id}: ${error}`;
         console.error(`   ❌ ${errorMsg}`);
-        result.stage1.errors.push(errorMsg);
+
+        // CRITICAL: Limit errors array to prevent memory leak
+        if (result.stage1.errors.length < RECONCILIATION_CONFIG.MAX_ERRORS) {
+          result.stage1.errors.push(errorMsg);
+        } else if (result.stage1.errors.length === RECONCILIATION_CONFIG.MAX_ERRORS) {
+          result.stage1.errors.push(
+            `... and more errors (max ${RECONCILIATION_CONFIG.MAX_ERRORS} reached)`
+          );
+        }
       }
     }
 

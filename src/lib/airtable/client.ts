@@ -263,8 +263,18 @@ export class AirtableClient {
       const allRecords: AirtableRecord[] = [];
       let offset: string | undefined;
 
+      // CRITICAL: Prevent infinite loop with max pages limit
+      const MAX_PAGES = 1000; // 100,000 records max (100 per page)
+      let pagesProcessed = 0;
+
       // Fetch all pages
       while (true) {
+        // Safety check: prevent infinite loop
+        if (++pagesProcessed > MAX_PAGES) {
+          throw new Error(
+            `Exceeded max pages (${MAX_PAGES}) in getLeadsModifiedSince - possible infinite loop or too many records`
+          );
+        }
         const params = new URLSearchParams({
           pageSize: '100',
           filterByFormula: formula,
@@ -629,7 +639,11 @@ export class AirtableClient {
       smsStopReason: fields['SMS Stop Reason'] as string | undefined,
       booked: Boolean(fields['Booked']),
       bookedAt: parseTimestamp(fields['Booked At'] as string | undefined), // FIXED: Use validated parser
-      
+
+      // Claim tracking (for bi-directional sync)
+      claimedBy: fields['Claimed By'] as string | undefined,
+      claimedAt: parseTimestamp(fields['Claimed At'] as string | undefined),
+
       // Click Tracking
       shortLinkId: fields['Short Link ID'] as string | undefined,
       shortLinkUrl: fields['Short Link URL'] as string | undefined,
