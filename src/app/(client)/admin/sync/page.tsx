@@ -32,6 +32,25 @@ interface SyncResult {
   };
 }
 
+interface DeltaSyncResult {
+  status: 'idle' | 'syncing' | 'success' | 'error';
+  message?: string;
+  results?: {
+    stage1: {
+      processed: number;
+      errors: number;
+      description: string;
+    };
+    stage2: {
+      updated: number;
+      skipped: number;
+      errors: number;
+      description: string;
+    };
+  };
+  duration?: string;
+}
+
 export default function AdminSyncPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -39,6 +58,7 @@ export default function AdminSyncPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [syncResults, setSyncResults] = useState<Record<string, SyncResult>>({});
+  const [deltaSyncResult, setDeltaSyncResult] = useState<DeltaSyncResult>({ status: 'idle' });
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -123,6 +143,41 @@ export default function AdminSyncPage() {
     }
   };
 
+  const handleDeltaSync = async (minutes: number = 20) => {
+    // Set syncing state
+    setDeltaSyncResult({ status: 'syncing' });
+
+    try {
+      const response = await fetch('/api/admin/sync/delta', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ minutes }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Delta sync failed');
+      }
+
+      // Update with success
+      setDeltaSyncResult({
+        status: 'success',
+        message: data.message,
+        results: data.results,
+        duration: data.duration,
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Delta sync failed';
+      setDeltaSyncResult({
+        status: 'error',
+        message: errorMsg,
+      });
+    }
+  };
+
   const formatRelativeTime = (dateString: string | null): string => {
     if (!dateString) return 'Never';
 
@@ -182,6 +237,112 @@ export default function AdminSyncPage() {
           </h1>
           <p className={theme.core.bodyText}>
             Manually trigger Airtable → PostgreSQL sync for each client
+          </p>
+        </div>
+
+        {/* Quick Delta Sync */}
+        <div className={`${theme.components.card} mb-6`}>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h2 className={`text-xl font-bold ${theme.core.white} mb-2 flex items-center gap-2`}>
+                <RefreshCw className={`w-5 h-5 ${theme.accents.tertiary.class}`} />
+                Quick Delta Sync
+              </h2>
+              <p className={`text-sm ${theme.core.bodyText} mb-4`}>
+                Sync recently changed leads (last 20 minutes). Fast bi-directional sync for portal-owned fields.
+              </p>
+
+              {/* Delta Sync Results */}
+              {deltaSyncResult.status === 'syncing' && (
+                <div className="flex items-center gap-2 text-cyan-400">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm font-medium">Running delta sync...</span>
+                </div>
+              )}
+
+              {deltaSyncResult.status === 'success' && deltaSyncResult.results && (
+                <div className="text-sm space-y-2">
+                  <div className="flex items-center gap-2 text-green-400 font-medium">
+                    <CheckCircle className="w-4 h-4" />
+                    {deltaSyncResult.message}
+                    {deltaSyncResult.duration && (
+                      <span className={theme.core.bodyText}>({deltaSyncResult.duration})</span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+                    <div className={`p-3 rounded-lg ${theme.core.darkBg}`}>
+                      <p className={`text-xs ${theme.core.bodyText} mb-1`}>Stage 1: AT→PG</p>
+                      <p className={`text-lg font-bold ${theme.core.white}`}>
+                        {deltaSyncResult.results.stage1.processed} processed
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-lg ${theme.core.darkBg}`}>
+                      <p className={`text-xs ${theme.core.bodyText} mb-1`}>Stage 2: PG→AT</p>
+                      <p className={`text-lg font-bold ${theme.core.white}`}>
+                        {deltaSyncResult.results.stage2.updated} updated
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-lg ${theme.core.darkBg}`}>
+                      <p className={`text-xs ${theme.core.bodyText} mb-1`}>Skipped</p>
+                      <p className={`text-lg font-bold ${theme.core.bodyText}`}>
+                        {deltaSyncResult.results.stage2.skipped}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-lg ${theme.core.darkBg}`}>
+                      <p className={`text-xs ${theme.core.bodyText} mb-1`}>Total Errors</p>
+                      <p className={`text-lg font-bold ${
+                        (deltaSyncResult.results.stage1.errors + deltaSyncResult.results.stage2.errors) > 0
+                          ? 'text-red-400'
+                          : theme.core.white
+                      }`}>
+                        {deltaSyncResult.results.stage1.errors + deltaSyncResult.results.stage2.errors}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {deltaSyncResult.status === 'error' && (
+                <div className="flex items-center gap-2 text-red-400">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">{deltaSyncResult.message}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Sync Button */}
+            <button
+              onClick={() => handleDeltaSync(20)}
+              disabled={deltaSyncResult.status === 'syncing'}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
+                deltaSyncResult.status === 'syncing'
+                  ? 'bg-cyan-500/20 text-cyan-400 cursor-wait'
+                  : `border border-cyan-400 ${theme.accents.tertiary.class} hover:bg-cyan-400 hover:text-gray-900`
+              }`}
+            >
+              {deltaSyncResult.status === 'syncing' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4" />
+                  Quick Sync
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Full Sync Section Header */}
+        <div className="mb-4">
+          <h2 className={`text-xl font-bold ${theme.core.white} flex items-center gap-2`}>
+            <Database className={`w-5 h-5 ${theme.accents.primary.class}`} />
+            Full Client Sync
+          </h2>
+          <p className={`text-sm ${theme.core.bodyText} mt-1`}>
+            Complete Airtable → PostgreSQL sync per client (use for initial sync or major changes)
           </p>
         </div>
 
