@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { activityLog } from '@/lib/db/schema';
+import { activityLog, leads } from '@/lib/db/schema';
 import { getAirtableClient } from '@/lib/airtable/client';
+import { eq } from 'drizzle-orm';
 
 /**
  * POST /api/leads/[id]/remove-from-campaign
@@ -84,7 +85,20 @@ export async function POST(
         reason.trim()
       );
 
-      // 8. Log activity in PostgreSQL
+      // 8. Synchronously update PostgreSQL for immediate consistency
+      // Set updatedAt to trigger Stage 2 sync and prevent stale data
+      await db
+        .update(leads)
+        .set({
+          processingStatus: 'Stopped',
+          smsStop: true,
+          smsStopReason: reason.trim(),
+          hrqStatus: 'Completed',
+          updatedAt: new Date(), // CRITICAL: Triggers bi-directional sync
+        })
+        .where(eq(leads.id, lead.id));
+
+      // 9. Log activity in PostgreSQL
       await db.insert(activityLog).values({
         userId: session.user.id,
         leadId: lead.id,
@@ -94,7 +108,7 @@ export async function POST(
         createdAt: new Date(),
       });
 
-      // 9. Return success response
+      // 10. Return success response
       return NextResponse.json(
         {
           success: true,
