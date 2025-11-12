@@ -126,6 +126,7 @@ export const leads = pgTable(
     // CUSTOM CAMPAIGNS FIELDS (Phase B)
     kajabiTags: text('kajabi_tags').array(), // Array of tags from Kajabi (imported from Airtable "Kajabi Tags")
     engagementLevel: varchar('engagement_level', { length: 50 }), // High/Medium/Low (from Airtable "Engagement - Level")
+    notes: text('notes'), // Internal notes from portal users (synced bi-directionally with Airtable)
 
     // VERSIONING & COMPLETION TRACKING (Phase V2 - Migrations 0019, 0022, 0029)
     completedAt: timestamp('completed_at', { withTimezone: true }), // When lead completed their campaign sequence

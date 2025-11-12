@@ -271,6 +271,7 @@ async function reconcileStage1(
           // Custom Campaigns
           kajabiTags: leadData.kajabiTags,
           engagementLevel: leadData.engagementLevel,
+          notes: leadData.notes,
 
           createdAt: leadData.createdAt || new Date(),
           updatedAt: new Date(),
@@ -322,6 +323,7 @@ async function reconcileStage1(
               leadSource: leadRecord.leadSource,
               kajabiTags: leadRecord.kajabiTags,
               engagementLevel: leadRecord.engagementLevel,
+              notes: leadRecord.notes,
               updatedAt: new Date(),
             },
           });
