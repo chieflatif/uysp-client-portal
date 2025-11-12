@@ -374,7 +374,7 @@ async function reconcileStage1(
  * Conflict Prevention Strategy:
  * - Compare PostgreSQL updatedAt vs Airtable Last Modified Time
  * - Skip if Airtable was modified more recently (within GRACE_PERIOD_MS)
- * - Only sync claim data (claimedBy, claimedAt) - other fields come from Airtable
+ * - Only sync portal-owned fields (claimedBy, claimedAt, notes) - other fields come from Airtable
  *
  * @param lookbackMinutes - How far back to query PostgreSQL
  * @param result - Result object to populate with stats
@@ -398,6 +398,7 @@ async function reconcileStage2(
         airtableRecordId: true,
         claimedBy: true,
         claimedAt: true,
+        notes: true, // Added for Notes API sync
         updatedAt: true,
       },
     });
@@ -451,6 +452,11 @@ async function reconcileStage2(
         if (lead.claimedAt !== undefined) {
           // Convert Date to ISO string, or pass null to clear field
           updateFields['Claimed At'] = lead.claimedAt ? lead.claimedAt.toISOString() : null;
+        }
+
+        // Sync notes field (portal-owned, added via Notes API)
+        if (lead.notes !== undefined) {
+          updateFields['Notes'] = lead.notes; // null clears field in Airtable
         }
 
         // Skip if no fields to update
