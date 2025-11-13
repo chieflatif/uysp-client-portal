@@ -27,16 +27,20 @@ export function NotesList({ leadId }: NotesListProps) {
   const fetchNotes = useCallback(async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await fetch(`/api/leads/${leadId}/notes`);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch notes');
+        const errorText = await response.text();
+        console.error(`Notes API error: ${response.status} - ${errorText}`);
+        throw new Error(`API Error: ${response.status}`);
       }
 
       const data = await response.json();
       setNotes(data);
     } catch (err) {
-      setError('Failed to load notes');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load notes';
+      setError(errorMessage);
       console.error('Error fetching notes:', err);
     } finally {
       setIsLoading(false);

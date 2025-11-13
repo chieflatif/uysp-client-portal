@@ -99,7 +99,10 @@ export async function POST(
     }
 
     const { id } = await params;
-    const { note } = await request.json();
+    const body = await request.json();
+
+    // Support both old and new format
+    const note = body.note || body.content;
 
     // Validate note input
     if (!note || typeof note !== 'string' || note.trim() === '') {
