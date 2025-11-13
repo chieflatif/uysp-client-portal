@@ -13,6 +13,15 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Disable all caching to force fresh builds on Render
+  generateBuildId: async () => {
+    // Generate unique build ID based on timestamp to prevent cache reuse
+    return `build-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+  },
+  // Disable build output caching
+  experimental: {
+    isrMemoryCacheSize: 0,
+  },
   // Enable response compression
   compress: true,
   // Add security headers
