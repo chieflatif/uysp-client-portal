@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/force-clear-cache.js",
     "build": "rm -rf .next /opt/render/project/.next /opt/render/.next /tmp/.next 2>/dev/null; rm -rf /opt/render/project/src/.next /opt/render/project/node_modules/.cache 2>/dev/null; find /opt/render -name 'chunks' -type d -exec rm -rf {} + 2>/dev/null || true; find . -name '.next' -type d -exec rm -rf {} + 2>/dev/null || true; next build",
     "start": "next start",
     "lint": "next lint",
