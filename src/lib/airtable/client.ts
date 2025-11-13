@@ -257,8 +257,9 @@ export class AirtableClient {
    */
   async getLeadsModifiedSince(cutoffTime: Date): Promise<AirtableRecord[]> {
     return this.withRetry(async () => {
-      const cutoffISO = cutoffTime.toISOString();
-      const formula = `IS_AFTER({Last Modified Time}, '${cutoffISO}')`;
+      // NOTE: Airtable doesn't expose Last Modified Time in fields
+      // We'll fetch all records and filter on the PostgreSQL side
+      // This is less efficient but more reliable
 
       const allRecords: AirtableRecord[] = [];
       let offset: string | undefined;
@@ -277,7 +278,7 @@ export class AirtableClient {
         }
         const params = new URLSearchParams({
           pageSize: '100',
-          filterByFormula: formula,
+          // No filter - we'll handle filtering on our side
         });
 
         if (offset) {
@@ -618,7 +619,7 @@ export class AirtableClient {
       
       // Campaign & Sequence Tracking (CORRECTED FIELD NAMES)
       formId: fields['Form ID'] as string | undefined, // CRITICAL FIX: Extract Form ID for campaign matching
-      campaignName: fields['SMS Campaign ID'] as string | undefined,
+      campaignName: fields['Campaign (CORRECTED)'] as string | undefined, // FIX: Use correct field name
       // Lead Source: Direct copy from Campaign (CORRECTED) - actual campaign name
       leadSource: (() => {
         const corrected = fields['Campaign (CORRECTED)'];
@@ -660,6 +661,9 @@ export class AirtableClient {
       // Custom Campaigns fields (Phase B)
       kajabiTags: parseKajabiTags(fields['Kajabi Tags'] as string | undefined),
       engagementLevel: mapEngagementLevel(fields['Engagement - Level'] as string | undefined),
+
+      // Notes field for bi-directional sync
+      notes: fields['Notes'] as string | undefined,
 
       createdAt: new Date(record.createdTime),
     };
