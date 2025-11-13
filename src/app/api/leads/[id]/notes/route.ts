@@ -6,6 +6,82 @@ import { leads, activityLog } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 /**
+ * GET /api/leads/[id]/notes
+ *
+ * Get notes for a lead.
+ * Notes are stored in the lead's notes field as a single text field.
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    // Get the lead with notes
+    const lead = await db.query.leads.findFirst({
+      where: eq(leads.id, id),
+      columns: {
+        id: true,
+        notes: true,
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    if (!lead) {
+      return NextResponse.json(
+        { error: 'Lead not found' },
+        { status: 404 }
+      );
+    }
+
+    // Parse notes if they exist
+    // Notes are stored as a single text field with timestamps and user info
+    const notesArray = [];
+    if (lead.notes) {
+      // Split by common delimiters if notes are formatted
+      // Otherwise return as single note
+      const lines = lead.notes.split('\n').filter(line => line.trim());
+
+      // Try to parse structured notes (format: [timestamp] user: content)
+      for (const line of lines) {
+        const match = line.match(/^\[(.*?)\]\s*([^:]+):\s*(.*)$/);
+        if (match) {
+          notesArray.push({
+            timestamp: match[1],
+            user: match[2],
+            content: match[3],
+            type: 'General',
+          });
+        } else if (line.trim()) {
+          // Unstructured note
+          notesArray.push({
+            timestamp: 'Unknown',
+            user: 'System',
+            content: line.trim(),
+            type: 'General',
+          });
+        }
+      }
+    }
+
+    return NextResponse.json(notesArray);
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * POST /api/leads/[id]/notes
  *
  * Add a note to a lead with automatic bi-directional sync to Airtable.

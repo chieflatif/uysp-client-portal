@@ -338,7 +338,7 @@ export default function CampaignDetailPage() {
                       Date Enrolled
                     </th>
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
-                      Seq. Pos.
+                      Status
                     </th>
                     <th className={`px-6 py-4 text-left text-xs font-semibold ${theme.accents.tertiary.class} uppercase`}>
                       Lead Source
@@ -395,8 +395,12 @@ export default function CampaignDetailPage() {
                         {lead.enrolledAt ? formatDate(lead.enrolledAt) : '—'}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-xs font-mono">
-                          {lead.smsSequencePosition !== undefined ? lead.smsSequencePosition : '—'}
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          lead.smsSequencePosition === 0 || !lead.smsSequencePosition
+                            ? 'bg-green-500/20 text-green-400'
+                            : 'bg-yellow-500/20 text-yellow-400'
+                        }`}>
+                          {lead.smsSequencePosition === 0 || !lead.smsSequencePosition ? 'Completed' : 'Active'}
                         </span>
                       </td>
                       <td className="px-6 py-4">
