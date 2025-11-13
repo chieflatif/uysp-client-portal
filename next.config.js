@@ -18,6 +18,8 @@ const nextConfig = {
     // Generate unique build ID based on timestamp to prevent cache reuse
     return `build-${Date.now()}-${Math.random().toString(36).substring(7)}`;
   },
+  // Change output directory to bypass cached artifacts
+  distDir: process.env.RENDER ? '.next-render' : '.next',
   // Disable build output caching
   experimental: {
     isrMemoryCacheSize: 0,

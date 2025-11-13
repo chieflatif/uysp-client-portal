@@ -15,7 +15,7 @@ import { getAirtableClient } from '@/lib/airtable/client';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -29,7 +29,7 @@ export async function GET(
 
     // Authorization check
     if (session.user.role === 'CLIENT_ADMIN') {
-      if (session.user.clientId !== params.id) {
+      if (session.user.clientId !== (await params).id) {
         return NextResponse.json(
           { error: 'Forbidden' },
           { status: 403 }
@@ -44,7 +44,7 @@ export async function GET(
 
     // Verify client exists
     const client = await db.query.clients.findFirst({
-      where: eq(clients.id, params.id),
+      where: eq(clients.id, (await params).id),
     });
 
     if (!client) {

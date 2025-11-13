@@ -8,7 +8,7 @@ import { sql } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -29,7 +29,7 @@ export async function GET(
 
     // Get client info including last sync
     const client = await db.query.clients.findFirst({
-      where: eq(clients.id, params.id),
+      where: eq(clients.id, (await params).id),
     });
 
     if (!client) {
@@ -48,11 +48,11 @@ export async function GET(
         unclaimed: sql<number>`sum(case when ${leads.claimedBy} is null then 1 else 0 end)`,
       })
       .from(leads)
-      .where(eq(leads.clientId, params.id));
+      .where(eq(leads.clientId, (await params).id));
 
     // Get recent sync activity
     const recentActivity = await db.query.activityLog.findMany({
-      where: eq(activityLog.clientId, params.id),
+      where: eq(activityLog.clientId, (await params).id),
       limit: 5,
       orderBy: (log) => sql`${log.createdAt} desc`,
     });

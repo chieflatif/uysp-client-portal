@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -27,7 +27,7 @@ export async function GET(
     }
 
     const client = await db.query.clients.findFirst({
-      where: eq(clients.id, params.id),
+      where: eq(clients.id, (await params).id),
     });
 
     if (!client) {

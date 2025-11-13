@@ -8,7 +8,7 @@ import { sql } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -42,8 +42,8 @@ export async function GET(
 
     // Build where clause
     const whereClause = dateFilter 
-      ? and(eq(leads.clientId, params.id), dateFilter)
-      : eq(leads.clientId, params.id);
+      ? and(eq(leads.clientId, (await params).id), dateFilter)
+      : eq(leads.clientId, (await params).id);
 
     // Get distinct campaigns for this client with analytics
     const campaigns = await db
@@ -62,7 +62,7 @@ export async function GET(
       .orderBy(sql`${leads.campaignName}`);
 
     return NextResponse.json({
-      clientId: params.id,
+      clientId: (await params).id,
       period,
       campaigns: campaigns.map((c) => ({
         campaignName: c.campaignName || 'Unknown',

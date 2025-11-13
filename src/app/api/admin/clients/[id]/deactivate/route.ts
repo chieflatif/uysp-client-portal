@@ -20,7 +20,7 @@ const deactivateClientSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Authentication
@@ -56,7 +56,7 @@ export async function PATCH(
     }
 
     const { reason } = validation.data;
-    const clientId = params.id;
+    const clientId = (await params).id;
 
     // Verify client exists
     const client = await db.query.clients.findFirst({

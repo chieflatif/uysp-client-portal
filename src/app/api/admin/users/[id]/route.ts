@@ -20,7 +20,7 @@ const updateUserSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -37,7 +37,7 @@ export async function GET(
       );
     }
 
-    const userId = params.id;
+    const userId = (await params).id;
 
     // Get the user
     const user = await db.query.users.findFirst({
@@ -96,7 +96,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -113,7 +113,7 @@ export async function PATCH(
       );
     }
 
-    const userId = params.id;
+    const userId = (await params).id;
 
     // Get the target user
     const targetUser = await db.query.users.findFirst({
@@ -197,7 +197,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -214,7 +214,7 @@ export async function DELETE(
       );
     }
 
-    const userId = params.id;
+    const userId = (await params).id;
     const { searchParams } = new URL(request.url);
     const isPermanent = searchParams.get('permanent') === 'true';
 

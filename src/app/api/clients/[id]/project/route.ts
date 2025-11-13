@@ -17,7 +17,7 @@ import { eq, and } from 'drizzle-orm';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -32,7 +32,7 @@ export async function GET(
     // SECURITY: Authorization check - enforce client isolation
     if (session.user.role === 'CLIENT_ADMIN') {
       // CLIENT_ADMIN can only see their own client
-      if (session.user.clientId !== params.id) {
+      if (session.user.clientId !== (await params).id) {
         return NextResponse.json(
           { error: 'Forbidden - can only view your own client data', code: 'FORBIDDEN' },
           { status: 403 }
@@ -49,7 +49,7 @@ export async function GET(
 
     // Verify client exists
     const client = await db.query.clients.findFirst({
-      where: eq(clients.id, params.id),
+      where: eq(clients.id, (await params).id),
     });
 
     if (!client) {
@@ -62,18 +62,18 @@ export async function GET(
     // Fetch all project data in parallel
     const [tasks, blockers, statusMetrics] = await Promise.all([
       db.query.clientProjectTasks.findMany({
-        where: eq(clientProjectTasks.clientId, params.id),
+        where: eq(clientProjectTasks.clientId, (await params).id),
         orderBy: (tasks) => [tasks.priority, tasks.dueDate],
       }),
       db.query.clientProjectBlockers.findMany({
         where: and(
-          eq(clientProjectBlockers.clientId, params.id),
+          eq(clientProjectBlockers.clientId, (await params).id),
           eq(clientProjectBlockers.status, 'Active')
         ),
         orderBy: (blockers) => [blockers.severity, blockers.createdAt],
       }),
       db.query.clientProjectStatus.findMany({
-        where: eq(clientProjectStatus.clientId, params.id),
+        where: eq(clientProjectStatus.clientId, (await params).id),
         orderBy: (status) => [status.displayOrder],
       }),
     ]);

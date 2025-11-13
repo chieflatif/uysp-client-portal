@@ -13,7 +13,7 @@ import { z } from 'zod';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -29,7 +29,7 @@ export async function GET(
       );
     }
 
-    const campaignId = params.id;
+    const campaignId = (await params).id;
 
     // Build where clause based on role
     const whereClause =
@@ -107,7 +107,7 @@ const updateCampaignSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -123,7 +123,7 @@ export async function PATCH(
       );
     }
 
-    const campaignId = params.id;
+    const campaignId = (await params).id;
 
     // Build where clause based on role
     const whereClause =

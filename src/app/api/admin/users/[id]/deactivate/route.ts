@@ -19,7 +19,7 @@ const deactivateUserSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Authentication
@@ -55,7 +55,7 @@ export async function PATCH(
     }
 
     const { reason } = validation.data;
-    const userId = params.id;
+    const userId = (await params).id;
 
     // Verify user exists
     const user = await db.query.users.findFirst({

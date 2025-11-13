@@ -17,7 +17,7 @@ import { randomUUID } from 'crypto';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -32,7 +32,7 @@ export async function POST(
     // Authorization check
     if (session.user.role === 'CLIENT_ADMIN') {
       // ADMIN can only create tasks for their own client
-      if (session.user.clientId !== params.id) {
+      if (session.user.clientId !== (await params).id) {
         return NextResponse.json(
           { error: 'Forbidden - can only create tasks for your own client' },
           { status: 403 }
@@ -48,7 +48,7 @@ export async function POST(
 
     // Get client to access their Airtable base
     const client = await db.query.clients.findFirst({
-      where: eq(clients.id, params.id),
+      where: eq(clients.id, (await params).id),
     });
 
     if (!client) {
@@ -91,7 +91,7 @@ export async function POST(
       .insert(clientProjectTasks)
       .values({
         id: randomUUID(),
-        clientId: params.id,
+        clientId: (await params).id,
         airtableRecordId: airtableRecord.id,
         task,
         status: status || 'Not Started',

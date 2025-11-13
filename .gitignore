@@ -116,3 +116,5 @@ $RECYCLE.BIN/
 *.zip
 *.7z
 .next/
+.next-render/
+.next-render-*

@@ -17,7 +17,7 @@ import { logSecurityAudit } from '@/lib/audit/logger';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -36,7 +36,7 @@ export async function POST(
 
     // Get the target user
     const targetUser = await db.query.users.findFirst({
-      where: eq(users.id, params.id),
+      where: eq(users.id, (await params).id),
     });
 
     if (!targetUser) {
@@ -95,7 +95,7 @@ export async function POST(
         mustChangePassword: false, // Clear the flag since admin is setting it
         updatedAt: new Date(),
       })
-      .where(eq(users.id, params.id));
+      .where(eq(users.id, (await params).id));
 
     // AUDIT: Log security-sensitive operation
     await logSecurityAudit({

@@ -16,7 +16,7 @@ import { getAirtableClient } from '@/lib/airtable/client';
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -30,7 +30,7 @@ export async function PATCH(
 
     // Get task to verify ownership
     const existingTask = await db.query.clientProjectTasks.findFirst({
-      where: eq(clientProjectTasks.id, params.id),
+      where: eq(clientProjectTasks.id, (await params).id),
     });
 
     if (!existingTask) {
@@ -87,7 +87,7 @@ export async function PATCH(
         dependencies: dependencies || null,
         updatedAt: new Date(),
       })
-      .where(eq(clientProjectTasks.id, params.id))
+      .where(eq(clientProjectTasks.id, (await params).id))
       .returning();
 
     // 2. Sync to Airtable in background (don't block response)
@@ -122,7 +122,7 @@ export async function PATCH(
           lastError: err instanceof Error ? err.message : 'Unknown error',
           nextRetryAt,
         });
-        console.log(`✅ Added failed sync to retry queue (task ${params.id})`);
+        console.log(`✅ Added failed sync to retry queue (task ${(await params).id})`);
       } catch (queueError) {
         console.error('Failed to add to retry queue:', queueError);
       }
@@ -150,7 +150,7 @@ export async function PATCH(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -164,7 +164,7 @@ export async function GET(
 
     // Get task
     const task = await db.query.clientProjectTasks.findFirst({
-      where: eq(clientProjectTasks.id, params.id),
+      where: eq(clientProjectTasks.id, (await params).id),
     });
 
     if (!task) {
@@ -211,7 +211,7 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -225,7 +225,7 @@ export async function DELETE(
 
     // Get task to verify ownership
     const existingTask = await db.query.clientProjectTasks.findFirst({
-      where: eq(clientProjectTasks.id, params.id),
+      where: eq(clientProjectTasks.id, (await params).id),
     });
 
     if (!existingTask) {
@@ -267,7 +267,7 @@ export async function DELETE(
     // 1. Delete from PostgreSQL FIRST
     await db
       .delete(clientProjectTasks)
-      .where(eq(clientProjectTasks.id, params.id));
+      .where(eq(clientProjectTasks.id, (await params).id));
 
     // 2. Delete from Airtable (push to source of truth)
     const airtable = getAirtableClient(client.airtableBaseId);
