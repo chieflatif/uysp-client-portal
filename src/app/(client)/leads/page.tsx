@@ -8,6 +8,7 @@ import { Search, ArrowUpDown, X, Upload } from 'lucide-react';
 import { theme } from '@/theme';
 import { useClient } from '@/contexts/ClientContext';
 import { ImportLeadsModal } from '@/components/leads/ImportLeadsModal';
+import { formatICPScore, getICPBadgeClass } from '@/lib/utils/icp-score';
 
 interface Lead {
   id: string;
@@ -521,12 +522,8 @@ export default function LeadsPage() {
 
                     {/* ICP Score */}
                     <td className="px-6 py-4">
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${getScoreColor(
-                          lead.icpScore
-                        )}`}
-                      >
-                        {lead.icpScore}
+                      <span className={getICPBadgeClass(lead.icpScore)}>
+                        {formatICPScore(lead.icpScore)}
                       </span>
                     </td>
 
