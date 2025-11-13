@@ -20,6 +20,7 @@ interface Lead {
   title?: string;
   icpScore: number;
   status: string;
+  processingStatus: string; // The workflow status (Queued/In Sequence/Completed)
   linkedinUrl?: string;
   enrichmentOutcome?: string;
   createdAt: string;
@@ -156,8 +157,8 @@ export default function LeadsPage() {
           bVal = b.icpScore;
           break;
         case 'status':
-          aVal = a.status.toLowerCase();
-          bVal = b.status.toLowerCase();
+          aVal = (a.processingStatus || a.status).toLowerCase();
+          bVal = (b.processingStatus || b.status).toLowerCase();
           break;
         case 'campaign':
           aVal = (a.campaignName || '').toLowerCase();
@@ -228,6 +229,11 @@ export default function LeadsPage() {
 
   const getStatusBadgeColor = (status: string) => {
     const statusLower = status.toLowerCase();
+    // Processing status colors (Queued/In Sequence/Completed)
+    if (statusLower === 'completed' || statusLower === 'complete') return theme.accents.primary.bgClass;
+    if (statusLower === 'in sequence' || statusLower.includes('sequence')) return theme.accents.secondary.bgClass;
+    if (statusLower === 'queued') return theme.accents.tertiary.bgClass;
+    // Fallback for legacy statuses
     if (statusLower.includes('booked')) return theme.accents.primary.bgClass;
     if (statusLower.includes('replied')) return theme.accents.secondary.bgClass;
     if (statusLower.includes('clicked')) return theme.accents.tertiary.bgClass;
@@ -551,10 +557,10 @@ export default function LeadsPage() {
                     <td className="px-6 py-4">
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${getStatusBadgeColor(
-                          lead.status
+                          lead.processingStatus || lead.status
                         )}`}
                       >
-                        {lead.status}
+                        {lead.processingStatus || lead.status}
                       </span>
                     </td>
                   </tr>
