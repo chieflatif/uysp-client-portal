@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { campaigns, airtableSyncQueue } from '@/lib/db/schema';
-import { eq, desc, and, or, ilike, SQL } from 'drizzle-orm';
+import { campaigns, airtableSyncQueue, leads } from '@/lib/db/schema';
+import { eq, desc, and, or, ilike, SQL, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { VALID_TYPE_FILTERS, VALID_STATUS_FILTERS, CAMPAIGN_TYPE_UI_TO_DB } from '@/lib/constants/campaigns';
 
@@ -106,9 +106,42 @@ export async function GET(request: NextRequest) {
       orderBy: desc(campaigns.createdAt),
     });
 
+    // Calculate actual message counts and lead counts from leads table
+    // Group by campaign_id and aggregate sms_sent_count
+    const leadStats = await db
+      .select({
+        campaignId: leads.campaignId,
+        totalLeads: sql<number>`COUNT(*)::int`,
+        messagesSent: sql<number>`COALESCE(SUM(${leads.smsSentCount}), 0)::int`,
+      })
+      .from(leads)
+      .where(eq(leads.isActive, true))
+      .groupBy(leads.campaignId);
+
+    // Create a map of campaign stats for O(1) lookup
+    const statsMap = new Map(
+      leadStats.map((stat) => [
+        stat.campaignId,
+        {
+          totalLeads: stat.totalLeads,
+          messagesSent: stat.messagesSent,
+        },
+      ])
+    );
+
+    // Merge stats with campaigns
+    const campaignsWithStats = allCampaigns.map((campaign) => {
+      const stats = statsMap.get(campaign.id) || { totalLeads: 0, messagesSent: 0 };
+      return {
+        ...campaign,
+        totalLeads: stats.totalLeads,
+        messagesSent: stats.messagesSent,
+      };
+    });
+
     return NextResponse.json({
-      campaigns: allCampaigns,
-      count: allCampaigns.length,
+      campaigns: campaignsWithStats,
+      count: campaignsWithStats.length,
     });
   } catch (error) {
     console.error('Error fetching campaigns:', error);
