@@ -423,19 +423,15 @@ async function reconcileStage2(
           throw new Error(`Lead ${lead.id} missing airtableRecordId - skipping`);
         }
 
-        // Fetch corresponding Airtable record to get Last Modified Time
+        // Fetch corresponding Airtable record for current state
         const airtableRecord = await airtable.getRecord(lead.airtableRecordId);
 
-        // Parse Airtable's Last Modified Time
-        const airtableModifiedTime = new Date(
-          airtableRecord.fields['Last Modified Time'] as string
-        );
+        // CONFLICT PREVENTION: Skip if within grace period of PostgreSQL update
+        // This prevents race conditions when both systems update simultaneously
+        const timeSinceUpdate = Date.now() - lead.updatedAt.getTime();
 
-        // CONFLICT PREVENTION: Check if Airtable is newer
-        const timeDiffMs = lead.updatedAt.getTime() - airtableModifiedTime.getTime();
-
-        // Skip if Airtable was modified more recently OR within grace period
-        if (timeDiffMs < RECONCILIATION_CONFIG.GRACE_PERIOD_MS) {
+        // Skip if updated very recently (within grace period)
+        if (timeSinceUpdate < RECONCILIATION_CONFIG.GRACE_PERIOD_MS) {
           result.stage2.skipped++;
           continue;
         }
