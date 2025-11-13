@@ -19,7 +19,7 @@ interface ActivityEvent {
   id: string;
   timestamp: string;
   eventType: string;
-  eventCategory: string;
+  category: string; // API returns 'category' not 'eventCategory'
   description: string;
   messageContent?: string;
   source: string;
@@ -246,7 +246,7 @@ export function LeadTimeline({ leadId }: LeadTimelineProps) {
               {/* Timeline dot */}
               <div
                 className={`absolute left-[-9px] top-0 w-4 h-4 rounded-full border-2 ${getCategoryColor(
-                  activity.eventCategory
+                  activity.category
                 )}`}
               />
 
@@ -263,14 +263,14 @@ export function LeadTimeline({ leadId }: LeadTimelineProps) {
                   <div className="flex-1">
                     {/* Header */}
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`p-1.5 rounded ${getCategoryColor(activity.eventCategory)}`}>
-                        {getCategoryIcon(activity.eventCategory)}
+                      <span className={`p-1.5 rounded ${getCategoryColor(activity.category)}`}>
+                        {getCategoryIcon(activity.category)}
                       </span>
                       <span className={`text-sm font-medium ${theme.core.white}`}>
                         {formatEventType(activity.eventType)}
                       </span>
                       <span className={`text-xs ${theme.core.bodyText}`}>
-                        {activity.eventCategory}
+                        {activity.category}
                       </span>
                     </div>
 
