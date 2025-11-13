@@ -6,6 +6,8 @@ const commitHash = execSync('git rev-parse HEAD').toString().trim();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Explicitly set the workspace root to avoid confusion with parent package.json
+  outputFileTracingRoot: path.join(__dirname),
   env: {
     NEXT_PUBLIC_GIT_COMMIT_SHA: commitHash,
     NEXT_PUBLIC_BUILD_TIMESTAMP: new Date().toISOString(),
@@ -20,10 +22,7 @@ const nextConfig = {
   },
   // Change output directory to bypass cached artifacts
   distDir: process.env.RENDER ? '.next-render' : '.next',
-  // Disable build output caching
-  experimental: {
-    isrMemoryCacheSize: 0,
-  },
+  // Experimental options (currently none needed)
   // Enable response compression
   compress: true,
   // Add security headers
