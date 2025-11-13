@@ -15,14 +15,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Disable all caching to force fresh builds on Render
-  generateBuildId: async () => {
-    // Generate unique build ID based on timestamp to prevent cache reuse
-    return `build-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-  },
-  // Change output directory to bypass cached artifacts
-  distDir: process.env.RENDER ? '.next-render' : '.next',
-  // Experimental options (currently none needed)
+  // Standard Next.js configuration
   // Enable response compression
   compress: true,
   // Add security headers

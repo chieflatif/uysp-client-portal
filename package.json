@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "rm -rf .next .next-render node_modules/.cache /opt/render/project/.next* /opt/render/.cache 2>/dev/null; RENDER=1 next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
