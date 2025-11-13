@@ -39,7 +39,7 @@ export default function LeadsPage() {
   const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const campaignFilter = searchParams.get('campaign');
+  const campaignFilter = searchParams?.get('campaign');
   const queryClient = useQueryClient();
   const { selectedClientId, isLoading: clientLoading } = useClient();
 

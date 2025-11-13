@@ -43,7 +43,7 @@ export default function CampaignDetailPage() {
   const [period, setPeriod] = useState('all');
 
   useEffect(() => {
-    if (params.campaignName) {
+    if (params?.campaignName) {
       setCampaignName(decodeURIComponent(params.campaignName as string));
     }
   }, [params]);

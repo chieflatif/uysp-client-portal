@@ -40,7 +40,7 @@ export default function LeadDetailPage() {
   const [removeReason, setRemoveReason] = useState('');
 
   useEffect(() => {
-    if (params.id) {
+    if (params?.id) {
       setId(params.id as string);
     }
   }, [params]);

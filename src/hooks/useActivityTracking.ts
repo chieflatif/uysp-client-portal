@@ -24,6 +24,11 @@ export function useActivityTracking() {
       return;
     }
 
+    // Skip if pathname is null
+    if (!pathname) {
+      return;
+    }
+
     // Skip API routes
     if (pathname.startsWith('/api/')) {
       return;

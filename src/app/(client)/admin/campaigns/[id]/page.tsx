@@ -51,7 +51,7 @@ interface Lead {
 export default function CampaignDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const campaignId = params.id as string;
+  const campaignId = params?.id as string;
 
   // Fetch campaign details
   const { data: campaign, isLoading: loadingCampaign } = useQuery({

@@ -27,7 +27,7 @@ export default function TaskDetailPage() {
   const [taskId, setTaskId] = useState<string>('');
 
   useEffect(() => {
-    if (params.id) {
+    if (params?.id) {
       setTaskId(params.id as string);
     }
   }, [params]);

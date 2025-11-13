@@ -85,7 +85,7 @@ export default function ClientDetailPage() {
   const [clientId, setClientId] = useState<string>('');
 
   useEffect(() => {
-    if (params.id) {
+    if (params?.id) {
       setClientId(params.id as string);
     }
   }, [params]);
