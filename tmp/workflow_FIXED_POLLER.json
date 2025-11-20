@@ -1,0 +1,864 @@
+{
+  "success": true,
+  "data": {
+    "createdAt": "2025-11-04T06:48:19.477Z",
+    "updatedAt": "2025-11-20T04:17:40.273Z",
+    "id": "LhjEy8ckcPsxATkR",
+    "name": "UYSP-Kajabi-API-Polling-working",
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "filterByFormula": "",
+          "id": "rec7fGC8RTEC0GAz4",
+          "operation": "get"
+        },
+        "id": "b8a7a18c-fd1b-4f4c-8539-b1b4c7a70ecd",
+        "name": "Get Last Poll Timestamp",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          -1120,
+          128
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "Zir5IhIPeSQs72LR",
+            "name": "Airtable UYSP Option C"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const settings = $input.first().json.fields || $input.first().json;\nlet lastPoll = settings['Kajabi Last Poll'];\n\nconst now = new Date();\nconst DEFAULT_WINDOW_MINUTES = 30; // maximum lookback window\nconst OVERLAP_MINUTES = 5; // safety overlap to avoid missing late records\n\nlet sinceIso;\n\nif (lastPoll) {\n  const last = new Date(lastPoll);\n  if (!isNaN(last.getTime())) {\n    const bufferMs = OVERLAP_MINUTES * 60 * 1000;\n    const windowMs = DEFAULT_WINDOW_MINUTES * 60 * 1000;\n    const candidate = last.getTime() - bufferMs;\n    const minAllowed = now.getTime() - windowMs;\n    const sinceMs = Math.max(candidate, minAllowed);\n    sinceIso = new Date(sinceMs).toISOString();\n  } else {\n    // Invalid stored timestamp → fall back to last 30 minutes\n    sinceIso = new Date(now.getTime() - DEFAULT_WINDOW_MINUTES * 60 * 1000).toISOString();\n  }\n} else {\n  // No stored timestamp → start from last 30 minutes only\n  sinceIso = new Date(now.getTime() - DEFAULT_WINDOW_MINUTES * 60 * 1000).toISOString();\n}\n\nreturn [{\n  json: {\n    since_timestamp: sinceIso,\n    settings_record_id: $input.first().json.id\n  }\n}];"
+        },
+        "id": "5573c6ce-3c58-4006-b6ce-027b51ed8cc7",
+        "name": "Calculate Timestamp Filter",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -896,
+          128
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first()?.json || {};\nconst since = input.since_timestamp;\nconst settings_record_id = input.settings_record_id;\nconst MAX_PAGES = 10;\nconst urls = [];\nfor (let page = 1; page <= MAX_PAGES; page++) {\n  urls.push({\n    json: {\n      kajabi_url: `https://api.kajabi.com/v1/form_submissions?filter[updated_after]=${since}&page[limit]=100&page[number]=${page}&include=form`,\n      page_number: page,\n      since_timestamp: since,\n      settings_record_id\n    }\n  });\n}\nreturn urls;"
+        },
+        "id": "0dc546b8-fa36-4c76-a3bc-24a495f578ae",
+        "name": "Generate Page URLs (1-20)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -672,
+          32
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.kajabi_url }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "oAuth2Api",
+          "options": {
+            "batching": {
+              "batch": {
+                "batchSize": 1,
+                "batchInterval": 2000
+              }
+            }
+          }
+        },
+        "id": "5be5b7ab-1e71-4361-b9fb-9eed727cffbc",
+        "name": "Fetch Kajabi Pages (Parallel)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          -448,
+          32
+        ],
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 5000,
+        "credentials": {
+          "oAuth2Api": {
+            "id": "8ptvvz2OxejUnrK6",
+            "name": "Kajabi 0Auth2"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const APPROVED_LEAD_FORMS = [\n  '2149174698',\n  '2147877779',\n  '2147867344',\n  '2147904936',\n  '2147983338',\n  '2148989824',\n  '2148989802',\n  '2148989754',\n  '2148989816',\n  '2148166902',\n  '2148730236',\n  '2148087527',\n  '2148138291',\n  '2147886939',\n  '2149319130',\n  '2149013599',\n  '2148019984',\n  '2148913386',\n  '2148184964',\n  '2147937751'\n];\nconst formMapping = {\n  '2149174698': 'chatgpt_use_cases',\n  '2147877779': 'pricing_rules',\n  '2147867344': 'consensus_building',\n  '2147904936': 'impactful_meetings',\n  '2147983338': 'executive_email',\n  '2148989824': 'problem_mapping',\n  '2148989802': 'killer_proposal',\n  '2148989754': 'executive_outreach',\n  '2148989816': 'income_planner',\n  '2148166902': 'vsl_500k_1m',\n  '2148265042': 'call_booked',\n  '2148730236': 'fundamentals_training',\n  '2148087527': 'weekly_scorecard',\n  '2148138291': 'predict_selling',\n  '2147886939': 'opportunity_cost',\n  '2149013599': 'vsl_500k_1m_fb',\n  '2149319130': 'Best-Q4-Ever-Webinar',\n  '2148019984': 'rad_goals',\n  '2148913386': 'topical_mindset',\n  '2148184964': 'inward_outward',\n  '2147937751': 'top10_traits'\n};\nconst allPages = $input.all();\nconst allSubmissions = [];\nfor (let p = 0; p < allPages.length; p++) {\n  const pageData = allPages[p].json;\n  let response = pageData;\n  if (typeof pageData.data === 'string') {\n    response = JSON.parse(pageData.data);\n  }\n  const submissions = response.data || [];\n  if (submissions.length === 0) {\n    continue;\n  }\n  for (let i = 0; i < submissions.length; i++) {\n    const sub = submissions[i];\n    const attr = sub.attributes || {};\n    if (!attr.email || (!attr.name && !attr.phone_number)) {\n      continue;\n    }\n    const formId = sub.relationships?.form?.data?.id || '';\n    if (APPROVED_LEAD_FORMS.indexOf(formId) === -1) {\n      continue;\n    }\n    const campaign = formMapping[formId] || 'default_nurture';\n    const name = attr.name || '';\n    const nameParts = name.trim().split(' ');\n    const firstName = nameParts[0] || '';\n    const lastName = nameParts.slice(1).join(' ') || '';\n    let phone = (attr.phone_number || '').replace(/[^0-9+]/g, '');\n    if (phone && !phone.startsWith('+')) {\n      phone = '+1' + phone;\n    }\n    const customFields = {\n      custom_1: attr.custom_1 || '',\n      custom_2: attr.custom_2 || '',\n      custom_3: attr.custom_3 || '',\n      custom_10: attr.custom_10 || '',\n      custom_67: attr.custom_67 || ''\n    };\n    allSubmissions.push({\n      json: {\n        email: attr.email || '',\n        kajabi_first_name: firstName,\n        kajabi_last_name: lastName,\n        kajabi_phone: phone,\n        form_id: formId,\n        campaign_assignment: campaign,\n        kajabi_member_status: 'Prospect',\n        kajabi_last_sync: new Date().toISOString(),\n        lead_source: 'Standard Form',\n        processing_status: 'Queued',\n        hrq_status: 'None',\n        imported_at: attr.created_at || new Date().toISOString(),\n        custom_1: customFields.custom_1,\n        custom_2: customFields.custom_2,\n        custom_3: customFields.custom_3,\n        custom_10: customFields.custom_10,\n        custom_67: customFields.custom_67\n      }\n    });\n  }\n}\nreturn allSubmissions;"
+        },
+        "id": "7d8324dd-223f-4597-af42-f55499035176",
+        "name": "Parse All Submissions",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -224,
+          32
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "app4wIsBfpJTg7pWS",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblnIn8c1spOrImuz",
+            "mode": "list"
+          },
+          "filterByFormula": "{Active} = TRUE()",
+          "options": {}
+        },
+        "id": "0883a161-ea76-4326-8dd0-8f8725485627",
+        "name": "Get Active Campaigns",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          0,
+          -64
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "Zir5IhIPeSQs72LR",
+            "name": "Airtable UYSP Option C"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "var leads = $('Parse All Submissions').all();\nvar campaignsRaw = $('Get Active Campaigns').all();\nvar campaigns = [];\nfor (var i = 0; i < campaignsRaw.length; i++) {\n  var c = campaignsRaw[i].json.fields || campaignsRaw[i].json;\n  campaigns.push(c);\n}\nvar results = [];\nfor (var i = 0; i < leads.length; i++) {\n  var lead = leads[i].json;\n  var formId = (lead.form && lead.form.id) || lead.form_id || lead.kajabi_form_id || '';\n  \n  if (!formId) {\n    lead.lead_source = 'Standard Form';\n    lead.lead_source_detail = 'No Form ID';\n    lead.form_id = null;\n    results.push(lead);\n    continue;\n  }\n  \n  if (campaigns.length === 0) {\n    lead.lead_source = 'Standard Form';\n    lead.lead_source_detail = 'No active campaigns configured';\n    lead.form_id = formId;\n    results.push(lead);\n    continue;\n  }\n  \n  var foundCampaign = null;\n  for (var j = 0; j < campaigns.length; j++) {\n    if (campaigns[j]['Form ID'] === formId) {\n      foundCampaign = campaigns[j];\n      break;\n    }\n  }\n  \n  if (!foundCampaign) {\n    lead.lead_source = 'Standard Form';\n    lead.lead_source_detail = 'Form ID ' + formId + ' (unmapped - needs campaign)';\n    lead.form_id = formId;\n    lead.processing_status = 'Queued';\n    lead.hrq_reason = 'Unmapped form - queued for review: ' + formId;\n    lead.hrq_status = 'Review';\n    results.push(lead);\n    continue;\n  }\n  \n  var campaignType = foundCampaign['Campaign Type'] || 'Standard';\n  var campaignName = foundCampaign['Campaign Name'] || '';\n  var campaignId = foundCampaign.id || '';\n  \n  lead.lead_source_detail = campaignName;\n  \n  if (lead.campaign_assignment === 'call_booked') {\n    lead.lead_source = 'Standard Form';\n    lead.form_id = formId;\n    lead.processing_status = 'Complete';\n    lead.hrq_status = 'Archive';\n    lead.hrq_reason = 'Call already booked - no SMS needed';\n    lead.linked_campaign = [campaignId];\n    lead.booked = true;\n    lead.booked_at = new Date().toISOString();\n    results.push(lead);\n    continue;\n  }\n  \n  if (campaignType === 'Webinar') {\n    var webinarDatetime = foundCampaign['Webinar Datetime'];\n    if (!webinarDatetime) {\n      lead.lead_source = 'Standard Form';\n      lead.form_id = formId;\n      lead.processing_status = 'Queued';\n      lead.hrq_reason = 'Webinar campaign missing datetime';\n      lead.hrq_status = 'Review';\n      lead.linked_campaign = [campaignId];\n      results.push(lead);\n      continue;\n    }\n    var now = new Date().toISOString();\n    var webinarDate = new Date(webinarDatetime).toISOString();\n    if (webinarDate < now) {\n      lead.lead_source = 'Webinar Form';\n      lead.form_id = formId;\n      lead.processing_status = 'Complete';\n      lead.hrq_reason = 'Webinar already passed';\n      lead.linked_campaign = [campaignId];\n      lead.webinar_datetime = webinarDatetime;\n      results.push(lead);\n      continue;\n    }\n    lead.lead_source = 'Webinar Form';\n    lead.form_id = formId;\n    lead.webinar_datetime = webinarDatetime;\n    lead.linked_campaign = [campaignId];\n    results.push(lead);\n  } else {\n    lead.lead_source = 'Standard Form';\n    lead.form_id = formId;\n    lead.linked_campaign = [campaignId];\n    results.push(lead);\n  }\n}\nreturn results.map(function(r) { return { json: r }; });"
+        },
+        "id": "723b209a-27fd-4fec-a009-86eb55f716af",
+        "name": "Campaign Lookup & Route",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          0,
+          128
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "var leadData = $input.item.json;\nvar email = leadData.email;\nvar url = `https://api.kajabi.com/v1/contacts?filter[search]=${encodeURIComponent(email)}&include=tags&page[size]=1`;\n\nreturn {\n  json: {\n    kajabi_contact_url: url,\n    email: email,\n    lead_data: leadData\n  }\n};"
+        },
+        "id": "e5d5a94f-98d6-4365-8e17-a2b544617b60",
+        "name": "Build Contact Lookup URL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          224,
+          128
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.kajabi_contact_url }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "oAuth2Api",
+          "options": {
+            "batching": {
+              "batch": {
+                "batchSize": 1
+              }
+            },
+            "timeout": 15000
+          }
+        },
+        "id": "3438328a-dc18-4610-a9fb-de2d3e30cea2",
+        "name": "Get Kajabi Contact via Search",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          448,
+          128
+        ],
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 5000,
+        "credentials": {
+          "oAuth2Api": {
+            "id": "8ptvvz2OxejUnrK6",
+            "name": "Kajabi 0Auth2"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "var contactResponse = $input.item.json;\nvar buildUrlData = $('Build Contact Lookup URL').item.json;\nvar leadData = buildUrlData.lead_data;\nvar contactParsed = contactResponse;\nvar fetch_ok = true;\ntry {\n  if (typeof contactResponse.data === 'string') {\n    contactParsed = JSON.parse(contactResponse.data);\n  }\n} catch (e) {\n  fetch_ok = false;\n}\nvar contactDataArray = (contactParsed && Array.isArray(contactParsed.data)) ? contactParsed.data : [];\nvar included = contactParsed && Array.isArray(contactParsed.included) ? contactParsed.included : [];\nif (!Array.isArray(contactDataArray)) { fetch_ok = false; }\nvar matchedContact = null;\nfor (var i = 0; i < contactDataArray.length; i++) {\n  var c = contactDataArray[i];\n  if (c && c.attributes && c.attributes.email && leadData && leadData.email && c.attributes.email.toLowerCase() === leadData.email.toLowerCase()) {\n    matchedContact = c;\n    break;\n  }\n}\nif (!matchedContact && contactDataArray.length > 0) {\n  matchedContact = contactDataArray[0];\n}\nvar tagNames = [];\nif (matchedContact && matchedContact.relationships && matchedContact.relationships.tags && matchedContact.relationships.tags.data) {\n  var tagRefs = matchedContact.relationships.tags.data;\n  for (var i = 0; i < tagRefs.length; i++) {\n    var tagId = tagRefs[i].id;\n    for (var j = 0; j < included.length; j++) {\n      if (included[j].type === 'contact_tags' && included[j].id === tagId && included[j].attributes && included[j].attributes.name) {\n        tagNames.push(included[j].attributes.name);\n        break;\n      }\n    }\n  }\n}\nvar contactAttrs = matchedContact && matchedContact.attributes ? matchedContact.attributes : {};\nvar kajabi_contact_id = matchedContact ? matchedContact.id : '';\nvar ACTIVE_MEMBERSHIP_TAGS = ['Bronze Annual', 'Bronze Split Pay', 'Silver (3 Payment Plan)', 'Silver (2 Payment Plan)', 'Silver Annual', 'Silver Monthly', 'Gold (3 Payment Plan)', 'Gold Annual', 'Gold Monthly', 'Platinum (3 Payment Plan)', 'Platinum Annual', 'Platinum Monthly'];\nvar isCoachingClient = false;\nfor (var k = 0; k < tagNames.length; k++) {\n  if (ACTIVE_MEMBERSHIP_TAGS.indexOf(tagNames[k]) !== -1) { isCoachingClient = true; break; }\n}\nvar membershipTier = '';\nfor (var m = 0; m < tagNames.length; m++) {\n  if (ACTIVE_MEMBERSHIP_TAGS.indexOf(tagNames[m]) !== -1) { membershipTier = tagNames[m]; break; }\n}\nvar tier = membershipTier ? membershipTier.split(' ')[0] : 'None';\nvar custom67 = (leadData && leadData.custom_67) || contactAttrs.custom_67 || '';\nvar custom1 = (leadData && leadData.custom_1) || contactAttrs.custom_1 || '';\nvar custom2 = (leadData && leadData.custom_2) || contactAttrs.custom_2 || '';\nvar custom3 = (leadData && leadData.custom_3) || contactAttrs.custom_3 || '';\nvar interestedInCoaching = false;\nfunction hasYesLike(v){ return v && (v.toLowerCase().indexOf('yes')!==-1 || v.toLowerCase().indexOf('interested')!==-1 || v.toLowerCase().indexOf('coaching')!==-1); }\nif (custom67 && custom67.toLowerCase() === 'yes') interestedInCoaching = true; else if (hasYesLike(custom1) || hasYesLike(custom2) || hasYesLike(custom3)) interestedInCoaching = true;\nvar tag_count = tagNames.length;\nvar recency_points = 2.0;\nvar total_score = tag_count * recency_points;\nvar engagement_level = total_score > 15 ? 'Green' : (total_score >= 8 ? 'Yellow' : 'Red');\nvar isBookedViaTag = false;\nfor (var t = 0; t < tagNames.length; t++) {\n  var tag = tagNames[t];\n  if (tag.indexOf('Booked a call') !== -1 || tag.indexOf('booked a call') !== -1) {\n    isBookedViaTag = true;\n    break;\n  }\n}\nvar finalHrqStatus = leadData.hrq_status;\nvar finalHrqReason = leadData.hrq_reason;\nvar finalProcessingStatus = leadData.processing_status;\nvar finalBooked = leadData.booked || false;\nvar finalBookedAt = leadData.booked_at || '';\nif (isBookedViaTag) {\n  finalHrqStatus = 'Archive';\n  finalHrqReason = 'Call already booked - no SMS needed';\n  finalProcessingStatus = 'Complete';\n  finalBooked = true;\n  if (!finalBookedAt) {\n    finalBookedAt = new Date().toISOString();\n  }\n}\nreturn { json: { email: leadData.email, kajabi_first_name: leadData.kajabi_first_name, kajabi_last_name: leadData.kajabi_last_name, kajabi_phone: leadData.kajabi_phone, kajabi_contact_id: kajabi_contact_id, form_id: leadData.form_id, webinar_datetime: leadData.webinar_datetime, lead_source: leadData.lead_source, linked_campaign: leadData.linked_campaign, campaign_assignment: leadData.campaign_assignment, lead_source_detail: leadData.lead_source_detail, kajabi_member_status: leadData.kajabi_member_status, kajabi_last_sync: leadData.kajabi_last_sync, processing_status: finalProcessingStatus, hrq_status: finalHrqStatus, hrq_reason: finalHrqReason, booked: finalBooked, booked_at: finalBookedAt, imported_at: leadData.imported_at, kajabi_tags: tagNames.join(', '), current_coaching_client: isCoachingClient, coaching_tier: tier, interested_in_coaching: interestedInCoaching, engagement_tag_count: tag_count, engagement_recency_points: recency_points, engagement_total_score: Math.round(total_score * 10) / 10, engagement_level: engagement_level, fetch_ok: fetch_ok } };"
+        },
+        "id": "9a28089c-7c84-4198-99d4-1661358b032f",
+        "name": "Parse Tags & Detect Client Status",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          672,
+          128
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const allLeads = $input.all();\nconst emails = allLeads.map(item => item.json.email);\nconst emailFilters = emails.map(e => `{Email} = '${e.replace(/'/g, \"\\\\'\")}'`);\nconst formula = `OR(${emailFilters.join(',')})`;\n\nreturn [{\n  json: {\n    airtable_formula: formula,\n    total_emails: emails.length\n  }\n}];"
+        },
+        "id": "211da11e-1cdb-4112-9699-bfdedf9f3ad9",
+        "name": "Build Bulk Query Formula",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          896,
+          128
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "=https://api.airtable.com/v0/app4wIsBfpJTg7pWS/tblYUvhGADerbD8EO?fields[]=Email&fields[]=First%20Name&fields[]=Last%20Name&fields[]=Phone&fields[]=Imported%20At&filterByFormula={{ encodeURIComponent($json.airtable_formula) }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "airtableTokenApi"
+        },
+        "id": "481e7820-b1b1-4bf1-90a3-581bb10f49de",
+        "name": "Bulk Check Existing (1 Call)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          1120,
+          128
+        ],
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 5000,
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "Zir5IhIPeSQs72LR",
+            "name": "Airtable UYSP Option C"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const httpResponse = $input.first().json;\nconst existingRecords = httpResponse.records || [];\nconst existingMap = {};\n\nfor (let i = 0; i < existingRecords.length; i++) {\n  const rec = existingRecords[i];\n  const email = rec.fields.Email ? rec.fields.Email.toLowerCase() : null;\n  if (email) {\n    existingMap[email] = {\n      first_name: rec.fields['First Name'] || '',\n      last_name: rec.fields['Last Name'] || '',\n      phone: rec.fields['Phone'] || '',\n      imported_at: rec.fields['Imported At'] || '',\n      exists: true\n    };\n  }\n}\n\nconst allLeads = $('Parse Tags & Detect Client Status').all();\nconst results = [];\n\nfor (let i = 0; i < allLeads.length; i++) {\n  const lead = allLeads[i].json;\n  const emailKey = (lead.email || '').toLowerCase();\n  const existing = existingMap[emailKey];\n  const isExisting = !!(existing && existing.exists);\n  \n  let firstName = lead.kajabi_first_name;\n  let lastName = lead.kajabi_last_name;\n  let phone = lead.kajabi_phone && lead.kajabi_phone.trim() !== '' ? lead.kajabi_phone : (existing ? existing.phone : '');\n  let importedAt = lead.imported_at;\n  \n  if (existing) {\n    if (existing.first_name && existing.first_name.trim() !== '') {\n      firstName = existing.first_name;\n    }\n    if (existing.last_name && existing.last_name.trim() !== '') {\n      lastName = existing.last_name;\n    }\n    if (existing.imported_at) {\n      importedAt = existing.imported_at;\n    }\n  }\n  \n  const leadName = (firstName + ' ' + lastName).trim() || lead.email;\n  \n  results.push({\n    json: {\n      email: lead.email,\n      lead_name: leadName,\n      first_name: firstName,\n      last_name: lastName,\n      phone: phone,\n      kajabi_contact_id: lead.kajabi_contact_id,\n      form_id: lead.form_id,\n      webinar_datetime: lead.webinar_datetime,\n      lead_source: lead.lead_source,\n      linked_campaign: lead.linked_campaign,\n      campaign_assignment: lead.campaign_assignment,\n      lead_source_detail: lead.lead_source_detail,\n      kajabi_member_status: lead.kajabi_member_status,\n      kajabi_last_sync: lead.kajabi_last_sync,\n      processing_status: lead.processing_status,\n      hrq_status: lead.hrq_status,\n      hrq_reason: lead.hrq_reason,\n      booked: lead.booked,\n      booked_at: lead.booked_at,\n      imported_at: importedAt,\n      kajabi_tags: lead.kajabi_tags,\n      current_coaching_client: lead.current_coaching_client,\n      coaching_tier: lead.coaching_tier,\n      interested_in_coaching: lead.interested_in_coaching,\n      engagement_tag_count: lead.engagement_tag_count,\n      engagement_recency_points: lead.engagement_recency_points,\n      engagement_total_score: lead.engagement_total_score,\n      engagement_level: lead.engagement_level,\n      existing: isExisting\n    }\n  });\n}\n\nreturn results;"
+        },
+        "id": "d63c4456-7e07-47d2-b87a-98590ad11900",
+        "name": "Merge & Protect Clay Data",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1344,
+          128
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "resource": "record",
+          "operation": "upsert",
+          "base": {
+            "__rl": true,
+            "value": "app4wIsBfpJTg7pWS",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblYUvhGADerbD8EO",
+            "mode": "list"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Email": "={{ $json.email }}",
+              "Phone": "={{ $json.phone || undefined }}",
+              "Phone Valid": "={{ $json.phone_valid === undefined ? undefined : $json.phone_valid }}",
+              "First Name": "={{ $json.existing ? undefined : ($json.first_name || undefined) }}",
+              "Last Name": "={{ $json.existing ? undefined : ($json.last_name || undefined) }}",
+              "Kajabi Contact ID": "={{ $json.kajabi_contact_id || undefined }}",
+              "Kajabi Tags": "={{ $json.kajabi_tags || undefined }}",
+              "Engagement - Tag Count": "={{ $json.existing ? undefined : ($json.engagement_tag_count || undefined) }}",
+              "Engagement - Recency Points": "={{ $json.existing ? undefined : ($json.engagement_recency_points || undefined) }}",
+              "Engagement - Total Score": "={{ $json.existing ? undefined : ($json.engagement_total_score || undefined) }}",
+              "Engagement - Level": "={{ $json.existing ? undefined : ($json.engagement_level || undefined) }}",
+              "Form ID": "={{ $json.existing ? undefined : ($json.form_id || undefined) }}",
+              "Webinar Datetime": "={{ $json.existing ? undefined : ($json.webinar_datetime || undefined) }}",
+              "Lead Source": "={{ $json.existing ? undefined : ($json.lead_source || undefined) }}",
+              "Lead Source Detail": "={{ $json.existing ? undefined : ($json.lead_source_detail || undefined) }}",
+              "Linked Campaign": "={{ $json.existing ? undefined : ($json.linked_campaign || undefined) }}",
+              "Campaign (CORRECTED)": "={{ $json.existing ? undefined : ($json.campaign_assignment || undefined) }}",
+              "Processing Status": "={{ $json.existing ? undefined : ($json.processing_status || undefined) }}",
+              "HRQ Status": "={{ $json.existing ? undefined : ($json.hrq_status || undefined) }}",
+              "HRQ Reason": "={{ $json.existing ? undefined : ($json.hrq_reason || undefined) }}",
+              "Imported At": "={{ $json.existing ? undefined : ($json.imported_at || undefined) }}",
+              "Booked": "={{ $json.existing ? undefined : ($json.booked || undefined) }}",
+              "Booked At": "={{ $json.existing ? undefined : ($json.booked_at || undefined) }}",
+              "Current Coaching Client": "={{ $json.existing ? undefined : ($json.current_coaching_client || undefined) }}",
+              "Coaching Tier": "={{ $json.existing ? undefined : ($json.coaching_tier || undefined) }}",
+              "Interested in Coaching": "={{ $json.existing ? undefined : ($json.interested_in_coaching || undefined) }}",
+              "Kajabi Member Status": "={{ $json.existing ? undefined : ($json.kajabi_member_status || undefined) }}",
+              "Kajabi Last Sync": "={{ $json.existing ? undefined : ($json.kajabi_last_sync || undefined) }}"
+            },
+            "matchingColumns": [
+              "Email"
+            ]
+          },
+          "options": {
+            "typecast": true,
+            "updateAllMatches": false
+          }
+        },
+        "id": "1ce5347a-6d4f-420b-8592-91f5a3b97c01",
+        "name": "Airtable Upsert by Email",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          1568,
+          128
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "Zir5IhIPeSQs72LR",
+            "name": "Airtable UYSP Option C"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "resource": "record",
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "app4wIsBfpJTg7pWS",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblErXnFNMKYhh3Xr",
+            "mode": "list"
+          },
+          "columns": {
+            "mappingMode": "json",
+            "matchingColumns": [
+              "id"
+            ],
+            "value": "={{ [{ id: 'rec7fGC8RTEC0GAz4', fields: { 'Kajabi Last Poll': $now } }] }}"
+          }
+        },
+        "id": "3277dfd7-64b0-442a-bf8b-5a157fa050c3",
+        "name": "Update Last Poll Timestamp",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          -672,
+          224
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "Zir5IhIPeSQs72LR",
+            "name": "Airtable UYSP Option C"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const upsertResults = $input.all();\nconst totalProcessed = upsertResults.length;\nconst recordsWithTags = upsertResults.filter(r => r.json.fields && r.json.fields['Kajabi Tags'] && r.json.fields['Kajabi Tags'].trim() !== '').length;\nconst recordsWithEngagement = upsertResults.filter(r => r.json.fields && r.json.fields['Engagement - Level']).length;\nconst recordsWithEmail = upsertResults.filter(r => r.json.fields && r.json.fields['Email']).length;\n\nconst tagRate = totalProcessed > 0 ? Math.round((recordsWithTags / totalProcessed) * 100 * 10) / 10 : 0;\nconst engagementRate = totalProcessed > 0 ? Math.round((recordsWithEngagement / totalProcessed) * 100 * 10) / 10 : 0;\nconst emailRate = totalProcessed > 0 ? Math.round((recordsWithEmail / totalProcessed) * 100 * 10) / 10 : 0;\n\nconst issues = [];\nif (tagRate < 95) issues.push(`Tag completeness: ${tagRate}% (expected >95%)`);\nif (engagementRate < 95) issues.push(`Engagement calculation: ${engagementRate}% (expected >95%)`);\nif (emailRate < 100) issues.push(`Email field: ${emailRate}% (CRITICAL - should be 100%)`);\n\nconst hasIssues = issues.length > 0;\n\nreturn [{ json: { total_processed: totalProcessed, records_with_tags: recordsWithTags, tag_completion_rate: tagRate, records_with_engagement: recordsWithEngagement, engagement_rate: engagementRate, records_with_email: recordsWithEmail, email_rate: emailRate, has_quality_issues: hasIssues, quality_issues: issues.join('; '), verified_at: new Date().toISOString() } }];"
+        },
+        "id": "verify-upsert-quality",
+        "name": "Verify UPSERT Quality",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1792,
+          128
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const data = $input.item.json;\nconst lines = [];\nlines.push('📊 Kajabi Import Complete\\n');\nlines.push(`✅ Processed: ${data.total_processed} leads`);\nlines.push(`📧 Email: ${data.records_with_email}/${data.total_processed} (${data.email_rate}%)`);\nlines.push(`🏷️ Tags: ${data.records_with_tags}/${data.total_processed} (${data.tag_completion_rate}%)`);\nlines.push(`📈 Engagement: ${data.records_with_engagement}/${data.total_processed} (${data.engagement_rate}%)\\n`);\n\nif (data.has_quality_issues) {\n  lines.push('⚠️ Quality Issues Detected:');\n  lines.push(data.quality_issues);\n  lines.push('\\nAction: Review recent leads in Airtable');\n} else {\n  lines.push('✅ All quality checks passed');\n}\n\nreturn { json: { message: lines.join('\\n') } };"
+        },
+        "id": "alert-quality-issues",
+        "name": "Alert Quality Issues (if any)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2016,
+          128
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "boolean": [
+              {
+                "value1": "={{$json.has_issues}}",
+                "value2": true
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "filter-quality-issues",
+        "name": "Has Quality Issues?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          2240,
+          128
+        ]
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 30
+              }
+            ]
+          }
+        },
+        "id": "509926b9-780f-4b6d-b55a-d4a7fc6d3422",
+        "name": "Poll Every 30 Minutes",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -1344,
+          128
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "error-trigger",
+        "name": "🚨 WORKFLOW ERROR ALERT",
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          -1344,
+          448
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const error = $input.first().json;\nconst workflowName = 'UYSP-Kajabi-API-Polling-working';\nconst workflowId = 'LhjEy8ckcPsxATkR';\nconst timestamp = new Date().toLocaleString('en-US', {timeZone: 'America/New_York'}) + ' ET';\n\n// Try to extract node name and error message from various possible structures\nlet nodeName = 'Unknown';\nlet errorMsg = 'No error details captured';\n\nif (error.node) {\n  nodeName = error.node.name || error.node.type || 'Unknown';\n}\n\nif (error.error) {\n  if (typeof error.error === 'string') {\n    errorMsg = error.error;\n  } else if (error.error.message) {\n    errorMsg = error.error.message;\n  } else if (error.error.description) {\n    errorMsg = error.error.description;\n  }\n} else if (error.message) {\n  errorMsg = error.message;\n} else if (error.errorMessage) {\n  errorMsg = error.errorMessage;\n}\n\nconst lines = [];\nlines.push('🔴 CRITICAL PRODUCTION ERROR\\n');\nlines.push(`Workflow: ${workflowName}`);\nlines.push(`Node: ${nodeName}`);\nlines.push(`Time: ${timestamp}\\n`);\nlines.push(`Error: ${errorMsg}\\n`);\nlines.push('🚨 NO LEADS ARE BEING PROCESSED');\nlines.push(`Check immediately: https://rebelhq.app.n8n.cloud/workflow/${workflowId}`);\n\nreturn [{ json: { message: lines.join('\\n') } }];"
+        },
+        "id": "format-error-alert",
+        "name": "Format Critical Error Message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1120,
+          448
+        ]
+      },
+      {
+        "id": "slack-quality-alert",
+        "name": "Send Quality Alert to Slack",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.3,
+        "position": [
+          2464,
+          128
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "post",
+          "authentication": "oAuth2",
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "C097CHUHNTG"
+          },
+          "text": "={{ $json.message }}",
+          "otherOptions": {
+            "disableNotification": true
+          }
+        },
+        "credentials": {
+          "slackOAuth2Api": {
+            "id": "OyxQzoqNPQocHdnn",
+            "name": "Slack account"
+          }
+        }
+      },
+      {
+        "id": "send-error-slack",
+        "name": "🚨 Send ERROR to Slack",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.3,
+        "position": [
+          -896,
+          448
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "post",
+          "authentication": "oAuth2",
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "C097CHUHNTG"
+          },
+          "text": "={{ $json.message }}",
+          "otherOptions": {
+            "disableNotification": true
+          }
+        },
+        "credentials": {
+          "slackOAuth2Api": {
+            "id": "OyxQzoqNPQocHdnn",
+            "name": "Slack account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "batchSize": 50,
+          "options": {}
+        },
+        "id": "split-in-batches-fix",
+        "name": "Batch Process Leads (50)",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 1,
+        "position": [
+          784,
+          128
+        ]
+      }
+    ],
+    "connections": {
+      "Get Last Poll Timestamp": {
+        "main": [
+          [
+            {
+              "node": "Calculate Timestamp Filter",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Calculate Timestamp Filter": {
+        "main": [
+          [
+            {
+              "node": "Generate Page URLs (1-20)",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Update Last Poll Timestamp",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Page URLs (1-20)": {
+        "main": [
+          [
+            {
+              "node": "Fetch Kajabi Pages (Parallel)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Kajabi Pages (Parallel)": {
+        "main": [
+          [
+            {
+              "node": "Parse All Submissions",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse All Submissions": {
+        "main": [
+          [
+            {
+              "node": "Get Active Campaigns",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Campaign Lookup & Route",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Campaign Lookup & Route": {
+        "main": [
+          [
+            {
+              "node": "Build Contact Lookup URL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Contact Lookup URL": {
+        "main": [
+          [
+            {
+              "node": "Get Kajabi Contact via Search",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Kajabi Contact via Search": {
+        "main": [
+          [
+            {
+              "node": "Parse Tags & Detect Client Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Bulk Query Formula": {
+        "main": [
+          [
+            {
+              "node": "Bulk Check Existing (1 Call)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Bulk Check Existing (1 Call)": {
+        "main": [
+          [
+            {
+              "node": "Merge & Protect Clay Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Tags & Detect Client Status": {
+        "main": [
+          [
+            {
+              "node": "Batch Process Leads (50)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable Upsert by Email": {
+        "main": [
+          [
+            {
+              "node": "Verify UPSERT Quality",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Verify UPSERT Quality": {
+        "main": [
+          [
+            {
+              "node": "Alert Quality Issues (if any)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alert Quality Issues (if any)": {
+        "main": [
+          [
+            {
+              "node": "Has Quality Issues?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Poll Every 30 Minutes": {
+        "main": [
+          [
+            {
+              "node": "Get Last Poll Timestamp",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "🚨 WORKFLOW ERROR ALERT": {
+        "main": [
+          [
+            {
+              "node": "Format Critical Error Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge & Protect Clay Data": {
+        "main": [
+          [
+            {
+              "node": "Airtable Upsert by Email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has Quality Issues?": {
+        "main": [
+          [
+            {
+              "node": "Send Quality Alert to Slack",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Batch Process Leads (50)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Critical Error Message": {
+        "main": [
+          [
+            {
+              "node": "🚨 Send ERROR to Slack",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Batch Process Leads (50)": {
+        "main": [
+          [
+            {
+              "node": "Build Bulk Query Formula",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Quality Alert to Slack": {
+        "main": [
+          [
+            {
+              "node": "Batch Process Leads (50)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "staticData": {
+      "node:Poll Every 30 Minutes": {
+        "recurrenceRules": []
+      }
+    },
+    "meta": null,
+    "pinData": {},
+    "versionId": "80972ebf-66fc-4fd7-a626-7684383bafaf",
+    "triggerCount": 1,
+    "shared": [
+      {
+        "createdAt": "2025-11-04T06:48:19.479Z",
+        "updatedAt": "2025-11-04T06:48:19.479Z",
+        "role": "workflow:owner",
+        "workflowId": "LhjEy8ckcPsxATkR",
+        "projectId": "H4VRaaZhd8VKQANf",
+        "project": {
+          "createdAt": "2025-07-20T10:20:07.367Z",
+          "updatedAt": "2025-07-20T10:23:14.000Z",
+          "id": "H4VRaaZhd8VKQANf",
+          "name": "UYSP Lead Qualification Agent ",
+          "type": "team",
+          "icon": {
+            "type": "icon",
+            "value": "layer-group"
+          },
+          "description": "Automated lead qualification and SMS outreach system that processes Kajabi form submissions, enriches B2B leads through two-phase qualification, scores them 0-100 using AI, and sends personalized SMS to qualified prospects while maintaining strict compliance and cost controls.",
+          "projectRelations": [
+            {
+              "createdAt": "2025-07-20T10:23:14.911Z",
+              "updatedAt": "2025-07-20T10:23:14.911Z",
+              "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "projectId": "H4VRaaZhd8VKQANf",
+              "user": {
+                "createdAt": "2025-07-01T09:55:15.012Z",
+                "updatedAt": "2025-11-20T00:15:38.000Z",
+                "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+                "email": "latifhorst@gmail.com",
+                "firstName": "LATIF",
+                "lastName": "HORST",
+                "personalizationAnswers": null,
+                "settings": {
+                  "userActivated": true,
+                  "easyAIWorkflowOnboarded": true,
+                  "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                  "userActivatedAt": 1751967003557,
+                  "npsSurvey": {
+                    "responded": true,
+                    "lastShownAt": 1753035927344
+                  },
+                  "userClaimedAiCredits": true
+                },
+                "disabled": false,
+                "mfaEnabled": false,
+                "lastActiveAt": "2025-11-19",
+                "isPending": false
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "tags": []
+  }
+}

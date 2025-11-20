@@ -1,0 +1,2361 @@
+{
+  "success": true,
+  "data": {
+    "createdAt": "2025-11-01T22:35:24.884Z",
+    "updatedAt": "2025-11-07T00:34:04.716Z",
+    "id": "kJMMZ10anu4NqYUL",
+    "name": "UYSP-Kajabi-SMS-Scheduler",
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "*/15 8-20 * * 1-5"
+              }
+            ]
+          }
+        },
+        "id": "schedule",
+        "name": "Run Every 15 Minutes",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          240,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "base": {
+            "__rl": true,
+            "value": "app4wIsBfpJTg7pWS",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblErXnFNMKYhh3Xr",
+            "mode": "list"
+          },
+          "id": "recygZ32OZNHuAa4k",
+          "options": {}
+        },
+        "id": "get-settings",
+        "name": "Get Settings & Validate",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          464,
+          304
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "Zir5IhIPeSQs72LR",
+            "name": "Airtable UYSP Option C"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const settings = $('Get Settings & Validate').first().json.fields || $('Get Settings & Validate').first().json;\nconst testMode = settings['Test Mode'] || false;\nconst executionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;\n\n// Cron now handles time window, so just pass through settings\nreturn [{ json: { in_window: true, execution_id: executionId, test_mode: testMode, test_phone: settings['Test Phone'], admin_email: settings['Admin Alert Email'], account_phone: settings['SimpleTexting Phone'] }}];"
+        },
+        "id": "check-time-window",
+        "name": "Check 8 AM - 8 PM ET",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          912,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "app4wIsBfpJTg7pWS",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblYUvhGADerbD8EO",
+            "mode": "list"
+          },
+          "filterByFormula": "AND({Processing Status} = 'Ready for SMS', {Lead Source} = 'Standard Form', NOT({SMS Stop}), NOT({Booked}), NOT({Current Coaching Client}), {Phone Valid}, NOT(BLANK({Imported At})))",
+          "options": {}
+        },
+        "id": "get-due-leads",
+        "name": "Get Leads Due for SMS",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          1136,
+          304
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "Zir5IhIPeSQs72LR",
+            "name": "Airtable UYSP Option C"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const leads=$input.all().map(i=>i.json.fields||i.json);\nconst settings=$('Check 8 AM - 8 PM ET').first().json;\nconst testMode=settings.test_mode||false;\nif(testMode){console.log('[TEST MODE] Skipping timing filter');return leads.map(lead=>({json:lead}));}\nconst now=Date.now();\nconst MIN_DELAY_MS=60*60*1000;\nconst eligible=[];\nleads.forEach(lead=>{\nif(!lead['Imported At'])return;\nconst importedAt=new Date(lead['Imported At']).getTime();\nif(isNaN(importedAt))return;\nconst timeSince=now-importedAt;\nif(timeSince>=MIN_DELAY_MS){eligible.push(lead);}\n});\nconsole.log(`[TIMING] Eligible: ${eligible.length}`);\nreturn eligible.map(lead=>({json:lead}));"
+        },
+        "id": "filter-timing",
+        "name": "Filter: Min 60 Minutes",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1808,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "app4wIsBfpJTg7pWS",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblsSX9dYMnexdAa7",
+            "mode": "list"
+          },
+          "filterByFormula": "AND({Step} = 1, {Active} = TRUE())",
+          "options": {}
+        },
+        "id": "fetch-template",
+        "name": "Fetch ALL Templates (Batch)",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          2032,
+          304
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "Zir5IhIPeSQs72LR",
+            "name": "Airtable UYSP Option C"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const leads=$('Filter: Min 60 Minutes').all().map(i=>i.json);const templates=$input.all().map(i=>i.json.fields||i.json);const settings=$('Check 8 AM - 8 PM ET').first().json;const FORM_TO_SLUG={'TEST_INTERNAL':'test_internal','2149174698':'chatgpt_use_cases','2149319130':'Q4 2025 Webinar','2149013599':'vsl_500k_1m','2148019984':'rad_goals','2148913386':'topical_mindset','2148184964':'inward_outward','2147937751':'top10_traits','2148265042':'call_booked','2147867344':'consensus_building','2147904936':'impactful_meetings','2147983338':'executive_email','2148087527':'weekly_scorecard','2147886939':'opportunity_cost','2148989754':'executive_outreach','2148989802':'killer_proposal','2148989816':'income_planner','2148989824':'problem_mapping','2147877779':'pricing_rules','2148730236':'fundamentals_training','2148138291':'predict_selling','2148166902':'vsl_500k_1m'};const templateCache={};templates.forEach(t=>{const campaign=t.Campaign||'';if(campaign)templateCache[campaign]=t;});const results=[];const missing=[];leads.forEach(lead=>{const formId=lead['Form ID']||'';const campaignSlug=FORM_TO_SLUG[formId]||'default_nurture';const template=templateCache[campaignSlug];if(!template){missing.push({form_id:formId,slug:campaignSlug,lead_id:lead.id});return;}const firstName=lead['First Name']||'there';let messageBody=template.Body||'';if(!messageBody){missing.push({lead_id:lead.id,error:'empty_body'});return;}messageBody=messageBody.replace(/\\{\\{first_name\\}\\}/gi,firstName);const phoneRaw=lead.Phone||lead['Phone']||'';let phone=phoneRaw.toString().replace(/[^0-9]/g,'');if(phone.startsWith('1')&&phone.length===11){phone=phone.substring(1);}if(phone.length!==10){missing.push({lead_id:lead.id,error:'invalid_phone',phone:phoneRaw,cleaned:phone,length:phone.length});return;}const testMode=settings.test_mode||false;const testPhone=(settings.test_phone||'').toString().replace(/[^0-9]/g,'');const finalTestPhone=testPhone.startsWith('1')&&testPhone.length===11?testPhone.substring(1):testPhone;const finalPhone=(testMode&&finalTestPhone)?finalTestPhone:phone;results.push({...lead,message_text:messageBody,phone_digits:finalPhone,original_phone:phone,campaign:campaignSlug,template_id:template.id,test_mode:testMode,execution_id:settings.execution_id,account_phone:settings.account_phone});});if(results.length===0){throw new Error(`NO MESSAGES\\nMissing: ${JSON.stringify(missing)}\\nTemplates: ${Object.keys(templateCache).join(', ')}`);}return results.map(lead=>({json:lead}));"
+        },
+        "id": "template-found-check",
+        "name": "Match Templates & Build Messages",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2256,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://app2.simpletexting.com/v2/api/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"contactPhone\": $json.phone_digits, \"accountPhone\": $json.account_phone, \"mode\": \"AUTO\", \"text\": $json.message_text } }}",
+          "options": {
+            "response": {
+              "response": {
+                "neverError": true
+              }
+            }
+          }
+        },
+        "id": "send-sms",
+        "name": "SimpleTexting: Send SMS",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          2480,
+          304
+        ],
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "E4NDaEmBWVX3rawT",
+            "name": "Simple-TXT-API"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const leads = $('Match Templates & Build Messages').all();\nconst responses = $input.all();\nconst results = [];\n\nfor (let i = 0; i < responses.length; i++) {\n  const lead = leads[i].json;\n  const response = responses[i].json;\n  \n  const statusCode = response.statusCode || response.status || 0;\n  const hasValidId = !!response.id;\n  const isSuccess = (statusCode === 200 || statusCode === 201) || hasValidId;\n  \n  if (isSuccess) {\n    console.log(`[SUCCESS] ${lead.id} | id: ${response.id}`);\n    results.push({\n      json: {\n        lead_id: lead.id,\n        id: lead.id,\n        'SMS Status': 'Sent',\n        'SMS Last Sent At': new Date().toISOString(),\n        'SMS Sent Count': (lead['SMS Sent Count'] || 0) + 1,\n        'Processing Status': 'In Sequence',\n        'SMS Retry Count': 0,\n        'Last Error Message': '',\n        audit_data: {\n          Event: 'Sent',\n          Status: 'Sent',\n          Phone: lead.phone_digits,\n          'Lead Record ID': lead.id,\n          Text: lead.message_text,\n          'Campaign ID': lead.campaign,\n          'Execution ID': lead.execution_id,\n          'Template ID': lead.template_id,\n          'Test Mode': lead.test_mode,\n          SimpleTexting_ID: response.id\n        }\n      }\n    });\n  } else {\n    console.log(`[FAILURE] ${lead.id} | statusCode: ${statusCode}`);\n    results.push({\n      json: {\n        lead_id: lead.id,\n        id: lead.id,\n        'SMS Retry Count': (lead['SMS Retry Count'] || 0) + 1,\n        'Last Error Message': `HTTP ${statusCode}: ${JSON.stringify(response)}`,\n        'Processing Status': 'Ready for SMS',\n        audit_data: {\n          Event: 'Send Failed',\n          Status: 'Error',\n          Phone: lead.phone_digits,\n          'Lead Record ID': lead.id,\n          'Campaign ID': lead.campaign,\n          'Error Details': JSON.stringify(response),\n          'Execution ID': lead.execution_id,\n          'Retry Attempt': lead['SMS Retry Count'] || 0,\n          'Test Mode': lead.test_mode\n        }\n      }\n    });\n  }\n}\n\nreturn results;"
+        },
+        "id": "check-sms-result",
+        "name": "Route Success & Failures",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2704,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "value": "app4wIsBfpJTg7pWS",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbl5TOGNGdWXTjhzP",
+            "mode": "list"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Event": "={{ $json.audit_data.Event }}",
+              "Status": "={{ $json.audit_data.Status }}",
+              "Phone": "={{ $json.audit_data.Phone }}",
+              "Lead Record ID": "={{ $json.audit_data['Lead Record ID'] }}",
+              "Text": "={{ $json.audit_data.Text || '' }}",
+              "Sent At": "={{ $now }}",
+              "Campaign ID": "={{ $json.audit_data['Campaign ID'] }}",
+              "Execution ID": "={{ $json.audit_data['Execution ID'] }}",
+              "Template ID": "={{ $json.audit_data['Template ID'] || '' }}",
+              "Test Mode": "={{ $json.audit_data['Test Mode'] }}",
+              "Error Details": "={{ $json.audit_data['Error Details'] || '' }}",
+              "Retry Attempt": "={{ $json.audit_data['Retry Attempt'] || 0 }}"
+            }
+          },
+          "options": {
+            "typecast": true
+          }
+        },
+        "id": "log-audit",
+        "name": "SMS_Audit: Log Sent",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          2928,
+          304
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "Zir5IhIPeSQs72LR",
+            "name": "Airtable UYSP Option C"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "app4wIsBfpJTg7pWS",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblYUvhGADerbD8EO",
+            "mode": "list"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "id": "={{ $items('Route Success & Failures', 0)[$itemIndex].json.id }}",
+              "SMS Status": "={{ $items('Route Success & Failures', 0)[$itemIndex].json['SMS Status'] }}",
+              "SMS Last Sent At": "={{ $items('Route Success & Failures', 0)[$itemIndex].json['SMS Last Sent At'] }}",
+              "SMS Sent Count": "={{ $items('Route Success & Failures', 0)[$itemIndex].json['SMS Sent Count'] }}",
+              "Processing Status": "={{ $items('Route Success & Failures', 0)[$itemIndex].json['Processing Status'] }}",
+              "SMS Retry Count": "={{ $items('Route Success & Failures', 0)[$itemIndex].json['SMS Retry Count'] }}",
+              "Last Error Message": "={{ $items('Route Success & Failures', 0)[$itemIndex].json['Last Error Message'] || '' }}",
+              "Company Score Component": 0,
+              "Role Score Component": 0,
+              "Dynamic Signals Score": 0,
+              "SMS Sequence Position": 0,
+              "SMS Cost": 0,
+              "Click Count": 0,
+              "Reply Count": 0,
+              "🤖 ai_message_count_today": 0,
+              "🤖 messages_in_last_2_hours": 0,
+              "🤖 safety_violations_count": 0,
+              "🤖 total_ai_messages_sent": 0,
+              "🤖 total_ai_cost_usd": 0,
+              "🤖 last_ai_response_time_sec": 0,
+              "🤖 retry_count": 0,
+              "Engagement - Tag Count": 0,
+              "Engagement - Recency Points": 0,
+              "Engagement - Total Score": 0
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true
+              },
+              {
+                "id": "Lead",
+                "displayName": "Lead",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Processing Status",
+                "displayName": "Processing Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Backlog",
+                    "value": "Backlog"
+                  },
+                  {
+                    "name": "Queued",
+                    "value": "Queued"
+                  },
+                  {
+                    "name": "Processing",
+                    "value": "Processing"
+                  },
+                  {
+                    "name": "Ready for SMS",
+                    "value": "Ready for SMS"
+                  },
+                  {
+                    "name": "Failed",
+                    "value": "Failed"
+                  },
+                  {
+                    "name": "In Sequence",
+                    "value": "In Sequence"
+                  },
+                  {
+                    "name": "Stopped",
+                    "value": "Stopped"
+                  },
+                  {
+                    "name": "Completed",
+                    "value": "Completed"
+                  },
+                  {
+                    "name": "Complete",
+                    "value": "Complete"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Kajabi Tags",
+                "displayName": "Kajabi Tags",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Enrichment Outcome",
+                "displayName": "Enrichment Outcome",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Success",
+                    "value": "Success"
+                  },
+                  {
+                    "name": "No Match",
+                    "value": "No Match"
+                  },
+                  {
+                    "name": "Error",
+                    "value": "Error"
+                  },
+                  {
+                    "name": " Success",
+                    "value": " Success"
+                  },
+                  {
+                    "name": " No Match",
+                    "value": " No Match"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Email",
+                "displayName": "Email",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Phone",
+                "displayName": "Phone",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Phone Valid",
+                "displayName": "Phone Valid",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "First Name",
+                "displayName": "First Name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Last Name",
+                "displayName": "Last Name",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Company Domain",
+                "displayName": "Company Domain",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Company",
+                "displayName": "Company",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Job Title",
+                "displayName": "Job Title",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Linkedin URL - Person",
+                "displayName": "Linkedin URL - Person",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Location Country",
+                "displayName": "Location Country",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "ICP Score",
+                "displayName": "ICP Score",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Company Score Component",
+                "displayName": "Company Score Component",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Role Score Component",
+                "displayName": "Role Score Component",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Location Score Component",
+                "displayName": "Location Score Component",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Dynamic Signals Score",
+                "displayName": "Dynamic Signals Score",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Prime Fit Bonus",
+                "displayName": "Prime Fit Bonus",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Eligible",
+                "displayName": "SMS Eligible",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "SMS Status",
+                "displayName": "SMS Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Not Sent",
+                    "value": "Not Sent"
+                  },
+                  {
+                    "name": "Queued",
+                    "value": "Queued"
+                  },
+                  {
+                    "name": "Sent",
+                    "value": "Sent"
+                  },
+                  {
+                    "name": "Delivered",
+                    "value": "Delivered"
+                  },
+                  {
+                    "name": "Clicked",
+                    "value": "Clicked"
+                  },
+                  {
+                    "name": "Replied",
+                    "value": "Replied"
+                  },
+                  {
+                    "name": "Meeting Booked",
+                    "value": "Meeting Booked"
+                  },
+                  {
+                    "name": "Success",
+                    "value": "Success"
+                  },
+                  {
+                    "name": "Failed",
+                    "value": "Failed"
+                  },
+                  {
+                    "name": "Test",
+                    "value": "Test"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Sequence Position",
+                "displayName": "SMS Sequence Position",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Sent Count",
+                "displayName": "SMS Sent Count",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Cost",
+                "displayName": "SMS Cost",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "HRQ Status",
+                "displayName": "HRQ Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "None",
+                    "value": "None"
+                  },
+                  {
+                    "name": "Archive",
+                    "value": "Archive"
+                  },
+                  {
+                    "name": "Qualified",
+                    "value": "Qualified"
+                  },
+                  {
+                    "name": "Manual Process",
+                    "value": "Manual Process"
+                  },
+                  {
+                    "name": "Review",
+                    "value": "Review"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "HRQ Reason",
+                "displayName": "HRQ Reason",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "⚠️ Last Updated Auto",
+                "displayName": "⚠️ Last Updated Auto",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Company Type",
+                "displayName": "Company Type",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "B2B SaaS",
+                    "value": "B2B SaaS"
+                  },
+                  {
+                    "name": "B2B Tech Services",
+                    "value": "B2B Tech Services"
+                  },
+                  {
+                    "name": "Other B2B",
+                    "value": "Other B2B"
+                  },
+                  {
+                    "name": "B2C/Unknown",
+                    "value": "B2C/Unknown"
+                  },
+                  {
+                    "name": "/company",
+                    "value": "/company"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Company Industry",
+                "displayName": "Company Industry",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Company Description",
+                "displayName": "Company Description",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Company LinkedIn",
+                "displayName": "Company LinkedIn",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Record ID",
+                "displayName": "Record ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "SMS Variant",
+                "displayName": "SMS Variant",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "A",
+                    "value": "A"
+                  },
+                  {
+                    "name": "B",
+                    "value": "B"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Stop",
+                "displayName": "SMS Stop",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Stop Reason",
+                "displayName": "SMS Stop Reason",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Booked",
+                "displayName": "Booked",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Last Sent At",
+                "displayName": "SMS Last Sent At",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Booked At",
+                "displayName": "Booked At",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Coaching Tier",
+                "displayName": "Coaching Tier",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "None",
+                    "value": "None"
+                  },
+                  {
+                    "name": "Bronze",
+                    "value": "Bronze"
+                  },
+                  {
+                    "name": "Silver",
+                    "value": "Silver"
+                  },
+                  {
+                    "name": "Gold",
+                    "value": "Gold"
+                  },
+                  {
+                    "name": "Platinum",
+                    "value": "Platinum"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Current Coaching Client",
+                "displayName": "Current Coaching Client",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Interested in Coaching",
+                "displayName": "Interested in Coaching",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Enrichment Attempted At",
+                "displayName": "Enrichment Attempted At",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Clicked Link",
+                "displayName": "Clicked Link",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Short Link ID",
+                "displayName": "Short Link ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Short Link URL",
+                "displayName": "Short Link URL",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Click Count",
+                "displayName": "Click Count",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Batch Control",
+                "displayName": "SMS Batch Control",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Active",
+                    "value": "Active"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Imported At",
+                "displayName": "Imported At",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Record Created AT",
+                "displayName": "Record Created AT",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Kajabi Contact ID",
+                "displayName": "Kajabi Contact ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Lead Source Detail",
+                "displayName": "Lead Source Detail",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Kajabi Member Status",
+                "displayName": "Kajabi Member Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Prospect",
+                    "value": "Prospect"
+                  },
+                  {
+                    "name": "Active",
+                    "value": "Active"
+                  },
+                  {
+                    "name": "Trial",
+                    "value": "Trial"
+                  },
+                  {
+                    "name": "Churned",
+                    "value": "Churned"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Kajabi Last Sync",
+                "displayName": "Kajabi Last Sync",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Conversation Status",
+                "displayName": "Conversation Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "No Reply",
+                    "value": "No Reply"
+                  },
+                  {
+                    "name": "Replied - Interested",
+                    "value": "Replied - Interested"
+                  },
+                  {
+                    "name": "Replied - Question",
+                    "value": "Replied - Question"
+                  },
+                  {
+                    "name": "Replied - Not Interested",
+                    "value": "Replied - Not Interested"
+                  },
+                  {
+                    "name": "Replied - Considering",
+                    "value": "Replied - Considering"
+                  },
+                  {
+                    "name": "Engaged - Active",
+                    "value": "Engaged - Active"
+                  },
+                  {
+                    "name": "Engaged - Qualified",
+                    "value": "Engaged - Qualified"
+                  },
+                  {
+                    "name": "Manual Review Required",
+                    "value": "Manual Review Required"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Last Reply At",
+                "displayName": "Last Reply At",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Last Reply Text",
+                "displayName": "Last Reply Text",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Reply Count",
+                "displayName": "Reply Count",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Conversation Summary",
+                "displayName": "Conversation Summary",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Pain Point",
+                "displayName": "Pain Point",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Prospecting/Pipeline",
+                    "value": "Prospecting/Pipeline"
+                  },
+                  {
+                    "name": "Closing/Converting",
+                    "value": "Closing/Converting"
+                  },
+                  {
+                    "name": "Objection Handling",
+                    "value": "Objection Handling"
+                  },
+                  {
+                    "name": "Discovery/Qualification",
+                    "value": "Discovery/Qualification"
+                  },
+                  {
+                    "name": "Negotiation",
+                    "value": "Negotiation"
+                  },
+                  {
+                    "name": "Account Management",
+                    "value": "Account Management"
+                  },
+                  {
+                    "name": "Mindset/Confidence",
+                    "value": "Mindset/Confidence"
+                  },
+                  {
+                    "name": "Time Management",
+                    "value": "Time Management"
+                  },
+                  {
+                    "name": "Leadership/Team",
+                    "value": "Leadership/Team"
+                  },
+                  {
+                    "name": "Career Transition",
+                    "value": "Career Transition"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Coaching Format Preference",
+                "displayName": "Coaching Format Preference",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "1-on-1",
+                    "value": "1-on-1"
+                  },
+                  {
+                    "name": "Group",
+                    "value": "Group"
+                  },
+                  {
+                    "name": "Either",
+                    "value": "Either"
+                  },
+                  {
+                    "name": "Not Asked",
+                    "value": "Not Asked"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Follow-up Date/Time",
+                "displayName": "Follow-up Date/Time",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Follow-up Type",
+                "displayName": "Follow-up Type",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Auto Message",
+                    "value": "Auto Message"
+                  },
+                  {
+                    "name": "Manual Call",
+                    "value": "Manual Call"
+                  },
+                  {
+                    "name": "Manual Email",
+                    "value": "Manual Email"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Follow-up Note",
+                "displayName": "Follow-up Note",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Manual Follow-up Required",
+                "displayName": "Manual Follow-up Required",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Nurture Tag",
+                "displayName": "Nurture Tag",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Timing-Issue",
+                    "value": "Timing-Issue"
+                  },
+                  {
+                    "name": "Budget-Constraint",
+                    "value": "Budget-Constraint"
+                  },
+                  {
+                    "name": "Info-Requested",
+                    "value": "Info-Requested"
+                  },
+                  {
+                    "name": "Job-Change",
+                    "value": "Job-Change"
+                  },
+                  {
+                    "name": "Too-Busy",
+                    "value": "Too-Busy"
+                  },
+                  {
+                    "name": "Other-Priority",
+                    "value": "Other-Priority"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 conversation_thread",
+                "displayName": "🤖 conversation_thread",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 last_message_direction",
+                "displayName": "🤖 last_message_direction",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "outbound",
+                    "value": "outbound"
+                  },
+                  {
+                    "name": "inbound",
+                    "value": "inbound"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 active_conversation",
+                "displayName": "🤖 active_conversation",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 ai_status",
+                "displayName": "🤖 ai_status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "active",
+                    "value": "active"
+                  },
+                  {
+                    "name": "paused",
+                    "value": "paused"
+                  },
+                  {
+                    "name": "human_takeover",
+                    "value": "human_takeover"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 campaign_stage",
+                "displayName": "🤖 campaign_stage",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "confirmation",
+                    "value": "confirmation"
+                  },
+                  {
+                    "name": "intent_qualify",
+                    "value": "intent_qualify"
+                  },
+                  {
+                    "name": "sent_content",
+                    "value": "sent_content"
+                  },
+                  {
+                    "name": "content_followup",
+                    "value": "content_followup"
+                  },
+                  {
+                    "name": "hot_lead",
+                    "value": "hot_lead"
+                  },
+                  {
+                    "name": "content_nurture",
+                    "value": "content_nurture"
+                  },
+                  {
+                    "name": "paused_by_request",
+                    "value": "paused_by_request"
+                  },
+                  {
+                    "name": "long_term_nurture",
+                    "value": "long_term_nurture"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 interest_type",
+                "displayName": "🤖 interest_type",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "content",
+                    "value": "content"
+                  },
+                  {
+                    "name": "coaching",
+                    "value": "coaching"
+                  },
+                  {
+                    "name": "unknown",
+                    "value": "unknown"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 schedule_invalidated",
+                "displayName": "🤖 schedule_invalidated",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 schedule_set_at",
+                "displayName": "🤖 schedule_set_at",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 ai_message_count_today",
+                "displayName": "🤖 ai_message_count_today",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 messages_in_last_2_hours",
+                "displayName": "🤖 messages_in_last_2_hours",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 last_safety_block_reason",
+                "displayName": "🤖 last_safety_block_reason",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 safety_violations_count",
+                "displayName": "🤖 safety_violations_count",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 conversation_locked_by_human",
+                "displayName": "🤖 conversation_locked_by_human",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 pause_reason",
+                "displayName": "🤖 pause_reason",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 pause_until",
+                "displayName": "🤖 pause_until",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 human_assigned_to",
+                "displayName": "🤖 human_assigned_to",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 handback_note",
+                "displayName": "🤖 handback_note",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 takeover_timestamp",
+                "displayName": "🤖 takeover_timestamp",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 total_ai_messages_sent",
+                "displayName": "🤖 total_ai_messages_sent",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 total_ai_cost_usd",
+                "displayName": "🤖 total_ai_cost_usd",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 last_ai_response_time_sec",
+                "displayName": "🤖 last_ai_response_time_sec",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 last_error_type",
+                "displayName": "🤖 last_error_type",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "ai_timeout",
+                    "value": "ai_timeout"
+                  },
+                  {
+                    "name": "ai_error",
+                    "value": "ai_error"
+                  },
+                  {
+                    "name": "sms_failed",
+                    "value": "sms_failed"
+                  },
+                  {
+                    "name": "airtable_error",
+                    "value": "airtable_error"
+                  },
+                  {
+                    "name": "webhook_lost",
+                    "value": "webhook_lost"
+                  },
+                  {
+                    "name": "json_corrupt",
+                    "value": "json_corrupt"
+                  },
+                  {
+                    "name": "rate_limit",
+                    "value": "rate_limit"
+                  },
+                  {
+                    "name": "unknown",
+                    "value": "unknown"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 last_error_at",
+                "displayName": "🤖 last_error_at",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 conversation_thread_backup",
+                "displayName": "🤖 conversation_thread_backup",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 retry_count",
+                "displayName": "🤖 retry_count",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "🤖 last_successful_ai_call_at",
+                "displayName": "🤖 last_successful_ai_call_at",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "SMS Retry Count",
+                "displayName": "SMS Retry Count",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Last Error Message",
+                "displayName": "Last Error Message",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Campaign (CORRECTED)",
+                "displayName": "Campaign (CORRECTED)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "chatgpt_use_cases",
+                    "value": "chatgpt_use_cases"
+                  },
+                  {
+                    "name": "pricing_rules",
+                    "value": "pricing_rules"
+                  },
+                  {
+                    "name": "consensus_building",
+                    "value": "consensus_building"
+                  },
+                  {
+                    "name": "impactful_meetings",
+                    "value": "impactful_meetings"
+                  },
+                  {
+                    "name": "executive_email",
+                    "value": "executive_email"
+                  },
+                  {
+                    "name": "problem_mapping",
+                    "value": "problem_mapping"
+                  },
+                  {
+                    "name": "killer_proposal",
+                    "value": "killer_proposal"
+                  },
+                  {
+                    "name": "executive_outreach",
+                    "value": "executive_outreach"
+                  },
+                  {
+                    "name": "income_planner",
+                    "value": "income_planner"
+                  },
+                  {
+                    "name": "vsl_500k_1m",
+                    "value": "vsl_500k_1m"
+                  },
+                  {
+                    "name": "fundamentals_training",
+                    "value": "fundamentals_training"
+                  },
+                  {
+                    "name": "weekly_scorecard",
+                    "value": "weekly_scorecard"
+                  },
+                  {
+                    "name": "predict_selling",
+                    "value": "predict_selling"
+                  },
+                  {
+                    "name": "opportunity_cost",
+                    "value": "opportunity_cost"
+                  },
+                  {
+                    "name": "default_nurture",
+                    "value": "default_nurture"
+                  },
+                  {
+                    "name": "Best-Q4-Ever-Webinar",
+                    "value": "Best-Q4-Ever-Webinar"
+                  },
+                  {
+                    "name": "call_booked",
+                    "value": "call_booked"
+                  },
+                  {
+                    "name": "vsl_500k_1m_fb",
+                    "value": "vsl_500k_1m_fb"
+                  },
+                  {
+                    "name": "Q4 2025 Webinar",
+                    "value": "Q4 2025 Webinar"
+                  },
+                  {
+                    "name": "Problem Mapping Template",
+                    "value": "Problem Mapping Template"
+                  },
+                  {
+                    "name": "Make $500K-$1M Training",
+                    "value": "Make $500K-$1M Training"
+                  },
+                  {
+                    "name": "Top 4 ChatGPT Use Cases",
+                    "value": "Top 4 ChatGPT Use Cases"
+                  },
+                  {
+                    "name": "12 Week Year Scorecard",
+                    "value": "12 Week Year Scorecard"
+                  },
+                  {
+                    "name": "Call Booked - Sales Team",
+                    "value": "Call Booked - Sales Team"
+                  },
+                  {
+                    "name": "Fundamentals of Elite Tech Sales",
+                    "value": "Fundamentals of Elite Tech Sales"
+                  },
+                  {
+                    "name": "Executive Outreach Templates",
+                    "value": "Executive Outreach Templates"
+                  },
+                  {
+                    "name": "PREDICT Selling Training",
+                    "value": "PREDICT Selling Training"
+                  },
+                  {
+                    "name": "Killer Proposal Template",
+                    "value": "Killer Proposal Template"
+                  },
+                  {
+                    "name": "Income Planner Tool",
+                    "value": "Income Planner Tool"
+                  },
+                  {
+                    "name": "Make $500K-$1M Sales Training | FB Ads",
+                    "value": "Make $500K-$1M Sales Training | FB Ads"
+                  },
+                  {
+                    "name": "test_internal",
+                    "value": "test_internal"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Lead Source",
+                "displayName": "Lead Source",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Manual",
+                    "value": "Manual"
+                  },
+                  {
+                    "name": "Bulk Import",
+                    "value": "Bulk Import"
+                  },
+                  {
+                    "name": "Standard Form",
+                    "value": "Standard Form"
+                  },
+                  {
+                    "name": "Webinar Form",
+                    "value": "Webinar Form"
+                  },
+                  {
+                    "name": "Kajabi-API",
+                    "value": "Kajabi-API"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Engagement - Level",
+                "displayName": "Engagement - Level",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Green",
+                    "value": "Green"
+                  },
+                  {
+                    "name": "Yellow",
+                    "value": "Yellow"
+                  },
+                  {
+                    "name": "Red",
+                    "value": "Red"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Engagement - Tag Count",
+                "displayName": "Engagement - Tag Count",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Engagement - Recency Points",
+                "displayName": "Engagement - Recency Points",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Engagement - Total Score",
+                "displayName": "Engagement - Total Score",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Form ID",
+                "displayName": "Form ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Webinar Datetime",
+                "displayName": "Webinar Datetime",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Linked Campaign",
+                "displayName": "Linked Campaign",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "[TEST]",
+                "displayName": "[TEST]",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "boolean",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "update-lead-final",
+        "name": "Update Lead: SMS Sent",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          3152,
+          304
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "Zir5IhIPeSQs72LR",
+            "name": "Airtable UYSP Option C"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "app4wIsBfpJTg7pWS",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblErXnFNMKYhh3Xr",
+            "mode": "list"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "id": "recygZ32OZNHuAa4k",
+              "SMS Scheduler Last Run": "={{ $now }}"
+            },
+            "matchingColumns": [
+              "id"
+            ]
+          },
+          "options": {}
+        },
+        "id": "heartbeat-update",
+        "name": "Heartbeat: Update Last Run",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          688,
+          304
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "Zir5IhIPeSQs72LR",
+            "name": "Airtable UYSP Option C"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const leads=$input.all().map(i=>i.json.fields||i.json);const settings=$('Check 8 AM - 8 PM ET').first().json;const testMode=settings.test_mode||false;if(!testMode){return leads.map(l=>({json:l}));}const TEST_PHONES=['8319990767','8319990500'];const filtered=leads.filter(l=>{const phone=(l.Phone||'').replace(/[^0-9]/g,'').replace(/^1/,'');return TEST_PHONES.includes(phone);});console.log(`[TEST FILTER] ${leads.length} -> ${filtered.length} (phones: ${TEST_PHONES.join(', ')})`);return filtered.map(l=>({json:l}));"
+        },
+        "id": "test-filter",
+        "name": "Filter Test Lead Only",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1360,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const settings = $('Check 8 AM - 8 PM ET').first().json;\nconst testMode = settings.test_mode || false;\nconst maxPerExecution = testMode ? 5 : 50;\n\nconst leads = $input.all().map(i => i.json.fields || i.json);\nconst limited = leads.slice(0, maxPerExecution);\n\nconsole.log(`[RATE LIMITER] ${leads.length} -> ${limited.length}`);\n\nreturn limited.map(lead => ({ json: {...lead, execution_id: settings.execution_id, test_mode: testMode, test_phone: settings.test_phone}}));"
+        },
+        "id": "rate-limiter",
+        "name": "Rate Limiter (25 Max / 5 Test)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1584,
+          304
+        ]
+      }
+    ],
+    "connections": {
+      "Run Every 15 Minutes": {
+        "main": [
+          [
+            {
+              "node": "Get Settings & Validate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check 8 AM - 8 PM ET": {
+        "main": [
+          [
+            {
+              "node": "Get Leads Due for SMS",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter: Min 60 Minutes": {
+        "main": [
+          [
+            {
+              "node": "Fetch ALL Templates (Batch)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch ALL Templates (Batch)": {
+        "main": [
+          [
+            {
+              "node": "Match Templates & Build Messages",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Match Templates & Build Messages": {
+        "main": [
+          [
+            {
+              "node": "SimpleTexting: Send SMS",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SimpleTexting: Send SMS": {
+        "main": [
+          [
+            {
+              "node": "Route Success & Failures",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route Success & Failures": {
+        "main": [
+          [
+            {
+              "node": "SMS_Audit: Log Sent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SMS_Audit: Log Sent": {
+        "main": [
+          [
+            {
+              "node": "Update Lead: SMS Sent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Settings & Validate": {
+        "main": [
+          [
+            {
+              "node": "Heartbeat: Update Last Run",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Heartbeat: Update Last Run": {
+        "main": [
+          [
+            {
+              "node": "Check 8 AM - 8 PM ET",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Leads Due for SMS": {
+        "main": [
+          [
+            {
+              "node": "Filter Test Lead Only",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter Test Lead Only": {
+        "main": [
+          [
+            {
+              "node": "Rate Limiter (25 Max / 5 Test)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Rate Limiter (25 Max / 5 Test)": {
+        "main": [
+          [
+            {
+              "node": "Filter: Min 60 Minutes",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {},
+    "staticData": {
+      "node:Run Every 15 Minutes": {
+        "recurrenceRules": []
+      }
+    },
+    "meta": null,
+    "pinData": {},
+    "versionId": "dfd6dcb9-528e-4574-ba42-05e6a4b83619",
+    "triggerCount": 1,
+    "shared": [
+      {
+        "createdAt": "2025-11-01T22:36:02.926Z",
+        "updatedAt": "2025-11-01T22:36:02.926Z",
+        "role": "workflow:owner",
+        "workflowId": "kJMMZ10anu4NqYUL",
+        "projectId": "H4VRaaZhd8VKQANf",
+        "project": {
+          "createdAt": "2025-07-20T10:20:07.367Z",
+          "updatedAt": "2025-07-20T10:23:14.000Z",
+          "id": "H4VRaaZhd8VKQANf",
+          "name": "UYSP Lead Qualification Agent ",
+          "type": "team",
+          "icon": {
+            "type": "icon",
+            "value": "layer-group"
+          },
+          "description": "Automated lead qualification and SMS outreach system that processes Kajabi form submissions, enriches B2B leads through two-phase qualification, scores them 0-100 using AI, and sends personalized SMS to qualified prospects while maintaining strict compliance and cost controls.",
+          "projectRelations": [
+            {
+              "createdAt": "2025-07-20T10:23:14.911Z",
+              "updatedAt": "2025-07-20T10:23:14.911Z",
+              "userId": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+              "projectId": "H4VRaaZhd8VKQANf",
+              "user": {
+                "createdAt": "2025-07-01T09:55:15.012Z",
+                "updatedAt": "2025-11-06T23:00:00.000Z",
+                "id": "29d0ac76-1b0e-4f0b-a9dd-b710d2476efa",
+                "email": "latifhorst@gmail.com",
+                "firstName": "LATIF",
+                "lastName": "HORST",
+                "personalizationAnswers": null,
+                "settings": {
+                  "userActivated": true,
+                  "easyAIWorkflowOnboarded": true,
+                  "firstSuccessfulWorkflowId": "Zdpywk5ic1hYILgr",
+                  "userActivatedAt": 1751967003557,
+                  "npsSurvey": {
+                    "responded": true,
+                    "lastShownAt": 1753035927344
+                  },
+                  "userClaimedAiCredits": true
+                },
+                "disabled": false,
+                "mfaEnabled": false,
+                "lastActiveAt": "2025-11-06",
+                "isPending": false
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "tags": []
+  }
+}
