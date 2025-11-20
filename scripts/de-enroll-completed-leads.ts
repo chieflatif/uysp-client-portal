@@ -14,12 +14,12 @@ import { sql } from 'drizzle-orm';
 import * as schema from '../src/lib/db/schema';
 
 // Database connection
-const pool = new Pool({
+const defaultPool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
-const db = drizzle(pool, { schema });
+const defaultDb = drizzle(defaultPool, { schema });
 
 interface LeadToDeEnroll {
   id: string;
@@ -43,12 +43,16 @@ interface Campaign {
  * Main de-enrollment function
  * Finds leads who have completed their campaign and de-enrolls them
  */
-async function deEnrollCompletedLeads() {
+async function deEnrollCompletedLeads(overrides?: { db?: typeof defaultDb; pool?: Pool }) {
+  const activeDb = overrides?.db ?? defaultDb;
+  const activePool = overrides?.pool ?? defaultPool;
+  const shouldClosePool = !overrides?.db && !overrides?.pool;
+
   console.log('🔄 Starting de-enrollment check...');
 
   try {
     // Step 1: Find campaigns and their message counts
-    const campaigns = await db.execute<Campaign>(sql`
+    const campaigns = await activeDb.execute<Campaign>(sql`
       SELECT
         id,
         name,
@@ -69,7 +73,7 @@ async function deEnrollCompletedLeads() {
         (Array.isArray(campaign.messages) ? campaign.messages.length : 1) : 1;
 
       // Find leads who have received all messages in this campaign
-      const completedLeads = await db.execute<LeadToDeEnroll>(sql`
+      const completedLeads = await activeDb.execute<LeadToDeEnroll>(sql`
         SELECT
           id,
           first_name,
@@ -109,7 +113,7 @@ async function deEnrollCompletedLeads() {
           };
 
           // Update lead: de-enroll and add to history
-          await db.execute(sql`
+          await activeDb.execute(sql`
             UPDATE leads
             SET
               campaign_link_id = NULL,
@@ -125,7 +129,7 @@ async function deEnrollCompletedLeads() {
         }
 
         // Step 4: Update campaign stats
-        await db.execute(sql`
+        await activeDb.execute(sql`
           UPDATE campaigns
           SET
             active_leads_count = (
@@ -144,7 +148,7 @@ async function deEnrollCompletedLeads() {
 
     // Step 5: Log activity
     if (totalDeEnrolled > 0) {
-      await db.execute(sql`
+      await activeDb.execute(sql`
         INSERT INTO activity_log (user_id, action, details, ip_address)
         VALUES (
           NULL,
@@ -172,7 +176,7 @@ async function deEnrollCompletedLeads() {
     console.error('❌ De-enrollment error:', error);
 
     // Log error
-    await db.execute(sql`
+    await activeDb.execute(sql`
       INSERT INTO activity_log (user_id, action, details, ip_address)
       VALUES (
         NULL,
@@ -192,7 +196,9 @@ async function deEnrollCompletedLeads() {
       timestamp: new Date().toISOString()
     };
   } finally {
-    await pool.end();
+    if (shouldClosePool) {
+      await activePool.end();
+    }
   }
 }
 

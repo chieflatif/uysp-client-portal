@@ -4,14 +4,13 @@
  * Part of: Campaign Manager Upgrade v2 - Phase 1
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, afterAll } from '@jest/globals';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { sql } from 'drizzle-orm';
 import * as schema from '../src/lib/db/schema';
 import { deEnrollCompletedLeads } from '../scripts/de-enroll-completed-leads';
 
-// Test database setup
 const testPool = new Pool({
   connectionString: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL,
   ssl: false,
@@ -24,6 +23,7 @@ describe('Campaign De-Enrollment Tests', () => {
   let testLeadIds: string[] = [];
 
   beforeEach(async () => {
+    testLeadIds = [];
     // Create test campaign
     const campaign = await db.execute(sql`
       INSERT INTO campaigns (
@@ -110,7 +110,7 @@ describe('Campaign De-Enrollment Tests', () => {
   describe('testDeEnrollAfterLastMessage', () => {
     it('should de-enroll leads who have received all messages', async () => {
       // Run de-enrollment
-      const result = await deEnrollCompletedLeads();
+      const result = await deEnrollCompletedLeads({ db, pool });
 
       expect(result.success).toBe(true);
       expect(result.totalDeEnrolled).toBe(3); // 3 leads at position 3
@@ -135,7 +135,7 @@ describe('Campaign De-Enrollment Tests', () => {
     });
 
     it('should NOT de-enroll leads still in sequence', async () => {
-      await deEnrollCompletedLeads();
+      await deEnrollCompletedLeads({ db, pool });
 
       // Verify non-completed leads still enrolled
       const stillEnrolled = await db.execute(sql`
@@ -156,7 +156,7 @@ describe('Campaign De-Enrollment Tests', () => {
     });
 
     it('should track correct outcome in campaign history', async () => {
-      await deEnrollCompletedLeads();
+      await deEnrollCompletedLeads({ db, pool });
 
       const leads = await db.execute(sql`
         SELECT
@@ -175,7 +175,7 @@ describe('Campaign De-Enrollment Tests', () => {
     });
 
     it('should update campaign stats correctly', async () => {
-      await deEnrollCompletedLeads();
+      await deEnrollCompletedLeads({ db, pool });
 
       const campaign = await db.execute(sql`
         SELECT
@@ -201,7 +201,7 @@ describe('Campaign De-Enrollment Tests', () => {
         UPDATE campaigns SET is_paused = true WHERE id = ${testCampaignId}
       `);
 
-      const result = await deEnrollCompletedLeads();
+      const result = await deEnrollCompletedLeads({ db, pool });
       expect(result.totalDeEnrolled).toBe(0);
     });
 
@@ -213,7 +213,7 @@ describe('Campaign De-Enrollment Tests', () => {
         WHERE id = ${testCampaignId}
       `);
 
-      const result = await deEnrollCompletedLeads();
+      const result = await deEnrollCompletedLeads({ db, pool });
       expect(result.totalDeEnrolled).toBe(0);
     });
 
@@ -259,7 +259,7 @@ describe('Campaign De-Enrollment Tests', () => {
         )
       `);
 
-      const result = await deEnrollCompletedLeads();
+      const result = await deEnrollCompletedLeads({ db, pool });
       // Should de-enroll since position 1 >= 1 (single message)
       expect(result.success).toBe(true);
 
@@ -289,7 +289,7 @@ describe('Campaign De-Enrollment Tests', () => {
         WHERE id = ${testLeadIds[0]}
       `);
 
-      await deEnrollCompletedLeads();
+      await deEnrollCompletedLeads({ db, pool });
 
       const lead = await db.execute(sql`
         SELECT campaign_history FROM leads WHERE id = ${testLeadIds[0]}
@@ -330,7 +330,7 @@ describe('Campaign De-Enrollment Tests', () => {
       }
 
       const startTime = Date.now();
-      const result = await deEnrollCompletedLeads();
+      const result = await deEnrollCompletedLeads({ db, pool });
       const duration = Date.now() - startTime;
 
       expect(result.success).toBe(true);
@@ -342,6 +342,10 @@ describe('Campaign De-Enrollment Tests', () => {
         DELETE FROM leads WHERE id = ANY(${largeBatch})
       `);
     });
+  });
+
+  afterAll(async () => {
+    await testPool.end();
   });
 });
 

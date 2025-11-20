@@ -1,7 +1,6 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { clients, users } from '@/lib/db/schema';
 import bcrypt from 'bcryptjs';
 
@@ -14,16 +13,22 @@ export async function GET(req: NextRequest) {
     }
 
     // Just try to insert - Drizzle should handle table creation
-    const [client] = await db.insert(clients).values({
+    const insertedClients = await db.insert(clients).values({
       companyName: 'Rebel HQ',
       email: 'rebel@rebelhq.ai',
       airtableBaseId: 'app4wIsBfpJTg7pWS',
       isActive: true,
-    }).returning().onConflictDoNothing();
+    }).onConflictDoNothing().returning();
+
+    const client = insertedClients[0];
 
     if (!client) {
       // Client already exists, get it
-      const existing = await db.select().from(clients).where(sql`email = 'rebel@rebelhq.ai'`).limit(1);
+      const existing = await db
+        .select()
+        .from(clients)
+        .where(eq(clients.email, 'rebel@rebelhq.ai'))
+        .limit(1);
       if (existing[0]) {
         return NextResponse.json({ ok: true, message: 'Setup already complete' });
       }
@@ -51,10 +56,10 @@ export async function GET(req: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({ 
-      error: error.message,
-      details: error.toString()
+      error: error instanceof Error ? error.message : 'Unknown error',
+      details: error instanceof Error ? error.toString() : 'Unknown error'
     }, { status: 500 });
   }
 }

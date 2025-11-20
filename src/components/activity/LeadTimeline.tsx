@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Activity,
   Clock,
@@ -17,20 +17,23 @@ import { theme } from '@/theme';
 
 interface ActivityEvent {
   id: string;
-  timestamp: string;
+  timestamp: Date;
   eventType: string;
   category: string; // API returns 'category' not 'eventCategory'
   description: string;
   messageContent?: string;
   source: string;
-  metadata?: any;
+  metadata?: Record<string, unknown> | null;
 }
+
+type ActivityApiEvent = Omit<ActivityEvent, 'timestamp'> & { timestamp: string };
 
 interface LeadTimelineProps {
   leadId: string;
+  leadAirtableId?: string | null;
 }
 
-export function LeadTimeline({ leadId }: LeadTimelineProps) {
+export function LeadTimeline({ leadId, leadAirtableId }: LeadTimelineProps) {
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +48,7 @@ export function LeadTimeline({ leadId }: LeadTimelineProps) {
     SYSTEM: 0,
   });
 
-  const fetchActivities = async () => {
+  const fetchActivities = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -61,37 +64,48 @@ export function LeadTimeline({ leadId }: LeadTimelineProps) {
         params.append('category', selectedCategory);
       }
 
+      if (leadAirtableId) {
+        params.append('leadAirtableId', leadAirtableId);
+      }
+
       const response = await fetch(`/api/admin/activity-logs?${params.toString()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch activity timeline');
       }
 
-      const data = await response.json();
+      const data = await response.json() as { activities: ActivityApiEvent[] };
       setActivities(
-        data.activities.map((a: any) => ({
-          ...a,
-          timestamp: new Date(a.timestamp),
+        data.activities.map((activity) => ({
+          ...activity,
+          timestamp: new Date(activity.timestamp),
         }))
       );
 
       // Fetch category counts
+      const countParams = new URLSearchParams({ leadId });
+      if (leadAirtableId) {
+        countParams.append('leadAirtableId', leadAirtableId);
+      }
       const countsResponse = await fetch(
-        `/api/admin/activity-logs/counts?leadId=${leadId}`
+        `/api/admin/activity-logs/counts?${countParams.toString()}`
       );
       if (countsResponse.ok) {
-        const counts = await countsResponse.json();
-        setCategoryCounts(counts);
+        const counts = await countsResponse.json() as Record<string, number>;
+        setCategoryCounts((prev) => ({
+          ...prev,
+          ...counts,
+        }));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load timeline');
     } finally {
       setLoading(false);
     }
-  };
+  }, [leadId, leadAirtableId, selectedCategory]);
 
   useEffect(() => {
     fetchActivities();
-  }, [leadId, selectedCategory]);
+  }, [fetchActivities]);
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -238,7 +252,7 @@ export function LeadTimeline({ leadId }: LeadTimelineProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          {activities.map((activity, index) => (
+          {activities.map((activity) => (
             <div
               key={activity.id}
               className="relative pl-8 pb-4 border-l-2 border-gray-700/50 last:border-l-transparent"

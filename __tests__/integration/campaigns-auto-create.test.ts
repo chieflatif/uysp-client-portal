@@ -11,63 +11,66 @@
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import { db } from '@/lib/db';
-import { campaigns, clients, rateLimits } from '@/lib/db/schema';
-import { eq, and, gte } from 'drizzle-orm';
+import { campaigns, clients } from '@/lib/db/schema';
+import { eq, sql } from 'drizzle-orm';
+import { createTestClient } from '../../tests/helpers/factories';
 
 // Test constants
-const TEST_CLIENT_ID = 'test-client-autocreate-' + Date.now();
+let testClientId: string;
 const TEST_API_KEY = process.env.AUTOMATION_API_KEY || 'test-api-key';
 const BASE_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
 // Test data
-const validCampaignData = {
-  clientId: TEST_CLIENT_ID,
+const buildCampaignPayload = () => ({
+  clientId: testClientId,
   name: 'Auto Campaign ' + Date.now(),
   campaignType: 'Standard' as const,
   kajabiTags: ['tag1', 'tag2'],
   enrollmentCap: 100,
-};
+});
+
+async function clearRateLimitEntries() {
+  try {
+    await db.execute(
+      sql`DELETE FROM rate_limits WHERE window_end >= NOW() - INTERVAL '1 minute' OR endpoint = 'auto-create-api'`
+    );
+  } catch {
+    // rate_limits table not present in local schema – safe to ignore in test environment
+  }
+}
 
 describe('Campaign Auto-Create API Integration Tests', () => {
   beforeAll(async () => {
-    // Create test client
-    await db.insert(clients).values({
-      id: TEST_CLIENT_ID,
-      name: 'Test Client Auto-Create',
-      isActive: true,
+    const client = await createTestClient({
+      companyName: 'Test Client Auto-Create',
+      phone: '555-0101',
     });
+    testClientId = client.id;
   });
 
   afterAll(async () => {
     // Cleanup test data
-    await db.delete(campaigns).where(eq(campaigns.clientId, TEST_CLIENT_ID));
-    await db.delete(clients).where(eq(clients.id, TEST_CLIENT_ID));
-    await db.delete(rateLimits).where(eq(rateLimits.identifier, 'auto-create-api'));
+    await db.delete(campaigns).where(eq(campaigns.clientId, testClientId));
+    await db.delete(clients).where(eq(clients.id, testClientId));
+    await clearRateLimitEntries();
   });
 
   beforeEach(async () => {
     // Clean up campaigns before each test
-    await db.delete(campaigns).where(eq(campaigns.clientId, TEST_CLIENT_ID));
-
-    // Clean up rate limit entries older than 1 minute
-    const oneMinuteAgo = new Date(Date.now() - 60000);
-    await db.delete(rateLimits).where(
-      and(
-        eq(rateLimits.identifier, 'auto-create-api'),
-        gte(rateLimits.expiresAt, oneMinuteAgo)
-      )
-    );
+    await db.delete(campaigns).where(eq(campaigns.clientId, testClientId));
+    await clearRateLimitEntries();
   });
 
   describe('Successful Campaign Creation', () => {
     it('should create campaign with valid API key and data', async () => {
+      const campaignData = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': TEST_API_KEY,
         },
-        body: JSON.stringify(validCampaignData),
+        body: JSON.stringify(campaignData),
       });
 
       expect(response.status).toBe(201);
@@ -75,8 +78,8 @@ describe('Campaign Auto-Create API Integration Tests', () => {
       const json = await response.json();
       expect(json.data).toBeDefined();
       expect(json.data.campaign).toBeDefined();
-      expect(json.data.campaign.name).toBe(validCampaignData.name);
-      expect(json.data.campaign.clientId).toBe(TEST_CLIENT_ID);
+      expect(json.data.campaign.name).toBe(campaignData.name);
+      expect(json.data.campaign.clientId).toBe(testClientId);
       expect(json.data.campaign.campaignType).toBe('Standard');
       expect(json.data.campaign.isActive).toBe(true);
       expect(json.data.campaign.isPaused).toBe(false);
@@ -84,6 +87,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
     });
 
     it('should auto-generate FormID in correct format', async () => {
+      const basePayload = buildCampaignPayload();
       const campaignName = 'Test FormID ' + Date.now();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
@@ -92,7 +96,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
+          ...basePayload,
           name: campaignName,
         }),
       });
@@ -106,13 +110,14 @@ describe('Campaign Auto-Create API Integration Tests', () => {
     });
 
     it('should initialize campaign with default v2 fields', async () => {
+      const campaignData = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': TEST_API_KEY,
         },
-        body: JSON.stringify(validCampaignData),
+        body: JSON.stringify(campaignData),
       });
 
       const json = await response.json();
@@ -130,6 +135,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
     });
 
     it('should store kajabi_tags as array', async () => {
+      const basePayload = buildCampaignPayload();
       const tags = ['tag1', 'tag2', 'tag3'];
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
@@ -138,7 +144,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
+          ...basePayload,
           kajabiTags: tags,
         }),
       });
@@ -149,6 +155,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
     });
 
     it('should respect enrollment_cap when provided', async () => {
+      const basePayload = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
@@ -156,7 +163,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
+          ...basePayload,
           enrollmentCap: 250,
         }),
       });
@@ -168,12 +175,13 @@ describe('Campaign Auto-Create API Integration Tests', () => {
 
   describe('Authentication & Authorization', () => {
     it('should reject request without API key (401)', async () => {
+      const campaignData = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validCampaignData),
+        body: JSON.stringify(campaignData),
       });
 
       expect(response.status).toBe(401);
@@ -182,13 +190,14 @@ describe('Campaign Auto-Create API Integration Tests', () => {
     });
 
     it('should reject request with invalid API key (401)', async () => {
+      const campaignData = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': 'invalid-key-12345',
         },
-        body: JSON.stringify(validCampaignData),
+        body: JSON.stringify(campaignData),
       });
 
       expect(response.status).toBe(401);
@@ -211,7 +220,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
               'x-api-key': TEST_API_KEY,
             },
             body: JSON.stringify({
-              ...validCampaignData,
+              ...buildCampaignPayload(),
               name: `Campaign ${i} ${Date.now()}`,
             }),
           })
@@ -242,7 +251,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
               'x-api-key': TEST_API_KEY,
             },
             body: JSON.stringify({
-              ...validCampaignData,
+              ...buildCampaignPayload(),
               name: `Campaign ${i} ${Date.now()}`,
             }),
           })
@@ -263,6 +272,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
   describe('Duplicate Detection', () => {
     it('should prevent duplicate campaign names for same client (409)', async () => {
       const campaignName = 'Duplicate Test ' + Date.now();
+      const basePayload = buildCampaignPayload();
 
       // Create first campaign
       const response1 = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
@@ -272,7 +282,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
+          ...basePayload,
           name: campaignName,
         }),
       });
@@ -287,7 +297,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
+          ...basePayload,
           name: campaignName,
         }),
       });
@@ -300,11 +310,8 @@ describe('Campaign Auto-Create API Integration Tests', () => {
 
     it('should allow same campaign name for different clients', async () => {
       // Create second test client
-      const secondClientId = 'test-client-2-' + Date.now();
-      await db.insert(clients).values({
-        id: secondClientId,
-        name: 'Test Client 2',
-        isActive: true,
+      const secondClient = await createTestClient({
+        companyName: 'Test Client 2',
       });
 
       const sharedName = 'Shared Campaign Name ' + Date.now();
@@ -317,8 +324,8 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
-          clientId: TEST_CLIENT_ID,
+          ...buildCampaignPayload(),
+          clientId: testClientId,
           name: sharedName,
         }),
       });
@@ -333,8 +340,8 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
-          clientId: secondClientId,
+          ...buildCampaignPayload(),
+          clientId: secondClient.id,
           name: sharedName,
         }),
       });
@@ -342,8 +349,8 @@ describe('Campaign Auto-Create API Integration Tests', () => {
       expect(response2.status).toBe(201);
 
       // Cleanup
-      await db.delete(campaigns).where(eq(campaigns.clientId, secondClientId));
-      await db.delete(clients).where(eq(clients.id, secondClientId));
+      await db.delete(campaigns).where(eq(campaigns.clientId, secondClient.id));
+      await db.delete(clients).where(eq(clients.id, secondClient.id));
     });
   });
 
@@ -374,7 +381,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          clientId: TEST_CLIENT_ID,
+          clientId: testClientId,
           campaignType: 'Standard',
         }),
       });
@@ -385,6 +392,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
     });
 
     it('should reject invalid campaign type (400)', async () => {
+      const campaignData = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
@@ -392,7 +400,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
+          ...campaignData,
           campaignType: 'InvalidType',
         }),
       });
@@ -403,6 +411,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
     });
 
     it('should reject non-existent clientId (404)', async () => {
+      const campaignData = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
@@ -410,7 +419,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
+          ...campaignData,
           clientId: 'non-existent-client-id',
         }),
       });
@@ -422,6 +431,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
     });
 
     it('should reject invalid enrollmentCap (400)', async () => {
+      const campaignData = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
@@ -429,7 +439,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
+          ...campaignData,
           enrollmentCap: -50, // Negative not allowed
         }),
       });
@@ -438,6 +448,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
     });
 
     it('should handle empty kajabi tags array', async () => {
+      const campaignData = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
@@ -445,7 +456,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
+          ...campaignData,
           kajabiTags: [],
         }),
       });
@@ -471,13 +482,14 @@ describe('Campaign Auto-Create API Integration Tests', () => {
     });
 
     it('should include timestamp in all responses', async () => {
+      const campaignData = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': TEST_API_KEY,
         },
-        body: JSON.stringify(validCampaignData),
+        body: JSON.stringify(campaignData),
       });
 
       const json = await response.json();
@@ -486,6 +498,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
     });
 
     it('should return structured error response on database failure', async () => {
+      const campaignData = buildCampaignPayload();
       // Try to create campaign with invalid UUID format for clientId
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
@@ -494,7 +507,7 @@ describe('Campaign Auto-Create API Integration Tests', () => {
           'x-api-key': TEST_API_KEY,
         },
         body: JSON.stringify({
-          ...validCampaignData,
+          ...campaignData,
           clientId: 'not-a-uuid',
         }),
       });
@@ -508,13 +521,14 @@ describe('Campaign Auto-Create API Integration Tests', () => {
 
   describe('Response Format', () => {
     it('should return standardized success response format', async () => {
+      const campaignData = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': TEST_API_KEY,
         },
-        body: JSON.stringify(validCampaignData),
+        body: JSON.stringify(campaignData),
       });
 
       const json = await response.json();
@@ -528,20 +542,21 @@ describe('Campaign Auto-Create API Integration Tests', () => {
       // Check campaign object completeness
       const campaign = json.data.campaign;
       expect(campaign.id).toBeDefined();
-      expect(campaign.clientId).toBe(TEST_CLIENT_ID);
-      expect(campaign.name).toBe(validCampaignData.name);
+      expect(campaign.clientId).toBe(testClientId);
+      expect(campaign.name).toBe(campaignData.name);
       expect(campaign.createdAt).toBeDefined();
       expect(campaign.updatedAt).toBeDefined();
     });
 
     it('should return standardized error response format', async () => {
+      const campaignData = buildCampaignPayload();
       const response = await fetch(`${BASE_URL}/api/admin/campaigns/auto-create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           // Missing API key
         },
-        body: JSON.stringify(validCampaignData),
+        body: JSON.stringify(campaignData),
       });
 
       const json = await response.json();

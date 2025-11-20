@@ -9,9 +9,21 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import postgres from 'postgres';
+import { promises as dns } from 'dns';
+
+type HealthCheck = {
+  success?: boolean;
+  [key: string]: unknown;
+};
+
+interface DebugResults {
+  timestamp: string;
+  environment?: string;
+  checks: Record<string, HealthCheck>;
+}
 
 export async function GET() {
-  const results: any = {
+  const results: DebugResults = {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     checks: {},
@@ -30,7 +42,6 @@ export async function GET() {
 
   // Check 2: Test DNS resolution
   try {
-    const dns = require('dns').promises;
     const hostname = process.env.DATABASE_URL
       ? new URL(process.env.DATABASE_URL).hostname
       : null;
@@ -64,7 +75,7 @@ export async function GET() {
     });
 
     const startTime = Date.now();
-    const result = await pool.query('SELECT 1 as test');
+    const result = await pool.query<{ test: number }>('SELECT 1 as test');
     const duration = Date.now() - startTime;
 
     await pool.end();
@@ -90,7 +101,7 @@ export async function GET() {
     });
 
     const startTime = Date.now();
-    const result = await client`SELECT 1 as test`;
+    const result = await client<{ test: number }[]>`SELECT 1 as test`;
     const duration = Date.now() - startTime;
 
     await client.end();
@@ -110,7 +121,7 @@ export async function GET() {
 
   // Determine overall status
   const allChecksPass = Object.values(results.checks).every(
-    (check: any) => check.success !== false
+    (check) => check.success !== false
   );
 
   return NextResponse.json({

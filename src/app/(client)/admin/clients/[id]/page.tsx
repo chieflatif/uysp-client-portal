@@ -244,6 +244,7 @@ export default function ClientDetailPage() {
       
       fetchClientData();
     } catch (error) {
+      console.error('Failed to create user', error);
       setError('Network error. Please try again.');
     } finally {
       setSubmitting(false);
@@ -279,6 +280,7 @@ export default function ClientDetailPage() {
       
       fetchClientData();
     } catch (error) {
+      console.error('Failed to pause campaigns', error);
       setError('Network error. Please try again.');
     } finally {
       setSubmitting(false);
@@ -314,6 +316,7 @@ export default function ClientDetailPage() {
         router.push('/admin');
       }, 1500);
     } catch (error) {
+      console.error('Failed to deactivate client', error);
       setError('Network error. Please try again.');
     } finally {
       setSubmitting(false);
@@ -339,6 +342,7 @@ export default function ClientDetailPage() {
       setSuccess(`${userName} deactivated successfully.`);
       fetchClientData();
     } catch (error) {
+      console.error('Failed to deactivate user', error);
       setError('Network error. Please try again.');
     }
   };
@@ -403,6 +407,7 @@ export default function ClientDetailPage() {
         }
       }
     } catch (error) {
+      console.error('Failed during sync', error);
       setError('Network error during sync');
       setSyncing(false);
     }

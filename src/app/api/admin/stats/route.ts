@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { sql } from 'drizzle-orm';
@@ -9,7 +9,14 @@ import { sql } from 'drizzle-orm';
  * Get system-wide statistics (ADMIN only)
  * TDD: Implementation to pass tests in tests/api/admin/clients.test.ts
  */
-export async function GET(request: NextRequest) {
+type LeadsByClientRow = {
+  client_id: string;
+  client_name: string;
+  lead_count: string | number;
+  user_count: string | number;
+};
+
+export async function GET() {
   try {
     // Authentication
     const session = await auth();
@@ -39,7 +46,7 @@ export async function GET(request: NextRequest) {
     const totalLeads = Number(leadsCount[0]?.count || 0);
 
     // Get leads and users per client
-    const leadsByClient = await db.execute(sql`
+    const leadsByClient = await db.execute<LeadsByClientRow>(sql`
       SELECT 
         c.id as client_id,
         c.company_name as client_name,
@@ -63,7 +70,7 @@ export async function GET(request: NextRequest) {
       activeClients: allClients.filter(c => c.isActive).length,
       totalUsers: allUsers.length,
       totalLeads,
-      leadsByClient: leadsByClient.map((row: any) => ({
+      leadsByClient: leadsByClient.map((row) => ({
         clientId: row.client_id,
         clientName: row.client_name,
         leadCount: Number(row.lead_count),

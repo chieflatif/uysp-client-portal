@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { users, clients } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 import { canAddUser, canManageUsers, isSuperAdmin } from '@/lib/auth/permissions';
 import { sendPasswordSetupEmail } from '@/lib/email/mailer';
 import { z } from 'zod';
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
  * GET /api/admin/users
  * Get list of users based on role
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check authentication
     const session = await getServerSession(authOptions);

@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { validatePassword } from '@/lib/utils/password';
 import { theme } from '@/theme';
 import { Lock, CheckCircle, XCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 
@@ -18,8 +17,6 @@ function SetupPasswordContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Real-time password validation
-  const validation = validatePassword(password);
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
 
   // Requirements checklist
@@ -76,7 +73,8 @@ function SetupPasswordContent() {
       } else {
         setError(data.error || 'Failed to set password');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to set password', error);
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);

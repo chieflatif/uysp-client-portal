@@ -5,7 +5,7 @@
  * Ensures preview counts match actual enrollment counts.
  */
 
-import { and, eq, gte, lte, inArray, sql } from 'drizzle-orm';
+import { eq, gte, lte, inArray, sql, type SQL } from 'drizzle-orm';
 import { leads } from '@/lib/db/schema';
 
 export interface CampaignFilterParams {
@@ -24,8 +24,8 @@ export interface CampaignFilterParams {
 /**
  * Build WHERE conditions for lead filtering
  */
-export function buildLeadFilterConditions(params: CampaignFilterParams): any[] {
-  const conditions: any[] = [
+export function buildLeadFilterConditions(params: CampaignFilterParams): SQL<unknown>[] {
+  const conditions: SQL<unknown>[] = [
     eq(leads.clientId, params.clientId),
     eq(leads.isActive, true),
     // BUG FIX: Cast targetTags array to PostgreSQL text[] type using ARRAY constructor

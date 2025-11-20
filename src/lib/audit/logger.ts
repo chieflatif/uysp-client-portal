@@ -33,6 +33,8 @@ export type ResourceType =
   | 'CAMPAIGN'
   | 'SYSTEM';
 
+type AuditMetadata = Record<string, unknown>;
+
 interface AuditLogParams {
   userId: string;
   userRole: string;
@@ -41,7 +43,7 @@ interface AuditLogParams {
   resourceId: string;
   clientId?: string | null;
   request?: NextRequest;
-  metadata?: Record<string, any>;
+  metadata?: AuditMetadata;
   success?: boolean;
   errorMessage?: string;
 }
@@ -121,7 +123,7 @@ export async function logSecurityAudit({
  * Remove PII from metadata object
  * Strips keys that commonly contain sensitive data
  */
-function sanitizeMetadata(metadata: Record<string, any>): Record<string, any> {
+function sanitizeMetadata(metadata: AuditMetadata): AuditMetadata {
   const sensitiveKeys = [
     'email',
     'password',
@@ -134,7 +136,7 @@ function sanitizeMetadata(metadata: Record<string, any>): Record<string, any> {
     'apiKey',
   ];
 
-  const sanitized: Record<string, any> = {};
+  const sanitized: AuditMetadata = {};
 
   for (const [key, value] of Object.entries(metadata)) {
     const keyLower = key.toLowerCase();
@@ -147,7 +149,7 @@ function sanitizeMetadata(metadata: Record<string, any>): Record<string, any> {
 
     // Recursively sanitize nested objects
     if (value && typeof value === 'object' && !Array.isArray(value)) {
-      sanitized[key] = sanitizeMetadata(value);
+      sanitized[key] = sanitizeMetadata(value as AuditMetadata);
     } else {
       sanitized[key] = value;
     }

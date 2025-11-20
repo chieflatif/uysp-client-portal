@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { leadActivityLog } from '@/lib/db/schema';
-import { sql } from 'drizzle-orm';
+import { sql, and, or, eq } from 'drizzle-orm';
 
 /**
  * GET /api/admin/activity-logs/counts
@@ -27,42 +26,69 @@ import { sql } from 'drizzle-orm';
 export async function GET(request: NextRequest) {
   try {
     // 1. Authentication & Authorization
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check admin role
-    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
+    const userRole = session.user.role;
+    const userClientId = session.user.clientId;
+    const isAdmin = userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
+    const isClientUser = userRole === 'CLIENT_USER';
+
+    if (!isAdmin && !isClientUser) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    if (isClientUser && !userClientId) {
+      return NextResponse.json(
+        { error: 'Forbidden - Missing client context' },
+        { status: 403 }
+      );
     }
 
     // 2. Parse query parameters
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || undefined;
     const leadId = searchParams.get('leadId') || undefined;
+    const leadAirtableId = searchParams.get('leadAirtableId') || undefined;
 
     // 3. Build WHERE clause for filters (if provided)
     // Use same full-text search as main endpoint for consistency and security
     const conditions = [];
 
-    // Lead ID filter
-    if (leadId) {
-      conditions.push(sql`${leadActivityLog.leadId} = ${leadId}`);
-    }
-
     // Full-text search filter
     if (search) {
-      // PostgreSQL full-text search (same as main activity-logs endpoint)
-      // Uses GIN index and is immune to SQL injection
-      conditions.push(sql`to_tsvector('english', ${leadActivityLog.description} || ' ' || COALESCE(${leadActivityLog.messageContent}, '')) @@ plainto_tsquery('english', ${search})`);
+      conditions.push(
+        sql`to_tsvector('english', ${leadActivityLog.description} || ' ' || COALESCE(${leadActivityLog.messageContent}, '')) @@ plainto_tsquery('english', ${search})`
+      );
     }
 
-    // Combine conditions with AND
-    const whereClause = conditions.length > 0
-      ? sql`${sql.join(conditions, sql` AND `)}`
-      : sql`1=1`;
+    const leadFilters = [];
+    if (leadId) {
+      leadFilters.push(eq(leadActivityLog.leadId, leadId));
+    }
+    if (leadAirtableId) {
+      leadFilters.push(eq(leadActivityLog.leadAirtableId, leadAirtableId));
+    }
+    if (leadFilters.length === 1) {
+      conditions.push(leadFilters[0]);
+    } else if (leadFilters.length > 1) {
+      conditions.push(or(...leadFilters));
+    }
+
+    if (isAdmin) {
+      const clientIdParam = searchParams.get('clientId');
+      if (clientIdParam) {
+        conditions.push(eq(leadActivityLog.clientId, clientIdParam));
+      }
+    } else if (isClientUser && userClientId) {
+      conditions.push(eq(leadActivityLog.clientId, userClientId));
+    }
+
+    const whereClause =
+      conditions.length > 0 ? and(...conditions) : undefined;
 
     // 4. Get category counts with single query
     const countResults = await db

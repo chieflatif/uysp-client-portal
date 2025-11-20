@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:integration": "jest --config jest.integration.config.js",
+    "test:integration": "scripts/dev/run-integration-tests.sh",
+    "test:integration:raw": "jest --config jest.integration.config.js",
     "test:all": "npm run test && npm run test:integration",
     "db:push": "drizzle-kit push:pg",
     "db:migrate": "drizzle-kit migrate",
@@ -25,7 +26,12 @@
     "sync:delta:1h": "tsx -r dotenv/config scripts/run-reconciler.ts 60",
     "sync:delta:6h": "tsx -r dotenv/config scripts/run-reconciler.ts 360",
     "sync:delta:24h": "tsx -r dotenv/config scripts/run-reconciler.ts 1440",
-    "sync:help": "echo \"\n📚 Bi-Directional Sync Scripts:\n  npm run sync:delta       - Sync last 20 minutes (default)\n  npm run sync:delta:1h    - Sync last 1 hour\n  npm run sync:delta:6h    - Sync last 6 hours\n  npm run sync:delta:24h   - Sync last 24 hours (max)\n\n  Custom: tsx scripts/run-reconciler.ts <minutes>\n\""
+    "sync:help": "echo \"\n📚 Bi-Directional Sync Scripts:\n  npm run sync:delta       - Sync last 20 minutes (default)\n  npm run sync:delta:1h    - Sync last 1 hour\n  npm run sync:delta:6h    - Sync last 6 hours\n  npm run sync:delta:24h   - Sync last 24 hours (max)\n\n  Custom: tsx scripts/run-reconciler.ts <minutes>\n\"",
+    "report:12h": "tsx scripts/reporting/daily-sms-summary.ts --hours=12",
+    "report:daily": "tsx scripts/reporting/daily-sms-summary.ts --range=day",
+    "report:weekly": "tsx scripts/reporting/daily-sms-summary.ts --range=week",
+    "report:twoweeks": "tsx scripts/reporting/daily-sms-summary.ts --range=twoweeks",
+    "report:threeweeks": "tsx scripts/reporting/daily-sms-summary.ts --range=threeweeks"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

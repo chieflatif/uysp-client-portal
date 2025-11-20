@@ -4,7 +4,18 @@ import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { clientProjectTasks, clients, airtableSyncQueue } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { getAirtableClient } from '@/lib/airtable/client';
+import { getAirtableClient, type AirtableLeadFields } from '@/lib/airtable/client';
+
+interface UpdateTaskPayload {
+  task?: string;
+  status?: string;
+  priority?: string;
+  taskType?: string;
+  owner?: string;
+  dueDate?: string;
+  notes?: string;
+  dependencies?: string;
+}
 
 /**
  * PATCH /api/project/tasks/[id]
@@ -29,8 +40,10 @@ export async function PATCH(
     }
 
     // Get task to verify ownership
+    const { id } = await params;
+
     const existingTask = await db.query.clientProjectTasks.findFirst({
-      where: eq(clientProjectTasks.id, (await params).id),
+      where: eq(clientProjectTasks.id, id),
     });
 
     if (!existingTask) {
@@ -70,7 +83,7 @@ export async function PATCH(
     }
 
     // Parse request body
-    const body = await request.json();
+    const body = (await request.json()) as UpdateTaskPayload;
     const { task, status, priority, taskType, owner, dueDate, notes, dependencies } = body;
 
     // 1. Update PostgreSQL FIRST (fast local database)
@@ -87,7 +100,7 @@ export async function PATCH(
         dependencies: dependencies || null,
         updatedAt: new Date(),
       })
-      .where(eq(clientProjectTasks.id, (await params).id))
+      .where(eq(clientProjectTasks.id, id))
       .returning();
 
     // 2. Sync to Airtable in background (don't block response)
@@ -103,7 +116,9 @@ export async function PATCH(
       'Dependencies': dependencies || '',
     };
 
-    airtable.updateRecord('Tasks', existingTask.airtableRecordId, airtablePayload as any).catch(async (err) => {
+    airtable
+      .updateRecord('Tasks', existingTask.airtableRecordId, airtablePayload as Partial<AirtableLeadFields>)
+      .catch(async (err) => {
       console.error('Background Airtable sync failed:', err);
 
       // Add to retry queue with exponential backoff
@@ -122,7 +137,7 @@ export async function PATCH(
           lastError: err instanceof Error ? err.message : 'Unknown error',
           nextRetryAt,
         });
-        console.log(`✅ Added failed sync to retry queue (task ${(await params).id})`);
+        console.log(`✅ Added failed sync to retry queue (task ${id})`);
       } catch (queueError) {
         console.error('Failed to add to retry queue:', queueError);
       }
@@ -149,11 +164,12 @@ export async function PATCH(
  * Auth: SUPER_ADMIN or ADMIN (must own the task's client)
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const { id } = await params;
 
     if (!session) {
       return NextResponse.json(
@@ -164,7 +180,7 @@ export async function GET(
 
     // Get task
     const task = await db.query.clientProjectTasks.findFirst({
-      where: eq(clientProjectTasks.id, (await params).id),
+      where: eq(clientProjectTasks.id, id),
     });
 
     if (!task) {
@@ -210,7 +226,7 @@ export async function GET(
  * Auth: SUPER_ADMIN or ADMIN (must own the task's client)
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -224,8 +240,10 @@ export async function DELETE(
     }
 
     // Get task to verify ownership
+    const { id } = await params;
+
     const existingTask = await db.query.clientProjectTasks.findFirst({
-      where: eq(clientProjectTasks.id, (await params).id),
+      where: eq(clientProjectTasks.id, id),
     });
 
     if (!existingTask) {
@@ -267,7 +285,7 @@ export async function DELETE(
     // 1. Delete from PostgreSQL FIRST
     await db
       .delete(clientProjectTasks)
-      .where(eq(clientProjectTasks.id, (await params).id));
+      .where(eq(clientProjectTasks.id, id));
 
     // 2. Delete from Airtable (push to source of truth)
     const airtable = getAirtableClient(client.airtableBaseId);

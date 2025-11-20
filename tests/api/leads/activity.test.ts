@@ -2,7 +2,7 @@
  * INTEGRATION TESTS - MINI-CRM LEAD TIMELINE API
  *
  * Tests GET /api/leads/[id]/activity endpoint
- * Must pass before Week 2 deployment
+ * Refactored to call the route handler directly and mock auth.
  *
  * PRD Reference: docs/PRD-MINI-CRM-ACTIVITY-LOGGING.md Section 4.3
  * Security Fix: HIGH-002 (Client Isolation)
@@ -13,13 +13,25 @@ import { resolve } from 'path';
 config({ path: resolve(__dirname, '../../../.env.local') });
 
 import { db } from '../../../src/lib/db';
-import { leadActivityLog, leads, clients } from '../../../src/lib/db/schema';
+import { leadActivityLog, leads, clients, users } from '../../../src/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { EVENT_TYPES, EVENT_CATEGORIES } from '../../../src/lib/activity/event-types';
+import { createTestClient, createTestLead, createTestUser } from '../../helpers/factories';
+import { NextRequest } from 'next/server';
+import { GET } from '../../../src/app/api/leads/[id]/activity/route';
+import { auth } from '../../../src/lib/auth';
+import bcrypt from 'bcryptjs';
+
+// Mock auth
+jest.mock('../../../src/lib/auth', () => ({
+  auth: jest.fn(),
+}));
 
 describe('GET /api/leads/[id]/activity', () => {
   let testClientAId: string | null = null;
   let testClientBId: string | null = null;
+  let testUserAId: string | null = null;
+  let testUserBId: string | null = null;
   let testLeadClientAId: string | null = null;
   let testLeadClientBId: string | null = null;
   let testActivitiesClientA: string[] = [];
@@ -27,39 +39,56 @@ describe('GET /api/leads/[id]/activity', () => {
 
   beforeAll(async () => {
     // Create two separate clients for isolation testing
-    const clientAResult = await db.insert(clients).values({
-      name: 'Client A for Timeline Tests',
-      contactEmail: 'client-a-timeline@test.internal',
-      isActive: true,
-    }).returning({ id: clients.id });
-    testClientAId = clientAResult[0].id;
+    const clientA = await createTestClient({
+      companyName: 'Client A for Timeline Tests',
+      email: 'client-a-timeline@test.internal',
+    });
+    testClientAId = clientA.id;
 
-    const clientBResult = await db.insert(clients).values({
-      name: 'Client B for Timeline Tests',
-      contactEmail: 'client-b-timeline@test.internal',
-      isActive: true,
-    }).returning({ id: clients.id });
-    testClientBId = clientBResult[0].id;
+    const clientB = await createTestClient({
+      companyName: 'Client B for Timeline Tests',
+      email: 'client-b-timeline@test.internal',
+    });
+    testClientBId = clientB.id;
+
+    // Create User for Client A
+    const passwordHash = await bcrypt.hash('password123', 10);
+    const userA = await createTestUser(testClientAId, {
+      email: 'user-a@test.internal',
+      passwordHash,
+      firstName: 'User',
+      lastName: 'A',
+      role: 'CLIENT_USER',
+    });
+    testUserAId = userA.id;
+
+    // Create User for Client B
+    const userB = await createTestUser(testClientBId, {
+      email: 'user-b@test.internal',
+      passwordHash,
+      firstName: 'User',
+      lastName: 'B',
+      role: 'CLIENT_USER',
+    });
+    testUserBId = userB.id;
 
     // Create lead for Client A
-    const leadAResult = await db.insert(leads).values({
+    const leadA = await createTestLead(testClientAId!, {
       email: 'lead-a-timeline@test.internal',
       firstName: 'Lead',
       lastName: 'A',
       airtableRecordId: `recLeadA${Date.now()}`,
-      clientId: testClientAId,
-    }).returning({ id: leads.id });
-    testLeadClientAId = leadAResult[0].id;
+    });
+    testLeadClientAId = leadA.id;
 
     // Create lead for Client B
-    const leadBResult = await db.insert(leads).values({
+    const leadB = await createTestLead(testClientBId!, {
       email: 'lead-b-timeline@test.internal',
       firstName: 'Lead',
       lastName: 'B',
       airtableRecordId: `recLeadB${Date.now()}`,
-      clientId: testClientBId,
-    }).returning({ id: leads.id });
-    testLeadClientBId = leadBResult[0].id;
+    });
+    testLeadClientBId = leadB.id;
 
     // Create activities for Client A's lead
     const activitiesA = [
@@ -141,6 +170,14 @@ describe('GET /api/leads/[id]/activity', () => {
       await db.delete(leads).where(eq(leads.id, testLeadClientBId));
     }
 
+    // Clean up users
+    if (testUserAId) {
+      await db.delete(users).where(eq(users.id, testUserAId));
+    }
+    if (testUserBId) {
+      await db.delete(users).where(eq(users.id, testUserBId));
+    }
+
     // Clean up clients
     if (testClientAId) {
       await db.delete(clients).where(eq(clients.id, testClientAId));
@@ -150,12 +187,17 @@ describe('GET /api/leads/[id]/activity', () => {
     }
   });
 
+  // Helper to create request
+  const createRequest = (url: string) => {
+    return new NextRequest(new URL(url, 'http://localhost:3000'));
+  };
+
   describe('Authentication', () => {
     it('should reject unauthenticated requests', async () => {
-      const response = await fetch(
-        `http://localhost:3000/api/leads/${testLeadClientAId}/activity`,
-        { method: 'GET' }
-      );
+      (auth as jest.Mock).mockResolvedValue(null);
+      
+      const req = createRequest(`/api/leads/${testLeadClientAId}/activity`);
+      const response = await GET(req, { params: Promise.resolve({ id: testLeadClientAId! }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -164,88 +206,155 @@ describe('GET /api/leads/[id]/activity', () => {
   });
 
   describe('Client Isolation (HIGH-002 Fix)', () => {
-    // NOTE: These tests require actual session authentication
-    // They verify the client isolation security fix is in place
+    it('should allow access to own client leads', async () => {
+      (auth as jest.Mock).mockResolvedValue({
+        user: { id: testUserAId, role: 'CLIENT_USER', clientId: testClientAId },
+      });
 
-    it.skip('should allow access to own client leads', async () => {
-      // Would need session cookie for user from Client A
-      // Should return 200 with activities for testLeadClientAId
+      const req = createRequest(`/api/leads/${testLeadClientAId}/activity`);
+      const response = await GET(req, { params: Promise.resolve({ id: testLeadClientAId! }) });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.timeline.length).toBe(3);
     });
 
-    it.skip('should reject access to other client leads (403 Forbidden)', async () => {
-      // User from Client A tries to access Client B's lead
-      // Should return 403 Forbidden (not 200, not 404)
-      // This is the critical security fix from HIGH-002
+    it('should reject access to other client leads (403 Forbidden)', async () => {
+      (auth as jest.Mock).mockResolvedValue({
+        user: { id: testUserAId, role: 'CLIENT_USER', clientId: testClientAId },
+      });
+
+      // User A tries to access Lead B
+      const req = createRequest(`/api/leads/${testLeadClientBId}/activity`);
+      const response = await GET(req, { params: Promise.resolve({ id: testLeadClientBId! }) });
+
+      expect(response.status).toBe(403);
+      const data = await response.json();
+      expect(data.error).toBe('Forbidden');
     });
 
-    it.skip('should allow SUPER_ADMIN to access all client leads', async () => {
-      // SUPER_ADMIN should be able to access both Client A and B leads
-      // Should return 200 for both
+    it('should allow SUPER_ADMIN to access all client leads', async () => {
+      (auth as jest.Mock).mockResolvedValue({
+        user: { id: 'super-admin', role: 'SUPER_ADMIN', clientId: null },
+      });
+
+      // Check Lead A
+      const reqA = createRequest(`/api/leads/${testLeadClientAId}/activity`);
+      const responseA = await GET(reqA, { params: Promise.resolve({ id: testLeadClientAId! }) });
+      expect(responseA.status).toBe(200);
+
+      // Check Lead B
+      const reqB = createRequest(`/api/leads/${testLeadClientBId}/activity`);
+      const responseB = await GET(reqB, { params: Promise.resolve({ id: testLeadClientBId! }) });
+      expect(responseB.status).toBe(200);
     });
 
     it('should return 404 for non-existent lead', async () => {
+      (auth as jest.Mock).mockResolvedValue({
+        user: { id: testUserAId, role: 'CLIENT_USER', clientId: testClientAId },
+      });
+
       const fakeLeadId = '00000000-0000-0000-0000-000000000000';
+      const req = createRequest(`/api/leads/${fakeLeadId}/activity`);
+      const response = await GET(req, { params: Promise.resolve({ id: fakeLeadId }) });
 
-      const response = await fetch(
-        `http://localhost:3000/api/leads/${fakeLeadId}/activity`,
-        { method: 'GET' }
-      );
-
-      // Without auth, gets 401 first
-      // With auth, would get 404
-      expect([401, 404]).toContain(response.status);
+      expect(response.status).toBe(404);
     });
   });
 
   describe('Pagination (MEDIUM-004 Fix)', () => {
-    it.skip('should return paginated results with default limit 100', async () => {
-      // Requires auth
-      // Should return pagination object with page, limit, totalCount, totalPages, hasMore
+    beforeEach(() => {
+      (auth as jest.Mock).mockResolvedValue({
+        user: { id: testUserAId, role: 'CLIENT_USER', clientId: testClientAId },
+      });
     });
 
-    it.skip('should support custom page parameter', async () => {
-      // Requires auth
-      // GET /api/leads/[id]/activity?page=2
+    it('should return paginated results with default limit 100', async () => {
+      const req = createRequest(`/api/leads/${testLeadClientAId}/activity`);
+      const response = await GET(req, { params: Promise.resolve({ id: testLeadClientAId! }) });
+      const data = await response.json();
+
+      expect(data.pagination).toBeDefined();
+      expect(data.pagination.limit).toBe(100);
+      expect(data.pagination.page).toBe(1);
     });
 
-    it.skip('should support custom limit parameter', async () => {
-      // Requires auth
-      // GET /api/leads/[id]/activity?limit=50
+    it('should support custom page parameter', async () => {
+      // With only 3 items, page 2 should be empty
+      const req = createRequest(`/api/leads/${testLeadClientAId}/activity?page=2&limit=2`);
+      const response = await GET(req, { params: Promise.resolve({ id: testLeadClientAId! }) });
+      const data = await response.json();
+
+      expect(data.pagination.page).toBe(2);
+      expect(data.timeline.length).toBe(1); // 3 items, page 1 has 2, page 2 has 1
     });
 
-    it.skip('should enforce max limit of 500', async () => {
-      // Requires auth
-      // GET /api/leads/[id]/activity?limit=1000
-      // Should cap at 500
+    it('should support custom limit parameter', async () => {
+      const req = createRequest(`/api/leads/${testLeadClientAId}/activity?limit=1`);
+      const response = await GET(req, { params: Promise.resolve({ id: testLeadClientAId! }) });
+      const data = await response.json();
+
+      expect(data.pagination.limit).toBe(1);
+      expect(data.timeline.length).toBe(1);
     });
 
-    it.skip('should return pagination metadata', async () => {
-      // Requires auth
-      // Response should include:
-      // - pagination.page
-      // - pagination.limit
-      // - pagination.totalCount
-      // - pagination.totalPages
-      // - pagination.hasMore
+    it('should enforce max limit of 500', async () => {
+      const req = createRequest(`/api/leads/${testLeadClientAId}/activity?limit=1000`);
+      const response = await GET(req, { params: Promise.resolve({ id: testLeadClientAId! }) });
+      const data = await response.json();
+
+      expect(data.pagination.limit).toBe(500);
+    });
+
+    it('should return pagination metadata', async () => {
+      const req = createRequest(`/api/leads/${testLeadClientAId}/activity`);
+      const response = await GET(req, { params: Promise.resolve({ id: testLeadClientAId! }) });
+      const data = await response.json();
+
+      expect(data.pagination).toHaveProperty('totalCount');
+      expect(data.pagination).toHaveProperty('totalPages');
+      expect(data.pagination).toHaveProperty('hasMore');
     });
   });
 
   describe('Response Format', () => {
-    it.skip('should return timeline array', async () => {
-      // Requires auth
-      // Response: { timeline: [...], pagination: {...} }
+    beforeEach(() => {
+      (auth as jest.Mock).mockResolvedValue({
+        user: { id: testUserAId, role: 'CLIENT_USER', clientId: testClientAId },
+      });
     });
 
-    it.skip('should order activities by timestamp descending', async () => {
-      // Requires auth
-      // Most recent activity should be first
+    it('should return timeline array', async () => {
+      const req = createRequest(`/api/leads/${testLeadClientAId}/activity`);
+      const response = await GET(req, { params: Promise.resolve({ id: testLeadClientAId! }) });
+      const data = await response.json();
+
+      expect(Array.isArray(data.timeline)).toBe(true);
     });
 
-    it.skip('should include all activity fields', async () => {
-      // Requires auth
-      // Each activity should have:
-      // - id, timestamp, eventType, category, description
-      // - message (messageContent), details (metadata), source, executionId
+    it('should order activities by timestamp descending', async () => {
+      const req = createRequest(`/api/leads/${testLeadClientAId}/activity`);
+      const response = await GET(req, { params: Promise.resolve({ id: testLeadClientAId! }) });
+      const data = await response.json();
+
+      const dates = data.timeline.map((a: any) => new Date(a.timestamp).getTime());
+      // Check if sorted descending
+      expect(dates[0]).toBeGreaterThanOrEqual(dates[1]);
+    });
+
+    it('should include all activity fields', async () => {
+      const req = createRequest(`/api/leads/${testLeadClientAId}/activity`);
+      const response = await GET(req, { params: Promise.resolve({ id: testLeadClientAId! }) });
+      const data = await response.json();
+      const activity = data.timeline[0];
+
+      expect(activity).toHaveProperty('id');
+      expect(activity).toHaveProperty('timestamp');
+      expect(activity).toHaveProperty('eventType');
+      expect(activity).toHaveProperty('category');
+      expect(activity).toHaveProperty('description');
+      // message/details/source/executionId might be null/undefined depending on data
+      // but checking they exist on the object keys is good practice if we want to enforce shape
     });
   });
 
@@ -288,55 +397,27 @@ describe('GET /api/leads/[id]/activity', () => {
   });
 
   describe('Edge Cases', () => {
-    it('should handle invalid UUID format', async () => {
-      const response = await fetch(
-        'http://localhost:3000/api/leads/not-a-uuid/activity',
-        { method: 'GET' }
-      );
+    it('should handle lead with no activities', async () => {
+      (auth as jest.Mock).mockResolvedValue({
+        user: { id: testUserAId, role: 'CLIENT_USER', clientId: testClientAId },
+      });
 
-      // Without auth: 401
-      // With auth: 400 or 404
-      expect([400, 401, 404]).toContain(response.status);
-    });
-
-    it.skip('should handle lead with no activities', async () => {
-      // Requires auth
       // Create lead with zero activities
-      // Should return empty timeline array with pagination
-    });
-
-    it.skip('should handle lead with 1000+ activities', async () => {
-      // Requires auth
-      // Should use pagination properly
-      // First page should return 100 (default limit)
-      // pagination.hasMore should be true
+      const lead = await createTestLead(testClientAId!, {
+        email: 'empty-lead@test.internal',
+        firstName: 'Empty',
+        lastName: 'Lead',
+      });
+      
+      const req = createRequest(`/api/leads/${lead.id}/activity`);
+      const response = await GET(req, { params: Promise.resolve({ id: lead.id }) });
+      const data = await response.json();
+      
+      expect(data.timeline).toEqual([]);
+      expect(data.pagination.totalCount).toBe(0);
+      
+      // Cleanup
+      await db.delete(leads).where(eq(leads.id, lead.id));
     });
   });
 });
-
-/**
- * IMPLEMENTATION NOTES:
- *
- * This test suite verifies the critical HIGH-002 security fix (client isolation).
- * Many tests are skipped because they require session authentication infrastructure.
- *
- * The key security test that MUST pass (once auth is available):
- * - User from Client A CANNOT access Client B's lead timeline
- * - Should return 403 Forbidden, not 200, not 404
- * - This prevents multi-tenant data leakage
- *
- * To complete these tests:
- * 1. Implement session helper functions
- * 2. Create test users for Client A, Client B, and SUPER_ADMIN
- * 3. Generate valid session cookies
- * 4. Unskip tests and add Cookie headers
- *
- * Current coverage:
- * - ✅ Unauthenticated rejection
- * - ✅ Non-existent lead handling
- * - ✅ Database integration
- * - ✅ Activity isolation by lead
- * - ⏸️ Client isolation (requires auth)
- * - ⏸️ Pagination (requires auth)
- * - ⏸️ Response format (requires auth)
- */

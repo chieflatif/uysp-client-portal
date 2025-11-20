@@ -3,8 +3,17 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { userActivityLogs, userActivitySessions } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
+
+interface TrackEventPayload {
+  eventType: string;
+  eventCategory?: string;
+  eventData?: Record<string, unknown>;
+  pageUrl?: string;
+  referrer?: string;
+  sessionId?: string;
+}
 
 /**
  * POST /api/analytics/track
@@ -26,7 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const body = (await request.json()) as TrackEventPayload;
     const {
       eventType,
       eventCategory = 'navigation',
@@ -45,9 +54,10 @@ export async function POST(request: NextRequest) {
 
     // Extract user agent and device info
     const userAgent = request.headers.get('user-agent') || '';
-    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0] ||
-                      request.headers.get('x-real-ip') ||
-                      'unknown';
+    const ipAddress =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
 
     // Parse device info from user agent
     const deviceInfo = parseUserAgent(userAgent);
@@ -65,7 +75,7 @@ export async function POST(request: NextRequest) {
       pageUrl: pageUrl || null,
       referrer: referrer || null,
       sessionId: currentSessionId,
-      ipAddress: ipAddress as any,
+      ipAddress,
       userAgent,
       browser: deviceInfo.browser,
       deviceType: deviceInfo.deviceType,
@@ -107,7 +117,7 @@ export async function POST(request: NextRequest) {
         deviceType: deviceInfo.deviceType,
         browser: deviceInfo.browser,
         os: deviceInfo.os,
-        ipAddress: ipAddress as any,
+        ipAddress,
         userAgent,
       });
     }

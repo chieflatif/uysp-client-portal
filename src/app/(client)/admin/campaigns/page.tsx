@@ -11,8 +11,6 @@ import CampaignList from '@/components/admin/CampaignList';
 import CampaignForm from '@/components/admin/CampaignForm';
 import CustomCampaignForm from '@/components/admin/CustomCampaignForm';
 import {
-  VALID_TYPE_FILTERS,
-  VALID_STATUS_FILTERS,
   CAMPAIGN_TYPE_UI_TO_DB,
   CampaignTypeFilter,
   CampaignStatusFilter,
@@ -37,6 +35,12 @@ interface Campaign {
   targetTags?: string[];
   enrollmentStatus?: 'scheduled' | 'active' | 'paused' | 'completed';
   leadsEnrolled?: number;
+}
+
+interface CampaignsApiResponse {
+  campaigns?: Campaign[];
+  count?: number;
+  error?: string;
 }
 
 export default function CampaignsPage() {
@@ -114,8 +118,8 @@ export default function CampaignsPage() {
       if (!response.ok) {
         throw new Error('Failed to fetch campaigns');
       }
-      const data = await response.json();
-      return data.campaigns || [];
+      const data: CampaignsApiResponse = await response.json();
+      return Array.isArray(data.campaigns) ? data.campaigns : [];
     },
     enabled: !!selectedClientId, // Only run query if a client is selected
     refetchInterval: 30000, // Auto-refresh every 30 seconds
@@ -136,14 +140,30 @@ export default function CampaignsPage() {
   // Mutations for pausing and deleting campaigns
   const togglePauseMutation = useMutation({
     mutationFn: async ({ campaignId, isPaused }: { campaignId: string; isPaused: boolean }) => {
-      // ... (implementation)
+      const response = await fetch(`/api/admin/campaigns/${campaignId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPaused }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to update campaign status');
+      }
+      return response.json();
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (campaignId: string) => {
-      // ... (implementation)
+      const response = await fetch(`/api/admin/campaigns/${campaignId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to delete campaign');
+      }
+      return response.json();
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
   });
@@ -327,7 +347,8 @@ export default function CampaignsPage() {
           >
             <AlertTriangle className="h-5 w-5" />
             <p className="text-sm">
-              Failed to load campaigns: {campaignsError.message}
+              Failed to load campaigns:{' '}
+              {campaignsError instanceof Error ? campaignsError.message : 'Unknown error'}
             </p>
           </div>
         )}

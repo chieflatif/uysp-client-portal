@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
-import { and, eq, gte, lte, arrayContains, or, sql, inArray } from 'drizzle-orm';
+import { and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { buildLeadFilterConditions } from '@/lib/utils/campaign-filters';
 
@@ -85,15 +85,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const body = (await request.json()) as Partial<PreviewLeadsInput>;
 
     // SECURITY: Force clientId IMMEDIATELY for non-SUPER_ADMIN users
     // This prevents any potential timing attacks or validation bypasses
     if (session.user.role !== 'SUPER_ADMIN') {
-      body.clientId = session.user.clientId;
+      const clientId = session.user.clientId;
+      if (!clientId) {
+        return NextResponse.json(
+          { error: 'Client context required for this operation' },
+          { status: 400 }
+        );
+      }
+      body.clientId = clientId;
       // Make clientId immutable to prevent any further modification attempts
       Object.defineProperty(body, 'clientId', {
-        value: session.user.clientId,
+        value: clientId,
         writable: false,
         configurable: false,
       });

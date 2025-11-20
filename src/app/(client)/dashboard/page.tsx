@@ -44,6 +44,37 @@ interface CampaignSummary {
   isPaused: boolean;
 }
 
+interface LeadRecord {
+  id: string;
+  icpScore: number;
+  claimedBy?: string | null;
+  booked?: boolean | null;
+  clickedLink?: boolean | null;
+  campaignName?: string | null;
+  leadSource?: string | null;
+  formId?: string | null;
+}
+
+interface LeadsApiResponse {
+  leads?: LeadRecord[];
+}
+
+interface CampaignApiResponseItem {
+  id: string;
+  name: string;
+  campaignType: 'Webinar' | 'Standard';
+  isPaused: boolean;
+  formId?: string | null;
+}
+
+interface CampaignsApiResponse {
+  campaigns?: CampaignApiResponseItem[];
+}
+
+interface ActivityApiResponse {
+  activities?: ActivityEntry[];
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -86,14 +117,14 @@ export default function DashboardPage() {
           throw new Error(`Failed to fetch leads: ${leadsResponse.status}`);
         }
         
-        const leadsData = await leadsResponse.json();
-        const leads = leadsData.leads || [];
+        const leadsData: LeadsApiResponse = await leadsResponse.json();
+        const leads = Array.isArray(leadsData.leads) ? leadsData.leads : [];
 
         // Calculate stats
-        const highIcp = leads.filter((l: any) => l.icpScore >= 70).length;
-        const claimed = leads.filter((l: any) => l.claimedBy).length;
-        const booked = leads.filter((l: any) => l.booked === true).length;
-        const clicked = leads.filter((l: any) => l.clickedLink === true).length;
+        const highIcp = leads.filter((lead) => lead.icpScore >= 70).length;
+        const claimed = leads.filter((lead) => Boolean(lead.claimedBy)).length;
+        const booked = leads.filter((lead) => lead.booked === true).length;
+        const clicked = leads.filter((lead) => lead.clickedLink === true).length;
 
         setStats({
           totalLeads: leads.length,
@@ -107,8 +138,8 @@ export default function DashboardPage() {
         try {
           const activityResponse = await fetch('/api/activity/recent');
           if (activityResponse.ok) {
-            const activityData = await activityResponse.json();
-            setRecentActivity(activityData.activities || []);
+            const activityData: ActivityApiResponse = await activityResponse.json();
+            setRecentActivity(Array.isArray(activityData.activities) ? activityData.activities : []);
           }
         } catch (activityError) {
           console.error('Error fetching activity:', activityError);
@@ -119,19 +150,20 @@ export default function DashboardPage() {
         try {
           const campaignsResponse = await fetch('/api/admin/campaigns');
           if (campaignsResponse.ok) {
-            const campaignsData = await campaignsResponse.json();
-            const allCampaigns = campaignsData.campaigns || [];
+            const campaignsData: CampaignsApiResponse = await campaignsResponse.json();
+            const allCampaigns = Array.isArray(campaignsData.campaigns) ? campaignsData.campaigns : [];
 
             // Count leads per campaign - Match by campaignName, leadSource, or formId
-            const campaignsWithCounts = allCampaigns.map((campaign: any) => ({
+            const campaignsWithCounts: CampaignSummary[] = allCampaigns.map((campaign) => ({
               id: campaign.id,
               name: campaign.name,
               campaignType: campaign.campaignType,
               isPaused: campaign.isPaused,
-              totalLeads: leads.filter((l: any) =>
-                l.campaignName === campaign.id ||
-                l.leadSource === campaign.name ||
-                (campaign.formId && l.formId === campaign.formId)
+              totalLeads: leads.filter(
+                (lead) =>
+                  lead.campaignName === campaign.id ||
+                  lead.leadSource === campaign.name ||
+                  (campaign.formId && lead.formId === campaign.formId)
               ).length,
             }));
 

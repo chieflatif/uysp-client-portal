@@ -7,6 +7,7 @@ export interface ActivityLog {
   category: string;
   description: string;
   messageContent: string | null;
+  metadata?: Record<string, unknown> | null;
   lead: {
     id: string;
     firstName: string;

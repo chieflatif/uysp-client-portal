@@ -4,13 +4,22 @@ import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { theme } from '@/theme';
-import { LayoutDashboard, Users, BarChart3, LogOut, Megaphone, Database, ClipboardList } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Users,
+  BarChart3,
+  LogOut,
+  Megaphone,
+  Database,
+  ClipboardList,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 interface NavItem {
   href: string;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   roles: string[];
 }
 
@@ -65,14 +74,14 @@ export function Navigation() {
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
 
-  const renderNavItem = (item: NavItem, index: number) => {
+  const renderNavItem = (item: NavItem) => {
     const Icon = item.icon;
-    const active = isActive(item.href!);
+    const active = isActive(item.href);
 
     return (
       <Link
         key={item.href}
-        href={item.href!}
+        href={item.href}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
           active
             ? `${theme.accents.tertiary.bgClass} text-gray-900`
@@ -99,7 +108,7 @@ export function Navigation() {
 
           {/* Main Navigation */}
           <div className="flex items-center gap-1">
-            {filteredNavItems.map((item, index) => renderNavItem(item, index))}
+            {filteredNavItems.map(renderNavItem)}
           </div>
 
           {/* User Menu */}

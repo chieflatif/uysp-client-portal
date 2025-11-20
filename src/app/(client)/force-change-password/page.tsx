@@ -75,7 +75,8 @@ export default function ForceChangePasswordPage() {
 
       // Redirect to dashboard
       router.push('/dashboard');
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to force-change password', error);
       setError('An unexpected error occurred. Please try again.');
       setLoading(false);
     }

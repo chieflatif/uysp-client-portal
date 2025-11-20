@@ -4,8 +4,22 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Activity, Search, Filter, Download, RefreshCw, Clock, User, MessageSquare, ArrowUp, ArrowDown, X } from 'lucide-react';
-import { useActivityLogs } from '@/hooks/useActivityLogs';
+import { useActivityLogs, type ActivityLog } from '@/hooks/useActivityLogs';
 import { useDebounce } from '@/hooks/useDebounce';
+
+type ActivitySortColumn = 'timestamp' | 'eventType' | 'eventCategory';
+type SortOrder = 'asc' | 'desc';
+
+const normalizeSortColumn = (value: string): ActivitySortColumn => {
+  if (value === 'eventType' || value === 'eventCategory') {
+    return value;
+  }
+  return 'timestamp';
+};
+
+const normalizeSortOrder = (value: string): SortOrder => (value === 'asc' ? 'asc' : 'desc');
+
+type ActivityWithDate = Omit<ActivityLog, 'timestamp'> & { timestamp: Date };
 
 export default function ActivityLogsPage() {
   const { data: session } = useSession();
@@ -23,9 +37,9 @@ export default function ActivityLogsPage() {
   const [searchTerm, setSearchTerm] = useState(searchFromUrl);
   const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
   const [page, setPage] = useState(pageFromUrl);
-  const [sortBy, setSortBy] = useState<'timestamp' | 'eventType' | 'eventCategory'>(sortByFromUrl as any);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(sortOrderFromUrl as any);
-  const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
+  const [sortBy, setSortBy] = useState<ActivitySortColumn>(normalizeSortColumn(sortByFromUrl));
+  const [sortOrder, setSortOrder] = useState<SortOrder>(normalizeSortOrder(sortOrderFromUrl));
+  const [selectedActivity, setSelectedActivity] = useState<ActivityWithDate | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(() => {
     // Load from localStorage on mount
@@ -116,7 +130,7 @@ export default function ActivityLogsPage() {
   };
 
   // Handle column sort
-  const handleSort = (column: 'timestamp' | 'eventType' | 'eventCategory') => {
+  const handleSort = (column: ActivitySortColumn) => {
     if (sortBy === column) {
       // Toggle sort order if clicking same column
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -129,7 +143,7 @@ export default function ActivityLogsPage() {
   };
 
   // Sort indicator component
-  const SortIndicator = ({ column }: { column: string }) => {
+  const SortIndicator = ({ column }: { column: ActivitySortColumn }) => {
     if (sortBy !== column) return null;
     return sortOrder === 'asc' ? (
       <ArrowUp className="w-4 h-4 inline ml-1" />
@@ -230,18 +244,8 @@ export default function ActivityLogsPage() {
     }
   };
 
-  // Authorization check - render before any hooks are called below
-  if (!isAdmin) {
-    return (
-      <div className="p-8 text-center">
-        <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-        <p className="text-gray-600">You don't have permission to view this page.</p>
-      </div>
-    );
-  }
-
   // Parse activities with proper Date objects
-  const activities = useMemo(() => {
+  const activities = useMemo<ActivityWithDate[]>(() => {
     if (!data?.activities) return [];
 
     return data.activities.map(activity => ({
@@ -250,6 +254,16 @@ export default function ActivityLogsPage() {
       timestamp: new Date(activity.timestamp),
     }));
   }, [data?.activities]);
+
+  // Authorization check - render before main UI
+  if (!isAdmin) {
+    return (
+      <div className="p-8 text-center">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
+        <p className="text-gray-600">You don&rsquo;t have permission to view this page.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">

@@ -3,11 +3,6 @@
  * Clean, minimal, on-brand design
  */
 
-import { db } from '@/lib/db';
-import { clientProjectTasks, clientProjectBlockers, clientProjectStatus, users, clients } from '@/lib/db/schema';
-import { eq, and, desc, sql, gte } from 'drizzle-orm';
-import { sendEmail } from './mailer';
-
 // Re-export types and data gathering from original file
 export { sendWeeklyReport, sendTestReport, sendAllWeeklyReports } from './weekly-report';
 

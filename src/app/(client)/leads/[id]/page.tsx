@@ -22,6 +22,7 @@ interface Lead {
   createdAt: string;
   claimedBy?: string;
   claimedAt?: string;
+  airtableRecordId?: string;
 }
 
 export default function LeadDetailPage() {
@@ -340,7 +341,7 @@ export default function LeadDetailPage() {
 
         <NotesList leadId={lead.id} />
 
-        <LeadTimeline leadId={lead.id} />
+        <LeadTimeline leadId={lead.id} leadAirtableId={lead.airtableRecordId} />
 
         {/* Remove from Campaign Dialog */}
         {showRemoveDialog && (

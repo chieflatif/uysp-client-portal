@@ -18,4 +18,13 @@ if (typeof global.Headers === 'undefined') {
   global.Headers = class Headers {};
 }
 
+// Polyfill setImmediate/clearImmediate for environments (jsdom) that lack them
+if (typeof global.setImmediate === 'undefined') {
+  global.setImmediate = (callback, ...args) => setTimeout(callback, 0, ...args);
+}
+
+if (typeof global.clearImmediate === 'undefined') {
+  global.clearImmediate = (handle) => clearTimeout(handle);
+}
+
 // Add custom matchers or global setup here if needed

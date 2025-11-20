@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, TrendingUp, Users, MousePointerClick, MessageSquare, Loader2 } from 'lucide-react';
+import { ArrowLeft, Users, Loader2 } from 'lucide-react';
 import { theme } from '@/theme';
 import Link from 'next/link';
 
@@ -48,16 +48,15 @@ export default function CampaignDetailPage() {
     }
   }, [params]);
 
-  useEffect(() => {
-    if (campaignName) {
-      fetchCampaignDetail();
-    }
-  }, [campaignName, period]);
-
-  const fetchCampaignDetail = async () => {
+  const fetchCampaignDetail = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/analytics/campaigns?campaignName=${encodeURIComponent(campaignName)}`);
+      if (!campaignName) return;
+      const query = new URLSearchParams({
+        campaignName,
+        period,
+      });
+      const res = await fetch(`/api/analytics/campaigns?${query.toString()}`);
       if (res.ok) {
         const data = await res.json();
         if (data.campaigns && data.campaigns.length > 0) {
@@ -69,7 +68,13 @@ export default function CampaignDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignName, period]);
+
+  useEffect(() => {
+    if (campaignName) {
+      fetchCampaignDetail();
+    }
+  }, [campaignName, fetchCampaignDetail]);
 
   if (loading) {
     return (

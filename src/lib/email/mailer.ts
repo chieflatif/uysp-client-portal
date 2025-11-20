@@ -33,6 +33,8 @@ function getTransporter() {
   return transporter;
 }
 
+type EmailMetadata = Record<string, unknown>;
+
 interface SendEmailParams {
   to: string;
   subject: string;
@@ -41,7 +43,7 @@ interface SendEmailParams {
   emailType?: string; // For audit log
   sentByUserId?: string; // For audit log
   clientId?: string; // For audit log
-  metadata?: Record<string, any>; // For audit log
+  metadata?: EmailMetadata; // For audit log
 }
 
 /**

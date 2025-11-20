@@ -4,6 +4,21 @@ import { leadActivityLog, leads } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { EVENT_TYPES, EVENT_CATEGORIES } from '@/lib/activity/event-types';
 
+interface ActivityPayload {
+  eventType: string;
+  eventCategory: string;
+  leadId?: string;
+  leadAirtableId: string;
+  clientId?: string;
+  description: string;
+  messageContent?: string;
+  metadata?: Record<string, unknown>;
+  source: string;
+  executionId?: string;
+  createdBy?: string;
+  timestamp?: string;
+}
+
 // NOTE: INTERNAL_API_KEY validation moved to runtime (inside POST function)
 // to support Next.js build-time static analysis
 
@@ -35,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    const body = await request.json();
+    const body = (await request.json()) as ActivityPayload;
     const {
       eventType,
       eventCategory,
@@ -70,8 +85,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validation: Event type must be one of the defined constants
-    const validEventTypes = Object.values(EVENT_TYPES);
-    if (!validEventTypes.includes(eventType)) {
+    const validEventTypes = Object.values(EVENT_TYPES) as typeof EVENT_TYPES[keyof typeof EVENT_TYPES][];
+    if (!validEventTypes.includes(eventType as typeof EVENT_TYPES[keyof typeof EVENT_TYPES])) {
       console.error('[LOG-ACTIVITY] Invalid eventType:', {
         provided: eventType,
         valid: validEventTypes,
@@ -87,8 +102,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validation: Event category must be one of the defined constants
-    const validEventCategories = Object.values(EVENT_CATEGORIES);
-    if (!validEventCategories.includes(eventCategory)) {
+    const validEventCategories = Object.values(EVENT_CATEGORIES) as typeof EVENT_CATEGORIES[keyof typeof EVENT_CATEGORIES][];
+    if (!validEventCategories.includes(eventCategory as typeof EVENT_CATEGORIES[keyof typeof EVENT_CATEGORIES])) {
       console.error('[LOG-ACTIVITY] Invalid eventCategory:', {
         provided: eventCategory,
         valid: validEventCategories,
@@ -133,7 +148,7 @@ export async function POST(request: NextRequest) {
         clientId: clientId || null,
         description,
         messageContent: messageContent || null,
-        metadata: metadata ? (metadata as any) : null,
+        metadata: metadata ?? null,
         source,
         executionId: executionId || null,
         createdBy: createdBy || null,

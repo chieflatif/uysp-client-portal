@@ -68,11 +68,12 @@ export default function ProjectManagementEmbed({ clientId }: { clientId: string 
           throw new Error('Failed to fetch project data');
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as ProjectData;
         setProjectData(data);
         setError(null);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load project data');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to load project data';
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -105,7 +106,7 @@ export default function ProjectManagementEmbed({ clientId }: { clientId: string 
                 No Project Data Yet
               </h3>
               <p className={`${theme.core.bodyText} mb-4`}>
-                The project management tables haven't been synced yet. Run a data sync to populate this dashboard.
+                The project management tables haven&rsquo;t been synced yet. Run a data sync to populate this dashboard.
               </p>
               <p className={`${theme.core.bodyText} text-sm`}>
                 Error: {error}
@@ -256,10 +257,10 @@ export default function ProjectManagementEmbed({ clientId }: { clientId: string 
           <h2 className="text-2xl font-bold text-white">Task Board</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <TaskColumn title="Critical" tasks={taskBoard.critical} accentColor="pink-700" icon="🔴" delay={0.7} />
-          <TaskColumn title="High" tasks={taskBoard.high} accentColor="orange-600" icon="🟠" delay={0.8} />
-          <TaskColumn title="Medium" tasks={taskBoard.medium} accentColor="indigo-600" icon="🟡" delay={0.9} />
-          <TaskColumn title="Complete" tasks={taskBoard.complete} accentColor="cyan-400" icon="✅" delay={1.0} />
+          <TaskColumn title="Critical" tasks={taskBoard.critical} icon="🔴" delay={0.7} />
+          <TaskColumn title="High" tasks={taskBoard.high} icon="🟠" delay={0.8} />
+          <TaskColumn title="Medium" tasks={taskBoard.medium} icon="🟡" delay={0.9} />
+          <TaskColumn title="Complete" tasks={taskBoard.complete} icon="✅" delay={1.0} />
         </div>
       </motion.div>
 
@@ -294,10 +295,9 @@ export default function ProjectManagementEmbed({ clientId }: { clientId: string 
   );
 }
 
-function TaskColumn({ title, tasks, accentColor, icon, delay }: { 
+function TaskColumn({ title, tasks, icon, delay }: { 
   title: string; 
   tasks: Task[]; 
-  accentColor: string; 
   icon: string;
   delay: number;
 }) {

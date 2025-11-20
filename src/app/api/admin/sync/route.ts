@@ -2,17 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { clients, leads, campaigns, clientProjectTasks, clientProjectBlockers, clientProjectStatus, airtableSyncQueue, activityLog, type NewLead } from '@/lib/db/schema';
+import { clients, leads, clientProjectTasks, clientProjectBlockers, clientProjectStatus, airtableSyncQueue, activityLog, type NewLead } from '@/lib/db/schema';
 import { eq, and, sql, inArray, notInArray } from 'drizzle-orm';
 import { getAirtableClient } from '@/lib/airtable/client';
 import { syncCampaignsFromAirtable } from '@/lib/sync/sync-campaigns';
 import { backfillCampaignForeignKeys, updateAllCampaignAggregates } from '@/lib/sync/backfill-campaign-fk';
 import { z } from 'zod';
 
+type ClientProjectTaskInsert = typeof clientProjectTasks.$inferInsert;
+type ClientProjectBlockerInsert = typeof clientProjectBlockers.$inferInsert;
+type ClientProjectStatusInsert = typeof clientProjectStatus.$inferInsert;
+
 // Import Airtable types for type safety
 interface AirtableRecord {
   id: string;
-  fields: Record<string, any>;
+  fields: Record<string, unknown>;
   createdTime: string;
 }
 
@@ -108,10 +112,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse and validate request body with Zod
-    let body: any;
+    let body: unknown;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: 'Invalid JSON in request body' },
         { status: 400 }
@@ -143,10 +147,10 @@ export async function POST(request: NextRequest) {
 
     // CONCURRENCY PROTECTION: Use PostgreSQL advisory lock (works across serverless instances)
     // Hash clientId to get numeric lock ID
-    const lockResult = await db.execute(
+    const lockResult = await db.execute<{ acquired: boolean }>(
       sql`SELECT pg_try_advisory_lock(hashtext(${clientId})) as acquired`
     );
-    const lockAcquired = (lockResult[0] as any)?.acquired;
+    const lockAcquired = lockResult[0]?.acquired ?? false;
 
     if (!lockAcquired) {
       return NextResponse.json({
@@ -255,10 +259,10 @@ export async function POST(request: NextRequest) {
             );
             console.log(`✅ Synced ${totalFetched} leads...`);
           }
-        } catch (error: any) {
+        } catch (error) {
           // CRITICAL FIX: Only count mapping errors here (not upsert errors)
           // Upsert errors are counted separately in processBatch
-          const errorMsg = error.message || 'Unknown error';
+          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
           console.error(`Error mapping record ${record.id}:`, errorMsg);
           errorDetails.push({
             recordId: record.id,
@@ -279,8 +283,9 @@ export async function POST(request: NextRequest) {
             `Final batch processing ${batch.length} leads`
           );
           console.log(`✅ Final batch: ${totalFetched} leads total`);
-        } catch (batchError: any) {
-          console.error(`❌ CRITICAL: Failed to process final batch of ${batch.length} leads:`, batchError.message);
+        } catch (batchError) {
+          const message = batchError instanceof Error ? batchError.message : 'Unknown batch error';
+          console.error(`❌ CRITICAL: Failed to process final batch of ${batch.length} leads:`, message);
           // Don't throw - let the sync complete with partial results
         }
       }
@@ -319,7 +324,7 @@ export async function POST(request: NextRequest) {
               });
           }
           totalProcessed++;
-        } catch (error: any) {
+        } catch (error) {
           // CRITICAL FIX: Only increment error count once per record
           // Check if this record already had a mapping error
           const existingError = errorDetails.find(e => e.recordId === item.record.id);
@@ -327,7 +332,7 @@ export async function POST(request: NextRequest) {
             errors++; // Only count if no mapping error
           }
 
-          const errorMsg = error.message || 'Unknown error';
+          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
           console.error(`Error upserting record ${item.record.id}:`, errorMsg);
 
           // Update existing error or add new one
@@ -478,9 +483,10 @@ export async function POST(request: NextRequest) {
             });
 
             totalDeleted = deletedLeads.length;
-          } catch (deleteError: any) {
+          } catch (deleteError) {
+            const message = deleteError instanceof Error ? deleteError.message : 'Unknown deletion error';
             deletionSuccess = false;
-            deletionError = deleteError.message || 'Unknown deletion error';
+            deletionError = message;
             console.error(`❌ CRITICAL: Failed to delete leads from database (transaction rolled back):`, deleteError);
           }
         } else {
@@ -490,10 +496,11 @@ export async function POST(request: NextRequest) {
       } else {
         console.log(`✅ No deleted leads found`);
       }
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error during deletion detection';
       deletionSuccess = false;
-      deletionError = error.message || 'Unknown error during deletion detection';
-      console.error('❌ Error detecting deleted leads:', error.message);
+      deletionError = message;
+      console.error('❌ Error detecting deleted leads:', message);
     }
 
     // ========================================================================
@@ -533,7 +540,7 @@ export async function POST(request: NextRequest) {
       await airtable.streamAllProjectTasks(async (record) => {
         tasksFetched++;
         try {
-          const taskData = airtable.mapToDatabaseTask(record, clientId!);
+          const taskData = airtable.mapToDatabaseTask(record, clientId!) as ClientProjectTaskInsert;
 
           // CONFLICT DETECTION: Check if PostgreSQL has newer data (using prefetched Map)
           const existing = existingTasksMap.get(record.id);
@@ -575,7 +582,7 @@ export async function POST(request: NextRequest) {
           // Proceed with sync (skip if dry run)
           if (!dryRun) {
             await db.insert(clientProjectTasks)
-              .values(taskData as any)
+              .values(taskData)
               .onConflictDoUpdate({
                 target: clientProjectTasks.airtableRecordId,
                 set: {
@@ -585,12 +592,12 @@ export async function POST(request: NextRequest) {
               });
           }
           tasksInserted++;
-        } catch (error: any) {
-          console.error(`Error syncing task ${record.id}:`, error.message);
+        } catch (error) {
+          console.error(`Error syncing task ${record.id}:`, error);
         }
       });
-    } catch (error: any) {
-      tasksSyncError = error.message || 'Unknown error during task sync';
+    } catch (error) {
+      tasksSyncError = error instanceof Error ? error.message : 'Unknown error during task sync';
       console.error('Tasks table not found or error syncing:', tasksSyncError);
     }
 
@@ -599,10 +606,10 @@ export async function POST(request: NextRequest) {
       await airtable.streamAllProjectBlockers(async (record) => {
         blockersFetched++;
         try {
-          const blockerData = airtable.mapToDatabaseBlocker(record, clientId!);
+          const blockerData = airtable.mapToDatabaseBlocker(record, clientId!) as ClientProjectBlockerInsert;
           if (!dryRun) {
             await db.insert(clientProjectBlockers)
-              .values(blockerData as any)
+              .values(blockerData)
               .onConflictDoUpdate({
                 target: clientProjectBlockers.airtableRecordId,
                 set: {
@@ -611,12 +618,12 @@ export async function POST(request: NextRequest) {
               });
           }
           blockersInserted++;
-        } catch (error: any) {
-          console.error(`Error syncing blocker ${record.id}:`, error.message);
+        } catch (error) {
+          console.error(`Error syncing blocker ${record.id}:`, error);
         }
       });
-    } catch (error: any) {
-      blockersSyncError = error.message || 'Unknown error during blocker sync';
+    } catch (error) {
+      blockersSyncError = error instanceof Error ? error.message : 'Unknown error during blocker sync';
       console.error('Blockers table not found or error syncing:', blockersSyncError);
     }
 
@@ -625,10 +632,10 @@ export async function POST(request: NextRequest) {
       await airtable.streamAllProjectStatus(async (record) => {
         statusFetched++;
         try {
-          const statusData = airtable.mapToDatabaseProjectStatus(record, clientId!);
+          const statusData = airtable.mapToDatabaseProjectStatus(record, clientId!) as ClientProjectStatusInsert;
           if (!dryRun) {
             await db.insert(clientProjectStatus)
-              .values(statusData as any)
+              .values(statusData)
               .onConflictDoUpdate({
                 target: clientProjectStatus.airtableRecordId,
                 set: {
@@ -638,12 +645,12 @@ export async function POST(request: NextRequest) {
               });
           }
           statusInserted++;
-        } catch (error: any) {
-          console.error(`Error syncing status ${record.id}:`, error.message);
+        } catch (error) {
+          console.error(`Error syncing status ${record.id}:`, error);
         }
       });
-    } catch (error: any) {
-      statusSyncError = error.message || 'Unknown error during status sync';
+    } catch (error) {
+      statusSyncError = error instanceof Error ? error.message : 'Unknown error during status sync';
       console.error('Project_Status table not found or error syncing:', statusSyncError);
     }
 
@@ -683,8 +690,9 @@ export async function POST(request: NextRequest) {
         backfillErrors = backfillResult.errors.length;
 
         console.log(`✅ Backfill complete: ${backfillMatched} matched, ${backfillUnmatched} unmatched, ${backfillErrors} errors`);
-      } catch (error: any) {
-        console.error('❌ Backfill failed:', error.message);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error('❌ Backfill failed:', message);
         backfillErrors = 1;
       }
 
@@ -696,8 +704,9 @@ export async function POST(request: NextRequest) {
           aggregatesErrors = aggregatesResult.errors;
 
           console.log(`✅ Aggregates updated: ${aggregatesUpdated} campaigns, ${aggregatesErrors} errors`);
-        } catch (error: any) {
-          console.error('❌ Aggregate calculation failed:', error.message);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error';
+          console.error('❌ Aggregate calculation failed:', message);
           aggregatesErrors = 1;
         }
       } else {
@@ -779,10 +788,11 @@ export async function POST(request: NextRequest) {
         : `Sync complete for ${companyName}! Leads: ${totalFetched} synced${totalDeleted > 0 ? `, ${totalDeleted} deleted` : ''}, Tasks: ${tasksFetched}, Blockers: ${blockersFetched}, Status: ${statusFetched}, Campaigns: ${campaignsSynced}`
     });
 
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Sync failed';
       console.error('Sync failed:', error);
       return NextResponse.json(
-        { error: error.message || 'Sync failed' },
+        { error: message },
         { status: 500 }
       );
     } finally {
@@ -794,7 +804,8 @@ export async function POST(request: NextRequest) {
         console.error('Failed to release advisory lock:', unlockError);
       }
     }
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Sync failed';
     console.error('Sync failed:', error);
     // CRITICAL FIX: Only release lock if clientId exists (lock was acquired)
     // clientId is defined at line 83, so early errors won't have it
@@ -807,7 +818,7 @@ export async function POST(request: NextRequest) {
       }
     }
     return NextResponse.json(
-      { error: error.message || 'Sync failed' },
+      { error: message },
       { status: 500 }
     );
   }

@@ -54,6 +54,7 @@ export default function ChangePasswordPage() {
         router.push('/dashboard');
       }, 2000);
     } catch (error) {
+      console.error('Failed to change password', error);
       setError('Network error. Please try again.');
     } finally {
       setSubmitting(false);
@@ -170,6 +171,9 @@ export default function ChangePasswordPage() {
     </div>
   );
 }
+
+
+
 
 
 

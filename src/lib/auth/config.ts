@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { db } from '../db';
 import { users } from '../db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 // Type augmentation for NextAuth
 declare module 'next-auth' {

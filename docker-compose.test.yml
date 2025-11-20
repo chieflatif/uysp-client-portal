@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: uysp_test
+      POSTGRES_PASSWORD: uysp_test
+      POSTGRES_DB: uysp_test
+    ports:
+      - '6543:5432'
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+      - ./scripts/dev/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+
+volumes:
+  postgres-test-data:
+

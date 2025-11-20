@@ -13,7 +13,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { db } from '../db';
 import { users } from '../db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 // Type augmentation for NextAuth
 declare module 'next-auth' {
@@ -115,7 +115,7 @@ class DirectPostgresProvider implements AuthProvider {
   priority = 2;
 
   async fetchUser(email: string): Promise<UserData | null> {
-    const { Pool } = require('pg');
+    const { Pool } = await import('pg');
     const pool = new Pool({
       connectionString: process.env.DATABASE_URL,
     });

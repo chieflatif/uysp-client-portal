@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { airtableSyncQueue, clients } from '@/lib/db/schema';
+import type { AirtableSyncQueue } from '@/lib/db/schema';
 import { eq, and, lte } from 'drizzle-orm';
-import { getAirtableClient } from '@/lib/airtable/client';
+import { getAirtableClient, type AirtableLeadFields } from '@/lib/airtable/client';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     // Find pending sync items that are ready to retry
     const now = new Date();
-    const pendingItems = await db
+    const pendingItems: AirtableSyncQueue[] = await db
       .select()
       .from(airtableSyncQueue)
       .where(
@@ -78,16 +79,18 @@ export async function POST(request: NextRequest) {
         const airtable = getAirtableClient(client.airtableBaseId);
 
         // Execute the operation
+        const airtablePayload = item.payload as Partial<AirtableLeadFields>;
+
         if (item.operation === 'update') {
           await airtable.updateRecord(
             item.tableName,
             item.recordId,
-            item.payload as any
+            airtablePayload
           );
         } else if (item.operation === 'create') {
           await airtable.createRecord(
             item.tableName,
-            item.payload as any
+            airtablePayload
           );
         } else {
           throw new Error(`Unknown operation: ${item.operation}`);

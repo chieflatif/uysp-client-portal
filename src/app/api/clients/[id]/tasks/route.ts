@@ -4,8 +4,18 @@ import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { clientProjectTasks, clients } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { getAirtableClient } from '@/lib/airtable/client';
+import { getAirtableClient, type AirtableLeadFields } from '@/lib/airtable/client';
 import { randomUUID } from 'crypto';
+
+interface CreateTaskPayload {
+  task: string;
+  status?: string;
+  priority?: string;
+  owner?: string;
+  dueDate?: string;
+  notes?: string;
+  dependencies?: string;
+}
 
 /**
  * POST /api/clients/[id]/tasks
@@ -30,9 +40,11 @@ export async function POST(
     }
 
     // Authorization check
+    const { id } = await params;
+
     if (session.user.role === 'CLIENT_ADMIN') {
       // ADMIN can only create tasks for their own client
-      if (session.user.clientId !== (await params).id) {
+      if (session.user.clientId !== id) {
         return NextResponse.json(
           { error: 'Forbidden - can only create tasks for your own client' },
           { status: 403 }
@@ -48,7 +60,7 @@ export async function POST(
 
     // Get client to access their Airtable base
     const client = await db.query.clients.findFirst({
-      where: eq(clients.id, (await params).id),
+      where: eq(clients.id, id),
     });
 
     if (!client) {
@@ -59,7 +71,7 @@ export async function POST(
     }
 
     // Parse request body
-    const body = await request.json();
+    const body = (await request.json()) as CreateTaskPayload;
     const { task, status, priority, owner, dueDate, notes, dependencies } = body;
 
     // Validate required fields
@@ -80,7 +92,7 @@ export async function POST(
       'Due Date': dueDate || null,
       'Notes': notes || '',
       'Dependencies': dependencies || '',
-    } as any);
+    } as Partial<AirtableLeadFields>);
 
     if (!airtableRecord || !airtableRecord.id) {
       throw new Error('Failed to create task in Airtable');
@@ -91,7 +103,7 @@ export async function POST(
       .insert(clientProjectTasks)
       .values({
         id: randomUUID(),
-        clientId: (await params).id,
+        clientId: id,
         airtableRecordId: airtableRecord.id,
         task,
         status: status || 'Not Started',

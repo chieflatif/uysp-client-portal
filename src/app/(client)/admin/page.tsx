@@ -157,6 +157,12 @@ export default function AdminDashboardPage() {
     }
   };
 
+  useEffect(() => {
+    if (showDbHealth && !dbHealth && !dbHealthLoading) {
+      fetchDatabaseHealth();
+    }
+  }, [showDbHealth, dbHealth, dbHealthLoading]);
+
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -198,6 +204,7 @@ export default function AdminDashboardPage() {
       // Refresh data
       fetchAdminData();
     } catch (error) {
+      console.error('Failed to create client', error);
       setError('Network error. Please try again.');
     } finally {
       setSubmitting(false);
@@ -249,6 +256,7 @@ export default function AdminDashboardPage() {
       // Refresh data
       fetchAdminData();
     } catch (error) {
+      console.error('Failed to create user', error);
       setError('Network error. Please try again.');
     } finally {
       setSubmitting(false);
@@ -288,6 +296,7 @@ export default function AdminDashboardPage() {
       // Refresh data
       fetchAdminData();
     } catch (error) {
+      console.error('Failed to pause campaigns', error);
       setError('Network error. Please try again.');
     } finally {
       setSubmitting(false);

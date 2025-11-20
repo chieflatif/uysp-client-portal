@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 /**
  * Integration Tests: Campaign Search Functionality
  *
@@ -8,7 +9,7 @@
  * Created during forensic audit of UI Remediation Sprint
  */
 
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
 import CampaignsPage from '@/app/(client)/admin/campaigns/page';
@@ -76,6 +77,55 @@ const mockCampaigns = [
     updatedAt: '2025-01-03T00:00:00Z',
   },
 ];
+
+beforeEach(() => {
+  localStorage.clear();
+});
+
+const mockClientList = [
+  {
+    id: 'test-client-id',
+    companyName: 'UYSP',
+  },
+];
+
+const mockClientsFetchResponse = () => ({
+  ok: true,
+  json: async () => ({
+    clients: mockClientList,
+  }),
+});
+
+const selectTestClient = () => {
+  localStorage.setItem('selectedClientId', 'test-client-id');
+};
+
+const getUrlFromRequest = (input: RequestInfo | URL): string => {
+  if (typeof input === 'string') return input;
+  if (input instanceof URL) return input.toString();
+  const maybeRequest = input as Request & { url?: string };
+  if (maybeRequest?.url) return maybeRequest.url;
+  return '';
+};
+
+const setupClientAndCampaignFetch = (campaignResponse: { campaigns: typeof mockCampaigns; count: number }) => {
+  const campaignFetch = jest.fn((input: RequestInfo | URL) =>
+    Promise.resolve({
+      ok: true,
+      json: async () => campaignResponse,
+    })
+  );
+
+  global.fetch = (jest.fn((input: RequestInfo | URL) => {
+    const url = typeof input === 'string' ? input : (input as Request).url;
+    if (typeof url === 'string' && url.includes('/api/admin/clients')) {
+      return Promise.resolve(mockClientsFetchResponse());
+    }
+    return campaignFetch(url as RequestInfo);
+  }) as unknown) as typeof fetch;
+
+  return campaignFetch;
+};
 
 describe('Campaign Search - API Endpoint', () => {
   beforeEach(() => {
@@ -212,16 +262,14 @@ describe('Campaign Search - Debouncing', () => {
   });
 
   afterEach(() => {
+    jest.runOnlyPendingTimers();
     jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
   it('should debounce search input by 300ms', async () => {
-    const mockFetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ campaigns: mockCampaigns, count: 3 }),
-    });
-    global.fetch = mockFetch;
+    selectTestClient();
+    const campaignFetch = setupClientAndCampaignFetch({ campaigns: mockCampaigns, count: 3 });
 
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -229,7 +277,7 @@ describe('Campaign Search - Debouncing', () => {
       },
     });
 
-    const { getByPlaceholderText } = render(
+    const renderResult = render(
       <SessionProvider session={mockSession as any}>
         <QueryClientProvider client={queryClient}>
           <ClientProvider>
@@ -239,7 +287,11 @@ describe('Campaign Search - Debouncing', () => {
       </SessionProvider>
     );
 
-    const searchInput = getByPlaceholderText(/Search campaigns/i);
+    const searchInput = await renderResult.findByPlaceholderText(/Search campaigns/i);
+    await waitFor(() => {
+      expect(campaignFetch).toHaveBeenCalled();
+    });
+    campaignFetch.mockClear();
 
     // Type quickly (should only trigger one API call)
     fireEvent.change(searchInput, { target: { value: 'w' } });
@@ -251,27 +303,27 @@ describe('Campaign Search - Debouncing', () => {
     fireEvent.change(searchInput, { target: { value: 'webinar' } });
 
     // Fast forward 299ms (should NOT trigger API call yet)
-    jest.advanceTimersByTime(299);
-    expect(mockFetch).not.toHaveBeenCalled();
+    await act(async () => {
+      jest.advanceTimersByTime(299);
+    });
+    expect(campaignFetch).not.toHaveBeenCalled();
 
     // Fast forward 1ms more (total 300ms - should trigger API call)
-    jest.advanceTimersByTime(1);
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(campaignFetch).toHaveBeenCalledTimes(1);
     });
 
-    // Verify search parameter was included
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(campaignFetch).toHaveBeenCalledWith(
       expect.stringContaining('search=webinar')
     );
   });
 
   it('should cancel previous timer on new input', async () => {
-    const mockFetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ campaigns: [], count: 0 }),
-    });
-    global.fetch = mockFetch;
+    selectTestClient();
+    const campaignFetch = setupClientAndCampaignFetch({ campaigns: [], count: 0 });
 
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -279,7 +331,7 @@ describe('Campaign Search - Debouncing', () => {
       },
     });
 
-    const { getByPlaceholderText } = render(
+    const renderResult = render(
       <SessionProvider session={mockSession as any}>
         <QueryClientProvider client={queryClient}>
           <ClientProvider>
@@ -289,25 +341,32 @@ describe('Campaign Search - Debouncing', () => {
       </SessionProvider>
     );
 
-    const searchInput = getByPlaceholderText(/Search campaigns/i);
+    const searchInput = await renderResult.findByPlaceholderText(/Search campaigns/i);
+    await waitFor(() => {
+      expect(campaignFetch).toHaveBeenCalled();
+    });
+    campaignFetch.mockClear();
 
     // Type "test"
     fireEvent.change(searchInput, { target: { value: 'test' } });
-    jest.advanceTimersByTime(200); // Wait 200ms
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
 
     // Type "webinar" (should cancel "test" timer)
     fireEvent.change(searchInput, { target: { value: 'webinar' } });
-    jest.advanceTimersByTime(300); // Wait 300ms
-
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      jest.advanceTimersByTime(300);
     });
 
-    // Should only search for "webinar", not "test"
-    expect(mockFetch).toHaveBeenCalledWith(
+    await waitFor(() => {
+      expect(campaignFetch).toHaveBeenCalledTimes(1);
+    });
+
+    expect(campaignFetch).toHaveBeenCalledWith(
       expect.stringContaining('search=webinar')
     );
-    expect(mockFetch).not.toHaveBeenCalledWith(
+    expect(campaignFetch).not.toHaveBeenCalledWith(
       expect.stringContaining('search=test')
     );
   });
@@ -319,18 +378,15 @@ describe('Campaign Search - Memory Leak Prevention', () => {
   });
 
   afterEach(() => {
+    jest.runOnlyPendingTimers();
     jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
   it('should clear timer on component unmount', async () => {
     const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-
-    const mockFetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ campaigns: mockCampaigns, count: 3 }),
-    });
-    global.fetch = mockFetch;
+    selectTestClient();
+    setupClientAndCampaignFetch({ campaigns: mockCampaigns, count: 3 });
 
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -338,7 +394,7 @@ describe('Campaign Search - Memory Leak Prevention', () => {
       },
     });
 
-    const { getByPlaceholderText, unmount } = render(
+    const renderResult = render(
       <SessionProvider session={mockSession as any}>
         <QueryClientProvider client={queryClient}>
           <ClientProvider>
@@ -348,13 +404,13 @@ describe('Campaign Search - Memory Leak Prevention', () => {
       </SessionProvider>
     );
 
-    const searchInput = getByPlaceholderText(/Search campaigns/i);
+    const searchInput = await renderResult.findByPlaceholderText(/Search campaigns/i);
 
     // Start typing
     fireEvent.change(searchInput, { target: { value: 'test' } });
 
     // Unmount before timer fires
-    unmount();
+    renderResult.unmount();
 
     // Verify clearTimeout was called
     expect(clearTimeoutSpy).toHaveBeenCalled();
@@ -363,11 +419,8 @@ describe('Campaign Search - Memory Leak Prevention', () => {
 
 describe('Campaign Search - React Query Integration', () => {
   it('should include search in queryKey to trigger refetch', async () => {
-    const mockFetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ campaigns: mockCampaigns, count: 3 }),
-    });
-    global.fetch = mockFetch;
+    selectTestClient();
+    const campaignFetch = setupClientAndCampaignFetch({ campaigns: mockCampaigns, count: 3 });
 
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -375,7 +428,7 @@ describe('Campaign Search - React Query Integration', () => {
       },
     });
 
-    const { getByPlaceholderText } = render(
+    const renderResult = render(
       <SessionProvider session={mockSession as any}>
         <QueryClientProvider client={queryClient}>
           <ClientProvider>
@@ -385,27 +438,28 @@ describe('Campaign Search - React Query Integration', () => {
       </SessionProvider>
     );
 
-    const searchInput = getByPlaceholderText(/Search campaigns/i);
+    const searchInput = await renderResult.findByPlaceholderText(/Search campaigns/i);
 
-    // Initial load (no search)
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.not.stringContaining('search=')
-      );
+      expect(campaignFetch).toHaveBeenCalled();
     });
+    const initialCallUrl = getUrlFromRequest(campaignFetch.mock.calls[0][0]);
+    expect(initialCallUrl).not.toContain('search=');
+    campaignFetch.mockClear();
 
     // Add search term
     fireEvent.change(searchInput, { target: { value: 'webinar' } });
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(
+      expect(campaignFetch).toHaveBeenCalledWith(
         expect.stringContaining('search=webinar')
       );
     });
+    campaignFetch.mockClear();
 
     // Change search term (should trigger new fetch)
     fireEvent.change(searchInput, { target: { value: 'lead' } });
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(
+      expect(campaignFetch).toHaveBeenCalledWith(
         expect.stringContaining('search=lead')
       );
     });
@@ -429,11 +483,8 @@ describe('Campaign Search - Edge Cases', () => {
   });
 
   it('should preserve search when filters change', async () => {
-    const mockFetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ campaigns: [], count: 0 }),
-    });
-    global.fetch = mockFetch;
+    selectTestClient();
+    const campaignFetch = setupClientAndCampaignFetch({ campaigns: [], count: 0 });
 
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -441,7 +492,7 @@ describe('Campaign Search - Edge Cases', () => {
       },
     });
 
-    const { getByPlaceholderText, getByText } = render(
+    const renderResult = render(
       <SessionProvider session={mockSession as any}>
         <QueryClientProvider client={queryClient}>
           <ClientProvider>
@@ -451,21 +502,28 @@ describe('Campaign Search - Edge Cases', () => {
       </SessionProvider>
     );
 
-    const searchInput = getByPlaceholderText(/Search campaigns/i);
+    const searchInput = await renderResult.findByPlaceholderText(/Search campaigns/i);
+    await waitFor(() => {
+      expect(campaignFetch).toHaveBeenCalled();
+    });
+    campaignFetch.mockClear();
+
+    const getByText = renderResult.getByText;
     fireEvent.change(searchInput, { target: { value: 'webinar' } });
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(
+      expect(campaignFetch).toHaveBeenCalledWith(
         expect.stringContaining('search=webinar')
       );
     });
+    campaignFetch.mockClear();
 
     // Change type filter
     const webinarFilterButton = getByText('Webinar');
     fireEvent.click(webinarFilterButton);
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(
+      expect(campaignFetch).toHaveBeenCalledWith(
         expect.stringMatching(/type=Webinar.*search=webinar|search=webinar.*type=Webinar/)
       );
     });

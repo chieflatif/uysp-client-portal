@@ -11,8 +11,9 @@ import {
   generateErrorReport,
   isFileSizeAcceptable,
   isCSVFile,
-  type ColumnMapping,
+  type ValidatedLeadsResult,
 } from '@/lib/csv-parser';
+import type { LeadInput, NormalizedLead } from '@/lib/validation';
 
 interface ImportLeadsModalProps {
   isOpen: boolean;
@@ -22,18 +23,28 @@ interface ImportLeadsModalProps {
 
 type Step = 'upload' | 'preview' | 'importing' | 'results';
 
+type InvalidLeadEntry = ValidatedLeadsResult['invalidLeads'][number];
+type DuplicateEntry = ValidatedLeadsResult['duplicates'][number];
+
+interface ImportResults {
+  success: number;
+  errors: Array<{ row: number; lead: LeadInput; error: string }>;
+  duplicates: Array<{ email: string; existingRecordId?: string }>;
+  sourceTag: string;
+  message: string;
+}
+
 export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModalProps) {
   const [step, setStep] = useState<Step>('upload');
   const [sourceName, setSourceName] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  const [leads, setLeads] = useState<any[]>([]);
-  const [validLeads, setValidLeads] = useState<any[]>([]);
-  const [invalidLeads, setInvalidLeads] = useState<any[]>([]);
-  const [duplicates, setDuplicates] = useState<any[]>([]);
-  const [columnMapping, setColumnMapping] = useState<ColumnMapping | null>(null);
+  const [leads, setLeads] = useState<LeadInput[]>([]);
+  const [validLeads, setValidLeads] = useState<NormalizedLead[]>([]);
+  const [invalidLeads, setInvalidLeads] = useState<InvalidLeadEntry[]>([]);
+  const [duplicates, setDuplicates] = useState<DuplicateEntry[]>([]);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [results, setResults] = useState<any | null>(null);
+  const [results, setResults] = useState<ImportResults | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -58,7 +69,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
     setValidLeads([]);
     setInvalidLeads([]);
     setDuplicates([]);
-    setColumnMapping(null);
     setImporting(false);
     setProgress(0);
     setResults(null);
@@ -120,8 +130,6 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
       );
       return;
     }
-
-    setColumnMapping(mapping);
 
     // Map leads data
     const mappedLeads = mapLeadsData(parseResult.data || [], mapping);
@@ -485,7 +493,9 @@ export function ImportLeadsModal({ isOpen, onClose, onSuccess }: ImportLeadsModa
                 <ul className={`list-disc list-inside space-y-1 ${theme.core.bodyText}`}>
                   <li>Leads are enriching via Clay (~2-5 min per lead)</li>
                   <li>Will sync to database automatically (~5 min)</li>
-                  <li>Use tag "{results.sourceTag}" to create campaigns</li>
+                  <li>
+                    Use tag &ldquo;{results.sourceTag}&rdquo; to create campaigns
+                  </li>
                 </ul>
               </div>
 

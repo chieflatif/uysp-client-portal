@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { sql } from 'drizzle-orm';
@@ -28,7 +27,8 @@ async function runMigrations() {
   
   for (const statement of statements) {
     if (statement) {
-      await db.execute(sql.raw(statement));
+      // drizzle-orm raw helper is typed, but wrap with sql to ensure template literal execution
+      await db.execute(sql`${sql.raw(statement)}`);
     }
   }
 }
@@ -76,11 +76,12 @@ async function handle(req: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ 
       ok: false, 
-      error: error.message || String(error),
-      stack: error.stack
+      error: message,
+      stack: error instanceof Error ? error.stack : undefined
     }, { status: 500 });
   }
 }

@@ -6,7 +6,12 @@
  */
 
 import Papa from 'papaparse';
-import { validateLead, detectDuplicatesInFile, type LeadValidationResult } from './validation';
+import {
+  validateLead,
+  detectDuplicatesInFile,
+  type LeadInput,
+  type NormalizedLead,
+} from './validation';
 
 /**
  * Column mapping configuration
@@ -24,9 +29,11 @@ export interface ColumnMapping {
 /**
  * Parsed CSV result
  */
+type RawCSVRow = Record<string, string | number | boolean | null | undefined>;
+
 export interface ParsedCSVResult {
   success: boolean;
-  data?: any[];
+  data?: RawCSVRow[];
   columns?: string[];
   error?: string;
 }
@@ -35,10 +42,10 @@ export interface ParsedCSVResult {
  * Validated leads result
  */
 export interface ValidatedLeadsResult {
-  validLeads: any[];
+  validLeads: NormalizedLead[];
   invalidLeads: Array<{
     row: number;
-    lead: any;
+    lead: LeadInput;
     errors: string[];
     warnings: string[];
   }>;
@@ -62,7 +69,7 @@ export interface ValidatedLeadsResult {
  */
 export function parseCSVFile(file: File): Promise<ParsedCSVResult> {
   return new Promise((resolve) => {
-    Papa.parse(file, {
+    Papa.parse<RawCSVRow>(file, {
       header: true,
       skipEmptyLines: true,
       transformHeader: (header: string) => header.trim(),
@@ -152,14 +159,14 @@ export function detectColumnMapping(columns: string[]): ColumnMapping | null {
  * @param mapping - Column mapping configuration
  * @returns Array of mapped lead objects
  */
-export function mapLeadsData(data: any[], mapping: ColumnMapping): any[] {
+export function mapLeadsData(data: RawCSVRow[], mapping: ColumnMapping): LeadInput[] {
   return data.map((row) => ({
-    email: row[mapping.email],
-    firstName: row[mapping.firstName],
-    lastName: row[mapping.lastName],
-    phone: mapping.phone ? row[mapping.phone] : undefined,
-    company: mapping.company ? row[mapping.company] : undefined,
-    title: mapping.title ? row[mapping.title] : undefined,
+    email: String(row[mapping.email] ?? '').trim(),
+    firstName: row[mapping.firstName]?.toString().trim(),
+    lastName: row[mapping.lastName]?.toString().trim(),
+    phone: mapping.phone ? row[mapping.phone]?.toString().trim() : undefined,
+    company: mapping.company ? row[mapping.company]?.toString().trim() : undefined,
+    title: mapping.title ? row[mapping.title]?.toString().trim() : undefined,
   }));
 }
 
@@ -169,11 +176,11 @@ export function mapLeadsData(data: any[], mapping: ColumnMapping): any[] {
  * @param leads - Array of lead objects to validate
  * @returns Validated leads categorized by valid/invalid/duplicate
  */
-export function validateLeads(leads: any[]): ValidatedLeadsResult {
-  const validLeads: any[] = [];
+export function validateLeads(leads: LeadInput[]): ValidatedLeadsResult {
+  const validLeads: NormalizedLead[] = [];
   const invalidLeads: Array<{
     row: number;
-    lead: any;
+    lead: LeadInput;
     errors: string[];
     warnings: string[];
   }> = [];
@@ -228,7 +235,7 @@ export function validateLeads(leads: any[]): ValidatedLeadsResult {
 export function generateErrorReport(
   invalidLeads: Array<{
     row: number;
-    lead: any;
+    lead: LeadInput;
     errors: string[];
     warnings: string[];
   }>

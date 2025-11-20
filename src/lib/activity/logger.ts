@@ -12,6 +12,8 @@ import { eq } from 'drizzle-orm';
  * PRD Reference: docs/PRD-MINI-CRM-ACTIVITY-LOGGING.md Section 4.4
  */
 
+type ActivityMetadata = Record<string, unknown>;
+
 interface LogActivityParams {
   eventType: EventType;
   eventCategory: EventCategory;
@@ -20,7 +22,7 @@ interface LogActivityParams {
   clientId?: string;
   description: string;
   messageContent?: string;
-  metadata?: Record<string, any>;
+  metadata?: ActivityMetadata;
   source: string;
   createdBy?: string;
   timestamp?: Date;
@@ -97,7 +99,7 @@ export async function logLeadActivity(params: LogActivityParams): Promise<LogAct
           clientId: params.clientId || null,
           description: params.description,
           messageContent: params.messageContent || null,
-          metadata: params.metadata ? (params.metadata as any) : null,
+          metadata: params.metadata ?? null,
           source: params.source,
           createdBy: params.createdBy || null,
           timestamp: params.timestamp || new Date(),

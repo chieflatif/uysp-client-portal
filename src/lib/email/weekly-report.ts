@@ -5,7 +5,7 @@
 
 import { db } from '@/lib/db';
 import { clientProjectTasks, clientProjectBlockers, clientProjectStatus, users, clients } from '@/lib/db/schema';
-import { eq, and, desc, sql, gte } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { sendEmail } from './mailer';
 import { getAirtableClient } from '@/lib/airtable/client';
 import { generateBrandedReportHTML } from './weekly-report-branded';
@@ -246,7 +246,7 @@ async function gatherReportData(clientId: string): Promise<WeeklyReportData> {
 /**
  * Generate beautiful HTML email for weekly report
  */
-function generateReportHTML(data: WeeklyReportData): string {
+export function generateReportHTML(data: WeeklyReportData): string {
   const statusColors: Record<string, string> = {
     'Done': '#10b981',
     'In Progress': '#3b82f6',

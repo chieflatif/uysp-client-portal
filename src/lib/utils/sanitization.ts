@@ -179,10 +179,26 @@ export function sanitizeRichText(html: string): string {
  * @param data - Raw JSON data
  * @returns Sanitized JSON object
  */
-export function sanitizeJson<T extends Record<string, any>>(data: T): T {
-  if (!data || typeof data !== 'object') return {} as T;
+type UnknownRecord = Record<string, unknown>;
 
-  const sanitized: Record<string, any> = {};
+const isRecord = (value: unknown): value is UnknownRecord =>
+  typeof value === 'object' && value !== null;
+
+const getStringField = (record: UnknownRecord, key: string): string | undefined => {
+  const value = record[key];
+  return typeof value === 'string' ? value : undefined;
+};
+
+const getStringArrayField = (record: UnknownRecord, key: string): string[] | undefined => {
+  const value = record[key];
+  if (!Array.isArray(value)) return undefined;
+  return value.filter((item): item is string => typeof item === 'string');
+};
+
+export function sanitizeJson<T extends Record<string, unknown>>(data: T): T {
+  if (!isRecord(data)) return {} as T;
+
+  const sanitized: UnknownRecord = {};
 
   for (const [key, value] of Object.entries(data)) {
     // Sanitize key (alphanumeric and underscore only)
@@ -203,8 +219,7 @@ export function sanitizeJson<T extends Record<string, any>>(data: T): T {
         .map(item => typeof item === 'string' ? sanitizePlainText(item, 500) : item)
         .slice(0, 100); // Max 100 array items
     } else if (typeof value === 'object' && value !== null) {
-      // Recursive sanitization (max 1 level deep)
-      sanitized[sanitizedKey] = sanitizeJson(value);
+      sanitized[sanitizedKey] = sanitizeJson(value as UnknownRecord);
     }
   }
 
@@ -238,7 +253,7 @@ export function sanitizeLikePattern(pattern: string): string {
  * @returns Sanitized integer, or null if invalid
  */
 export function sanitizeInteger(
-  value: any,
+  value: unknown,
   min: number = Number.MIN_SAFE_INTEGER,
   max: number = Number.MAX_SAFE_INTEGER
 ): number | null {
@@ -330,7 +345,7 @@ export interface SanitizationResult<T> {
   errors: string[];
 }
 
-export function sanitizeLeadInput(data: any): SanitizationResult<{
+export function sanitizeLeadInput(data: unknown): SanitizationResult<{
   firstName: string;
   lastName: string;
   email: string;
@@ -339,25 +354,29 @@ export function sanitizeLeadInput(data: any): SanitizationResult<{
   title?: string;
 }> {
   const errors: string[] = [];
+  const payload = isRecord(data) ? data : {};
 
-  const firstName = sanitizePlainText(data.firstName || '', 255);
+  const firstName = sanitizePlainText(getStringField(payload, 'firstName') || '', 255);
   if (!firstName || firstName.length < 1) {
     errors.push('First name is required');
   }
 
-  const lastName = sanitizePlainText(data.lastName || '', 255);
+  const lastName = sanitizePlainText(getStringField(payload, 'lastName') || '', 255);
   if (!lastName || lastName.length < 1) {
     errors.push('Last name is required');
   }
 
-  const email = sanitizeEmail(data.email || '');
+  const email = sanitizeEmail(getStringField(payload, 'email') || '');
   if (!email) {
     errors.push('Valid email is required');
   }
 
-  const phone = data.phone ? sanitizePhone(data.phone) : undefined;
-  const company = data.company ? sanitizePlainText(data.company, 255) : undefined;
-  const title = data.title ? sanitizePlainText(data.title, 255) : undefined;
+  const phoneSource = getStringField(payload, 'phone');
+  const phone = phoneSource ? sanitizePhone(phoneSource) : undefined;
+  const companySource = getStringField(payload, 'company');
+  const company = companySource ? sanitizePlainText(companySource, 255) : undefined;
+  const titleSource = getStringField(payload, 'title');
+  const title = titleSource ? sanitizePlainText(titleSource, 255) : undefined;
 
   return {
     isValid: errors.length === 0,
@@ -373,19 +392,21 @@ export function sanitizeLeadInput(data: any): SanitizationResult<{
   };
 }
 
-export function sanitizeNoteInput(data: any): SanitizationResult<{
+export function sanitizeNoteInput(data: unknown): SanitizationResult<{
   content: string;
   type: string;
 }> {
   const errors: string[] = [];
+  const payload = isRecord(data) ? data : {};
 
-  const content = sanitizePlainText(data.content || '', 5000);
+  const content = sanitizePlainText(getStringField(payload, 'content') || '', 5000);
   if (!content || content.length < 1) {
     errors.push('Note content is required');
   }
 
   const validTypes = ['Call', 'Email', 'Text', 'Meeting', 'General', 'Issue', 'Success'];
-  const type = validTypes.includes(data.type) ? data.type : 'General';
+  const rawType = getStringField(payload, 'type');
+  const type = rawType && validTypes.includes(rawType) ? rawType : 'General';
 
   return {
     isValid: errors.length === 0,
@@ -394,7 +415,7 @@ export function sanitizeNoteInput(data: any): SanitizationResult<{
   };
 }
 
-export function sanitizeCampaignInput(data: any): SanitizationResult<{
+export function sanitizeCampaignInput(data: unknown): SanitizationResult<{
   name: string;
   description?: string;
   messageTemplate?: string;
@@ -402,19 +423,24 @@ export function sanitizeCampaignInput(data: any): SanitizationResult<{
   bookingLink?: string;
 }> {
   const errors: string[] = [];
+  const payload = isRecord(data) ? data : {};
 
-  const name = sanitizePlainText(data.name || '', 255);
+  const name = sanitizePlainText(getStringField(payload, 'name') || '', 255);
   if (!name || name.length < 1) {
     errors.push('Campaign name is required');
   }
 
-  const description = data.description ? sanitizePlainText(data.description, 1000) : undefined;
-  const messageTemplate = data.messageTemplate ? sanitizeCampaignMessage(data.messageTemplate) : undefined;
-  const targetTags = data.targetTags ? sanitizeTags(data.targetTags, 50, 100) : undefined;
+  const descriptionSource = getStringField(payload, 'description');
+  const description = descriptionSource ? sanitizePlainText(descriptionSource, 1000) : undefined;
+  const messageTemplateSource = getStringField(payload, 'messageTemplate');
+  const messageTemplate = messageTemplateSource ? sanitizeCampaignMessage(messageTemplateSource) : undefined;
+  const tagsArray = getStringArrayField(payload, 'targetTags');
+  const targetTags = tagsArray ? sanitizeTags(tagsArray, 50, 100) : undefined;
 
   let bookingLink: string | undefined;
-  if (data.bookingLink) {
-    const sanitizedUrl = sanitizeUrl(data.bookingLink);
+  const bookingLinkSource = getStringField(payload, 'bookingLink');
+  if (bookingLinkSource) {
+    const sanitizedUrl = sanitizeUrl(bookingLinkSource);
     if (!sanitizedUrl) {
       errors.push('Invalid booking link URL');
     } else {

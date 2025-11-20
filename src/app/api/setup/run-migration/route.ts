@@ -37,15 +37,18 @@ export async function POST() {
       CREATE INDEX IF NOT EXISTS idx_users_client_id ON users USING btree (client_id);
     `;
 
-    await db.execute(sql.raw(migrationSQL));
+    await db.execute(sql`${sql.raw(migrationSQL)}`);
 
     return NextResponse.json({
       success: true,
       message: 'Database tables created'
     });
 
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }
 

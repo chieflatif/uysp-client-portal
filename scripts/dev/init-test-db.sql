@@ -1,0 +1,3 @@
+CREATE DATABASE uysp_test;
+GRANT ALL PRIVILEGES ON DATABASE uysp_test TO uysp_test;
+

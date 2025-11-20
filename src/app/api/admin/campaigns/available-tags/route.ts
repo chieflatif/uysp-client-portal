@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { campaignTagsCache, leads } from '@/lib/db/schema';
+import { campaignTagsCache } from '@/lib/db/schema';
 import { eq, sql } from 'drizzle-orm';
 
 /**
@@ -78,8 +78,9 @@ export async function GET(request: NextRequest) {
       `);
 
       // Handle both result.rows (postgres) and result itself being an array
-      const rows = (result as any).rows || (Array.isArray(result) ? result : []);
-      const tags = rows.map((row: any) => row.tag).filter(Boolean);
+      const rows = (result as { rows?: Array<{ tag: string | null }> } | Array<{ tag: string | null }>);
+      const normalizedRows = Array.isArray(rows) ? rows : rows.rows ?? [];
+      const tags = normalizedRows.map(row => row.tag).filter((tag): tag is string => Boolean(tag));
 
       console.log(`✅ Found ${tags.length} tags directly from leads table`);
 

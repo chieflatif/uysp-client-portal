@@ -22,12 +22,11 @@ function getSessionId(): string {
   return sessionId;
 }
 
-/**
- * Track an event
- */
+type AnalyticsEventData = Record<string, unknown>;
+
 export async function trackEvent(
   eventType: string,
-  eventData?: Record<string, any>,
+  eventData: AnalyticsEventData = {},
   eventCategory: string = 'interaction'
 ): Promise<void> {
   if (typeof window === 'undefined') return;
@@ -41,7 +40,7 @@ export async function trackEvent(
       body: JSON.stringify({
         eventType,
         eventCategory,
-        eventData: eventData || {},
+        eventData,
         pageUrl: window.location.pathname,
         referrer: document.referrer || null,
         sessionId: getSessionId(),
@@ -72,7 +71,7 @@ export function trackPageView(pageTitle?: string): void {
 /**
  * Track button click
  */
-export function trackClick(buttonName: string, additionalData?: Record<string, any>): void {
+export function trackClick(buttonName: string, additionalData?: AnalyticsEventData): void {
   trackEvent('button_click', {
     buttonName,
     ...additionalData,
@@ -82,7 +81,7 @@ export function trackClick(buttonName: string, additionalData?: Record<string, a
 /**
  * Track form submission
  */
-export function trackFormSubmit(formName: string, additionalData?: Record<string, any>): void {
+export function trackFormSubmit(formName: string, additionalData?: AnalyticsEventData): void {
   trackEvent('form_submit', {
     formName,
     ...additionalData,
@@ -93,14 +92,14 @@ export function trackFormSubmit(formName: string, additionalData?: Record<string
  * Track custom business event
  * Examples: task_created, lead_qualified, user_invited, etc.
  */
-export function trackCustomEvent(eventName: string, data?: Record<string, any>): void {
+export function trackCustomEvent(eventName: string, data?: AnalyticsEventData): void {
   trackEvent(eventName, data, 'custom');
 }
 
 /**
  * Track error
  */
-export function trackError(errorMessage: string, errorData?: Record<string, any>): void {
+export function trackError(errorMessage: string, errorData?: AnalyticsEventData): void {
   trackEvent('error', {
     message: errorMessage,
     ...errorData,

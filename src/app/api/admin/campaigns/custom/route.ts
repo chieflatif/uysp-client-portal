@@ -3,10 +3,12 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { campaigns, leads, airtableSyncQueue } from '@/lib/db/schema';
-import { and, eq, gte, lte, sql, inArray } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
 import { buildLeadFilterConditions } from '@/lib/utils/campaign-filters';
+
+type DbCampaign = typeof campaigns.$inferSelect;
 
 /**
  * POST /api/admin/campaigns/custom
@@ -118,6 +120,7 @@ const createCustomCampaignSchema = z.object({
 });
 
 type CreateCustomCampaignInput = z.infer<typeof createCustomCampaignSchema>;
+type CampaignMessage = z.infer<typeof messageSchema>;
 
 export async function POST(request: NextRequest) {
   try {
@@ -134,15 +137,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const body = (await request.json()) as Partial<CreateCustomCampaignInput>;
 
     // SECURITY: Force clientId IMMEDIATELY for non-SUPER_ADMIN users
     // This prevents any potential timing attacks or validation bypasses
     if (session.user.role !== 'SUPER_ADMIN') {
-      body.clientId = session.user.clientId;
+      const clientId = session.user.clientId;
+      if (!clientId) {
+        return NextResponse.json(
+          { error: 'Client context required for this operation' },
+          { status: 400 }
+        );
+      }
+      body.clientId = clientId;
       // Make clientId immutable to prevent any further modification attempts
       Object.defineProperty(body, 'clientId', {
-        value: session.user.clientId,
+        value: clientId,
         writable: false,
         configurable: false,
       });
@@ -218,6 +228,11 @@ export async function POST(request: NextRequest) {
 
     // TRANSACTION: Create campaign + enroll leads atomically with advisory locks
     const result = await db.transaction(async (tx) => {
+      let partialEnrollment = false;
+      let totalMatchingLeads = 0;
+      let wasCapped = false;
+      let enrollmentTimedOut = false;
+
       // SECURITY: Set SERIALIZABLE isolation to prevent phantom reads
       // This ensures no other transaction can modify leads between our
       // eligibility check and enrollment
@@ -262,12 +277,11 @@ export async function POST(request: NextRequest) {
         // Vercel has 60s timeout, ~50ms per lead = max ~1000 leads safely
         const MAX_SYNC_ENROLL = 1000;
         let cappedLeads = matchingLeads;
-        let wasCappped = false;
 
         if (matchingLeads.length > MAX_SYNC_ENROLL) {
           console.warn(`⚠️ Campaign "${data.name}" has ${matchingLeads.length} matching leads, capping to ${MAX_SYNC_ENROLL} to prevent timeout`);
           cappedLeads = matchingLeads.slice(0, MAX_SYNC_ENROLL);
-          wasCappped = true;
+          wasCapped = true;
         }
 
         // CRITICAL: Acquire advisory lock per lead to prevent race conditions
@@ -304,8 +318,8 @@ export async function POST(request: NextRequest) {
         }
 
         // BUG #2 FIX: Detect if enrollment was partial (timeout or cap)
-        const enrollmentTimedOut = verifiedEnrolledCount < cappedLeads.length;
-        const partialEnrollment = wasCappped || enrollmentTimedOut;
+        enrollmentTimedOut = verifiedEnrolledCount < cappedLeads.length;
+        partialEnrollment = wasCapped || enrollmentTimedOut;
 
         // Update campaign with VERIFIED enrollment count
         await tx.update(campaigns)
@@ -317,15 +331,22 @@ export async function POST(request: NextRequest) {
 
         campaign.leadsEnrolled = verifiedEnrolledCount;
         campaign.totalLeads = matchingLeads.length;
-
-        // Store partial enrollment data for response
-        (campaign as any).partialEnrollment = partialEnrollment;
-        (campaign as any).totalMatchingLeads = matchingLeads.length;
-        (campaign as any).wasCappped = wasCappped;
-        (campaign as any).enrollmentTimedOut = enrollmentTimedOut;
+        totalMatchingLeads = matchingLeads.length;
       }
 
-      return campaign;
+      return {
+        campaign,
+        partialEnrollment,
+        totalMatchingLeads,
+        wasCapped,
+        enrollmentTimedOut,
+      } satisfies {
+        campaign: DbCampaign;
+        partialEnrollment: boolean;
+        totalMatchingLeads: number;
+        wasCapped: boolean;
+        enrollmentTimedOut: boolean;
+      };
     });
 
     // BUG #4 FIX: Queue to Airtable sync OUTSIDE transaction
@@ -336,69 +357,85 @@ export async function POST(request: NextRequest) {
       await db.insert(airtableSyncQueue).values({
         clientId: data.clientId,
         tableName: 'Campaigns',
-        recordId: result.id,
+        recordId: result.campaign.id,
         operation: 'create',
         payload: {
-          'Campaign Name': result.name,
+          'Campaign Name': result.campaign.name,
           'Campaign Type': 'Custom',
-          'Active': !result.isPaused,
-          'Version': result.version || 1, // AUDIT FIX: Sync version on create
+          'Active': !result.campaign.isPaused,
+          'Version': result.campaign.version || 1, // AUDIT FIX: Sync version on create
           'Target Tags': data.targetTags.join(', '),
           'Messages': JSON.stringify(data.messages),
-          'Start Datetime': result.startDatetime?.toISOString(),
+          'Start Datetime': result.campaign.startDatetime?.toISOString(),
           'Enrollment Status': enrollmentStatus,
         },
         status: 'pending',
       });
-      console.log(`✅ Queued campaign "${result.name}" for Airtable sync`);
+      console.log(`✅ Queued campaign "${result.campaign.name}" for Airtable sync`);
     } catch (syncError) {
       // Non-blocking: Log error but don't fail the request
       // The sync queue has retry logic and can be manually re-queued
-      console.error(`⚠️ Failed to queue Airtable sync for campaign ${result.id}:`, syncError);
+      console.error(`⚠️ Failed to queue Airtable sync for campaign ${result.campaign.id}:`, syncError);
     }
 
-    console.log(`✅ Created custom campaign "${result.name}" (${result.id})`);
-    console.log(`   Enrolled ${result.leadsEnrolled} leads`);
+    console.log(`✅ Created custom campaign "${result.campaign.name}" (${result.campaign.id})`);
+    console.log(`   Enrolled ${result.campaign.leadsEnrolled} leads`);
 
     // BUG #2 FIX: Build response with partial enrollment warning if applicable
-    const partialEnrollment = (result as any).partialEnrollment;
-    const totalMatchingLeads = (result as any).totalMatchingLeads;
-    const wasCappped = (result as any).wasCappped;
-    const enrollmentTimedOut = (result as any).enrollmentTimedOut;
+    const { campaign: createdCampaign, partialEnrollment, totalMatchingLeads, wasCapped, enrollmentTimedOut } = result;
 
-    const responsePayload: any = {
-      campaign: result,
+    type PartialWarning = {
+      totalMatching: number;
+      enrolled: number;
+      remaining: number;
+      reason: 'enrollment_cap' | 'timeout';
+      message: string;
+    };
+
+    const responsePayload: {
+      campaign: DbCampaign;
+      message: string;
+      warning?: PartialWarning;
+    } = {
+      campaign: createdCampaign,
       message: enrollmentStatus === 'scheduled'
         ? `Campaign scheduled for ${data.startDatetime}. Leads will be enrolled automatically.`
         : enrollmentStatus === 'paused'
         ? 'Campaign created in paused state. Activate to start enrollment.'
-        : `Campaign created and ${result.leadsEnrolled} leads enrolled.`,
+        : `Campaign created and ${createdCampaign.leadsEnrolled} leads enrolled.`,
     };
 
     // Add warning for partial enrollment
     if (partialEnrollment && enrollmentStatus === 'active') {
-      const remaining = totalMatchingLeads - (result.leadsEnrolled || 0);
+      const enrolledCount = createdCampaign.leadsEnrolled || 0;
+      const remaining = totalMatchingLeads - enrolledCount;
+      const reason: 'enrollment_cap' | 'timeout' = wasCapped
+        ? 'enrollment_cap'
+        : enrollmentTimedOut
+        ? 'timeout'
+        : 'enrollment_cap';
       responsePayload.warning = {
         totalMatching: totalMatchingLeads,
-        enrolled: result.leadsEnrolled || 0,
+        enrolled: enrolledCount,
         remaining,
-        reason: wasCappped ? 'enrollment_cap' : 'timeout',
-        message: wasCappped
-          ? `⚠️ PARTIAL ENROLLMENT: Only ${result.leadsEnrolled} of ${totalMatchingLeads} matching leads were enrolled due to safety cap (max 1,000 per request). ${remaining} leads remain unprocessed. Consider creating additional campaigns or contact support for bulk enrollment.`
-          : `⚠️ PARTIAL ENROLLMENT: Only ${result.leadsEnrolled} of ${totalMatchingLeads} matching leads were enrolled before request timeout (50s limit). ${remaining} leads remain unprocessed. Consider creating additional campaigns or contact support for bulk enrollment.`,
+        reason,
+        message: reason === 'enrollment_cap'
+          ? `⚠️ PARTIAL ENROLLMENT: Only ${enrolledCount} of ${totalMatchingLeads} matching leads were enrolled due to safety cap (max 1,000 per request). ${remaining} leads remain unprocessed. Consider creating additional campaigns or contact support for bulk enrollment.`
+          : `⚠️ PARTIAL ENROLLMENT: Only ${enrolledCount} of ${totalMatchingLeads} matching leads were enrolled before request timeout (50s limit). ${remaining} leads remain unprocessed. Consider creating additional campaigns or contact support for bulk enrollment.`,
       };
-      console.warn(`⚠️ Partial enrollment detected: ${result.leadsEnrolled}/${totalMatchingLeads} leads enrolled`);
+      console.warn(`⚠️ Partial enrollment detected: ${enrolledCount}/${totalMatchingLeads} leads enrolled`);
     }
 
     return NextResponse.json(responsePayload, { status: 201 });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating custom campaign:', error);
+    const dbError = error as { code?: string; constraint?: string };
 
     // BUG #18 FIX: Handle unique constraint violation
     // PostgreSQL error code 23505 = unique_violation
     // This happens if two requests create campaigns with the same name simultaneously
-    if (error?.code === '23505' && error?.constraint?.includes('campaigns_client_name')) {
+    if (dbError?.code === '23505' && dbError?.constraint?.includes('campaigns_client_name')) {
       return NextResponse.json(
         {
           error: 'Campaign name already exists',
@@ -440,13 +477,13 @@ function isValidUUID(uuid: string): boolean {
  * @returns Number of successfully enrolled leads
  */
 async function enrollLeadsWithLocks(
-  tx: any,
+  tx: typeof db,
   leadIds: string[],
   campaignId: string,
   clientId: string,
   campaignVersion: number,
   campaignName: string,
-  campaignMessages: any[]
+  campaignMessages: CampaignMessage[]
 ): Promise<number> {
   let enrolledCount = 0;
 
@@ -489,7 +526,10 @@ async function enrollLeadsWithLocks(
         sql`SELECT pg_try_advisory_xact_lock(${lockKey1}, ${lockKey2}) as acquired`
       );
 
-      const acquired = lockResult.rows[0]?.acquired;
+      const lockRows = Array.isArray(lockResult)
+        ? lockResult
+        : (lockResult as { rows?: Array<{ acquired?: boolean }> }).rows ?? [];
+      const acquired = lockRows[0]?.acquired;
 
       if (!acquired) {
         console.warn(`⚠️ Skipping lead ${leadId} - already being enrolled by another campaign`);

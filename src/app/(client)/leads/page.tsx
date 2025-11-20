@@ -19,8 +19,9 @@ interface Lead {
   company?: string;
   title?: string;
   icpScore: number;
-  status: string;
-  processingStatus: string; // The workflow status (Queued/In Sequence/Completed)
+  status: string | null;
+  // processingStatus remains in API payload but is no longer used for UI display
+  processingStatus?: string | null;
   linkedinUrl?: string;
   enrichmentOutcome?: string;
   createdAt: string;
@@ -31,6 +32,10 @@ interface Lead {
   // Engagement metrics
   engagementLevel?: string;
   engagementTier?: string;
+}
+
+interface LeadsApiResponse {
+  leads?: Lead[];
 }
 
 type SortField = 'name' | 'company' | 'icpScore' | 'status' | 'lastActivity' | 'campaign' | 'leadSource';
@@ -85,7 +90,7 @@ export default function LeadsPage() {
   }, []);
 
   // React Query: Fetch leads with server-side search and filtering
-  const { data: leadsData, isLoading: loading } = useQuery({
+  const { data: leadsData, isLoading: loading } = useQuery<Lead[]>({
     queryKey: ['leads', selectedClientId, searchQuery], // Include client and search in cache key
     queryFn: async () => {
       // CRITICAL: Enforce client selection for data isolation
@@ -105,14 +110,14 @@ export default function LeadsPage() {
 
       const response = await fetch(`/api/leads?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch leads');
-      const data = await response.json();
-      return data.leads || [];
+      const data: LeadsApiResponse = await response.json();
+      return Array.isArray(data.leads) ? data.leads : [];
     },
     enabled: status === 'authenticated' && !clientLoading,
     // Use global defaults (5 min stale, 10 min cache)
   });
 
-  const leads = leadsData || [];
+  const leads = useMemo(() => leadsData ?? [], [leadsData]);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -157,8 +162,8 @@ export default function LeadsPage() {
           bVal = b.icpScore;
           break;
         case 'status':
-          aVal = (a.processingStatus || a.status).toLowerCase();
-          bVal = (b.processingStatus || b.status).toLowerCase();
+          aVal = getDisplayStatus(a.status).toLowerCase();
+          bVal = getDisplayStatus(b.status).toLowerCase();
           break;
         case 'campaign':
           aVal = (a.campaignName || '').toLowerCase();
@@ -205,7 +210,7 @@ export default function LeadsPage() {
     return <ArrowUpDown className={`h-3 w-3 ml-1 ${theme.accents.tertiary.class}`} />;
   };
 
-  const formatRelativeTime = (date: string | null): string => {
+  const formatRelativeTime = (date?: string | null): string => {
     if (!date) return 'No activity';
 
     const now = new Date();
@@ -221,22 +226,23 @@ export default function LeadsPage() {
     return activity.toLocaleDateString();
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 70) return `${theme.accents.primary.bgClass} text-white`;
-    if (score >= 40) return `${theme.accents.secondary.bgClass} text-white`;
-    return 'bg-gray-700 text-gray-300';
+  const getDisplayStatus = (status?: string | null) => {
+    return status?.trim() || 'Unknown';
   };
 
   const getStatusBadgeColor = (status: string) => {
-    const statusLower = status.toLowerCase();
+    const normalized = status.toLowerCase();
     // Processing status colors (Queued/In Sequence/Completed)
-    if (statusLower === 'completed' || statusLower === 'complete') return theme.accents.primary.bgClass;
-    if (statusLower === 'in sequence' || statusLower.includes('sequence')) return theme.accents.secondary.bgClass;
-    if (statusLower === 'queued') return theme.accents.tertiary.bgClass;
+    if (normalized === 'completed' || normalized === 'complete') return theme.accents.primary.bgClass;
+    if (normalized === 'in sequence' || normalized.includes('sequence')) return theme.accents.secondary.bgClass;
+    if (normalized === 'queued') return theme.accents.tertiary.bgClass;
+    if (normalized === 'sent' || normalized === 'delivered') return theme.accents.secondary.bgClass;
+    if (normalized === 'new') return 'bg-gray-600';
+    if (normalized === 'failed') return 'bg-red-600';
     // Fallback for legacy statuses
-    if (statusLower.includes('booked')) return theme.accents.primary.bgClass;
-    if (statusLower.includes('replied')) return theme.accents.secondary.bgClass;
-    if (statusLower.includes('clicked')) return theme.accents.tertiary.bgClass;
+    if (normalized.includes('booked')) return theme.accents.primary.bgClass;
+    if (normalized.includes('replied')) return theme.accents.secondary.bgClass;
+    if (normalized.includes('clicked')) return theme.accents.tertiary.bgClass;
     return 'bg-gray-700';
   };
 
@@ -478,12 +484,14 @@ export default function LeadsPage() {
                   </td>
                 </tr>
               ) : (
-                paginatedLeads.map((lead) => (
-                  <tr
-                    key={lead.id}
-                    className="hover:bg-gray-700 transition cursor-pointer border-l-4 border-indigo-600"
-                    onClick={() => router.push(`/leads/${lead.id}`)}
-                  >
+                paginatedLeads.map((lead) => {
+                  const displayStatus = getDisplayStatus(lead.status);
+                  return (
+                    <tr
+                      key={lead.id}
+                      className="hover:bg-gray-700 transition cursor-pointer border-l-4 border-indigo-600"
+                      onClick={() => router.push(`/leads/${lead.id}`)}
+                    >
                     {/* Lead Info: Name + Title */}
                     <td className="px-6 py-4">
                       <div className={`font-semibold ${theme.core.white} text-base`}>
@@ -557,14 +565,15 @@ export default function LeadsPage() {
                     <td className="px-6 py-4">
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${getStatusBadgeColor(
-                          lead.processingStatus || lead.status
+                          displayStatus
                         )}`}
                       >
-                        {lead.processingStatus || lead.status}
+                        {displayStatus}
                       </span>
                     </td>
-                  </tr>
-                ))
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

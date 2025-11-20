@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { leadActivityLog } from '@/lib/db/schema';
 import { desc, sql } from 'drizzle-orm';
@@ -17,7 +17,7 @@ import { desc, sql } from 'drizzle-orm';
  * Security: No authentication required (read-only, no sensitive data)
  * Approval Document: MINI-CRM-WEEK-1-APPROVAL.md Recommendation #1
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Count events in the last hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);

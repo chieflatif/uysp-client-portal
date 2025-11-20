@@ -7,7 +7,7 @@ import type {
 } from '../db/schema';
 
 // Type definitions for Airtable Leads
-interface AirtableLeadFields {
+export interface AirtableLeadFields {
   'Lead': string;
   'First Name'?: string;
   'Last Name'?: string;
@@ -58,6 +58,8 @@ interface AirtableLeadFields {
 
   // Notes field
   'Notes'?: string;
+  'Last Modified'?: string;
+  'Last Modified Time'?: string;
 
   // Claim tracking fields (for bi-directional sync)
   'Claimed By'?: string;
@@ -75,6 +77,16 @@ interface AirtableRecord {
 interface AirtableListResponse {
   records: AirtableRecord[];
   offset?: string;
+}
+
+class AirtableApiError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = 'AirtableApiError';
+    this.status = status;
+  }
 }
 
 // Retry and rate limit configuration constants
@@ -176,15 +188,18 @@ export class AirtableClient {
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
         return await operation();
-      } catch (error: any) {
-        lastError = error;
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error('Unknown error');
+        lastError = err;
 
-        // FIXED: Check HTTP status code directly instead of string matching
-        // Don't retry on 4xx client errors (except 429 rate limit)
-        const statusCode = error.status || error.statusCode || 0;
+        const statusCode =
+          error instanceof AirtableApiError
+            ? error.status ?? 0
+            : 0;
+
         if (statusCode >= 400 && statusCode < 500 && statusCode !== 429) {
-          console.error(`❌ ${operationName} failed with client error ${statusCode} (won't retry):`, error.message);
-          throw error;
+          console.error(`❌ ${operationName} failed with client error ${statusCode} (won't retry):`, err.message);
+          throw err;
         }
 
         // Log retry attempt
@@ -198,6 +213,20 @@ export class AirtableClient {
 
     console.error(`❌ ${operationName} failed after ${this.maxRetries} attempts`);
     throw lastError || new Error(`${operationName} failed after ${this.maxRetries} attempts`);
+  }
+
+  private async throwApiError(response: Response): Promise<never> {
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      body = await response.text();
+    }
+    const serialized = typeof body === 'string' ? body : JSON.stringify(body);
+    throw new AirtableApiError(
+      `Airtable API error: ${response.status} - ${serialized}`,
+      response.status
+    );
   }
 
   /**
@@ -229,12 +258,7 @@ export class AirtableClient {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        const err: any = new Error(
-          `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
-        );
-        err.status = response.status; // Attach status code for retry logic
-        throw err;
+        await this.throwApiError(response);
       }
 
       const data = (await response.json()) as AirtableListResponse;
@@ -296,12 +320,7 @@ export class AirtableClient {
         );
 
         if (!response.ok) {
-          const error = await response.json();
-          const err: any = new Error(
-            `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
-          );
-          err.status = response.status;
-          throw err;
+          await this.throwApiError(response);
         }
 
         const data = (await response.json()) as AirtableListResponse;
@@ -317,7 +336,19 @@ export class AirtableClient {
         await new Promise(resolve => setTimeout(resolve, 200));
       }
 
-      return allRecords;
+      const cutoffTimestamp = cutoffTime.getTime();
+      return allRecords.filter((record) => {
+        const lastModifiedRaw =
+          record.fields['Last Modified'] ||
+          record.fields['Last Modified Time'];
+        const fallbackDate = new Date(record.createdTime);
+        const candidateDate = lastModifiedRaw ? new Date(lastModifiedRaw) : fallbackDate;
+        const candidateTime = candidateDate.getTime();
+        if (Number.isNaN(candidateTime)) {
+          return fallbackDate.getTime() >= cutoffTimestamp;
+        }
+        return candidateTime >= cutoffTimestamp;
+      });
     }, 'getLeadsModifiedSince');
   }
 
@@ -349,12 +380,7 @@ export class AirtableClient {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        const err: any = new Error(
-          `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
-        );
-        err.status = response.status; // Attach status code for retry logic
-        throw err;
+        await this.throwApiError(response);
       }
 
       const data = (await response.json()) as AirtableListResponse;
@@ -394,12 +420,7 @@ export class AirtableClient {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        const err: any = new Error(
-          `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
-        );
-        err.status = response.status; // Attach status code for retry logic
-        throw err;
+        await this.throwApiError(response);
       }
 
       const data = (await response.json()) as AirtableListResponse;
@@ -468,12 +489,7 @@ export class AirtableClient {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        const err: any = new Error(
-          `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
-        );
-        err.status = response.status; // Attach status code for retry logic
-        throw err;
+        await this.throwApiError(response);
       }
 
       const data = (await response.json()) as AirtableListResponse;
@@ -694,8 +710,8 @@ export class AirtableClient {
 
     // Build messages array if we have a count (for backward compatibility)
     // Each entry is a placeholder since we don't have the actual message content here
-    const messages = messageCount > 0
-      ? Array(messageCount).fill({ placeholder: true })
+    const messages: Array<{ placeholder: boolean }> | null = messageCount > 0
+      ? Array.from({ length: messageCount }, () => ({ placeholder: true }))
       : null;
 
     return {
@@ -712,7 +728,7 @@ export class AirtableClient {
       autoDiscovered: (fields['Auto Discovered'] as boolean) || false,
       messagesSent: Number(fields['Messages Sent']) || 0,
       // PART B.1: Store messages array with correct count from SMS_Templates
-      messages: messages as any,
+      messages,
       // FIXED: Handle schema inconsistency where field name may have trailing space
       // This indicates a naming error in Airtable that should be corrected
       totalLeads: (() => {
@@ -814,12 +830,7 @@ export class AirtableClient {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        const err: any = new Error(
-          `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
-        );
-        err.status = response.status; // Attach status code for retry logic
-        throw err;
+        await this.throwApiError(response);
       }
 
       return await response.json() as AirtableRecord;
@@ -854,12 +865,7 @@ export class AirtableClient {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        const err: any = new Error(
-          `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
-        );
-        err.status = response.status; // Attach status code for retry logic
-        throw err;
+        await this.throwApiError(response);
       }
 
       return await response.json() as AirtableRecord;
@@ -892,12 +898,7 @@ export class AirtableClient {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        const err: any = new Error(
-          `Airtable API error: ${response.status} - ${JSON.stringify(error)}`
-        );
-        err.status = response.status; // Attach status code for retry logic
-        throw err;
+        await this.throwApiError(response);
       }
 
       return await response.json() as AirtableRecord;
@@ -1009,8 +1010,7 @@ export class AirtableClient {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Airtable delete failed: ${response.status} ${JSON.stringify(errorData)}`);
+        await this.throwApiError(response);
       }
 
       console.log(`✅ Deleted record ${recordId} from ${tableName}`);
@@ -1037,8 +1037,7 @@ export class AirtableClient {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`Airtable API error: ${JSON.stringify(error)}`);
+        await this.throwApiError(response);
       }
 
       const data = await response.json();

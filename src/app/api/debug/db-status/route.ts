@@ -29,10 +29,11 @@ export async function GET() {
       },
       message: 'Database is connected and tables exist'
     });
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({
       ok: false,
-      error: error.message,
+      error: message,
       hint: 'Tables probably do not exist'
     }, { status: 500 });
   }

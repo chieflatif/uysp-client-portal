@@ -6,6 +6,8 @@ import { campaigns, airtableSyncQueue } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 
+type CampaignInsert = typeof campaigns.$inferInsert;
+
 /**
  * GET /api/admin/campaigns/[id]
  *
@@ -182,8 +184,14 @@ export async function PATCH(
     }
 
     // Prepare update payload
-    const updatePayload: any = {
-      ...data,
+    const {
+      webinarDatetime,
+      startDatetime,
+      ...rest
+    } = data;
+
+    const updatePayload: Partial<CampaignInsert> = {
+      ...rest,
       updatedAt: new Date(),
     };
 
@@ -193,11 +201,11 @@ export async function PATCH(
     }
 
     // Convert datetime strings to Date objects
-    if (data.webinarDatetime) {
-      updatePayload.webinarDatetime = new Date(data.webinarDatetime);
+    if (webinarDatetime !== undefined) {
+      updatePayload.webinarDatetime = webinarDatetime ? new Date(webinarDatetime) : null;
     }
-    if (data.startDatetime) {
-      updatePayload.startDatetime = new Date(data.startDatetime);
+    if (startDatetime !== undefined) {
+      updatePayload.startDatetime = startDatetime ? new Date(startDatetime) : null;
     }
 
     // Update campaign in PostgreSQL

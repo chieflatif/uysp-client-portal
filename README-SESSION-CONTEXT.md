@@ -140,6 +140,13 @@ Documentation/
 - GitHub: https://github.com/chieflatif/uysp-client-portal
 - Latest commit: 1fcd2ee
 
+**Integration Test DB (Docker):**
+- `./scripts/dev/test-db-up.sh` – start the Postgres 15 container on `localhost:6543`
+- `cp env/test.env.example .env.test` – seed per-user overrides (first run)
+- `./scripts/dev/test-db-reset.sh` – drop/recreate `uysp_test` and run Drizzle migrations
+- `npm run test:integration` – loads `.env.test`, exports `TEST_DATABASE_URL`, runs `jest.integration.config.js`
+- `./scripts/dev/test-db-down.sh` – stop the container when finished
+
 **Credentials:**
 - SUPER_ADMIN: rebel@rebelhq.ai / RElH0rst89!
 - UYSP Client ID: 6a08f898-19cd-49f8-bd77-6fcb2dd56db9
@@ -204,6 +211,9 @@ When user says "Where did we leave off?" or "What's next?", point them to:
 ---
 
 **🏁 SESSION COMPLETE - Everything wrapped up and ready to continue! 🎉**
+
+
+
 
 
 

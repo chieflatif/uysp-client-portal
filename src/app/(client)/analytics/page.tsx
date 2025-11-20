@@ -83,6 +83,14 @@ interface CampaignAnalytics {
   };
 }
 
+interface ClientsResponse {
+  clients?: Array<{ id: string; companyName: string }>;
+}
+
+interface CampaignsResponse {
+  campaigns?: CampaignAnalytics[];
+}
+
 export default function AnalyticsPage() {
   const router = useRouter();
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
@@ -98,10 +106,11 @@ export default function AnalyticsPage() {
       try {
         const res = await fetch('/api/admin/clients');
         if (res.ok) {
-          const data = await res.json();
-          setClients(data.clients || []);
+          const data: ClientsResponse = await res.json();
+          const normalizedClients = Array.isArray(data.clients) ? data.clients : [];
+          setClients(normalizedClients);
           // Default to UYSP if available
-          const uysp = data.clients.find((c: any) => c.companyName === 'UYSP');
+          const uysp = normalizedClients.find((client) => client.companyName === 'UYSP');
           if (uysp) setSelectedClientId(uysp.id);
         }
       } catch (error) {
@@ -132,14 +141,14 @@ export default function AnalyticsPage() {
 
       // Process dashboard response
       if (dashboardRes.ok) {
-        const dashboardData = await dashboardRes.json();
+        const dashboardData: DashboardStats = await dashboardRes.json();
         setDashboardStats(dashboardData);
       }
 
       // Process campaigns response
       if (campaignsRes.ok) {
-        const campaignsData = await campaignsRes.json();
-        setCampaignStats(campaignsData.campaigns || []);
+        const campaignsData: CampaignsResponse = await campaignsRes.json();
+        setCampaignStats(Array.isArray(campaignsData.campaigns) ? campaignsData.campaigns : []);
       }
     } catch (error) {
       console.error('Error fetching analytics:', error);

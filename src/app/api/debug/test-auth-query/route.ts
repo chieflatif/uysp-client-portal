@@ -3,11 +3,22 @@ import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
+type TestEntry = {
+  success: boolean;
+  [key: string]: unknown;
+};
+
+interface DebugTestResponse {
+  email: string;
+  timestamp: string;
+  tests: Record<string, TestEntry>;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get('email') || 'rebel@rebelhq.ai';
 
-  const results: any = {
+  const results: DebugTestResponse = {
     email,
     timestamp: new Date().toISOString(),
     tests: {},

@@ -4,7 +4,22 @@ import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { clients } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { getAirtableClient } from '@/lib/airtable/client';
+
+interface AirtableCallRecord {
+  id: string;
+  fields: {
+    [key: string]: unknown;
+    'Call Date'?: string;
+    'Executive Summary'?: string;
+    'Top Priorities'?: string;
+    'Key Decisions'?: string;
+    'Blockers Discussed'?: string;
+    'Next Steps'?: string;
+    Attendees?: string;
+    'Call Recording URL'?: string;
+    'Is Latest'?: boolean;
+  };
+}
 
 /**
  * GET /api/clients/[id]/call-history
@@ -19,6 +34,8 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const { id } = await params;
+
 
     if (!session) {
       return NextResponse.json(
@@ -29,7 +46,7 @@ export async function GET(
 
     // Authorization check
     if (session.user.role === 'CLIENT_ADMIN') {
-      if (session.user.clientId !== (await params).id) {
+      if (session.user.clientId !== id) {
         return NextResponse.json(
           { error: 'Forbidden' },
           { status: 403 }
@@ -44,7 +61,7 @@ export async function GET(
 
     // Verify client exists
     const client = await db.query.clients.findFirst({
-      where: eq(clients.id, (await params).id),
+      where: eq(clients.id, id),
     });
 
     if (!client) {
@@ -55,7 +72,6 @@ export async function GET(
     }
 
     // Fetch all call summaries from Airtable (sorted by date desc)
-    const airtable = getAirtableClient(client.airtableBaseId);
     const response = await fetch(
       `https://api.airtable.com/v0/${client.airtableBaseId}/Project_Call_Summaries?sort[0][field]=Call Date&sort[0][direction]=desc`,
       {
@@ -71,9 +87,9 @@ export async function GET(
       throw new Error(`Airtable API error: ${JSON.stringify(error)}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { records?: AirtableCallRecord[] };
 
-    const callHistory = (data.records || []).map((record: any) => ({
+    const callHistory = (data.records || []).map((record) => ({
       id: record.id,
       callDate: record.fields['Call Date'] || null,
       executiveSummary: record.fields['Executive Summary'] || '',

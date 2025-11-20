@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { leadActivityLog, leads } from '@/lib/db/schema';
-import { desc, asc, eq, and, sql, gte, lte } from 'drizzle-orm';
+import { desc, asc, eq, and, or, sql, gte, lte } from 'drizzle-orm';
 
 /**
  * GET /api/admin/activity-logs
@@ -34,10 +34,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Authorization - Only ADMIN or SUPER_ADMIN
-    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
+    const userRole = session.user.role;
+    const userClientId = session.user.clientId;
+    const isAdmin = userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
+    const isClientUser = userRole === 'CLIENT_USER';
+
+    if (!isAdmin && !isClientUser) {
       return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
+        { error: 'Forbidden - Access denied' },
+        { status: 403 }
+      );
+    }
+
+    if (isClientUser && !userClientId) {
+      return NextResponse.json(
+        { error: 'Forbidden - Missing client context' },
         { status: 403 }
       );
     }
@@ -51,6 +62,8 @@ export async function GET(request: NextRequest) {
     // Accept both 'category' (from UI) and 'eventCategory' for backwards compatibility
     const eventCategory = searchParams.get('category') || searchParams.get('eventCategory');
     const leadId = searchParams.get('leadId');
+    const leadAirtableId = searchParams.get('leadAirtableId');
+    const clientIdFilter = searchParams.get('clientId');
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
     const sortBy = searchParams.get('sortBy') || 'timestamp';
@@ -89,9 +102,28 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(leadActivityLog.eventCategory, eventCategory));
     }
 
-    // Lead ID filter
+    // Lead filters (ID and/or Airtable ID)
+    const leadFilters = [];
     if (leadId) {
-      conditions.push(eq(leadActivityLog.leadId, leadId));
+      leadFilters.push(eq(leadActivityLog.leadId, leadId));
+    }
+    if (leadAirtableId) {
+      leadFilters.push(eq(leadActivityLog.leadAirtableId, leadAirtableId));
+    }
+    if (leadFilters.length === 1) {
+      conditions.push(leadFilters[0]);
+    } else if (leadFilters.length > 1) {
+      conditions.push(or(...leadFilters));
+    }
+
+    // Client filter (admins can target specific clientId via query param,
+    // client users are automatically scoped to their own client)
+    if (isAdmin) {
+      if (clientIdFilter) {
+        conditions.push(eq(leadActivityLog.clientId, clientIdFilter));
+      }
+    } else if (isClientUser && userClientId) {
+      conditions.push(eq(leadActivityLog.clientId, userClientId));
     }
 
     // Date range filters (using Drizzle operators to prevent SQL injection)

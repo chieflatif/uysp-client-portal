@@ -18,6 +18,15 @@ export const maxDuration = 300; // 5 minutes (reconciler can take time for large
  * SUPER_ADMIN only
  * Body: { minutes?: number } - how many minutes to look back (default: 20)
  */
+type DeltaSyncRequestBody = {
+  minutes?: number;
+};
+
+type DeltaSyncResult = {
+  stage1: { recordsProcessed: number; errors: unknown[] };
+  stage2: { updated: number; skipped: number; errors: unknown[] };
+};
+
 export async function POST(request: NextRequest) {
   try {
     // Authentication
@@ -35,13 +44,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    let body: any = {};
+    let body: DeltaSyncRequestBody = {};
     try {
       const text = await request.text();
       if (text) {
-        body = JSON.parse(text);
+          body = JSON.parse(text) as DeltaSyncRequestBody;
       }
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: 'Invalid JSON in request body' },
         { status: 400 }
@@ -64,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     // Run reconciler
     const startTime = Date.now();
-    const result = await reconcileRecentChanges(minutes);
+    const result = (await reconcileRecentChanges(minutes)) as DeltaSyncResult;
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
     console.log(`✅ Delta Sync complete in ${duration}s`);
@@ -90,12 +99,12 @@ export async function POST(request: NextRequest) {
       },
       message: `Delta sync complete: Stage 1 processed ${result.stage1.recordsProcessed} leads, Stage 2 updated ${result.stage2.updated} leads`,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Delta sync failed:', error);
     return NextResponse.json(
       {
         error: 'Delta sync failed',
-        details: error.message || 'Unknown error',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

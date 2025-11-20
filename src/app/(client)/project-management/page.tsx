@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useClient } from '@/contexts/ClientContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Search, ArrowUpDown, AlertCircle, TrendingUp, Clock, Target, RefreshCw, X, Calendar, Plus, Save, Mail, Trash2 } from 'lucide-react';
 import { theme } from '@/theme';
 
@@ -167,7 +167,8 @@ export default function ProjectManagementPage() {
 
     // Apply sort
     const sorted = [...filtered].sort((a, b) => {
-      let aVal: any, bVal: any;
+      let aVal: string | number;
+      let bVal: string | number;
       
       switch (sortField) {
         case 'task':
@@ -274,24 +275,27 @@ export default function ProjectManagementPage() {
     });
     setEditingTask(null);
 
-    // BACKGROUND SYNC - Don't wait for this
-    fetch(`/api/project/tasks/${taskId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        task: task.task,
-        status: field === 'status' ? value : task.status,
-        priority: field === 'priority' ? value : task.priority,
-        taskType: field === 'taskType' ? value : (task.taskType || 'Task'),
-        owner: field === 'owner' ? value : task.owner,
-        dueDate: field === 'dueDate' ? value : task.dueDate,
-        notes: task.notes,
-      }),
-    }).catch(err => {
+    setSaving(true);
+    try {
+      await fetch(`/api/project/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task: task.task,
+          status: field === 'status' ? value : task.status,
+          priority: field === 'priority' ? value : task.priority,
+          taskType: field === 'taskType' ? value : (task.taskType || 'Task'),
+          owner: field === 'owner' ? value : task.owner,
+          dueDate: field === 'dueDate' ? value : task.dueDate,
+          notes: task.notes,
+        }),
+      });
+    } catch (err) {
       console.error('Background sync failed:', err);
-      // Revert on error - invalidate cache to refetch
       queryClient.invalidateQueries({ queryKey: ['project', selectedClientId] });
-    });
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Sync cooldown effect - countdown timer
@@ -481,7 +485,7 @@ export default function ProjectManagementPage() {
             <div>
               <h3 className="text-lg font-bold text-white mb-2">No Project Data Yet</h3>
               <p className={theme.core.bodyText}>
-                The project management tables haven't been synced yet. Go to <strong>Admin → UYSP Client → Overview → Sync Data</strong> to populate this dashboard.
+                The project management tables haven&rsquo;t been synced yet. Go to <strong>Admin → UYSP Client → Overview → Sync Data</strong> to populate this dashboard.
               </p>
               {error && <p className="text-sm text-red-400 mt-2">Error: {error}</p>}
             </div>

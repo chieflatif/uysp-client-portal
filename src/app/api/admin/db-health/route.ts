@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { sql } from 'drizzle-orm';
@@ -11,7 +11,10 @@ import { sql } from 'drizzle-orm';
  * Endpoint #1 from ADMIN-AUTOMATION-BUILD-TASK.md
  */
 
-export async function GET(request: NextRequest) {
+type TableHealthRow = { row_count?: string | number | null; count?: string | number | null; last_updated?: string | null; updated_at?: string | null };
+type LastSyncRow = { last_sync?: string | null };
+
+export async function GET() {
   try {
     // Authentication
     const session = await auth();
@@ -78,20 +81,17 @@ export async function GET(request: NextRequest) {
     `);
 
     // Extract data from results (handle various response formats)
-    const getRowCount = (result: any) => {
-      if (Array.isArray(result) && result.length > 0) {
-        const row = result[0];
-        return Number(row.row_count || row.count || 0);
-      }
-      return 0;
+    const normalizeRows = <T>(result: { rows?: T[] } | T[]): T[] => (Array.isArray(result) ? result : result.rows ?? []);
+    const getRowCount = (result: { rows?: TableHealthRow[] } | TableHealthRow[]): number => {
+      const [row] = normalizeRows(result);
+      if (!row) return 0;
+      return Number(row.row_count ?? row.count ?? 0);
     };
 
-    const getLastUpdated = (result: any) => {
-      if (Array.isArray(result) && result.length > 0) {
-        const row = result[0];
-        return row.last_updated || row.updated_at || null;
-      }
-      return null;
+    const getLastUpdated = (result: { rows?: TableHealthRow[] } | TableHealthRow[]): string | null => {
+      const [row] = normalizeRows(result);
+      if (!row) return null;
+      return row.last_updated ?? row.updated_at ?? null;
     };
 
     const tables = {
@@ -118,10 +118,8 @@ export async function GET(request: NextRequest) {
     };
 
     // Get last sync
-    let lastSyncTime = null;
-    if (Array.isArray(lastSync) && lastSync.length > 0) {
-      lastSyncTime = lastSync[0].last_sync || null;
-    }
+    const [lastSyncRow] = normalizeRows<LastSyncRow>(lastSync);
+    const lastSyncTime = lastSyncRow?.last_sync ?? null;
 
     return NextResponse.json({
       ok: true,

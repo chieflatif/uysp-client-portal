@@ -664,3 +664,6 @@ Full history in one field. AI reads all. Perfect context.
 
 
 
+
+
+

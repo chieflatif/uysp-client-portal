@@ -79,7 +79,7 @@ export function validatePhone(phone: string): {
  * @returns Object with validation result and error message
  */
 export function validateRequiredField(
-  value: string,
+  value: string | null | undefined,
   fieldName: string,
   maxLength: number = 255
 ): {
@@ -141,29 +141,41 @@ export function validateOptionalField(
  * @param rowNumber - Row number in CSV (for error reporting)
  * @returns Object with validation result and errors
  */
+export interface LeadInput {
+  email?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  company?: string | null;
+  title?: string | null;
+}
+
+export interface NormalizedLead {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  company?: string;
+  title?: string;
+}
+
 export interface LeadValidationResult {
   isValid: boolean;
   errors: string[];
   warnings: string[];
-  lead: {
-    email: string;
-    firstName: string;
-    lastName: string;
-    phone?: string;
-    company?: string;
-    title?: string;
-  };
+  lead: NormalizedLead;
 }
 
 export function validateLead(
-  lead: any,
+  lead: LeadInput,
   rowNumber: number
 ): LeadValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
   // Validate email (required)
-  if (!isValidEmail(lead.email)) {
+  const emailValue = lead.email?.trim() || '';
+  if (!emailValue || !isValidEmail(emailValue)) {
     errors.push(`Row ${rowNumber}: Invalid or missing email`);
   }
 
@@ -200,18 +212,20 @@ export function validateLead(
     errors.push(`Row ${rowNumber}: ${titleValidation.error}`);
   }
 
+  const normalizedLead: NormalizedLead = {
+    email: emailValue,
+    firstName: lead.firstName?.trim() || '',
+    lastName: lead.lastName?.trim() || '',
+    phone: lead.phone || undefined,
+    company: lead.company?.trim() || undefined,
+    title: lead.title?.trim() || undefined,
+  };
+
   return {
     isValid: errors.length === 0,
     errors,
     warnings,
-    lead: {
-      email: lead.email?.trim() || '',
-      firstName: lead.firstName?.trim() || '',
-      lastName: lead.lastName?.trim() || '',
-      phone: lead.phone || undefined,
-      company: lead.company?.trim() || undefined,
-      title: lead.title?.trim() || undefined,
-    },
+    lead: normalizedLead,
   };
 }
 
@@ -222,7 +236,7 @@ export function validateLead(
  * @param leads - Array of lead objects
  * @returns Array of duplicate indices
  */
-export function detectDuplicatesInFile(leads: any[]): number[] {
+export function detectDuplicatesInFile(leads: LeadInput[]): number[] {
   const seen = new Map<string, number>(); // email -> first occurrence index
   const duplicates: number[] = [];
 

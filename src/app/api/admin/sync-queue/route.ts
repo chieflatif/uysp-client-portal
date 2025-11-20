@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
  * Get sync queue status
  * SUPER_ADMIN only
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 

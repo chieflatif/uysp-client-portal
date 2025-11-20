@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
-import { users, clients } from '@/lib/db/schema';
-import { eq, like } from 'drizzle-orm';
+import { users, clients as clientsTable } from '@/lib/db/schema';
+import { eq, sql } from 'drizzle-orm';
 
 // Validation schema for registration
 const registerSchema = z.object({
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const sanitizedDomain = emailDomain.replace(/[%_\\]/g, '\\$&');
 
     const matchingClient = await db.query.clients.findFirst({
-      where: (clients, { sql }) => sql`LOWER(${clients.email}) LIKE ${`%@${sanitizedDomain}`}`,
+      where: () => sql`LOWER(${clientsTable.email}) LIKE ${`%@${sanitizedDomain}`}`,
     });
 
     if (!matchingClient) {

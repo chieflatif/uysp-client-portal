@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { userActivityLogs, userActivitySessions, users } from '@/lib/db/schema';
-import { eq, and, gte, lte, desc, sql, count } from 'drizzle-orm';
+import { eq, and, gte, desc, sql, count } from 'drizzle-orm';
 import { isSuperAdmin } from '@/lib/auth/permissions';
 
 /**

@@ -8,14 +8,7 @@ import { X, Sparkles, Eye, Plus, Trash2, Loader2 } from 'lucide-react';
 import LeadPreviewModal from './LeadPreviewModal';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
-import { CAMPAIGN_TYPE_DB_TO_UI } from '@/lib/constants/campaigns';
-
-interface Campaign {
-  id: string;
-  name: string;
-  campaignType: 'Webinar' | 'Standard' | 'Custom';
-  // ... other fields
-}
+ 
 
 interface Message {
   step: number;
@@ -23,8 +16,19 @@ interface Message {
   text: string;
 }
 
+interface ExistingCampaign {
+  id: string;
+  name: string;
+  targetTags?: string[];
+  formId?: string | null;
+  isPaused?: boolean;
+  bookingLink?: string | null;
+  resourceLink?: string | null;
+  resourceName?: string | null;
+}
+
 interface CustomCampaignFormProps {
-  campaign?: Campaign | null;
+  campaign?: ExistingCampaign | null;
   clientId: string;
   onClose: () => void;
   onSuccess: () => void;
@@ -39,8 +43,8 @@ export default function CustomCampaignForm({
   mode = 'nurture',
 }: CustomCampaignFormProps) {
   // Form state
-  const [name, setName] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [name, setName] = useState(campaign?.name ?? '');
+  const [selectedTags, setSelectedTags] = useState<string[]>(campaign?.targetTags ?? []);
   const [createdAfter, setCreatedAfter] = useState('');
   const [createdBefore, setCreatedBefore] = useState('');
   const [minIcpScore, setMinIcpScore] = useState<number>(0);
@@ -49,11 +53,13 @@ export default function CustomCampaignForm({
   const [messages, setMessages] = useState<Message[]>([
     { step: 1, delayMinutes: 0, text: '' }
   ]);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(campaign?.isPaused ?? false);
   const [isScheduled, setIsScheduled] = useState(false);
-  const [resourceLink, setResourceLink] = useState('');
-  const [resourceName, setResourceName] = useState('');
-  const [bookingLink, setBookingLink] = useState('https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr'); // Default UYSP link
+  const [resourceLink, setResourceLink] = useState(campaign?.resourceLink ?? '');
+  const [resourceName, setResourceName] = useState(campaign?.resourceName ?? '');
+  const [bookingLink, setBookingLink] = useState(
+    campaign?.bookingLink ?? 'https://calendly.com/d/cm5d-w79-8xp/sales-coaching-strategy-call-rr'
+  ); // Default UYSP link
   const [startDatetime, setStartDatetime] = useState('');
   const [maxLeadsToEnroll, setMaxLeadsToEnroll] = useState<number | null>(null);
 
@@ -83,8 +89,6 @@ export default function CustomCampaignForm({
   // NEW: Refs for message textareas to enable cursor-position variable insertion
   const messageTextareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
-  // Migration status state
-  const [migrationChecked, setMigrationChecked] = useState(false);
   const [migrationExecuted, setMigrationExecuted] = useState(false);
   const [migrationError, setMigrationError] = useState<string | null>(null);
   const [checkingMigration, setCheckingMigration] = useState(true);
@@ -114,7 +118,6 @@ export default function CustomCampaignForm({
       }
 
       setMigrationExecuted(data.migrationExecuted);
-      setMigrationChecked(true);
 
       if (!data.migrationExecuted) {
         const missingCols = data.missingColumns?.join(', ') || 'Unknown columns';
@@ -128,7 +131,6 @@ export default function CustomCampaignForm({
       setMigrationError(
         'Failed to verify database migration status. Please contact your system administrator.'
       );
-      setMigrationChecked(true);
     } finally {
       setCheckingMigration(false);
     }
@@ -153,11 +155,12 @@ export default function CustomCampaignForm({
           const dedupedTags = deduplicateTags(data.tags || []);
           setAvailableTags(dedupedTags);
         }
-      } catch (error: any) {
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error('Failed to fetch tags');
         // Ignore abort errors (component unmounted)
-        if (error.name === 'AbortError') return;
+        if (err.name === 'AbortError') return;
 
-        console.error('Error fetching tags:', error);
+        console.error('Error fetching tags:', err);
         if (isMounted) {
           setErrors({ tags: 'Failed to load tags. Please refresh the page.' });
         }
@@ -176,22 +179,6 @@ export default function CustomCampaignForm({
       controller.abort();
     };
   }, [clientId, migrationExecuted]);
-
-  const fetchAvailableTags = async () => {
-    try {
-      setLoadingTags(true);
-      const response = await fetch(`/api/admin/campaigns/available-tags?clientId=${clientId}&direct=true`);
-      const data = await response.json();
-      // HIGH-2 FIX: Deduplicate tags
-      const dedupedTags = deduplicateTags(data.tags || []);
-      setAvailableTags(dedupedTags);
-    } catch (error) {
-      console.error('Error fetching tags:', error);
-      setErrors({ tags: 'Failed to load tags. Please refresh the page.' });
-    } finally {
-      setLoadingTags(false);
-    }
-  };
 
   // CRITICAL-2 FIX: Tag deduplication helper (case-insensitive)
   const deduplicateTags = (tags: string[]): string[] => {
@@ -357,7 +344,7 @@ export default function CustomCampaignForm({
     setMessages(messages.filter((_, i) => i !== index).map((msg, idx) => ({ ...msg, step: idx + 1 })));
   };
 
-  const updateMessage = (index: number, field: keyof Message, value: any) => {
+  const updateMessage = (index: number, field: keyof Message, value: Message[keyof Message]) => {
     setMessages((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
@@ -397,7 +384,7 @@ export default function CustomCampaignForm({
   };
 
   // CRITICAL-4 FIX: AI generation with timeout and retry + conditional resource logic
-  const generateMessage = async (index: number, isRetry: boolean = false) => {
+  const generateMessage = async (index: number) => {
     try {
       setGeneratingMessage(index);
 
@@ -468,11 +455,12 @@ export default function CustomCampaignForm({
           [`ai_${index}`]: `Failed to generate: ${data.error || 'Unknown error'}`,
         }));
       }
-    } catch (error: any) {
-      console.error('Error generating message:', error);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('Failed to generate message');
+      console.error('Error generating message:', err);
 
       // CRITICAL-4 FIX: Handle timeout specifically
-      if (error.name === 'AbortError') {
+      if (err.name === 'AbortError') {
         setErrors((prev) => ({
           ...prev,
           [`ai_${index}`]: 'AI generation timed out after 30 seconds. Click Retry or write manually.',
@@ -480,7 +468,7 @@ export default function CustomCampaignForm({
       } else {
         setErrors((prev) => ({
           ...prev,
-          [`ai_${index}`]: `Network error: ${error.message || 'Failed to generate'}. Click Retry.`,
+          [`ai_${index}`]: `Network error: ${err.message || 'Failed to generate'}. Click Retry.`,
         }));
       }
     } finally {
@@ -686,9 +674,10 @@ export default function CustomCampaignForm({
       // HIGH-7 FIX: Reset unsaved changes flag on success
       setHasUnsavedChanges(false);
       onSuccess();
-    } catch (error: any) {
-      console.error('Error creating campaign:', error);
-      setSubmitError(error.message || 'Failed to create campaign');
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('Failed to create campaign');
+      console.error('Error creating campaign:', err);
+      setSubmitError(err.message || 'Failed to create campaign');
     } finally {
       // CRITICAL-5 FIX: Reset ref to allow future submissions
       isSubmittingRef.current = false;
@@ -1215,7 +1204,7 @@ export default function CustomCampaignForm({
                         {errors[`ai_${index}`] && !generatingMessage && (
                           <button
                             type="button"
-                            onClick={() => generateMessage(index, true)}
+                            onClick={() => generateMessage(index)}
                             className="flex items-center gap-1 text-xs font-semibold text-orange-400 hover:text-orange-300"
                           >
                             <Sparkles className="h-3 w-3" />

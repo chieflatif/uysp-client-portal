@@ -13,59 +13,46 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { randomUUID } from 'crypto';
 import { db } from '@/lib/db';
 import { campaigns, leads, clients, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { createTestClient, createTestUser, createTestLead } from '../../tests/helpers/factories';
 
 // Test constants
-const TEST_CLIENT_ID = 'test-client-custom-' + Date.now();
-const TEST_USER_ID = 'test-user-custom-' + Date.now();
+let testClientId: string;
+let testUserId: string;
 
-// Helper to create authenticated session (mock)
-// In real integration tests, you'd use next-auth session helpers
-const mockAdminSession = {
-  user: {
-    id: TEST_USER_ID,
-    email: 'admin@test.com',
-    role: 'SUPER_ADMIN',
-    clientId: TEST_CLIENT_ID,
-  },
-};
+const buildRecordId = () =>
+  `rec_${randomUUID().replace(/-/g, '').slice(0, 12)}`;
 
 describe('Campaign Custom Endpoint Integration Tests', () => {
   beforeAll(async () => {
-    // Create test client
-    await db.insert(clients).values({
-      id: TEST_CLIENT_ID,
-      name: 'Test Client Custom',
-      isActive: true,
+    const client = await createTestClient({
+      companyName: 'Test Client Custom',
+      phone: '555-0102',
     });
+    testClientId = client.id;
 
-    // Create test user
-    await db.insert(users).values({
-      id: TEST_USER_ID,
-      clientId: TEST_CLIENT_ID,
-      email: 'admin@test.com',
-      firstName: 'Test',
-      lastName: 'Admin',
+    const user = await createTestUser(client.id, {
+      email: `admin+${Date.now()}@test.com`,
       role: 'SUPER_ADMIN',
-      isActive: true,
-      passwordHash: 'test-hash',
     });
+    testUserId = user.id;
   });
 
   afterAll(async () => {
     // Cleanup test data
-    await db.delete(leads).where(eq(leads.clientId, TEST_CLIENT_ID));
-    await db.delete(campaigns).where(eq(campaigns.clientId, TEST_CLIENT_ID));
-    await db.delete(users).where(eq(users.id, TEST_USER_ID));
-    await db.delete(clients).where(eq(clients.id, TEST_CLIENT_ID));
+    await db.delete(leads).where(eq(leads.clientId, testClientId));
+    await db.delete(campaigns).where(eq(campaigns.clientId, testClientId));
+    await db.delete(users).where(eq(users.id, testUserId));
+    await db.delete(clients).where(eq(clients.id, testClientId));
   });
 
   beforeEach(async () => {
     // Clean campaigns and leads before each test
-    await db.delete(leads).where(eq(leads.clientId, TEST_CLIENT_ID));
-    await db.delete(campaigns).where(eq(campaigns.clientId, TEST_CLIENT_ID));
+    await db.delete(leads).where(eq(leads.clientId, testClientId));
+    await db.delete(campaigns).where(eq(campaigns.clientId, testClientId));
   });
 
   describe('Basic Campaign Creation', () => {
@@ -78,7 +65,7 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
       ]);
 
       const campaignData = {
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: 'Basic Custom Campaign ' + Date.now(),
         campaignType: 'Standard',
         kajabiTags: ['interested', 'qualified'], // Requires BOTH tags
@@ -88,8 +75,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
       // In real test, would use authenticated fetch with session cookie
       // For now, test database logic directly
       const campaign = await db.insert(campaigns).values({
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: campaignData.name,
+        airtableRecordId: buildRecordId(),
         campaignType: campaignData.campaignType,
         kajabiTags: campaignData.kajabiTags,
         enrollmentCap: campaignData.enrollmentCap,
@@ -111,8 +99,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
 
     it('should initialize v2 campaign fields correctly', async () => {
       const campaign = await db.insert(campaigns).values({
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: 'V2 Fields Test ' + Date.now(),
+        airtableRecordId: buildRecordId(),
         campaignType: 'Standard',
         formId: 'test-form-' + Date.now(),
         isPaused: false,
@@ -152,7 +141,7 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
       // Count leads with BOTH tag1 AND tag2
       const matchingLeads = await db.query.leads.findMany({
         where: and(
-          eq(leads.clientId, TEST_CLIENT_ID),
+          eq(leads.clientId, testClientId),
           eq(leads.isActive, true)
         ),
       });
@@ -182,7 +171,7 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
 
       const matchingLeads = await db.query.leads.findMany({
         where: and(
-          eq(leads.clientId, TEST_CLIENT_ID),
+          eq(leads.clientId, testClientId),
           eq(leads.isActive, true)
         ),
       });
@@ -204,7 +193,7 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
 
       const matchingLeads = await db.query.leads.findMany({
         where: and(
-          eq(leads.clientId, TEST_CLIENT_ID),
+          eq(leads.clientId, testClientId),
           eq(leads.isActive, true),
           eq(leads.optedOut, false)
         ),
@@ -216,8 +205,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
     it('should exclude leads already enrolled in campaigns', async () => {
       // Create existing campaign
       const existingCampaign = await db.insert(campaigns).values({
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: 'Existing Campaign',
+        airtableRecordId: buildRecordId(),
         campaignType: 'Standard',
         formId: 'existing-form',
         isPaused: false,
@@ -241,7 +231,7 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
       // Query available leads (not enrolled)
       const availableLeads = await db.query.leads.findMany({
         where: and(
-          eq(leads.clientId, TEST_CLIENT_ID),
+          eq(leads.clientId, testClientId),
           eq(leads.isActive, true)
         ),
       });
@@ -260,8 +250,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
 
       // Create campaign
       const campaign = await db.insert(campaigns).values({
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: 'Transactional Test ' + Date.now(),
+        airtableRecordId: buildRecordId(),
         campaignType: 'Standard',
         formId: 'test-form-' + Date.now(),
         isPaused: false,
@@ -311,8 +302,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
 
       // Create campaign with cap of 5
       const campaign = await db.insert(campaigns).values({
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: 'Capped Campaign ' + Date.now(),
+        airtableRecordId: buildRecordId(),
         campaignType: 'Standard',
         formId: 'test-form-' + Date.now(),
         enrollmentCap: 5, // Only enroll 5
@@ -330,7 +322,7 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
       // Simulate enrollment with cap
       const allLeads = await db.query.leads.findMany({
         where: and(
-          eq(leads.clientId, TEST_CLIENT_ID),
+          eq(leads.clientId, testClientId),
           eq(leads.isActive, true)
         ),
       });
@@ -348,8 +340,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
       const leadIds = await createTestLeads([{ kajabiTags: ['test'] }]);
 
       const campaign = await db.insert(campaigns).values({
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: 'Timestamp Test ' + Date.now(),
+        airtableRecordId: buildRecordId(),
         campaignType: 'Standard',
         formId: 'test-form-' + Date.now(),
         isPaused: false,
@@ -453,8 +446,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
 
       // Simulate two concurrent attempts to enroll same lead
       const campaign1Promise = db.insert(campaigns).values({
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: 'Concurrent 1 ' + Date.now(),
+        airtableRecordId: buildRecordId(),
         campaignType: 'Standard',
         formId: 'concurrent-1',
         isPaused: false,
@@ -469,8 +463,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
       }).returning();
 
       const campaign2Promise = db.insert(campaigns).values({
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: 'Concurrent 2 ' + Date.now(),
+        airtableRecordId: buildRecordId(),
         campaignType: 'Standard',
         formId: 'concurrent-2',
         isPaused: false,
@@ -498,7 +493,7 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
       // Count how many campaigns have this lead
       const campaignsWithLead = await db.query.campaigns.findMany({
         where: and(
-          eq(campaigns.clientId, TEST_CLIENT_ID),
+          eq(campaigns.clientId, testClientId),
           eq(campaigns.isActive, true)
         ),
       });
@@ -519,7 +514,7 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
         await db.transaction(async (tx) => {
           await tx.insert(campaigns).values({
             id: campaignId,
-            clientId: TEST_CLIENT_ID,
+            clientId: testClientId,
             name: 'Rollback Test',
             campaignType: 'Standard',
             formId: 'rollback-form',
@@ -554,8 +549,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
 
       // Create first campaign
       await db.insert(campaigns).values({
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: campaignName,
+        airtableRecordId: buildRecordId(),
         campaignType: 'Standard',
         formId: 'dup-1',
         isPaused: false,
@@ -573,8 +569,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
       let errorCaught = false;
       try {
         await db.insert(campaigns).values({
-          clientId: TEST_CLIENT_ID,
+          clientId: testClientId,
           name: campaignName, // Same name
+          airtableRecordId: buildRecordId(),
           campaignType: 'Standard',
           formId: 'dup-2',
           isPaused: false,
@@ -602,8 +599,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
   describe('Campaign Statistics Tracking', () => {
     it('should initialize statistics correctly', async () => {
       const campaign = await db.insert(campaigns).values({
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: 'Stats Test ' + Date.now(),
+        airtableRecordId: buildRecordId(),
         campaignType: 'Standard',
         formId: 'stats-form',
         isPaused: false,
@@ -628,8 +626,9 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
       const leadIds = await createTestLeads(Array(5).fill({ kajabiTags: ['test'] }));
 
       const campaign = await db.insert(campaigns).values({
-        clientId: TEST_CLIENT_ID,
+        clientId: testClientId,
         name: 'Count Test ' + Date.now(),
+        airtableRecordId: buildRecordId(),
         campaignType: 'Standard',
         formId: 'count-form',
         isPaused: false,
@@ -669,22 +668,26 @@ describe('Campaign Custom Endpoint Integration Tests', () => {
 /**
  * Helper: Create test leads with specified properties
  */
-async function createTestLeads(leadConfigs: Array<Partial<typeof leads.$inferInsert>>): Promise<string[]> {
-  const testLeads = leadConfigs.map((config, index) => ({
-    id: `test-lead-${Date.now()}-${index}`,
-    clientId: TEST_CLIENT_ID,
-    firstName: `Test${index}`,
-    lastName: `Lead${index}`,
-    email: `test${index}-${Date.now()}@example.com`,
-    phone: `+1555000${String(index).padStart(4, '0')}`,
-    isActive: true,
-    optedOut: false,
-    bookedMeeting: false,
-    leadSource: 'test',
-    currentMessagePosition: 0,
-    ...config,
-  }));
-
-  const inserted = await db.insert(leads).values(testLeads).returning();
-  return inserted.map(l => l.id);
+async function createTestLeads(
+  leadConfigs: Array<Partial<typeof leads.$inferInsert>>
+): Promise<string[]> {
+  const ids: string[] = [];
+  for (let index = 0; index < leadConfigs.length; index += 1) {
+    const config = leadConfigs[index];
+    const lead = await createTestLead(testClientId, {
+      firstName: config.firstName ?? `Test${index}`,
+      lastName: config.lastName ?? `Lead${index}`,
+      email:
+        config.email ?? `test${index}-${Date.now()}@example.com`,
+      phone: config.phone ?? `+1555000${String(index).padStart(4, '0')}`,
+      isActive: config.isActive ?? true,
+      optedOut: config.optedOut ?? false,
+      booked: config.booked ?? false,
+      leadSource: config.leadSource ?? 'test',
+      currentMessagePosition: config.currentMessagePosition ?? 0,
+      ...config,
+    });
+    ids.push(lead.id);
+  }
+  return ids;
 }

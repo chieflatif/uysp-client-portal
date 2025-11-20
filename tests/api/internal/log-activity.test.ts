@@ -15,6 +15,7 @@ import { db } from '../../../src/lib/db';
 import { leadActivityLog, leads, clients } from '../../../src/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { EVENT_TYPES, EVENT_CATEGORIES } from '../../../src/lib/activity/event-types';
+import { createTestClient, createTestLead } from '../../helpers/factories';
 
 describe('POST /api/internal/log-activity', () => {
   const TEST_LEAD = {
@@ -35,22 +36,19 @@ describe('POST /api/internal/log-activity', () => {
     expect(testApiKey.length).toBeGreaterThan(0);
 
     // Create test client
-    const clientResult = await db.insert(clients).values({
-      name: 'Test Client for Activity Logging',
-      contactEmail: 'test-client@test.internal',
-      isActive: true,
-    }).returning({ id: clients.id });
-    testClientId = clientResult[0].id;
+    const client = await createTestClient({
+      companyName: 'Test Client for Activity Logging',
+      email: 'test-client@test.internal',
+    });
+    testClientId = client.id;
 
-    // Create test lead
-    const leadResult = await db.insert(leads).values({
+    const lead = await createTestLead(testClientId, {
       email: TEST_LEAD.email,
       firstName: TEST_LEAD.firstName,
       lastName: TEST_LEAD.lastName,
       airtableRecordId: TEST_LEAD.airtableRecordId,
-      clientId: testClientId,
-    }).returning({ id: leads.id });
-    testLeadId = leadResult[0].id;
+    });
+    testLeadId = lead.id;
 
     console.log(`Created test lead: ${testLeadId}`);
   });

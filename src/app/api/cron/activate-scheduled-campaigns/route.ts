@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { campaigns, leads } from '@/lib/db/schema';
-import { and, eq, lte, gte, sql, inArray } from 'drizzle-orm';
+import { and, eq, lte, gte, sql } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 import crypto from 'crypto';
+
+type CampaignRecord = typeof campaigns.$inferSelect;
+type TransactionClient = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+interface ActivationResult {
+  campaignId: string;
+  campaignName: string;
+  success: boolean;
+  enrolledCount?: number;
+  error?: string;
+}
 
 /**
  * GET /api/cron/activate-scheduled-campaigns
@@ -97,7 +109,7 @@ export async function GET(request: NextRequest) {
       a.createdAt.getTime() - b.createdAt.getTime()
     );
 
-    const results = [];
+    const results: ActivationResult[] = [];
 
     // Activate each campaign with campaign-level locking
     for (const campaign of sortedCampaigns) {
@@ -105,14 +117,18 @@ export async function GET(request: NextRequest) {
         // BUG #1 FIX: Acquire campaign-level advisory lock to prevent concurrent activation
         // This prevents race conditions when the same campaign is picked up by multiple cron instances
         // BUG #6 FIX: Use dual-key lock for 64-bit keyspace
-        const [campaignLockKey1, campaignLockKey2] = hashToDualKey(`campaign-activation-${campaign.id}`);
+        const [campaignLockKey1, campaignLockKey2] = hashToDualKey(
+          `campaign-activation-${campaign.id}`
+        );
 
-        const activationResult = await db.transaction(async (tx) => {
+        const activationResult = await db.transaction(async (tx: TransactionClient) => {
           const lockResult = await tx.execute(
             sql`SELECT pg_try_advisory_xact_lock(${campaignLockKey1}, ${campaignLockKey2}) as acquired`
           );
 
-          const lockRow = lockResult[0] as any;
+          const lockRow = Array.isArray(lockResult)
+            ? (lockResult[0] as { acquired?: boolean } | undefined)
+            : (lockResult as { rows?: Array<{ acquired?: boolean }> }).rows?.[0];
           if (!lockRow?.acquired) {
             console.warn(`⚠️ [Cron] Campaign ${campaign.id} already being activated by another process`);
             return null; // Skip this campaign
@@ -156,12 +172,7 @@ export async function GET(request: NextRequest) {
 /**
  * Activate a single campaign by enrolling leads
  */
-async function activateCampaign(campaign: any): Promise<{
-  campaignId: string;
-  campaignName: string;
-  success: boolean;
-  enrolledCount: number;
-}> {
+async function activateCampaign(campaign: CampaignRecord): Promise<ActivationResult> {
   return await db.transaction(async (tx) => {
     // SECURITY: Set SERIALIZABLE isolation to prevent phantom reads
     // This ensures no other transaction can modify leads between our
@@ -169,7 +180,7 @@ async function activateCampaign(campaign: any): Promise<{
     await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL SERIALIZABLE`);
 
     // Build lead filtering conditions from campaign
-    const conditions: any[] = [
+    const conditions: SQL[] = [
       eq(leads.clientId, campaign.clientId),
       eq(leads.isActive, true),
       // SECURITY: Array overlap operator for tag matching
@@ -216,7 +227,7 @@ async function activateCampaign(campaign: any): Promise<{
       campaign.clientId,
       campaign.version || 1, // Use default 1 if not set (backward compatibility)
       campaign.name,
-      campaign.messages || [] // AUDIT FIX: Pass messages for count snapshot
+      Array.isArray(campaign.messages) ? campaign.messages : [] // AUDIT FIX: Pass messages for count snapshot
     );
 
     // BUG #8 FIX: Verify actual enrollment count from database
@@ -277,13 +288,13 @@ function isValidUUID(uuid: string): boolean {
  * AUDIT FIX: Now captures message count for version-aware de-enrollment
  */
 async function enrollLeadsWithLocks(
-  tx: any,
+  tx: TransactionClient,
   leadIds: string[],
   campaignId: string,
   clientId: string,
   campaignVersion: number,
   campaignName: string,
-  campaignMessages: any[]
+  campaignMessages: unknown[]
 ): Promise<number> {
   let enrolledCount = 0;
 
@@ -325,7 +336,9 @@ async function enrollLeadsWithLocks(
         sql`SELECT pg_try_advisory_xact_lock(${lockKey1}, ${lockKey2}) as acquired`
       );
 
-      const acquired = lockResult.rows[0]?.acquired;
+      const acquired = Array.isArray(lockResult)
+        ? (lockResult[0] as { acquired?: boolean } | undefined)?.acquired
+        : (lockResult as { rows?: Array<{ acquired?: boolean }> }).rows?.[0]?.acquired;
 
       if (!acquired) {
         console.warn(`⚠️ [Cron] Skipping lead ${leadId} - already being enrolled`);

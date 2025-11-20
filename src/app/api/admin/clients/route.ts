@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
  * Get all clients (ADMIN or SUPER_ADMIN)
  * TDD: Implementation to pass tests
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Authentication
     const session = await auth();

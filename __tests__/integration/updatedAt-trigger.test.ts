@@ -15,9 +15,21 @@
  * @requires DATABASE_URL environment variable
  */
 
+import { randomUUID } from 'crypto';
 import { db } from '../../src/lib/db';
 import { leads, clients } from '../../src/lib/db/schema';
 import { eq } from 'drizzle-orm';
+
+const CLAIM_USER_DEFAULT = randomUUID();
+const CLAIM_USER_STAGE2 = randomUUID();
+const CLAIM_USER_INITIAL = randomUUID();
+const CLAIM_USER_NULL_SYNC = randomUUID();
+const CLAIM_USER_GRACE = randomUUID();
+const CLAIM_USER_ELIGIBLE = randomUUID();
+const CLAIM_USER_TIME = randomUUID();
+const CLAIM_USER_UTC = randomUUID();
+const CLAIM_USER_MULTI = randomUUID();
+const CLAIM_USER_RACE = randomUUID();
 
 describe('updatedAt Trigger Pattern', () => {
   let testClientId: string;
@@ -124,7 +136,7 @@ describe('updatedAt Trigger Pattern', () => {
       await db
         .update(leads)
         .set({
-          claimedBy: 'user-123',
+          claimedBy: CLAIM_USER_DEFAULT,
           claimedAt: new Date(),
           updatedAt: new Date(), // CRITICAL: Triggers Stage 2
         })
@@ -136,7 +148,7 @@ describe('updatedAt Trigger Pattern', () => {
         where: eq(leads.id, testLeadId),
       });
 
-      expect(updatedLead?.claimedBy).toBe('user-123');
+      expect(updatedLead?.claimedBy).toBe(CLAIM_USER_DEFAULT);
       expect(updatedLead?.claimedAt).toBeDefined();
 
       const updatedAtTime = new Date(updatedLead!.updatedAt!).getTime();
@@ -150,7 +162,7 @@ describe('updatedAt Trigger Pattern', () => {
       await db
         .update(leads)
         .set({
-          claimedBy: 'user-456',
+          claimedBy: CLAIM_USER_STAGE2,
           claimedAt: now,
           updatedAt: now,
         })
@@ -174,7 +186,7 @@ describe('updatedAt Trigger Pattern', () => {
       await db
         .update(leads)
         .set({
-          claimedBy: 'user-789',
+          claimedBy: CLAIM_USER_INITIAL,
           claimedAt: new Date(),
           updatedAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
         })
@@ -211,7 +223,7 @@ describe('updatedAt Trigger Pattern', () => {
       await db
         .update(leads)
         .set({
-          claimedBy: 'user-999',
+          claimedBy: CLAIM_USER_NULL_SYNC,
           claimedAt: new Date(),
         })
         .where(eq(leads.id, testLeadId));
@@ -287,7 +299,7 @@ describe('updatedAt Trigger Pattern', () => {
       await db
         .update(leads)
         .set({
-          claimedBy: 'user-grace',
+          claimedBy: CLAIM_USER_GRACE,
           updatedAt: veryRecentTime, // Within 60-second grace period
         })
         .where(eq(leads.id, testLeadId));
@@ -313,7 +325,7 @@ describe('updatedAt Trigger Pattern', () => {
       await db
         .update(leads)
         .set({
-          claimedBy: 'user-eligible',
+          claimedBy: CLAIM_USER_ELIGIBLE,
           updatedAt: outsideGracePeriod,
         })
         .where(eq(leads.id, testLeadId));
@@ -339,7 +351,7 @@ describe('updatedAt Trigger Pattern', () => {
       await db
         .update(leads)
         .set({
-          claimedBy: 'user-time',
+          claimedBy: CLAIM_USER_TIME,
           updatedAt: timestamp1,
         })
         .where(eq(leads.id, testLeadId));
@@ -377,7 +389,7 @@ describe('updatedAt Trigger Pattern', () => {
       await db
         .update(leads)
         .set({
-          claimedBy: 'user-utc',
+          claimedBy: CLAIM_USER_UTC,
           updatedAt: now,
         })
         .where(eq(leads.id, testLeadId));
@@ -399,7 +411,7 @@ describe('updatedAt Trigger Pattern', () => {
       await db
         .update(leads)
         .set({
-          claimedBy: 'user-multi',
+          claimedBy: CLAIM_USER_MULTI,
           claimedAt: new Date(),
           notes: '[2025-11-12] Claimed and noted',
           updatedAt: new Date(), // CRITICAL: Single trigger for all changes
@@ -412,7 +424,7 @@ describe('updatedAt Trigger Pattern', () => {
         where: eq(leads.id, testLeadId),
       });
 
-      expect(updatedLead?.claimedBy).toBe('user-multi');
+      expect(updatedLead?.claimedBy).toBe(CLAIM_USER_MULTI);
       expect(updatedLead?.notes).toContain('Claimed and noted');
 
       const updatedAtTime = new Date(updatedLead!.updatedAt!).getTime();
@@ -429,7 +441,7 @@ describe('updatedAt Trigger Pattern', () => {
       const update1 = db
         .update(leads)
         .set({
-          claimedBy: 'user-race-1',
+          claimedBy: CLAIM_USER_RACE,
           updatedAt: new Date(),
         })
         .where(eq(leads.id, testLeadId));
@@ -453,7 +465,7 @@ describe('updatedAt Trigger Pattern', () => {
       expect(finalLead).toBeDefined();
       // One of the updates should win (last write wins)
       expect(
-        finalLead?.claimedBy === 'user-race-1' || finalLead?.notes === 'Concurrent note'
+        finalLead?.claimedBy === CLAIM_USER_RACE || finalLead?.notes === 'Concurrent note'
       ).toBe(true);
     });
   });

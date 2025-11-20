@@ -4,11 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { theme } from '@/theme';
 import { Edit, Pause, Play, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Eye } from 'lucide-react';
-import {
-  CAMPAIGN_TYPE_DB_TO_UI,
-  VALID_TYPE_FILTERS,
-  VALID_STATUS_FILTERS,
-} from '@/lib/constants/campaigns';
+import { CAMPAIGN_TYPE_DB_TO_UI } from '@/lib/constants/campaigns';
 
 interface Campaign {
   id: string;

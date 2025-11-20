@@ -32,7 +32,7 @@ interface CampaignFormProps {
   clientId: string;
   onClose: () => void;
   onSuccess: () => void;
-  initialCampaignType?: 'Webinar' | 'Standard';
+  initialCampaignType?: Campaign['campaignType'];
 }
 
 export default function CampaignForm({
@@ -40,13 +40,13 @@ export default function CampaignForm({
   clientId,
   onClose,
   onSuccess,
-  initialCampaignType = 'Standard',
+  initialCampaignType = 'Webinar',
 }: CampaignFormProps) {
   const isEditing = Boolean(campaign?.id);
 
   const [formData, setFormData] = useState<Campaign>({
     name: campaign?.name || '',
-    campaignType: 'Webinar', // Always webinar
+    campaignType: campaign?.campaignType || initialCampaignType,
     formId: campaign?.formId || '',
     isPaused: campaign?.isPaused ?? false,
     webinarDatetime: campaign?.webinarDatetime || null,
@@ -259,15 +259,6 @@ export default function CampaignForm({
       const message = messages[index];
 
       // Build context for AI
-      const webinarContext = {
-        campaignName: formData.name || 'Webinar',
-        webinarDatetime: formData.webinarDatetime,
-        zoomLink: formData.zoomLink,
-        resourceLink: formData.resourceLink,
-        resourceName: formData.resourceName,
-        stage: message.stage,
-      };
-
       // Create stage-specific prompt - map to valid messageGoal enum values
       let messageGoal: 'book_call' | 'provide_value' | 'nurture' | 'follow_up' = 'provide_value';
       let stageInstructions = '';
@@ -329,11 +320,12 @@ export default function CampaignForm({
           [`ai_${index}`]: `Failed to generate: ${data.error || 'Unknown error'}`,
         }));
       }
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to generate';
       console.error('Error generating message:', error);
       setErrors((prev) => ({
         ...prev,
-        [`ai_${index}`]: `Network error: ${error.message || 'Failed to generate'}`,
+        [`ai_${index}`]: `Network error: ${message}`,
       }));
     } finally {
       setGeneratingMessage(null);
@@ -383,15 +375,16 @@ export default function CampaignForm({
       }
 
       onSuccess();
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to save campaign';
       console.error('Error saving campaign:', error);
-      setSubmitError(error.message || 'Failed to save campaign');
+      setSubmitError(message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleChange = (field: keyof Campaign, value: any) => {
+  const handleChange = (field: keyof Campaign, value: Campaign[keyof Campaign]) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,

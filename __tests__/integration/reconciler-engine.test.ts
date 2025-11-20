@@ -16,7 +16,11 @@
  * @requires DATABASE_URL environment variable
  */
 
+import { randomUUID } from 'crypto';
 import { reconcileRecentChanges } from '../../scripts/reconcile-recent-changes';
+const RECON_STAGE2_CLAIMED_USER = randomUUID();
+const RECON_STAGE2_GRACE_USER = randomUUID();
+const RECON_STAGE2_ERROR_USER = randomUUID();
 import { db } from '../../src/lib/db';
 import { leads, clients } from '../../src/lib/db/schema';
 import { getAirtableClient } from '../../src/lib/airtable/client';
@@ -261,7 +265,7 @@ describe('Bi-Directional Reconciliation Engine', () => {
         firstName: 'Jane',
         lastName: 'Smith',
         email: 'test-reconciler@example.com',
-        claimedBy: 'user-123',
+        claimedBy: RECON_STAGE2_CLAIMED_USER,
         claimedAt: recentTime,
         isActive: true,
         createdAt: new Date(),
@@ -278,7 +282,7 @@ describe('Bi-Directional Reconciliation Engine', () => {
         'Leads',
         'recStage2Test',
         expect.objectContaining({
-          'Claimed By': 'user-123',
+          'Claimed By': RECON_STAGE2_CLAIMED_USER,
           'Claimed At': expect.any(String),
         })
       );
@@ -326,7 +330,7 @@ describe('Bi-Directional Reconciliation Engine', () => {
         firstName: 'Grace',
         lastName: 'Period',
         email: 'test-reconciler@example.com',
-        claimedBy: 'user-456',
+        claimedBy: RECON_STAGE2_GRACE_USER,
         isActive: true,
         createdAt: new Date(),
         updatedAt: veryRecentTime, // Within 60-second grace period
@@ -356,7 +360,7 @@ describe('Bi-Directional Reconciliation Engine', () => {
         firstName: 'Error',
         lastName: 'Test',
         email: 'test-reconciler@example.com',
-        claimedBy: 'user-789',
+        claimedBy: RECON_STAGE2_ERROR_USER,
         isActive: true,
         createdAt: new Date(),
         updatedAt: recentTime,

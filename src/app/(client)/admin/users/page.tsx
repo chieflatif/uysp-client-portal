@@ -17,7 +17,7 @@ import {
   UserX,
   Key,
 } from 'lucide-react';
-import { canManageUsers, isSuperAdmin, getRoleBadgeColor, getRoleName } from '@/lib/auth/permissions-client';
+import { canManageUsers, isSuperAdmin } from '@/lib/auth/permissions-client';
 
 interface User {
   id: string;
@@ -26,10 +26,16 @@ interface User {
   lastName: string | null;
   role: string;
   clientId: string | null;
+  clientOrganization?: string | null;
   isActive: boolean;
   mustChangePassword: boolean;
   lastLoginAt: Date | null;
   createdAt: Date;
+}
+
+interface UsersApiResponse {
+  users?: User[];
+  error?: string;
 }
 
 export default function UsersPage() {
@@ -61,14 +67,15 @@ export default function UsersPage() {
     try {
       setLoading(true);
       const response = await fetch('/api/admin/users');
-      const data = await response.json();
+      const data: UsersApiResponse = await response.json();
 
       if (response.ok) {
-        setUsers(data.users);
+        setUsers(Array.isArray(data.users) ? data.users : []);
       } else {
         setError(data.error || 'Failed to load users');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to load users', error);
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -96,7 +103,8 @@ export default function UsersPage() {
       } else {
         alert(data.error || 'Failed to deactivate user');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to deactivate user', error);
       alert('An unexpected error occurred');
     }
   };
@@ -115,7 +123,8 @@ export default function UsersPage() {
       } else {
         alert(data.error || 'Failed to delete user');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to delete user', error);
       alert('An unexpected error occurred');
     }
   };
@@ -146,7 +155,8 @@ export default function UsersPage() {
       } else {
         alert(data.error || 'Failed to reset password');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to reset password', error);
       alert('An unexpected error occurred');
     } finally {
       setResettingPassword(false);
@@ -262,7 +272,7 @@ export default function UsersPage() {
                     <td className="py-4 px-6 text-gray-300">{user.email}</td>
                     {isSuperAdmin(session?.user?.role || '') && (
                       <td className="py-4 px-6 text-gray-300">
-                        {(user as any).clientOrganization || 'N/A'}
+                        {user.clientOrganization ?? 'N/A'}
                       </td>
                     )}
                     <td className="py-4 px-6">
@@ -463,7 +473,8 @@ function AddUserModal({
       } else {
         setError(data.error || 'Failed to create user');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to create user', error);
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -742,7 +753,7 @@ function DeleteConfirmModal({
             <div className="mt-2 text-sm">
               <p className="text-yellow-400 font-medium">This will temporarily:</p>
               <ul className="list-disc list-inside text-gray-400 mt-1 space-y-1">
-                <li>Revoke user's access</li>
+                <li>Revoke user&rsquo;s access</li>
                 <li>Keep user data intact</li>
                 <li>Can be reactivated later</li>
               </ul>

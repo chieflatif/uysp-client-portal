@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { clients, leads, campaigns } from '@/lib/db/schema';
+import { clients as clientsTable, leads, campaigns } from '@/lib/db/schema';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
 
 /**
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       // Default to UYSP if no client specified
       if (!clientId) {
         const uyspClient = await db.query.clients.findFirst({
-          where: (clients, { eq }) => eq(clients.companyName, 'UYSP'),
+          where: () => eq(clientsTable.companyName, 'UYSP'),
         });
         if (uyspClient) clientId = uyspClient.id;
       }

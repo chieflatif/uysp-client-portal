@@ -84,8 +84,9 @@ export default function TaskDetailPage() {
           notes: foundTask.notes || '',
           dependencies: foundTask.dependencies || '',
         });
-      } catch (err: any) {
-        setError(err.message || 'Failed to load task');
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load task';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -116,8 +117,9 @@ export default function TaskDetailPage() {
       const data = await response.json();
       setTask(data.task);
       setSuccess('Task updated successfully and synced to Airtable!');
-    } catch (err: any) {
-      setError(err.message || 'Failed to save task');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save task';
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
