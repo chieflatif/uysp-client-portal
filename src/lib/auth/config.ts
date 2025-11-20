@@ -112,7 +112,17 @@ export const authOptions: NextAuthOptions = {
             mustChangePassword: user.mustChangePassword || false,
           };
         } catch (error) {
-          console.error('Auth error:', error instanceof Error ? error.message : 'Unknown error');
+          if (error instanceof Error) {
+            console.error('Auth error:', error.message);
+            if (error.cause) {
+              console.error('Auth error cause:', error.cause);
+            }
+            if (error.stack) {
+              console.error('Auth error stack:', error.stack);
+            }
+          } else {
+            console.error('Auth error: Unknown error object', error);
+          }
           throw error;
         }
       },
