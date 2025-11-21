@@ -132,7 +132,7 @@ export async function GET(
               matchesEligibility = lead.whatsappEligible;
               break;
             case 'archived':
-              matchesEligibility = lead.isArchived || lead.smsStop;
+              matchesEligibility = !!(lead.isArchived || lead.smsStop);
               break;
             default:
               matchesEligibility = true;
