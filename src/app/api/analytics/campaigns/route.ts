@@ -147,8 +147,8 @@ export async function GET(request: NextRequest) {
         completed: campaignLeads.filter(l => l.processingStatus === 'Completed').length,
       };
 
-      // Conversions
-      const booked = campaignLeads.filter(l => l.booked === true).length;
+      // Conversions (only count leads that were actually messaged)
+      const booked = campaignLeads.filter(l => l.booked === true && (l.smsSentCount || 0) > 0).length;
       const optedOut = campaignLeads.filter(l => l.smsStop === true).length;
       const replied = 0; // Will need to implement reply tracking
 

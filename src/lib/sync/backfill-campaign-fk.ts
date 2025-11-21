@@ -221,7 +221,7 @@ export async function updateAllCampaignAggregates(): Promise<{ updated: number; 
             activeLeadsCount: sql<number>`COUNT(CASE WHEN ${leads.completedAt} IS NULL AND ${leads.smsStop} = false THEN 1 END)::int`,
             completedLeadsCount: sql<number>`COUNT(CASE WHEN ${leads.completedAt} IS NOT NULL THEN 1 END)::int`,
             optedOutCount: sql<number>`COUNT(CASE WHEN ${leads.smsStop} = true THEN 1 END)::int`,
-            bookedCount: sql<number>`COUNT(CASE WHEN ${leads.booked} = true THEN 1 END)::int`,
+            bookedCount: sql<number>`COUNT(CASE WHEN ${leads.booked} = true AND ${leads.smsSentCount} > 0 THEN 1 END)::int`,
             messagesSent: sql<number>`COALESCE(SUM(${leads.smsSentCount}), 0)::int`,
           })
           .from(leads)

@@ -53,6 +53,7 @@ interface LeadRecord {
   campaignName?: string | null;
   leadSource?: string | null;
   formId?: string | null;
+  smsSentCount?: number | null;
 }
 
 interface LeadsApiResponse {
@@ -123,7 +124,7 @@ export default function DashboardPage() {
         // Calculate stats
         const highIcp = leads.filter((lead) => lead.icpScore >= 70).length;
         const claimed = leads.filter((lead) => Boolean(lead.claimedBy)).length;
-        const booked = leads.filter((lead) => lead.booked === true).length;
+        const booked = leads.filter((lead) => lead.booked === true && (lead.smsSentCount || 0) > 0).length;
         const clicked = leads.filter((lead) => lead.clickedLink === true).length;
 
         setStats({

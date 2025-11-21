@@ -159,9 +159,9 @@ export async function GET(request: NextRequest) {
       .filter(l => l.smsLastSentAt && l.smsLastSentAt >= (startDate || new Date(0)))
       .reduce((sum, l) => sum + (l.smsSentCount || 0), 0);
 
-    const totalBooked = allLeads.filter(l => l.booked === true).length;
+    const totalBooked = allLeads.filter(l => l.booked === true && (l.smsSentCount || 0) > 0).length;
     const bookedThisPeriod = periodLeads.filter(l => 
-      l.booked === true && l.bookedAt && l.bookedAt >= (startDate || new Date(0))
+      l.booked === true && (l.smsSentCount || 0) > 0 && l.bookedAt && l.bookedAt >= (startDate || new Date(0))
     ).length;
 
     const totalOptedOut = allLeads.filter(l => l.smsStop === true).length;
@@ -195,7 +195,7 @@ export async function GET(request: NextRequest) {
       }
       const stats = campaignPerformance.get(campaign)!;
       stats.total++;
-      if (lead.booked) stats.booked++;
+      if (lead.booked && (lead.smsSentCount || 0) > 0) stats.booked++;
     }
 
     // FIX: Exclude "Unassigned" from top performers since it's not a real campaign

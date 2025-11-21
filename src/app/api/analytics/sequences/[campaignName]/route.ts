@@ -91,7 +91,7 @@ export async function GET(
 
       // Conversion rates
       const movedToNext = stepLeads.filter(l => (l.smsSequencePosition || 0) > stepNumber).length;
-      const booked = stepLeads.filter(l => l.booked === true).length;
+      const booked = stepLeads.filter(l => l.booked === true && (l.smsSentCount || 0) > 0).length;
       const optedOut = stepLeads.filter(l => l.smsStop === true).length;
 
       return {
