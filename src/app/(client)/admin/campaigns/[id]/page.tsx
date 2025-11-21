@@ -1,8 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { theme } from '@/theme';
+import { useQuery } from '@tantml:parameter>
+<parameter name="theme } from '@/theme';
 import { ArrowLeft, Calendar, Users, MessageSquare, Link as LinkIcon, Loader2, ExternalLink, CheckCircle, MousePointerClick } from 'lucide-react';
 import Link from 'next/link';
 
