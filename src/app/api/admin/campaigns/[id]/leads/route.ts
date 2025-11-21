@@ -55,13 +55,30 @@ export async function GET(
       );
     }
 
-    // Fetch leads associated with this campaign
-    // Match by:
-    // 1. campaignName = campaign.id (direct association)
-    // 2. leadSource = campaign.name (legacy/fallback)
-    // 3. formId = campaign.formId (form-based matching)
-    const campaignLeads = await db
-      .select()
+    const searchParams = request.nextUrl.searchParams;
+    const statusFilter = searchParams.get('status');
+    const eligibilityFilter = searchParams.get('eligibility');
+
+    const rawLeads = await db
+      .select({
+        id: leads.id,
+        firstName: leads.firstName,
+        lastName: leads.lastName,
+        email: leads.email,
+        phone: leads.phone,
+        company: leads.company,
+        jobTitle: leads.title,
+        leadSource: leads.leadSource,
+        engagementLevel: leads.engagementLevel,
+        createdAt: leads.createdAt,
+        enrolledAt: leads.enrolledAt,
+        icpScore: leads.icpScore,
+        smsSequencePosition: leads.smsSequencePosition,
+        smsEligible: leads.smsEligible,
+        processingStatus: leads.processingStatus,
+        smsStop: leads.smsStop,
+        smsStopReason: leads.smsStopReason,
+      })
       .from(leads)
       .where(
         and(
@@ -76,7 +93,84 @@ export async function GET(
       )
       .orderBy(sql`${leads.createdAt} DESC`);
 
-    return NextResponse.json(campaignLeads);
+    const normalizeStatus = (status?: string | null) => {
+      const trimmed = status?.trim();
+      return trimmed && trimmed.length > 0 ? trimmed : 'Unknown';
+    };
+
+    const ARCHIVED_STATUSES = new Set(['complete', 'completed', 'archived']);
+
+    const enrichedLeads = rawLeads.map((lead) => {
+      const processingStatus = normalizeStatus(lead.processingStatus);
+      const isArchived = ARCHIVED_STATUSES.has(processingStatus.toLowerCase());
+      const whatsappEligible =
+        !lead.smsEligible && Boolean(lead.phone) && !isArchived && !lead.smsStop;
+
+      return {
+        ...lead,
+        processingStatus,
+        isArchived,
+        whatsappEligible,
+        smsEligible: Boolean(lead.smsEligible),
+        enrolledAt: lead.enrolledAt ?? lead.createdAt,
+      };
+    });
+
+    const filteredLeads = enrichedLeads.filter((lead) => {
+      let matchesStatus = true;
+      if (statusFilter && statusFilter.toLowerCase() !== 'all') {
+        matchesStatus = lead.processingStatus.toLowerCase() === statusFilter.toLowerCase();
+      }
+
+      let matchesEligibility = true;
+      if (eligibilityFilter) {
+          switch (eligibilityFilter.toLowerCase()) {
+            case 'sms':
+              matchesEligibility = lead.smsEligible && !lead.isArchived && !lead.smsStop;
+              break;
+            case 'whatsapp':
+              matchesEligibility = lead.whatsappEligible;
+              break;
+            case 'archived':
+              matchesEligibility = lead.isArchived || lead.smsStop;
+              break;
+            default:
+              matchesEligibility = true;
+          }
+      }
+
+      return matchesStatus && matchesEligibility;
+    });
+
+    const statusCounts = enrichedLeads.reduce<Record<string, number>>((acc, lead) => {
+      const key = lead.processingStatus || 'Unknown';
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    const eligibilityCounts = enrichedLeads.reduce(
+      (acc, lead) => {
+        if (lead.smsEligible && !lead.isArchived && !lead.smsStop) {
+          acc.sms += 1;
+        } else if (lead.whatsappEligible) {
+          acc.whatsapp += 1;
+        } else if (lead.isArchived || lead.smsStop) {
+          acc.archived += 1;
+        }
+        return acc;
+      },
+      { sms: 0, whatsapp: 0, archived: 0 }
+    );
+
+    return NextResponse.json({
+      leads: filteredLeads,
+      summary: {
+        total: enrichedLeads.length,
+        filtered: filteredLeads.length,
+        statusCounts,
+        eligibilityCounts,
+      },
+    });
   } catch (error) {
     console.error('Error fetching campaign leads:', error);
     return NextResponse.json(

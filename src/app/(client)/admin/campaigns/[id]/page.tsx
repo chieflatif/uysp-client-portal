@@ -38,20 +38,41 @@ interface Lead {
   company?: string;
   jobTitle?: string;
   leadSource?: string;
-  engagementTier?: string;
-  kajabi_tags?: string[];
-  createdAt: string;
-  // Phase 1.5: Additional fields for leads table
-  icpScore?: number;
   engagementLevel?: string;
+  createdAt: string;
+  icpScore?: number;
   enrolledAt?: string;
   smsSequencePosition?: number;
+  processingStatus?: string;
+  smsEligible: boolean;
+  whatsappEligible: boolean;
+  isArchived: boolean;
+  smsStop?: boolean;
+  smsStopReason?: string;
+}
+
+interface LeadsSummary {
+  total: number;
+  filtered: number;
+  statusCounts: Record<string, number>;
+  eligibilityCounts: {
+    sms: number;
+    whatsapp: number;
+    archived: number;
+  };
+}
+
+interface LeadsResponse {
+  leads: Lead[];
+  summary: LeadsSummary;
 }
 
 export default function CampaignDetailPage() {
   const params = useParams();
   const router = useRouter();
   const campaignId = params?.id as string;
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Ready for SMS' | 'Queued' | 'Stopped' | 'Complete'>('All');
+  const [eligibilityFilter, setEligibilityFilter] = useState<'All' | 'SMS' | 'WhatsApp' | 'Archived'>('All');
 
   // Fetch campaign details
   const { data: campaign, isLoading: loadingCampaign } = useQuery({
@@ -63,15 +84,25 @@ export default function CampaignDetailPage() {
     },
   });
 
-  // Fetch leads for this campaign
-  const { data: leads, isLoading: loadingLeads } = useQuery({
-    queryKey: ['campaign-leads', campaignId],
+  const { data: leadsResponse, isLoading: loadingLeads } = useQuery({
+    queryKey: ['campaign-leads', campaignId, statusFilter, eligibilityFilter],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/campaigns/${campaignId}/leads`);
+      const params = new URLSearchParams();
+      if (statusFilter !== 'All') {
+        params.set('status', statusFilter);
+      }
+      if (eligibilityFilter !== 'All') {
+        params.set('eligibility', eligibilityFilter.toLowerCase());
+      }
+      const query = params.toString();
+      const res = await fetch(`/api/admin/campaigns/${campaignId}/leads${query ? `?${query}` : ''}`);
       if (!res.ok) throw new Error('Failed to fetch leads');
-      return res.json() as Promise<Lead[]>;
+      return res.json() as Promise<LeadsResponse>;
     },
   });
+
+  const leads = leadsResponse?.leads ?? [];
+  const leadSummary = leadsResponse?.summary;
 
   if (loadingCampaign) {
     return (
@@ -302,19 +333,85 @@ export default function CampaignDetailPage() {
           </div>
         </div>
 
-        {/* Leads Table */}
         <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-          <div className="p-6 border-b border-gray-700">
-            <h2 className={`text-xl font-bold ${theme.core.white}`}>
-              Campaign Leads ({loadingLeads ? '...' : leads?.length || 0})
-            </h2>
+          <div className="p-6 border-b border-gray-700 space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <h2 className={`text-xl font-bold ${theme.core.white}`}>
+                Campaign Leads ({loadingLeads ? '...' : leadSummary?.filtered ?? leads.length})
+              </h2>
+              {leadSummary && (
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <span className={`${theme.core.bodyText}`}>
+                    Total: <strong className={theme.core.white}>{leadSummary.total}</strong>
+                  </span>
+                  <span className={`${theme.core.bodyText}`}>
+                    SMS Eligible: <strong className="text-green-400">{leadSummary.eligibilityCounts.sms}</strong>
+                  </span>
+                  <span className={`${theme.core.bodyText}`}>
+                    WhatsApp Eligible: <strong className="text-cyan-400">{leadSummary.eligibilityCounts.whatsapp}</strong>
+                  </span>
+                  <span className={`${theme.core.bodyText}`}>
+                    Archived / Stopped: <strong className="text-gray-400">{leadSummary.eligibilityCounts.archived}</strong>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`text-xs font-semibold uppercase tracking-wide ${theme.accents.tertiary.class}`}>
+                  Status:
+                </span>
+                {(['All', 'Ready for SMS', 'Queued', 'Stopped', 'Complete'] as const).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+                      statusFilter === status
+                        ? 'bg-cyan-600 text-white'
+                        : 'bg-gray-900 text-gray-300 hover:bg-gray-700'
+                    }`}
+                  >
+                    {status}
+                    {status !== 'All' && leadSummary?.statusCounts[status] !== undefined && (
+                      <span className="ml-1 text-gray-300">({leadSummary.statusCounts[status]})</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`text-xs font-semibold uppercase tracking-wide ${theme.accents.tertiary.class}`}>
+                  Eligibility:
+                </span>
+                {(['All', 'SMS', 'WhatsApp', 'Archived'] as const).map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => setEligibilityFilter(option)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+                      eligibilityFilter === option
+                        ? option === 'Archived'
+                          ? 'bg-gray-600 text-white'
+                          : option === 'WhatsApp'
+                          ? 'bg-cyan-600 text-white'
+                          : option === 'SMS'
+                          ? 'bg-green-600 text-white'
+                          : `${theme.accents.tertiary.bgClass} text-gray-900`
+                        : 'bg-gray-900 text-gray-300 hover:bg-gray-700'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {loadingLeads ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
             </div>
-          ) : leads && leads.length > 0 ? (
+          ) : leads.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-900 border-b border-gray-700">
@@ -395,13 +492,38 @@ export default function CampaignDetailPage() {
                         {lead.enrolledAt ? formatDate(lead.enrolledAt) : '—'}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          lead.smsSequencePosition === 0 || !lead.smsSequencePosition
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'bg-yellow-500/20 text-yellow-400'
-                        }`}>
-                          {lead.smsSequencePosition === 0 || !lead.smsSequencePosition ? 'Completed' : 'Active'}
-                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              lead.isArchived
+                                ? 'bg-gray-600 text-gray-200'
+                                : lead.processingStatus === 'Ready for SMS'
+                                ? 'bg-purple-500/20 text-purple-300'
+                                : lead.processingStatus === 'Queued'
+                                ? 'bg-yellow-500/20 text-yellow-400'
+                                : lead.processingStatus === 'Stopped'
+                                ? 'bg-red-500/20 text-red-400'
+                                : 'bg-green-500/20 text-green-400'
+                            }`}
+                          >
+                            {lead.processingStatus || 'Unknown'}
+                          </span>
+                          {lead.smsEligible && !lead.isArchived && (
+                            <span className="px-3 py-1 rounded-full text-xs bg-green-600/20 text-green-300">
+                              SMS
+                            </span>
+                          )}
+                          {lead.whatsappEligible && (
+                            <span className="px-3 py-1 rounded-full text-xs bg-cyan-600/20 text-cyan-300">
+                              WhatsApp
+                            </span>
+                          )}
+                          {(lead.isArchived || lead.smsStop) && (
+                            <span className="px-3 py-1 rounded-full text-xs bg-gray-500/20 text-gray-300">
+                              Archived
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-3 py-1 bg-gray-900 rounded-full text-xs text-cyan-400">
